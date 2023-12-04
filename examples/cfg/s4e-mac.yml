@@ -1,0 +1,9 @@
+---
+extensions:
+  s4e-mac:
+    feature: s4emac
+    arch: xcvmac
+    version: "1.0"
+    experimental: true
+    vendor: true
+    # patches: []

@@ -1,0 +1,9 @@
+---
+extensions:
+  XCoreVMac:
+    feature: XCVMac
+    arch: xcvmac
+    version: "1.0"
+    experimental: false
+    vendor: true
+    # patches: []

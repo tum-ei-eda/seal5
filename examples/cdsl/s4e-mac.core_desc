@@ -1,0 +1,73 @@
+import "CoreDSL-Instruction-Set-Description/RISCVBase.core_desc"
+
+InstructionSet X_S4E_MAC extends RISCVBase {
+  architectural_state {
+    register unsigned<64> ACC;
+  }
+
+  instructions {
+    RESET_ACC { // v-- funct7       v-- funct3
+      encoding: 7'd0 :: 10'b0 :: 3'd0 :: 5'b0 :: 7'b0001011;
+      assembly:"";
+      behavior: ACC = 0;
+    }
+    
+    GET_ACC_LO {
+      encoding: 7'd1 :: 10'b0 :: 3'd0 :: rd[4:0] :: 7'b0001011;
+      assembly:"{name(rd)}";
+      behavior: if (rd != 0) X[rd] = ACC[31:0];
+    }
+    
+    GET_ACC_HI {
+      encoding: 7'd2 :: 10'b0 :: 3'd0 :: rd[4:0] :: 7'b0001011;
+      assembly:"{name(rd)}";
+      behavior: if (rd != 0) X[rd] = ACC[63:32];
+    }
+    
+    MACU_32 {
+      encoding: 7'd0 :: rs2[4:0] :: rs1[4:0] :: 3'd1 :: 5'b0 :: 7'b0001011;
+      assembly:"{name(rs1)}, {name(rs2)}";
+      behavior: {
+        unsigned<64> mul = X[rs1]    * X[rs2];
+        unsigned<33> add = mul[31:0] + ACC[31:0];
+        ACC = add[31:0];
+      }
+    }
+    
+    MACS_32 {
+      encoding: 7'd1 :: rs2[4:0] :: rs1[4:0] :: 3'd1 :: 5'b0 :: 7'b0001011;
+      assembly:"{name(rs1)}, {name(rs2)}";
+      behavior: {
+        signed<64> mul = ((signed) X[rs1])    * ((signed) X[rs2]);
+        signed<33> add = ((signed) mul[31:0]) + ((signed) ACC[31:0]);
+        ACC = add[31:0]; // bit range always yields unsigned type
+      }
+    }
+    
+    MACU_64 {
+      encoding: 7'd0 :: rs2[4:0] :: rs1[4:0] :: 3'd2 :: 5'b0 :: 7'b0001011;
+      assembly:"{name(rs1)}, {name(rs2)}";
+      behavior: {
+        unsigned<64> mul = X[rs1] * X[rs2];
+        unsigned<65> add = mul    + ACC;
+        ACC = add[63:0];
+      }
+    }
+    
+    MACS_64 {
+      encoding: 7'd1 :: rs2[4:0] :: rs1[4:0] :: 3'd2 :: 5'b0 :: 7'b0001011;
+      assembly:"{name(rs1)}, {name(rs2)}";
+      behavior: {
+        signed<64> mul = ((signed) X[rs1]) * ((signed) X[rs2]);
+        signed<65> add =           mul     + ((signed) ACC);
+        ACC = add[63:0];
+      }
+    }
+  }
+}
+
+Core X_S4E_MAC provides X_S4E_MAC {
+  architectural_state {
+    register unsigned<64> dummy;
+  }
+}
