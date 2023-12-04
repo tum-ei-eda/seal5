@@ -26,7 +26,6 @@ class Dependency:
 
 
 class GitDependency(Dependency):
-
     def __init__(self, name: str, clone_url: str, ref: Optional[str] = None, recursive: bool = False):
         self.name: str = name
         self.clone_url: str = clone_url
@@ -35,13 +34,11 @@ class GitDependency(Dependency):
 
 
 class M2ISARDependency(GitDependency):
-
     def __init__(self, clone_url="TODO", ref="seal5"):
         super("m2isar", clone_url, ref=ref)
 
 
 class CDSL2LLVMDependency(GitDependency):
-
     def __init__(self, clone_url="TODO", ref="seal5"):
         super("cdsl2llvm", clone_url, ref=ref)
 

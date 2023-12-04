@@ -28,7 +28,6 @@ class Seal5State(Enum):
     INITIALIZED = auto()
 
 
-
 def handle_directory(directory: Optional[Path]):
     # TODO: handle environment vars
     if directory is None:
@@ -39,7 +38,6 @@ def handle_directory(directory: Optional[Path]):
 
 
 class Seal5Flow:
-
     def __init__(self, directory: Optional[Path] = None, name: str = "default"):
         self.directory: Path = directory
         self.name: str = name
@@ -49,5 +47,12 @@ class Seal5Flow:
     def check(self):
         pass
 
-    def initialize(self, interactive: bool = False, clone: bool = False, clone_url: Optional[str] = None, clone_ref: Optional[str] = None, force: bool = False):
+    def initialize(
+        self,
+        interactive: bool = False,
+        clone: bool = False,
+        clone_url: Optional[str] = None,
+        clone_ref: Optional[str] = None,
+        force: bool = False,
+    ):
         raise NotImplementedError
