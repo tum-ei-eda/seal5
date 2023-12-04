@@ -1,0 +1,2 @@
+-r requirements.txt
+black>=22.8.0
