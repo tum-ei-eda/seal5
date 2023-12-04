@@ -17,33 +17,36 @@
 # limitations under the License.
 #
 """Demo script for Seal5 Python API."""
+import os
+from pathlib import Path
+
 from seal5.flow import Seal5Flow
 
-EXAMPLES_DIR = None
+EXAMPLES_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
 
 seal5_flow = Seal5Flow("/tmp/seal5_llvm_demo", "demo")
 
 # Clone LLVM and init seal5 metadata directory
 seal5_flow.initialize(
     clone=True,
-    clone_url="TODO",
-    clone_ref="TODO",
+    clone_url="https://github.com/llvm/llvm-project.git",
+    clone_ref="llvmorg-17.0.6",
     force=True,
 )
 
 # Clone Seal5 dependencies
 # 1. M2-ISA-R (frontend only)
 # 2. CDSL2LLVM (later)
-seal5_flow.setup()
+seal5_flow.setup(force=True)
 
 # Load CoreDSL inputs
 # XCVMac.core_desc
-seal5_flow.load()
+cdsl_files = [EXAMPLES_DIR / "csdl" / "XCVMac.core_desc"]
+seal5_flow.load(cdsl_files)
 
 # Load YAML inputs
-# XCVMac.yml
-# llvm.yml
-seal5_flow.load()
+cfg_files = [EXAMPLES_DIR / "cfg" / "XCVMac.yml", EXAMPLES_DIR / "cfg" / "llvm.yml"]
+seal5_flow.load(cfg_files)
 
 # Build initial LLVM
 seal5_flow.build()

@@ -19,6 +19,14 @@
 """Seal5 dependencies."""
 
 from typing import Optional
+from pathlib import Path
+
+import git
+
+from seal5.logging import get_logger
+from seal5.utils import is_populated
+
+logger = get_logger()
 
 
 class Dependency:
@@ -32,15 +40,31 @@ class GitDependency(Dependency):
         self.ref: Optional[str] = ref
         self.recursive: bool = recursive
 
+    def clone(self, dest: Path, overwrite: bool = False):
+        if is_populated(dest):
+            logger.debug("Updating repository: %s", dest)
+            repo = git.Repo(dest)
+            repo.remotes.origin.set_url(self.clone_url)
+            repo.remotes.origin.fetch()
+            repo.git.checkout(self.ref)
+            repo.git.pull("origin", self.ref)
+            return
+        logger.debug("Cloning repository: %s", self.clone_url)
+        repo = git.Repo.clone_from(self.clone_url, dest, recursive=self.recursive, no_checkout=self.ref is not None)
+        if self.ref:
+            logger.debug("Checking out: %s", self.ref)
+            repo.git.checkout(self.ref)
+
 
 class M2ISARDependency(GitDependency):
-    def __init__(self, clone_url="TODO", ref="seal5"):
-        super("m2isar", clone_url, ref=ref)
+    # def __init__(self, clone_url="https://github.com/tum-ei-eda/M2-ISA-R.git", ref="seal5"):
+    def __init__(self, clone_url="https://github.com/tum-ei-eda/M2-ISA-R.git", ref="coredsl_exceptions"):
+        super().__init__("m2isar", clone_url, ref=ref)
 
 
 class CDSL2LLVMDependency(GitDependency):
     def __init__(self, clone_url="TODO", ref="seal5"):
-        super("cdsl2llvm", clone_url, ref=ref)
+        super().__init__("cdsl2llvm", clone_url, ref=ref)
 
 
 m2isar_dependency = M2ISARDependency()

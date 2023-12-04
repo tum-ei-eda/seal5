@@ -23,7 +23,8 @@ import logging.handlers
 import sys
 
 logging.basicConfig(
-    level=logging.INFO,
+    # level=logging.INFO,
+    level=logging.DEBUG,
     format="[%(asctime)s]::%(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
