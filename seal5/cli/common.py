@@ -24,28 +24,15 @@ logger = get_logger()
 
 
 def handle_logging_flags(args):
-    # TODO: --log LEVEL
-    if hasattr(args, "verbose") and hasattr(args, "quiet"):
-        if args.verbose and args.quiet:
-            raise RuntimeError("--verbose and --quiet can not be used at the same time")
-        elif args.verbose:
-            set_log_level(logging.DEBUG)
-        elif args.quiet:
-            set_log_level(logging.WARNING)
-        else:
-            set_log_level(logging.INFO)
+    level = args.log.upper()
+    set_log_level(level)
 
 
 def add_common_options(parser):
+    parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument(
         "-v",
         "--verbose",
         action="store_true",
-        help="Print detailed messages for easier debugging (default: %(default)s)",
-    )
-    parser.add_argument(
-        "-q",
-        "--quiet",
-        action="store_true",
-        help="Reduce number of logging statements to a minimum (default: %(default)s)",
+        help="Print tool outputs for easier debugging (default: %(default)s)",
     )

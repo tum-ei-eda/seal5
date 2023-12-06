@@ -20,7 +20,7 @@ llvm:
       options:
         CMAKE_BUILD_TYPE: Debug
         LLVM_BUILD_TOOLS: true
-        LLVM_ENABLE_ASSERTIONS: false
+        LLVM_ENABLE_ASSERTIONS: true
         LLVM_OPTIMIZED_TABLEGEN: true
         LLVM_ENABLE_PROJECTS: [clang, lld]
         LLVM_TARGETS_TO_BUILD: [X86, RISCV]

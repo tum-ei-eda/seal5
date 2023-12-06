@@ -23,8 +23,7 @@ import logging.handlers
 import sys
 
 logging.basicConfig(
-    # level=logging.INFO,
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="[%(asctime)s]::%(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
@@ -45,24 +44,30 @@ def get_formatter(minimal=False):
 def get_logger():
     """Helper function which return the main seal5 logger while ensuring that is is properly initialized."""
     global initialized
+    # root_logger = logging.getLogger()
+    # root_logger.setLevel(logging.DEBUG)
+    # root_logger.setLevel(logging.INFO)
     logger = logging.getLogger("seal5")
+    logger.setLevel(logging.DEBUG)
     if len(logger.handlers) == 0:
         stream_handler = logging.StreamHandler(sys.stdout)
         stream_handler.setFormatter(get_formatter(minimal=True))
-        # stream_handler.setLevel(?)
+        # stream_handler.setLevel(logging.DEBUG)
         logger.addHandler(stream_handler)
         logger.propagate = False
         initialized = True
     return logger
 
 
-def set_log_level(level):
+def set_log_level(console_level=None, file_level=None):
     """Set command line log level at runtime."""
     logger = logging.getLogger("seal5")
-    logger.setLevel(level)
+    # logger.setLevel(level)
     for handler in logger.handlers[:]:
-        if isinstance(handler, logging.StreamHandler):
-            handler.setLevel(level)
+        if isinstance(handler, logging.StreamHandler) and console_level is not None:
+            handler.setLevel(console_level)
+        elif isinstance(handler, (logging.FileHandler, logging.handlers.TimedRotatingFileHandler)) and file_level is not None:
+            handler.setLevel(file_level)
 
 
 def set_log_file(path, level=logging.DEBUG, rotate=False):

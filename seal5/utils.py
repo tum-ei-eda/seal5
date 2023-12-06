@@ -19,13 +19,19 @@
 """Seal5 utility functions."""
 import os
 import signal
+import shutil
 import subprocess
 import multiprocessing
 from pathlib import Path
+from typing import List, Callable
 
 from seal5.logging import get_logger
 
 logger = get_logger()
+
+
+def copy(src, dest):
+    shutil.copy(src, dest)
 
 
 def is_populated(path):
@@ -33,32 +39,56 @@ def is_populated(path):
         path = Path(path)
     return path.is_dir() and os.listdir(path.resolve())
 
-def exec_getout(*args, live: bool = False, print_output: bool = True, handle_exit=None, prefix="", **kwargs) -> str:
-    """Execute a process with the given args and using the given kwards as Popen arguments and return the output.
+
+def exec_getout(
+    *args: List[str],
+    ignore_output: bool = False,
+    live: bool = False,
+    print_func: Callable = print,
+    handle_exit=None,
+    err_func: Callable = logger.error,
+    **kwargs,
+) -> str:
+    """Wrapper for running a program in a subprocess.
 
     Parameters
     ----------
-    args
-        The command to be executed.
+    args : list
+        The actual command.
+    ignore_output : bool
+        Do not get the stdout and stderr or the subprocess.
     live : bool
-        If the stdout should be updated in real time.
-    print_output : bool
-        Print the output at the end on non-live mode.
+        Print the output line by line instead of only at the end.
+    print_func : Callable
+        Function which should be used to print sysout messages.
+    err_func : Callable
+        Function which should be used to print errors.
+    kwargs: dict
+        Arbitrary keyword arguments passed through to the subprocess.
 
     Returns
     -------
-    output
-        The text printed to the command line.
+    out : str
+        The command line output of the command
     """
-    logger.debug("- Executing: " + str(args))
-    outStr = ""
+    logger.debug("- Executing: %s", str(args))
+    if ignore_output:
+        assert not live
+        subprocess.run(args, **kwargs, check=True)
+        return None
+
+    out_str = ""
     if live:
-        process = subprocess.Popen([i for i in args], **kwargs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        try:
+        with subprocess.Popen(
+            args,
+            **kwargs,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        ) as process:
             for line in process.stdout:
-                new_line = prefix + line.decode(errors="replace")
-                outStr = outStr + new_line
-                print(new_line.replace("\n", ""))
+                new_line = line.decode(errors="replace")
+                out_str = out_str + new_line
+                print_func(new_line.replace("\n", ""))
             exit_code = None
             while exit_code is None:
                 exit_code = process.poll()
@@ -67,36 +97,20 @@ def exec_getout(*args, live: bool = False, print_output: bool = True, handle_exi
             assert exit_code == 0, "The process returned an non-zero exit code {}! (CMD: `{}`)".format(
                 exit_code, " ".join(list(map(str, args)))
             )
-        except KeyboardInterrupt:
-            logger.debug("Interrupted subprocess. Sending SIGINT signal...")
-            pid = process.pid
-            os.kill(pid, signal.SIGINT)
-
     else:
-        try:
-            p = subprocess.Popen([i for i in args], **kwargs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            outStr = p.communicate()[0].decode(errors="replace")
-            exit_code = p.poll()
-            # outStr = p.stdout.decode(errors="replace")
-            if print_output:
-                logger.debug(prefix + outStr)
-            if handle_exit is not None:
-                exit_code = handle_exit(exit_code)
-            if exit_code != 0:
-                logger.error(outStr)
-            assert exit_code == 0, "The process returned an non-zero exit code {}! (CMD: `{}`)".format(
-                exit_code, " ".join(list(map(str, args)))
-            )
-        except KeyboardInterrupt:
-            logger.debug("Interrupted subprocess. Sending SIGINT signal...")
-            pid = p.pid
-            os.kill(pid, signal.SIGINT)
-        except subprocess.CalledProcessError as e:
-            outStr = e.output.decode(errors="replace")
-            logger.error(outStr)
-            raise e
+        p = subprocess.Popen([i for i in args], **kwargs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        out_str = p.communicate()[0].decode(errors="replace")
+        exit_code = p.poll()
+        print_func(out_str)
+        if handle_exit is not None:
+            exit_code = handle_exit(exit_code)
+        if exit_code != 0:
+            err_func(out_str)
+        assert exit_code == 0, "The process returned an non-zero exit code {}! (CMD: `{}`)".format(
+            exit_code, " ".join(list(map(str, args)))
+        )
 
-    return outStr
+    return out_str
 
 
 def cmake(src, *args, debug=False, use_ninja=False, cwd=None, **kwargs):
@@ -110,7 +124,7 @@ def cmake(src, *args, debug=False, use_ninja=False, cwd=None, **kwargs):
     if use_ninja:
         extraArgs.append("-GNinja")
     cmd = ["cmake", str(src)] + extraArgs + list(args)
-    return exec_getout(*cmd, cwd=cwd, print_output=False, **kwargs)
+    return exec_getout(*cmd, cwd=cwd, **kwargs)
 
 
 
@@ -125,4 +139,4 @@ def make(*args, threads=multiprocessing.cpu_count(), use_ninja=False, cwd=None, 
     tool = "ninja" if use_ninja else "make"
     extraArgs.append("-j" + str(threads))
     cmd = [tool] + extraArgs + list(args)
-    return exec_getout(*cmd, cwd=cwd, print_output=False, **kwargs)
+    return exec_getout(*cmd, cwd=cwd, **kwargs)

@@ -78,4 +78,5 @@ def handle(args):
         interactive=not args.non_interactive,
         clone=args.clone,
         force=args.force,
+        verbose=args.verbose,
     )

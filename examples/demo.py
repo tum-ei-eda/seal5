@@ -18,11 +18,17 @@
 #
 """Demo script for Seal5 Python API."""
 import os
+import logging
 from pathlib import Path
 
 from seal5.flow import Seal5Flow
+from seal5.logging import set_log_level
+
+set_log_level(logging.INFO)
 
 EXAMPLES_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
+VERBOSE = False
+
 
 seal5_flow = Seal5Flow("/tmp/seal5_llvm_demo", "demo")
 
@@ -32,45 +38,45 @@ seal5_flow.initialize(
     clone_url="https://github.com/llvm/llvm-project.git",
     clone_ref="llvmorg-17.0.6",
     force=True,
+    verbose=VERBOSE,
 )
 
 # Clone Seal5 dependencies
 # 1. M2-ISA-R (frontend only)
 # 2. CDSL2LLVM (later)
-seal5_flow.setup(force=True)
+seal5_flow.setup(force=True, verbose=VERBOSE)
 
 # Load CoreDSL inputs
-# XCVMac.core_desc
-cdsl_files = [EXAMPLES_DIR / "csdl" / "XCVMac.core_desc"]
-seal5_flow.load(cdsl_files)
+cdsl_files = [EXAMPLES_DIR / "cdsl" / "XCoreVMac.core_desc"]
+seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load YAML inputs
-cfg_files = [EXAMPLES_DIR / "cfg" / "XCVMac.yml", EXAMPLES_DIR / "cfg" / "llvm.yml"]
-seal5_flow.load(cfg_files)
+cfg_files = [EXAMPLES_DIR / "cfg" / "XCoreVMac.yml", EXAMPLES_DIR / "cfg" / "llvm.yml"]
+seal5_flow.load(cfg_files, verbose=VERBOSE, overwrite=False)
 
 # Build initial LLVM
-seal5_flow.build()
+seal5_flow.build(verbose=VERBOSE)
 
 # Transform inputs
 #   1. Create M2-ISA-R metamodel
 #   2. Convert to Seal5 metamodel (including aliases, builtins,...)
 #   3. Analyse/optimize instructions
-seal5_flow.transform()
+seal5_flow.transform(verbose=VERBOSE)
 
 # Generate patches
-seal5_flow.generate()
+seal5_flow.generate(verbose=VERBOSE)
 
 # Apply patches
-seal5_flow.patch()
+seal5_flow.patch(verbose=VERBOSE)
 
 # Build patched LLVM
-seal5_flow.build()
+seal5_flow.build(verbose=VERBOSE)
 
 # Test patched LLVM
-seal5_flow.test()
+seal5_flow.test(verbose=VERBOSE, ignore_error=True)
 
 # Deploy patched LLVM (combine commits and create tag)
-seal5_flow.deploy()
+seal5_flow.deploy(verbose=VERBOSE)
 
 # Export patches, logs, reports
-seal5_flow.export("/tmp/seal5_llvm_demo.tar.gz")
+seal5_flow.export("/tmp/seal5_llvm_demo.tar.gz", verbose=VERBOSE)
