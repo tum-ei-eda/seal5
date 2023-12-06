@@ -25,7 +25,7 @@ from typing import Optional, List
 import git
 import yaml
 
-from seal5.logging import get_logger, set_log_file
+from seal5.logging import get_logger, set_log_file, set_log_level
 from seal5.dependencies import m2isar_dependency, cdsl2llvm_dependency
 from seal5 import utils
 
@@ -61,18 +61,10 @@ def get_cmake_args(cfg: dict):
     return ret
 
 
-def build_llvm(src: Path, dest: Path, debug: bool = False, use_ninja: bool = False, verbose: bool = False):
-    cmake_cfg = {
-        "LLVM_ENABLE_PROJECTS": ["clang", "lld"],
-        "LLVM_TARGETS_TO_BUILD": ["X86", "RISCV"],
-        "LLVM_OPTIMIZED_TABLEGEN": True,
-        "LLVM_ENABLE_ASSERTIONS": debug,
-        "LLVM_PARALLEL_LINK_JOBS": 16,  # TODO: make this dynamic!
-        "LLVM_BUILD_TOOLS": True,
-    }
-    cmake_args = get_cmake_args(cmake_cfg)
+def build_llvm(src: Path, dest: Path, debug: bool = False, use_ninja: bool = False, verbose: bool = False, cmake_options: dict = {}):
+    cmake_args = get_cmake_args(cmake_options)
     dest.mkdir(exist_ok=True)
-    utils.cmake(src / "llvm", *cmake_args, debug=debug, use_ninja=use_ninja, cwd=dest, print_func=logger.info if verbose else logger.debug, live=True)
+    utils.cmake(src / "llvm", *cmake_args, use_ninja=use_ninja, cwd=dest, print_func=logger.info if verbose else logger.debug, live=True)
     utils.make(cwd=dest, print_func=logger.info if verbose else logger.debug, live=True)
 
 
@@ -217,11 +209,56 @@ class TestSettings(YAMLSettings):
     def paths(self):
         return self.data["paths"]
 
+class LoggingSettings(YAMLSettings):
+
+    @property
+    def console(self):
+        return self.data["console"]
+
+    @property
+    def file(self):
+        return self.data["file"]
+
+class LLVMSettings(YAMLSettings):
+
+    @property
+    def state(self):
+        return self.data["state"]
+
+    @property
+    def configs(self):
+        return self.data["configs"]
+
 class Seal5Settings(YAMLSettings):
+
+    @property
+    def logging(self):
+        return LoggingSettings(data=self.data["logging"])
+
+    @property
+    def llvm(self):
+        return LLVMSettings(data=self.data["llvm"])
+
+    @property
+    def patch(self):
+        return PatchSettings(data=self.data["patch"])
+
+    @property
+    def transform(self):
+        return TransformSettings(data=self.data["transform"])
 
     @property
     def test(self):
         return TestSettings(data=self.data["test"])
+
+    @property
+    def extensions(self):
+        return ExtensionsSettings(data=self.data["extensions"])
+
+    @property
+    def groups(self):
+        return GroupsSettings(data=self.data["groups"])
+
 
 
 def handle_directory(directory: Optional[Path]):
@@ -264,6 +301,8 @@ class Seal5Flow:
             self.settings = Seal5Settings.from_yaml_file(self.settings_file)
         if self.logs_dir.is_dir():
             set_log_file(self.log_file_path)
+            if self.settings:
+                set_log_level(console_level=self.settings.logging.console["level"], file_level=self.settings.logging.file["level"])
 
     @property
     def meta_dir(self):
@@ -332,6 +371,7 @@ class Seal5Flow:
         self.settings = Seal5Settings(data=DEFAULT_SETTINGS)
         self.settings.to_yaml_file(self.settings_file)
         set_log_file(self.log_file_path)
+        set_log_level(console_level=self.settings.logging.console["level"], file_level=self.settings.logging.file["level"])
         logger.info("Completed initialization of Seal5")
 
     def setup(
@@ -373,12 +413,12 @@ class Seal5Flow:
                 raise RuntimeError(f"Unsupported input type: {ext}")
         logger.info("Compledted load of Seal5 inputs")
 
-    def build(self, options: dict = {}, debug: bool = False, verbose: bool = False):
+    def build(self, config="release", verbose: bool = False):
         logger.info("Building Seal5 LLVM")
-        if options:
-            raise NotImplementedError
-        name = "debug" if debug else "release"
-        build_llvm(self.directory, self.build_dir / name, debug=debug)
+        llvm_config = self.settings.llvm.configs.get(config, None)
+        assert llvm_config is not None, f"Invalid llvm config: {config}"
+        cmake_options = llvm_config["options"]
+        build_llvm(self.directory, self.build_dir / config, cmake_options)
         logger.info("Completed build of Seal5 LLVM")
 
     def transform(self, verbose: bool = False):

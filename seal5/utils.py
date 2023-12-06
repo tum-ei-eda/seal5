@@ -23,7 +23,7 @@ import shutil
 import subprocess
 import multiprocessing
 from pathlib import Path
-from typing import List, Callable
+from typing import List, Callable, Optional
 
 from seal5.logging import get_logger
 
@@ -113,14 +113,15 @@ def exec_getout(
     return out_str
 
 
-def cmake(src, *args, debug=False, use_ninja=False, cwd=None, **kwargs):
+def cmake(src, *args, debug: Optional[bool] = None, use_ninja=False, cwd=None, **kwargs):
     if cwd is None:
         raise RuntimeError("Please always pass a cwd to cmake()")
     if isinstance(cwd, Path):
         cwd = str(cwd.resolve())
-    buildType = "Debug" if debug else "Release"
     extraArgs = []
-    extraArgs.append("-DCMAKE_BUILD_TYPE=" + buildType)
+    if debug is not None:
+        buildType = "Debug" if debug else "Release"
+        extraArgs.append("-DCMAKE_BUILD_TYPE=" + buildType)
     if use_ninja:
         extraArgs.append("-GNinja")
     cmd = ["cmake", str(src)] + extraArgs + list(args)
