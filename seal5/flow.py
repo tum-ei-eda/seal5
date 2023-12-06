@@ -42,7 +42,7 @@ def merge_dicts(a: dict, b: dict, path=[]):
             if isinstance(a[key], dict) and isinstance(b[key], dict):
                 merge_dicts(a[key], b[key], path + [str(key)])
             elif a[key] != b[key]:
-                raise Exception('Conflict at ' + '.'.join(path + [str(key)]))
+                raise Exception("Conflict at " + ".".join(path + [str(key)]))
         else:
             a[key] = b[key]
     return a
@@ -61,10 +61,19 @@ def get_cmake_args(cfg: dict):
     return ret
 
 
-def build_llvm(src: Path, dest: Path, debug: bool = False, use_ninja: bool = False, verbose: bool = False, cmake_options: dict = {}):
+def build_llvm(
+    src: Path, dest: Path, debug: bool = False, use_ninja: bool = False, verbose: bool = False, cmake_options: dict = {}
+):
     cmake_args = get_cmake_args(cmake_options)
     dest.mkdir(exist_ok=True)
-    utils.cmake(src / "llvm", *cmake_args, use_ninja=use_ninja, cwd=dest, print_func=logger.info if verbose else logger.debug, live=True)
+    utils.cmake(
+        src / "llvm",
+        *cmake_args,
+        use_ninja=use_ninja,
+        cwd=dest,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
     utils.make(cwd=dest, print_func=logger.info if verbose else logger.debug, live=True)
 
 
@@ -72,9 +81,17 @@ def test_llvm(base: Path, build_dir: Path, test_paths: List[str] = [], verbose: 
     lit_exe = build_dir / "bin" / "llvm-lit"
     failing_tests = []
     for test_path in test_paths:
+
         def handler(code):
             return 0
-        out = utils.exec_getout(lit_exe, base / test_path, print_func=logger.info if verbose else logger.debug, live=True, handle_exit=handler)
+
+        out = utils.exec_getout(
+            lit_exe,
+            base / test_path,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+            handle_exit=handler,
+        )
         failing = re.compile(r"FAIL: LLVM :: (.*) \(").findall(out)
         if len(failing) > 0:
             failing_tests.extend(failing)
@@ -111,10 +128,7 @@ DEFAULT_SETTINGS = {
         "paths": ["MC/RISCV", "CodeGen/RISCV"],
     },
     "llvm": {
-        "state": {
-            "version": "auto",
-            "base_commit": "unknown"
-        },
+        "state": {"version": "auto", "base_commit": "unknown"},
         "configs": {
             "release": {
                 "options": {
@@ -161,12 +175,11 @@ DEFAULT_SETTINGS = {
     },
     "groups": {
         "all": "*",
-    }
+    },
+}
 
-  }
 
 class YAMLSettings:
-
     @staticmethod
     def from_yaml(text: str):
         data = yaml.safe_load(text)
@@ -203,14 +216,14 @@ class YAMLSettings:
         else:
             self.data = merge_dicts(self.data, other.data)
 
-class TestSettings(YAMLSettings):
 
+class TestSettings(YAMLSettings):
     @property
     def paths(self):
         return self.data["paths"]
 
-class LoggingSettings(YAMLSettings):
 
+class LoggingSettings(YAMLSettings):
     @property
     def console(self):
         return self.data["console"]
@@ -219,8 +232,8 @@ class LoggingSettings(YAMLSettings):
     def file(self):
         return self.data["file"]
 
-class LLVMSettings(YAMLSettings):
 
+class LLVMSettings(YAMLSettings):
     @property
     def state(self):
         return self.data["state"]
@@ -229,8 +242,8 @@ class LLVMSettings(YAMLSettings):
     def configs(self):
         return self.data["configs"]
 
-class Seal5Settings(YAMLSettings):
 
+class Seal5Settings(YAMLSettings):
     @property
     def logging(self):
         return LoggingSettings(data=self.data["logging"])
@@ -260,7 +273,6 @@ class Seal5Settings(YAMLSettings):
         return GroupsSettings(data=self.data["groups"])
 
 
-
 def handle_directory(directory: Optional[Path]):
     # TODO: handle environment vars
     if directory is None:
@@ -280,9 +292,7 @@ def create_seal5_directories(path: Path, directories: list):
         (path / directory).mkdir(parents=True, exist_ok=True)
 
 
-def clone_llvm_repo(
-    dest: Path, clone_url: str, ref: Optional[str] = None
-):  # TODO: how to get submodule url/ref
+def clone_llvm_repo(dest: Path, clone_url: str, ref: Optional[str] = None):  # TODO: how to get submodule url/ref
     logger.debug("Cloning LLVM repository: %s", clone_url)
     repo = git.Repo.clone_from(clone_url, dest, no_checkout=ref is not None)
     if ref:
@@ -302,7 +312,9 @@ class Seal5Flow:
         if self.logs_dir.is_dir():
             set_log_file(self.log_file_path)
             if self.settings:
-                set_log_level(console_level=self.settings.logging.console["level"], file_level=self.settings.logging.file["level"])
+                set_log_level(
+                    console_level=self.settings.logging.console["level"], file_level=self.settings.logging.file["level"]
+                )
 
     @property
     def meta_dir(self):
@@ -363,7 +375,9 @@ class Seal5Flow:
                 sys.exit(1)
             clone_llvm_repo(self.directory, clone_url, ref=clone_ref)
         if self.meta_dir.is_dir():
-            if force is False and not ask_user("Overwrite existing .seal5 diretcory?", default=False, interactive=interactive):
+            if force is False and not ask_user(
+                "Overwrite existing .seal5 diretcory?", default=False, interactive=interactive
+            ):
                 logging.error(f"Directory {self.meta_dir} already exists! Aborting...")
                 sys.exit(1)
         self.meta_dir.mkdir(exist_ok=True)
@@ -371,7 +385,9 @@ class Seal5Flow:
         self.settings = Seal5Settings(data=DEFAULT_SETTINGS)
         self.settings.to_yaml_file(self.settings_file)
         set_log_file(self.log_file_path)
-        set_log_level(console_level=self.settings.logging.console["level"], file_level=self.settings.logging.file["level"])
+        set_log_level(
+            console_level=self.settings.logging.console["level"], file_level=self.settings.logging.file["level"]
+        )
         logger.info("Completed initialization of Seal5")
 
     def setup(
@@ -459,7 +475,15 @@ class Seal5Flow:
     def clean(self, verbose: bool = False, interactive: bool = False):
         logger.info("Cleaning Seal5 directories")
         raise NotImplementedError
-        to_clean = [self.temp_dir, self.models_dir, self.inputs_dir, self.logs_dir, self.install_dir, self.build_dir, self.deps_dir]
+        to_clean = [
+            self.temp_dir,
+            self.models_dir,
+            self.inputs_dir,
+            self.logs_dir,
+            self.install_dir,
+            self.build_dir,
+            self.deps_dir,
+        ]
         for path in to_clean:
             clean_path(path, interactive=interactive)
         self.settings.data["inputs"] = []

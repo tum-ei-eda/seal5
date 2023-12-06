@@ -128,8 +128,6 @@ def cmake(src, *args, debug: Optional[bool] = None, use_ninja=False, cwd=None, *
     return exec_getout(*cmd, cwd=cwd, **kwargs)
 
 
-
-
 def make(*args, threads=multiprocessing.cpu_count(), use_ninja=False, cwd=None, verbose=False, **kwargs):
     if cwd is None:
         raise RuntimeError("Please always pass a cwd to make()")
