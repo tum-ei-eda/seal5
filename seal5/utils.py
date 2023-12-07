@@ -18,6 +18,7 @@
 #
 """Seal5 utility functions."""
 import os
+import sys
 import signal
 import shutil
 import subprocess
@@ -94,6 +95,8 @@ def exec_getout(
                 exit_code = process.poll()
             if handle_exit is not None:
                 exit_code = handle_exit(exit_code)
+            if exit_code != 0:
+                err_func(out_str)
             assert exit_code == 0, "The process returned an non-zero exit code {}! (CMD: `{}`)".format(
                 exit_code, " ".join(list(map(str, args)))
             )
@@ -139,3 +142,8 @@ def make(*args, threads=multiprocessing.cpu_count(), use_ninja=False, cwd=None, 
     extraArgs.append("-j" + str(threads))
     cmd = [tool] + extraArgs + list(args)
     return exec_getout(*cmd, cwd=cwd, **kwargs)
+
+
+def python(*args, **kwargs):
+    """Run a python script with the current interpreter."""
+    return exec_getout(sys.executable, *args, **kwargs)
