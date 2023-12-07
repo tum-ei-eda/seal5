@@ -64,13 +64,13 @@ def set_log_level(console_level=None, file_level=None):
     logger = logging.getLogger("seal5")
     # logger.setLevel(level)
     for handler in logger.handlers[:]:
-        if isinstance(handler, logging.StreamHandler) and console_level is not None:
-            handler.setLevel(console_level)
-        elif (
+        if (
             isinstance(handler, (logging.FileHandler, logging.handlers.TimedRotatingFileHandler))
             and file_level is not None
         ):
             handler.setLevel(file_level)
+        elif isinstance(handler, logging.StreamHandler) and console_level is not None:
+            handler.setLevel(console_level)
 
 
 def set_log_file(path, level=logging.DEBUG, rotate=False):
