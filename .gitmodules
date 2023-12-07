@@ -1,0 +1,3 @@
+[submodule "examples/cdsl/rv_base"]
+	path = examples/cdsl/rv_base
+	url = https://github.com/tum-ei-eda/RISCV_ISA_CoreDSL.git
