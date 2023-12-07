@@ -18,6 +18,8 @@
 #
 """Seal5 Flow API."""
 import re
+import os
+import tarfile
 from enum import Enum, auto
 from pathlib import Path
 from typing import Optional, List
@@ -353,6 +355,10 @@ class Seal5Flow:
         return self.meta_dir / "temp"
 
     @property
+    def gen_dir(self):
+        return self.meta_dir / "gen"
+
+    @property
     def log_file_path(self):
         return self.logs_dir / "seal5.log"
 
@@ -381,7 +387,7 @@ class Seal5Flow:
                 logging.error(f"Directory {self.meta_dir} already exists! Aborting...")
                 sys.exit(1)
         self.meta_dir.mkdir(exist_ok=True)
-        create_seal5_directories(self.meta_dir, ["deps", "models", "logs", "build", "install", "temp", "inputs"])
+        create_seal5_directories(self.meta_dir, ["deps", "models", "logs", "build", "install", "temp", "inputs", "gen"])
         self.settings = Seal5Settings(data=DEFAULT_SETTINGS)
         self.settings.to_yaml_file(self.settings_file)
         set_log_file(self.log_file_path)
@@ -406,14 +412,28 @@ class Seal5Flow:
         self.settings.merge(new_settings, overwrite=overwrite)
         self.settings.to_yaml_file(self.settings_file)
 
-    def load_cdsl(self, file: Path, overwrite: bool = False):
+    def parse_coredsl(self, file, out_dir, verbose: bool = False):
+        env = os.environ.copy()
+        env["PYTHONPATH"] = self.deps_dir / "M2-ISA-R"
+        args = [
+            file,
+            "-o",
+            out_dir,
+        ]
+        utils.python("-m", "m2isar.frontends.coredsl2_seal5.parser", *args, env=env, print_func=logger.info if verbose else logger.debug, live=True)
+
+    def load_cdsl(self, file: Path, verbose: bool = False, overwrite: bool = False):
         assert file.is_file(), "TODO"
         filename: str = file.name
         dest = self.inputs_dir / filename
         if dest.is_file() and not overwrite:
             raise RuntimeError(f"File {filename} already loaded!")
+        # Add file to inputs directory and settings
         utils.copy(file, dest)
         self.settings.data["inputs"].append(filename)
+        # Parse CoreDSL file with M2-ISA-R (TODO: Standalone)
+        dest = self.models_dir
+        self.parse_coredsl(file, dest, verbose=verbose)
         self.settings.to_yaml_file(self.settings_file)
 
     def load(self, files: List[Path], verbose: bool = False, overwrite: bool = False):
@@ -424,7 +444,7 @@ class Seal5Flow:
             if ext.lower() in [".yml", ".yaml"]:
                 self.load_cfg(file, overwrite=overwrite)
             elif ext.lower() in [".core_desc"]:
-                self.load_cdsl(file, overwrite=overwrite)
+                self.load_cdsl(file, verbose=verbose, overwrite=overwrite)
             else:
                 raise RuntimeError(f"Unsupported input type: {ext}")
         logger.info("Compledted load of Seal5 inputs")
@@ -439,7 +459,7 @@ class Seal5Flow:
 
     def transform(self, verbose: bool = False):
         logger.info("Tranforming Seal5 models")
-        # raise NotImplementedError
+        # first convert M2-ISA-R MetaModel to Seal5-Metamodel
         logger.info("Completed tranformation of Seal5 models")
 
     def generate(self, verbose: bool = False):
@@ -467,9 +487,24 @@ class Seal5Flow:
         logger.info("Deploying Seal5 LLVM")
         logger.info("Completed deployment of Seal5 LLVM")
 
-    def export(self, verbose: bool = False):
+    def export(self, dest: Path, verbose: bool = False):
         logger.info("Exporting Seal5 artifacts")
-        raise NotImplementedError
+        if isinstance(dest, str):
+            dest = Path(dest)
+        suffix = dest.suffix
+        if suffix != ".gz":
+            raise NotImplementedError("Only .tar.gz export is supported!")
+        artifacts = [self.inputs_dir, self.gen_dir, self.models_dir, self.logs_dir, self.settings_file]
+        with tarfile.open(dest, mode='w:gz') as archive:
+            for artifact in artifacts:
+                name = str(artifact)
+                assert str(self.meta_dir) in name
+                name = name.replace(f"{self.meta_dir}/", "")
+                if artifact.is_file():
+                    archive.add(artifact, arcname=name)
+                elif artifact.is_dir():
+                    archive.add(artifact, arcname=name, recursive=True)
+
         logger.info("Completed export of Seal5 artifacts")
 
     def clean(self, verbose: bool = False, interactive: bool = False):
@@ -477,6 +512,7 @@ class Seal5Flow:
         raise NotImplementedError
         to_clean = [
             self.temp_dir,
+            self.gen_dir,
             self.models_dir,
             self.inputs_dir,
             self.logs_dir,
