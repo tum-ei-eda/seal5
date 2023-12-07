@@ -47,7 +47,7 @@ seal5_flow.initialize(
 seal5_flow.setup(force=True, verbose=VERBOSE)
 
 # Load CoreDSL inputs
-cdsl_files = [EXAMPLES_DIR / "cdsl" / "XCoreVMac.core_desc"]
+cdsl_files = [EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMac.core_desc"]
 seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load YAML inputs
@@ -55,7 +55,7 @@ cfg_files = [EXAMPLES_DIR / "cfg" / "XCoreVMac.yml", EXAMPLES_DIR / "cfg" / "llv
 seal5_flow.load(cfg_files, verbose=VERBOSE, overwrite=False)
 
 # Build initial LLVM
-seal5_flow.build(verbose=VERBOSE)
+seal5_flow.build(verbose=VERBOSE, config="release")
 
 # Transform inputs
 #   1. Create M2-ISA-R metamodel
@@ -70,7 +70,7 @@ seal5_flow.generate(verbose=VERBOSE)
 seal5_flow.patch(verbose=VERBOSE)
 
 # Build patched LLVM
-seal5_flow.build(verbose=VERBOSE)
+seal5_flow.build(verbose=VERBOSE, config="release")
 
 # Test patched LLVM
 seal5_flow.test(verbose=VERBOSE, ignore_error=True)
