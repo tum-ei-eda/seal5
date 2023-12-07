@@ -57,8 +57,8 @@ class GitDependency(Dependency):
 
 
 class M2ISARDependency(GitDependency):
-    # def __init__(self, clone_url="https://github.com/tum-ei-eda/M2-ISA-R.git", ref="seal5"):
-    def __init__(self, clone_url="https://github.com/tum-ei-eda/M2-ISA-R.git", ref="coredsl_exceptions"):
+    # def __init__(self, clone_url="https://github.com/tum-ei-eda/M2-ISA-R.git", ref="coredsl_exceptions"):
+    def __init__(self, clone_url="https://github.com/PhilippvK/M2-ISA-R-private.git", ref="seal5"):
         super().__init__("m2isar", clone_url, ref=ref)
 
 
