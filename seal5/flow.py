@@ -20,7 +20,7 @@
 import re
 import os
 import tarfile
-from enum import Enum, auto
+from enum import Enum, IntEnum, auto
 from pathlib import Path
 from typing import Optional, List
 
@@ -105,6 +105,13 @@ class Seal5State(Enum):
     UNKNOWN = auto()
     UNINITIALIZED = auto()
     INITIALIZED = auto()
+
+class PatchStage(IntEnum):
+    PHASE_0 = 0
+    PHASE_1 = 1
+    PHASE_2 = 2
+    PHASE_3 = 3
+    PHASE_4 = 4
 
 
 DEFAULT_SETTINGS = {
@@ -412,15 +419,18 @@ class Seal5Flow:
         self.settings.merge(new_settings, overwrite=overwrite)
         self.settings.to_yaml_file(self.settings_file)
 
-    def parse_coredsl(self, file, out_dir, verbose: bool = False):
+    def prepare_environment(self):
         env = os.environ.copy()
         env["PYTHONPATH"] = self.deps_dir / "M2-ISA-R"
+        return env
+
+    def parse_coredsl(self, file, out_dir, verbose: bool = False):
         args = [
             file,
             "-o",
             out_dir,
         ]
-        utils.python("-m", "m2isar.frontends.coredsl2_seal5.parser", *args, env=env, print_func=logger.info if verbose else logger.debug, live=True)
+        utils.python("-m", "m2isar.frontends.coredsl2_seal5.parser", *args, env=self.prepare_environment(), print_func=logger.info if verbose else logger.debug, live=True)
 
     def load_cdsl(self, file: Path, verbose: bool = False, overwrite: bool = False):
         assert file.is_file(), "TODO"
@@ -447,6 +457,7 @@ class Seal5Flow:
                 self.load_cdsl(file, verbose=verbose, overwrite=overwrite)
             else:
                 raise RuntimeError(f"Unsupported input type: {ext}")
+        # TODO: only allow single instr set for now and track inputs in settings
         logger.info("Compledted load of Seal5 inputs")
 
     def build(self, config="release", verbose: bool = False):
@@ -457,19 +468,161 @@ class Seal5Flow:
         build_llvm(self.directory, self.build_dir / config, cmake_options)
         logger.info("Completed build of Seal5 LLVM")
 
+    def convert_models(self, verbose: bool = False, inplace: bool = False):
+        assert not inplace
+        input_files = list(self.models_dir.glob("*.m2isarmodel"))
+        assert len(input_files) > 0, "No input models found!"
+        for input_file in input_files:
+            name = input_file.name
+            base = input_file.stem
+            new_name = f"{base}.seal5model"
+            logger.info("Converting %s -> %s", name, new_name)
+            args = [
+                self.models_dir / name,
+                "-o",
+                self.models_dir / new_name,
+                "--log",
+                "info",
+                # "debug",
+            ]
+        utils.python("-m", "m2isar.transform.seal5.converter", *args, env=self.prepare_environment(), print_func=logger.info if verbose else logger.debug, live=True)
+
+    def optimize_model(self, verbose: bool = False, inplace: bool = True):
+        assert inplace
+        input_files = list(self.models_dir.glob("*.seal5model"))
+        assert len(input_files) > 0, "No Seal5 models found!"
+        for input_file in input_files:
+            name = input_file.name
+            logger.info("Optimizing %s", name)
+            args = [
+                self.models_dir / name,
+                "--log",
+                "info",
+                # "debug",
+            ]
+        utils.python("-m", "m2isar.transform.optimize_instructions.optimizer", *args, env=self.prepare_environment(), print_func=logger.info if verbose else logger.debug, live=True)
+
+    def detect_registers(self, verbose: bool = False, inplace: bool = True):
+        assert inplace
+        input_files = list(self.models_dir.glob("*.seal5model"))
+        assert len(input_files) > 0, "No Seal5 models found!"
+        for input_file in input_files:
+            name = input_file.name
+            logger.info("Detecting registers for %s", name)
+            args = [
+                self.models_dir / name,
+                "--log",
+                "info",
+                # "debug",
+            ]
+        utils.python("-m", "m2isar.transform.seal5.detect_registers", *args, env=self.prepare_environment(), print_func=logger.info if verbose else logger.debug, live=True)
+
     def transform(self, verbose: bool = False):
         logger.info("Tranforming Seal5 models")
-        # first convert M2-ISA-R MetaModel to Seal5-Metamodel
+        inplace = True
+        if not inplace:
+            raise NotImplementedError()
+        # TODO: flow.models: Seal5ModelWrapper -> transform(verbose: bool = False, *kwargs)
+        # first convert M2-ISA-R MetaModel to Seal5 Metamodel
+        self.convert_models(verbose=verbose)
+        # add aliases to model
+        # self.add_aliases(verbose=verbose)
+        # add intrinsics
+        # self.add_intrinsics(verbose=verbose)
+        # optimize Seal5 Metamodel
+        self.optimize_model(verbose=verbose)
+        # detect registers
+        self.detect_registers(verbose=verbose)
+        # determine static constraints (xlen,...) -> subtargetvmap
+        # self.detect_encoding_constraits(verbose=verbose)
+        # determine dyn constraints (eliminate raise)
+        self.detect_behavior_constraints(verbose=verbose)
+        # add explicit constraints to cdsl
+        # self.gen_explicit_constraints(verbose=verbose)
+        # determine operand types
+        self.collect_operand_types(verbose=verbose)
+        # add explicit operand types to cdsl
+        self.gen_explicit_operands(verbose=verbose)
+        # detect ins/outs
+        self.detect_inouts(verbose=verbose)
+        # annotate ins/outs with attributes
+        # self.annotate_inouts(verbose=verbose)
+        # detect side effects
+        self.detect_side_effects(verbose=verbose)
+        # detect memory adressing modes
+        self.detect_adressing_modes(verbose)
+
+        # dump cdsl for each instr
+        self.dump_cdsl_instrs(verbose=verbose)
+        # generate llvm-ir behavior
+        self.convert_behav_to_llvmir(verbose=verbose)
+        # generate llvm-gmir behavior
+        self.convert_llvmir_to_gmir(verbose=verbose)
+        # detect legal GMIR ops (and map to selectiondag?)
+        self.detect_legal_ops(verbose=verbose)
+        # add legal ops to metamodel
+        self.add_legalizer_settings(verbose=verbose)
+        # extract costs/heuristics
+        self.extract_costs_and_heuristics(verbose)
+
         logger.info("Completed tranformation of Seal5 models")
 
     def generate(self, verbose: bool = False):
         logger.info("Generating Seal5 patches")
         # raise NotImplementedError
+        patches = []
+        skip = []  # TODO: User, Global, PerInstr
+        # TODO: only: []
+
+        # General
+        if "subtarget_features" not in skip:
+            patches.extend(self.gen_subtarget_feature_patches())
+        if "subtarget_tests" not in skip:
+            patches.extend(self.gen_subtarget_tests_patches())
+
+        # MC Level
+        if "register_types" not in skip:
+            patches.extend(self.gen_register_types_patches())
+        if "operand_types" not in skip:
+            patches.extend(self.gen_operand_types_patches())
+        if "instruction_formats" not in skip:
+            patches.extend(self.gen_instruction_format_patches())
+        if "instruction_infos" not in skip:
+            patches.extend(self.gen_instruction_infos_patches())
+        if "disassembler" not in skip:
+            patches.extend(self.gen_disassembler_patches())
+        if "mc_tests" not in skip:
+            patches.extend(self.gen_mc_tests_patches())
+
+        # Codegen Level
+        if "selection_dag_legalizer" not in skip:
+            patches.extend(self.gen_selection_dag_legalizer_patches())
+        if "globalisel_legalizer" not in skip:
+            patches.extend(self.gen_globalisel_legalizer_patches())
+        if "scalar_costs" not in skip:
+            patches.extend(self.gen_scalar_costs_patches())
+        if "simd_costs" not in skip:
+            patches.extend(self.gen_simd_costs_patches())
+        if "isel_patterns" not in skip:
+            patches.extend(self.gen_isel_patterns_patches())
+        if "codegen_test" not in skip:
+            patches.extend(self.gen_codegen_tests_patches())
+
         logger.info("Completed generation of Seal5 patches")
 
-    def patch(self, verbose: bool = False):
+    def collect_patches(self, stage: Optional[PatchStage]):
+        return []  # TODO
+
+    def patch(self, verbose: bool = False, stages: List[PatchStage] = None):
         logger.info("Applying Seal5 patches")
         # raise NotImplementedError
+        if stages is None:
+            stages = list(map(PatchStage, range(PatchStage.PHASE_4)))
+        assert len(stages) > 0
+        for stage in stages:
+            logger.info("Current stage: %s", stage)
+            patches = self.collect_patches(stage=stage)
+            print("patches", patches)
         logger.info("Completed application of Seal5 patches")
 
     def test(self, debug: bool = False, verbose: bool = False, ignore_error: bool = False):
