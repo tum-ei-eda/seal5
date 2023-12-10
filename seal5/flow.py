@@ -44,7 +44,9 @@ def merge_dicts(a: dict, b: dict, path=[]):
             if isinstance(a[key], dict) and isinstance(b[key], dict):
                 merge_dicts(a[key], b[key], path + [str(key)])
             elif a[key] != b[key]:
-                raise Exception("Conflict at " + ".".join(path + [str(key)]))
+                # raise Exception("Conflict at " + ".".join(path + [str(key)]))
+                assert type(a[key]) is type(b[key])
+                a[key] = b[key]
         else:
             a[key] = b[key]
     return a
@@ -129,6 +131,24 @@ DEFAULT_SETTINGS = {
     "patch": {
         "author": "Seal5",
         "mail": "example@example.com",
+    },
+    "filter": {
+        "sets": {
+            "keep": [],
+            "drop": [],
+        },
+        "instructions": {
+            "keep": [],
+            "drop": [],
+        },
+        "aliases": {
+            "keep": [],
+            "drop": [],
+        },
+        "intrinsics": {
+            "keep": [],
+            "drop": [],
+        },
     },
     "transform": {
         "passes": "*",
@@ -242,6 +262,24 @@ class LoggingSettings(YAMLSettings):
         return self.data["file"]
 
 
+class FilterSettings(YAMLSettings):
+    @property
+    def sets(self):
+        return self.data.get("sets")
+
+    @property
+    def instructions(self):
+        return self.data.get("instructions")
+
+    @property
+    def aliases(self):
+        return self.data.get("aliases")
+
+    @property
+    def intrinsics(self):
+        return self.data.get("intrinsics")
+
+
 class LLVMSettings(YAMLSettings):
     @property
     def state(self):
@@ -256,6 +294,10 @@ class Seal5Settings(YAMLSettings):
     @property
     def logging(self):
         return LoggingSettings(data=self.data["logging"])
+
+    @property
+    def filter(self):
+        return FilterSettings(data=self.data["filter"])
 
     @property
     def llvm(self):
@@ -502,6 +544,58 @@ class Seal5Flow:
             ]
         utils.python("-m", "m2isar.transform.optimize_instructions.optimizer", *args, env=self.prepare_environment(), print_func=logger.info if verbose else logger.debug, live=True)
 
+    def filter_model(self, verbose: bool = False, inplace: bool = True):
+        assert inplace
+        input_files = list(self.models_dir.glob("*.seal5model"))
+        assert len(input_files) > 0, "No Seal5 models found!"
+        for input_file in input_files:
+            name = input_file.name
+            logger.info("Filtering %s", name)
+            filter_settings = self.settings.filter
+            filter_args = []
+            def get_filter_args(data, suffix):
+                if data is None:
+                    return []
+                ret = []
+                keep = data.get("keep", None)
+                drop = data.get("drop", None)
+                if keep:
+                    ret += [f"--keep-{suffix}", ",".join(keep)]
+                if drop:
+                    ret += [f"--drop-{suffix}", ",".join(drop)]
+                return ret
+            filter_sets = filter_settings.sets
+            filter_instructions = filter_settings.instructions
+            filter_aliases = filter_settings.aliases
+            filter_intrinsics = filter_settings.intrinsics
+            filter_args.extend(get_filter_args(filter_sets, "sets"))
+            filter_args.extend(get_filter_args(filter_instructions, "instructions"))
+            filter_args.extend(get_filter_args(filter_aliases, "aliases"))
+            filter_args.extend(get_filter_args(filter_intrinsics, "intrinsics"))
+            args = [
+                self.models_dir / name,
+                *filter_args,
+                "--log",
+                # "info",
+                "debug",
+            ]
+        utils.python("-m", "m2isar.transform.filter_model.filter", *args, env=self.prepare_environment(), print_func=logger.info if verbose else logger.debug, live=True)
+
+    def drop_unused(self, verbose: bool = False, inplace: bool = True):
+        assert inplace
+        input_files = list(self.models_dir.glob("*.seal5model"))
+        assert len(input_files) > 0, "No Seal5 models found!"
+        for input_file in input_files:
+            name = input_file.name
+            logger.info("Dropping unused for %s", name)
+            args = [
+                self.models_dir / name,
+                "--log",
+                # "info",
+                "debug",
+            ]
+        utils.python("-m", "m2isar.transform.drop_unused.optimizer", *args, env=self.prepare_environment(), print_func=logger.info if verbose else logger.debug, live=True)
+
     def detect_registers(self, verbose: bool = False, inplace: bool = True):
         assert inplace
         input_files = list(self.models_dir.glob("*.seal5model"))
@@ -517,6 +611,22 @@ class Seal5Flow:
             ]
         utils.python("-m", "m2isar.transform.seal5.detect_registers", *args, env=self.prepare_environment(), print_func=logger.info if verbose else logger.debug, live=True)
 
+    def detect_behavior_constraints(self, verbose: bool = False, inplace: bool = True):
+        assert inplace
+        input_files = list(self.models_dir.glob("*.seal5model"))
+        assert len(input_files) > 0, "No Seal5 models found!"
+        for input_file in input_files:
+            name = input_file.name
+            logger.info("Detecting registers for %s", name)
+            args = [
+                self.models_dir / name,
+                "--log",
+                # "info",
+                "debug",
+            ]
+        utils.python("-m", "m2isar.transform.seal5.collect_raises.collect", *args, env=self.prepare_environment(), print_func=logger.info if verbose else logger.debug, live=True)
+
+
     def transform(self, verbose: bool = False):
         logger.info("Tranforming Seal5 models")
         inplace = True
@@ -525,10 +635,14 @@ class Seal5Flow:
         # TODO: flow.models: Seal5ModelWrapper -> transform(verbose: bool = False, *kwargs)
         # first convert M2-ISA-R MetaModel to Seal5 Metamodel
         self.convert_models(verbose=verbose)
+        # filter model
+        self.filter_model(verbose=verbose)
         # add aliases to model
         # self.add_aliases(verbose=verbose)
         # add intrinsics
         # self.add_intrinsics(verbose=verbose)
+        # drop unused constants
+        self.drop_unused(verbose=verbose)
         # optimize Seal5 Metamodel
         self.optimize_model(verbose=verbose)
         # detect registers
