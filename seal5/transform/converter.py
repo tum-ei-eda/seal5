@@ -12,9 +12,8 @@ import argparse
 import logging
 import pathlib
 import pickle
-from collections import defaultdict
 
-from m2isar.metamodel import arch, patch_model
+from m2isar.metamodel import arch
 import seal5.model as seal5_model
 from m2isar.metamodel.utils.expr_preprocessor import process_attributes, process_functions, process_instructions
 
@@ -36,13 +35,13 @@ def main():
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
-    abs_top_level = top_level.resolve()
+    # abs_top_level = top_level.resolve()
 
     if args.output is None:
         assert top_level.suffix == ".m2isarmodel", "Can not infer file extension."
         temp = str(top_level)
         temp = temp.replace(".m2isarmodel", ".seal5model")
-        model_path = Path(temp)
+        model_path = pathlib.Path(temp)
     else:
         model_path = pathlib.Path(args.output)
     # model_path.mkdir(exist_ok=True)

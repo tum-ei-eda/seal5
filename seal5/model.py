@@ -8,9 +8,19 @@
 """TODO"""
 
 from enum import IntEnum
-from typing import List
+from typing import List, Union
 
-from m2isar.metamodel.arch import InstructionSet, Instruction
+from m2isar.metamodel.arch import (
+    InstructionSet,
+    Instruction,
+    Constant,
+    Memory,
+    Function,
+    BaseNode,
+    InstrAttribute,
+    BitField,
+    BitVal,
+)
 from m2isar.metamodel.behav import Operation
 
 
@@ -70,6 +80,18 @@ class Seal5RegisterGroup:
         return len(self.names)
 
     # TODO: allow indexing i.e. via group[12]
+
+
+class Seal5Intrinsic:
+    pass
+
+
+class Seal5Constraint:
+    pass
+
+
+class Seal5Alias:
+    pass
 
 
 class Seal5Instruction(Instruction):

@@ -12,11 +12,10 @@ import argparse
 import logging
 import pathlib
 import pickle
-from collections import defaultdict
+from typing import Union
 
-from m2isar.metamodel import arch, patch_model
+from m2isar.metamodel import arch
 import seal5.model as seal5_model
-from m2isar.metamodel.utils.expr_preprocessor import process_attributes, process_functions, process_instructions
 
 logger = logging.getLogger("detect_registers")
 
@@ -67,7 +66,6 @@ def main():
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
-    abs_top_level = top_level.resolve()
 
     if args.output is None:  # inplace
         assert top_level.suffix == ".seal5model", "Can not infer model type from file extension."

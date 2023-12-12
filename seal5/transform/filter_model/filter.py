@@ -12,10 +12,9 @@ import argparse
 import logging
 import pathlib
 import pickle
-from collections import defaultdict
+from typing import Union
 
-from m2isar.metamodel import arch, patch_model
-from m2isar.metamodel.utils.expr_preprocessor import process_attributes, process_functions, process_instructions
+from m2isar.metamodel import arch
 
 logger = logging.getLogger("filter_model")
 
@@ -55,7 +54,7 @@ def main():
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
-    abs_top_level = top_level.resolve()
+    # abs_top_level = top_level.resolve()
 
     is_seal5_model = False
     if args.output is None:  # inplace
@@ -78,7 +77,7 @@ def main():
             model: "dict[str, Union[arch.InstructionSet, ...]]" = pickle.load(f)
             model["cores"] = {}
         else:  # TODO: core vs. set!
-            temp: "dict[str, Union[arch.InstructionSet, arch.CoreDef]" = pickle.load(f)
+            temp: "dict[str, Union[arch.InstructionSet, arch.CoreDef]]" = pickle.load(f)
             assert len(temp) > 0, "Empty model!"
             if isinstance(list(temp.values())[0], arch.CoreDef):
                 model = {"cores": temp, "sets": {}}
