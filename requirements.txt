@@ -1,3 +1,4 @@
 gitpython
 pyyaml
-antlr4-python3-runtime~=4.13.1
+# antlr4-python3-runtime~=4.13.1
+M2-ISA-R @ git+https://github.com/PhilippvK/M2-ISA-R-private.git@seal5
