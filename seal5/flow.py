@@ -472,7 +472,14 @@ class Seal5Flow:
             "-o",
             out_dir,
         ]
-        utils.python("-m", "m2isar.frontends.coredsl2_seal5.parser", *args, env=self.prepare_environment(), print_func=logger.info if verbose else logger.debug, live=True)
+        utils.python(
+            "-m",
+            "m2isar.frontends.coredsl2_seal5.parser",
+            *args,
+            env=self.prepare_environment(),
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
 
     def load_cdsl(self, file: Path, verbose: bool = False, overwrite: bool = False):
         assert file.is_file(), "TODO"
@@ -527,7 +534,14 @@ class Seal5Flow:
                 "info",
                 # "debug",
             ]
-        utils.python("-m", "m2isar.transform.seal5.converter", *args, env=self.prepare_environment(), print_func=logger.info if verbose else logger.debug, live=True)
+        utils.python(
+            "-m",
+            "seal5.transform.converter",
+            *args,
+            env=self.prepare_environment(),
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
 
     def optimize_model(self, verbose: bool = False, inplace: bool = True):
         assert inplace
@@ -542,7 +556,14 @@ class Seal5Flow:
                 "info",
                 # "debug",
             ]
-        utils.python("-m", "m2isar.transform.optimize_instructions.optimizer", *args, env=self.prepare_environment(), print_func=logger.info if verbose else logger.debug, live=True)
+        utils.python(
+            "-m",
+            "seal5.transform.optimize_instructions.optimizer",
+            *args,
+            env=self.prepare_environment(),
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
 
     def filter_model(self, verbose: bool = False, inplace: bool = True):
         assert inplace
@@ -553,6 +574,7 @@ class Seal5Flow:
             logger.info("Filtering %s", name)
             filter_settings = self.settings.filter
             filter_args = []
+
             def get_filter_args(data, suffix):
                 if data is None:
                     return []
@@ -564,6 +586,7 @@ class Seal5Flow:
                 if drop:
                     ret += [f"--drop-{suffix}", ",".join(drop)]
                 return ret
+
             filter_sets = filter_settings.sets
             filter_instructions = filter_settings.instructions
             filter_aliases = filter_settings.aliases
@@ -579,7 +602,14 @@ class Seal5Flow:
                 # "info",
                 "debug",
             ]
-        utils.python("-m", "m2isar.transform.filter_model.filter", *args, env=self.prepare_environment(), print_func=logger.info if verbose else logger.debug, live=True)
+        utils.python(
+            "-m",
+            "seal5.transform.filter_model.filter",
+            *args,
+            env=self.prepare_environment(),
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
 
     def drop_unused(self, verbose: bool = False, inplace: bool = True):
         assert inplace
@@ -594,7 +624,14 @@ class Seal5Flow:
                 # "info",
                 "debug",
             ]
-        utils.python("-m", "m2isar.transform.drop_unused.optimizer", *args, env=self.prepare_environment(), print_func=logger.info if verbose else logger.debug, live=True)
+        utils.python(
+            "-m",
+            "seal5.transform.drop_unused.optimizer",
+            *args,
+            env=self.prepare_environment(),
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
 
     def detect_registers(self, verbose: bool = False, inplace: bool = True):
         assert inplace
@@ -609,7 +646,14 @@ class Seal5Flow:
                 "info",
                 # "debug",
             ]
-        utils.python("-m", "m2isar.transform.seal5.detect_registers", *args, env=self.prepare_environment(), print_func=logger.info if verbose else logger.debug, live=True)
+        utils.python(
+            "-m",
+            "seal5.transform.detect_registers",
+            *args,
+            env=self.prepare_environment(),
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
 
     def detect_behavior_constraints(self, verbose: bool = False, inplace: bool = True):
         assert inplace
@@ -624,8 +668,14 @@ class Seal5Flow:
                 # "info",
                 "debug",
             ]
-        utils.python("-m", "m2isar.transform.seal5.collect_raises.collect", *args, env=self.prepare_environment(), print_func=logger.info if verbose else logger.debug, live=True)
-
+        utils.python(
+            "-m",
+            "seal5.transform.collect_raises.collect",
+            *args,
+            env=self.prepare_environment(),
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
 
     def transform(self, verbose: bool = False):
         logger.info("Tranforming Seal5 models")
@@ -762,7 +812,7 @@ class Seal5Flow:
         if suffix != ".gz":
             raise NotImplementedError("Only .tar.gz export is supported!")
         artifacts = [self.inputs_dir, self.gen_dir, self.models_dir, self.logs_dir, self.settings_file]
-        with tarfile.open(dest, mode='w:gz') as archive:
+        with tarfile.open(dest, mode="w:gz") as archive:
             for artifact in artifacts:
                 name = str(artifact)
                 assert str(self.meta_dir) in name
