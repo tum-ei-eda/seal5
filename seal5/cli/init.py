@@ -18,8 +18,6 @@
 #
 """Command line subcommand for initializing a seal5 environment."""
 
-import os
-
 from seal5.flow import Seal5Flow
 
 

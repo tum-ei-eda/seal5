@@ -19,7 +19,6 @@
 """Seal5 utility functions."""
 import os
 import sys
-import signal
 import shutil
 import subprocess
 import multiprocessing
@@ -116,6 +115,19 @@ def exec_getout(
     return out_str
 
 
+def get_cmake_args(cfg: dict):
+    ret = []
+    for key, value in cfg.items():
+        if isinstance(value, bool):
+            value = "ON" if value else "OFF"
+        elif isinstance(value, list):
+            value = ";".join(value)
+        else:
+            assert isinstance(value, (int, str)), "Unsupported cmake cfg"
+        ret.append(f"-D{key}={value}")
+    return ret
+
+
 def cmake(src, *args, debug: Optional[bool] = None, use_ninja=False, cwd=None, **kwargs):
     if cwd is None:
         raise RuntimeError("Please always pass a cwd to cmake()")
@@ -147,3 +159,20 @@ def make(*args, threads=multiprocessing.cpu_count(), use_ninja=False, cwd=None, 
 def python(*args, **kwargs):
     """Run a python script with the current interpreter."""
     return exec_getout(sys.executable, *args, **kwargs)
+
+
+def clean_path(path: Path, interactive: bool = False):
+    raise NotImplementedError
+
+
+def merge_dicts(a: dict, b: dict, path=[]):
+    for key in b:
+        if key in a:
+            if isinstance(a[key], dict) and isinstance(b[key], dict):
+                merge_dicts(a[key], b[key], path + [str(key)])
+            elif a[key] != b[key]:
+                assert type(a[key]) is type(b[key])
+                a[key] = b[key]
+        else:
+            a[key] = b[key]
+    return a

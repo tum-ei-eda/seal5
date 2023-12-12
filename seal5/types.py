@@ -16,15 +16,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""Utilities for handling Seal5 resources."""
-import pkgutil
-import os
-import pkg_resources
+"""Type definitions for seal5."""
+from enum import Enum, IntEnum, auto
 
 
-def get_patch(target: str, patch_name: str):
-    patch_files = pkg_resources.resource_listdir("seal5", os.path.join("..", "resources", "patches", target))
-    patch_names = [x.split(".", 1)[0] for x in patch_files]
-    assert patch_name in patch_names, f"Patch {patch_name} not found! Available: {patch_names}"
-    patch_file = f"{patch_name}.patch"
-    return pkgutil.get_data("seal5", os.path.join("..", "resources", "patches", target, patch_file))
+class Seal5State(Enum):
+    UNKNOWN = auto()
+    UNINITIALIZED = auto()
+    INITIALIZED = auto()
+
+
+class PatchStage(IntEnum):
+    PHASE_0 = 0
+    PHASE_1 = 1
+    PHASE_2 = 2
+    PHASE_3 = 3
+    PHASE_4 = 4

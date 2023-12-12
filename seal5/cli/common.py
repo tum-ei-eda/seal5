@@ -16,8 +16,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import logging
-
 from seal5.logging import get_logger, set_log_level
 
 logger = get_logger()

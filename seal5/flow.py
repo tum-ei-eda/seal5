@@ -17,104 +17,22 @@
 # limitations under the License.
 #
 """Seal5 Flow API."""
-import re
 import os
+import sys
 import tarfile
-from enum import Enum, IntEnum, auto
 from pathlib import Path
 from typing import Optional, List
 
 import git
-import yaml
 
 from seal5.logging import get_logger, set_log_file, set_log_level
-from seal5.dependencies import m2isar_dependency, cdsl2llvm_dependency
-from seal5 import utils
+from seal5.types import Seal5State, PatchStage
+from seal5.settings import Seal5Settings
+
+# from seal5.dependencies import m2isar_dependency, cdsl2llvm_dependency
+from seal5 import utils, tools
 
 logger = get_logger()
-
-
-def clean_path(path: Path, interactive: bool = False):
-    raise NotImplementedError
-
-
-def merge_dicts(a: dict, b: dict, path=[]):
-    for key in b:
-        if key in a:
-            if isinstance(a[key], dict) and isinstance(b[key], dict):
-                merge_dicts(a[key], b[key], path + [str(key)])
-            elif a[key] != b[key]:
-                # raise Exception("Conflict at " + ".".join(path + [str(key)]))
-                assert type(a[key]) is type(b[key])
-                a[key] = b[key]
-        else:
-            a[key] = b[key]
-    return a
-
-
-def get_cmake_args(cfg: dict):
-    ret = []
-    for key, value in cfg.items():
-        if isinstance(value, bool):
-            value = "ON" if value else "OFF"
-        elif isinstance(value, list):
-            value = ";".join(value)
-        else:
-            assert isinstance(value, (int, str)), "Unsupported cmake cfg"
-        ret.append(f"-D{key}={value}")
-    return ret
-
-
-def build_llvm(
-    src: Path, dest: Path, debug: bool = False, use_ninja: bool = False, verbose: bool = False, cmake_options: dict = {}
-):
-    cmake_args = get_cmake_args(cmake_options)
-    dest.mkdir(exist_ok=True)
-    utils.cmake(
-        src / "llvm",
-        *cmake_args,
-        use_ninja=use_ninja,
-        cwd=dest,
-        print_func=logger.info if verbose else logger.debug,
-        live=True,
-    )
-    utils.make(cwd=dest, print_func=logger.info if verbose else logger.debug, live=True)
-
-
-def test_llvm(base: Path, build_dir: Path, test_paths: List[str] = [], verbose: bool = False):
-    lit_exe = build_dir / "bin" / "llvm-lit"
-    failing_tests = []
-    for test_path in test_paths:
-
-        def handler(code):
-            return 0
-
-        out = utils.exec_getout(
-            lit_exe,
-            base / test_path,
-            print_func=logger.info if verbose else logger.debug,
-            live=True,
-            handle_exit=handler,
-        )
-        failing = re.compile(r"FAIL: LLVM :: (.*) \(").findall(out)
-        if len(failing) > 0:
-            failing_tests.extend(failing)
-
-    return failing_tests
-
-
-class Seal5State(Enum):
-    UNKNOWN = auto()
-    UNINITIALIZED = auto()
-    INITIALIZED = auto()
-
-
-class PatchStage(IntEnum):
-    PHASE_0 = 0
-    PHASE_1 = 1
-    PHASE_2 = 2
-    PHASE_3 = 3
-    PHASE_4 = 4
 
 
 DEFAULT_SETTINGS = {
@@ -207,122 +125,6 @@ DEFAULT_SETTINGS = {
         "all": "*",
     },
 }
-
-
-class YAMLSettings:
-    @staticmethod
-    def from_yaml(text: str):
-        data = yaml.safe_load(text)
-        return Seal5Settings(data=data)
-
-    @staticmethod
-    def from_yaml_file(path: Path):
-        with open(path, "r") as file:
-            data = yaml.safe_load(file)
-        return Seal5Settings(data=data)
-
-    def __init__(self, data: dict = {}):
-        self.data: dict = data
-        assert self.validate()
-
-    def to_yaml(self):
-        data = self.data
-        text = yaml.dump(data)
-        return text
-
-    def to_yaml_file(self, path: Path):
-        text = self.to_yaml()
-        with open(path, "w") as file:
-            file.write(text)
-
-    def validate(self):
-        # TODO
-        return True
-
-    def merge(self, other: "YAMLSettings", overwrite: bool = False):
-        # TODO:
-        if overwrite:
-            self.data.update(other.data)
-        else:
-            self.data = merge_dicts(self.data, other.data)
-
-
-class TestSettings(YAMLSettings):
-    @property
-    def paths(self):
-        return self.data["paths"]
-
-
-class LoggingSettings(YAMLSettings):
-    @property
-    def console(self):
-        return self.data["console"]
-
-    @property
-    def file(self):
-        return self.data["file"]
-
-
-class FilterSettings(YAMLSettings):
-    @property
-    def sets(self):
-        return self.data.get("sets")
-
-    @property
-    def instructions(self):
-        return self.data.get("instructions")
-
-    @property
-    def aliases(self):
-        return self.data.get("aliases")
-
-    @property
-    def intrinsics(self):
-        return self.data.get("intrinsics")
-
-
-class LLVMSettings(YAMLSettings):
-    @property
-    def state(self):
-        return self.data["state"]
-
-    @property
-    def configs(self):
-        return self.data["configs"]
-
-
-class Seal5Settings(YAMLSettings):
-    @property
-    def logging(self):
-        return LoggingSettings(data=self.data["logging"])
-
-    @property
-    def filter(self):
-        return FilterSettings(data=self.data["filter"])
-
-    @property
-    def llvm(self):
-        return LLVMSettings(data=self.data["llvm"])
-
-    @property
-    def patch(self):
-        return PatchSettings(data=self.data["patch"])
-
-    @property
-    def transform(self):
-        return TransformSettings(data=self.data["transform"])
-
-    @property
-    def test(self):
-        return TestSettings(data=self.data["test"])
-
-    @property
-    def extensions(self):
-        return ExtensionsSettings(data=self.data["extensions"])
-
-    @property
-    def groups(self):
-        return GroupsSettings(data=self.data["groups"])
 
 
 def handle_directory(directory: Optional[Path]):
@@ -426,15 +228,15 @@ class Seal5Flow:
     ):
         logger.info("Initializing Seal5")
         if not self.directory.is_dir():
-            if clone is False and not ask_user("Clone LLVM repository?", default=False, interactive=interactive):
-                logging.error(f"Target directory does not exist! Aborting...")
+            if clone is False and not utils.ask_user("Clone LLVM repository?", default=False, interactive=interactive):
+                logger.error("Target directory does not exist! Aborting...")
                 sys.exit(1)
             clone_llvm_repo(self.directory, clone_url, ref=clone_ref)
         if self.meta_dir.is_dir():
-            if force is False and not ask_user(
+            if force is False and not utils.ask_user(
                 "Overwrite existing .seal5 diretcory?", default=False, interactive=interactive
             ):
-                logging.error(f"Directory {self.meta_dir} already exists! Aborting...")
+                logger.error(f"Directory {self.meta_dir} already exists! Aborting...")
                 sys.exit(1)
         self.meta_dir.mkdir(exist_ok=True)
         create_seal5_directories(self.meta_dir, ["deps", "models", "logs", "build", "install", "temp", "inputs", "gen"])
@@ -515,7 +317,7 @@ class Seal5Flow:
         llvm_config = self.settings.llvm.configs.get(config, None)
         assert llvm_config is not None, f"Invalid llvm config: {config}"
         cmake_options = llvm_config["options"]
-        build_llvm(self.directory, self.build_dir / config, cmake_options)
+        tools.llvm.build_llvm(self.directory, self.build_dir / config, cmake_options)
         logger.info("Completed build of Seal5 LLVM")
 
     def convert_models(self, verbose: bool = False, inplace: bool = False):
@@ -794,7 +596,9 @@ class Seal5Flow:
         logger.info("Testing Seal5 LLVM")
         name = "debug" if debug else "release"
         test_paths = self.settings.test.paths
-        failing_tests = test_llvm(self.directory / "llvm" / "test", self.build_dir / name, test_paths, verbose=verbose)
+        failing_tests = tools.llvm.test_llvm(
+            self.directory / "llvm" / "test", self.build_dir / name, test_paths, verbose=verbose
+        )
         if len(failing_tests) > 0:
             logger.error("%d tests failed: %s", len(failing_tests), ", ".join(failing_tests))
             if not ignore_error:
@@ -839,6 +643,6 @@ class Seal5Flow:
             self.deps_dir,
         ]
         for path in to_clean:
-            clean_path(path, interactive=interactive)
+            utils.clean_path(path, interactive=interactive)
         self.settings.data["inputs"] = []
         logger.info("Completed clean of Seal5 directories")

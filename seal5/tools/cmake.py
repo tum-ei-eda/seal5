@@ -16,15 +16,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""Utilities for handling Seal5 resources."""
-import pkgutil
-import os
-import pkg_resources
+"""Cmake utils for seal5."""
 
 
-def get_patch(target: str, patch_name: str):
-    patch_files = pkg_resources.resource_listdir("seal5", os.path.join("..", "resources", "patches", target))
-    patch_names = [x.split(".", 1)[0] for x in patch_files]
-    assert patch_name in patch_names, f"Patch {patch_name} not found! Available: {patch_names}"
-    patch_file = f"{patch_name}.patch"
-    return pkgutil.get_data("seal5", os.path.join("..", "resources", "patches", target, patch_file))
+def get_cmake_args(cfg: dict):
+    ret = []
+    for key, value in cfg.items():
+        if isinstance(value, bool):
+            value = "ON" if value else "OFF"
+        elif isinstance(value, list):
+            value = ";".join(value)
+        else:
+            assert isinstance(value, (int, str)), "Unsupported cmake cfg"
+        ret.append(f"-D{key}={value}")
+    return ret

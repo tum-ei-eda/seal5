@@ -18,15 +18,12 @@
 #
 """Console script for seal5."""
 
-import os
 import argparse
 import sys
-import subprocess
-import platform
 
 
 from seal5.logging import get_logger
-import seal5.cli.init as init
+from seal5.cli import init
 from .common import handle_logging_flags, add_common_options
 from ..version import __version__
 

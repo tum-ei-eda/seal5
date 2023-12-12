@@ -14,8 +14,9 @@ import pathlib
 import pickle
 from typing import Union
 
-from . import visitor
 from m2isar.metamodel import arch, patch_model
+
+from . import visitor
 
 logger = logging.getLogger("collect_raises")
 
