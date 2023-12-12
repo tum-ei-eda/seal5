@@ -108,6 +108,7 @@ class Seal5State(Enum):
     UNINITIALIZED = auto()
     INITIALIZED = auto()
 
+
 class PatchStage(IntEnum):
     PHASE_0 = 0
     PHASE_1 = 1
@@ -452,7 +453,7 @@ class Seal5Flow:
         verbose: bool = False,
     ):
         logger.info("Installing Seal5 dependencies")
-        m2isar_dependency.clone(self.deps_dir / "M2-ISA-R", overwrite=force)
+        # m2isar_dependency.clone(self.deps_dir / "M2-ISA-R", overwrite=force)
         # cdsl2llvm_dependency.clone(self.deps_dir / "cdsl2llvm", overwrite=force)
         logger.info("Completed installation of Seal5 dependencies")
 
