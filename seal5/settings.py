@@ -22,6 +22,7 @@ from pathlib import Path
 import yaml
 
 from seal5 import utils
+from seal5.types import PatchStage
 
 
 class YAMLSettings:
@@ -68,8 +69,44 @@ class TestSettings(YAMLSettings):
         return self.data["paths"]
 
 
+class GitSettings(YAMLSettings):
+    @property
+    def author(self):
+        return self.data["author"]
+
+    @property
+    def mail(self):
+        return self.data["mail"]
+
+    @property
+    def prefix(self):
+        return self.data["prefix"]
+
+
 class PatchSettings(YAMLSettings):
-    pass
+    @property
+    def name(self):
+        return self.data["name"]
+
+    @property
+    def target(self):
+        return self.data.get("target", None)
+
+    @property
+    def stage(self):
+        return PatchStage(self.data.get("stage", 0))
+
+    @property
+    def comment(self):
+        return self.data.get("comment", None)
+
+    @property
+    def file(self):
+        return Path(self.data["file"]) if "file" in self.data else None
+
+    @property
+    def enable(self):
+        return utils.str2bool(self.data.get("enable", True))
 
 
 class TransformSettings(YAMLSettings):
@@ -136,8 +173,12 @@ class Seal5Settings(YAMLSettings):
         return LLVMSettings(data=self.data["llvm"])
 
     @property
-    def patch(self):
-        return PatchSettings(data=self.data["patch"])
+    def git(self):
+        return GitSettings(data=self.data["git"])
+
+    @property
+    def patches(self):
+        return [PatchSettings(data=patch) for patch in self.data["patches"]]
 
     @property
     def transform(self):

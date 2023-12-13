@@ -20,6 +20,7 @@
 import os
 import sys
 import shutil
+import distutils
 import subprocess
 import multiprocessing
 from pathlib import Path
@@ -28,6 +29,16 @@ from typing import List, Callable, Optional
 from seal5.logging import get_logger
 
 logger = get_logger()
+
+
+def str2bool(value, allow_none=False):
+    if value is None:
+        assert allow_none, "str2bool received None value while allow_none=False"
+        return value
+    if isinstance(value, (int, bool)):
+        return bool(value)
+    assert isinstance(value, str)
+    return bool(distutils.util.strtobool(value))
 
 
 def copy(src, dest):

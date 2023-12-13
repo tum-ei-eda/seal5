@@ -21,18 +21,37 @@ import os
 import sys
 import tarfile
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Dict, Tuple
 
 import git
 
 from seal5.logging import get_logger, set_log_file, set_log_level
 from seal5.types import Seal5State, PatchStage
-from seal5.settings import Seal5Settings
+from seal5.settings import Seal5Settings, PatchSettings
 
 # from seal5.dependencies import m2isar_dependency, cdsl2llvm_dependency
-from seal5 import utils, tools
+from seal5 import utils
+from seal5.tools import llvm
+from seal5.resources.resources import get_patches
 
 logger = get_logger()
+
+
+def lookup_manual_patch(patch: PatchSettings, allow_missing=False):
+    patches = get_patches(patch_name=patch.name, target=patch.target, allow_empty=allow_missing)
+    if len(patches) == 0:
+        # fallback (undefined target)
+        patches = get_patches(patch_name=patch.name, target=None, allow_empty=allow_missing)
+    if len(patches) == 0:
+        raise RuntimeError(f"Manual patch '{patch.name}' not found!")
+    assert len(patches) == 1, "Too many matches"
+    res = patches[0]
+    if patch.target is None:
+        target = res.parent.name
+        patch.data["target"] = target
+    if patch.file is None:
+        patch.data["file"] = res
+    return res
 
 
 DEFAULT_SETTINGS = {
@@ -47,10 +66,20 @@ DEFAULT_SETTINGS = {
             "limit": 1000,
         },
     },
-    "patch": {
+    "git": {
         "author": "Seal5",
         "mail": "example@example.com",
+        "prefix": "[Seal5]",
     },
+    "patches": [
+        {
+            "name": "gitignore",
+            "file": "gitignore.patch",
+            "target": "llvm",
+            "stage": 0,
+            "comment": "Add .seal5 directory to .gitignore",
+        },
+    ],
     "filter": {
         "sets": {
             "keep": [],
@@ -211,6 +240,10 @@ class Seal5Flow:
         return self.meta_dir / "gen"
 
     @property
+    def patches_dir(self):  # TODO: maybe merge with gen_dir
+        return self.meta_dir / "patches"
+
+    @property
     def log_file_path(self):
         return self.logs_dir / "seal5.log"
 
@@ -227,11 +260,15 @@ class Seal5Flow:
         verbose: bool = False,
     ):
         logger.info("Initializing Seal5")
+        sha = None
         if not self.directory.is_dir():
             if clone is False and not utils.ask_user("Clone LLVM repository?", default=False, interactive=interactive):
                 logger.error("Target directory does not exist! Aborting...")
                 sys.exit(1)
-            clone_llvm_repo(self.directory, clone_url, ref=clone_ref)
+            sha = llvm.clone_llvm_repo(self.directory, clone_url, ref=clone_ref, label=self.name)
+        else:
+            if force:
+                sha = llvm.clone_llvm_repo(self.directory, clone_url, ref=clone_ref, refresh=True, label=self.name)
         if self.meta_dir.is_dir():
             if force is False and not utils.ask_user(
                 "Overwrite existing .seal5 diretcory?", default=False, interactive=interactive
@@ -239,8 +276,12 @@ class Seal5Flow:
                 logger.error(f"Directory {self.meta_dir} already exists! Aborting...")
                 sys.exit(1)
         self.meta_dir.mkdir(exist_ok=True)
-        create_seal5_directories(self.meta_dir, ["deps", "models", "logs", "build", "install", "temp", "inputs", "gen"])
+        create_seal5_directories(
+            self.meta_dir, ["deps", "models", "logs", "build", "install", "temp", "inputs", "gen", "patches"]
+        )
         self.settings = Seal5Settings(data=DEFAULT_SETTINGS)
+        if sha:
+            self.settings.llvm.data["state"]["base_commit"] = sha
         self.settings.to_yaml_file(self.settings_file)
         set_log_file(self.log_file_path)
         set_log_level(
@@ -310,14 +351,14 @@ class Seal5Flow:
             else:
                 raise RuntimeError(f"Unsupported input type: {ext}")
         # TODO: only allow single instr set for now and track inputs in settings
-        logger.info("Compledted load of Seal5 inputs")
+        logger.info("Completed load of Seal5 inputs")
 
     def build(self, config="release", verbose: bool = False):
         logger.info("Building Seal5 LLVM")
         llvm_config = self.settings.llvm.configs.get(config, None)
         assert llvm_config is not None, f"Invalid llvm config: {config}"
         cmake_options = llvm_config["options"]
-        tools.llvm.build_llvm(self.directory, self.build_dir / config, cmake_options)
+        llvm.build_llvm(self.directory, self.build_dir / config, cmake_options)
         logger.info("Completed build of Seal5 LLVM")
 
     def convert_models(self, verbose: bool = False, inplace: bool = False):
@@ -577,26 +618,108 @@ class Seal5Flow:
 
         logger.info("Completed generation of Seal5 patches")
 
-    def collect_patches(self, stage: Optional[PatchStage]):
-        return []  # TODO
+    # def collect_patches(self, stage: Optional[PatchStage]):
+    #     return ret
 
-    def patch(self, verbose: bool = False, stages: List[PatchStage] = None):
+    def collect_patches(self):
+        # generated patches
+        temp: Dict[Tuple[str, str], PatchSettings] = {}
+        # TODO: loop over generated files
+
+        # user-defined patches
+        patches_settings = self.settings.patches
+        for patch_settings in patches_settings:
+            patch_file = lookup_manual_patch(patch_settings, allow_missing=True)
+            print("patch_file", patch_file)
+            target = patch_settings.target
+            name = patch_settings.name
+            key = (target, name)
+            if key in temp:
+                # override
+                logger.debug("Overriding existing patch settings")
+                new = temp[key]
+                new.data.update(patch_settings.data)
+                temp[key] = new
+            else:
+                temp[key] = patch_settings
+            if patch_file:
+                logger.debug("Copying custom patch_file %s", patch_file)
+                dest = self.patches_dir / target
+                dest.mkdir(exist_ok=True)
+                print("dest", dest)
+                utils.copy(patch_file, dest / f"{name}.patch")
+                patch_settings.to_yaml_file(dest / f"{name}.yml")
+        ret = {}
+        for patch_settings in temp.values():
+            if patch_settings.stage not in ret:
+                ret[patch_settings.stage] = []
+            ret[patch_settings.stage].append(patch_settings)
+        return ret
+
+    def resolve_patch_file(self, path):
+        ret = path
+        if ret.is_file():
+            return path.resolve()
+        ret = self.patches_dir / path
+        if ret.is_file():
+            return ret.resolve()
+        raise RuntimeError(f"Patch file {path} not found!")
+
+    def apply_patch(self, patch: PatchSettings, force: bool = False):
+        name = patch.name
+        target = patch.target
+        file = self.resolve_patch_file(patch.file)
+        if patch.enable:
+            logger.info("Applying patch '%s' on '%s'", name, target)
+        else:
+            logger.info("Skipping patch '%s' on '%s'", name, target)
+            return
+        dest = None
+        if target == "llvm":
+            dest = self.directory
+            repo = git.Repo(dest)
+            if not llvm.check_llvm_repo(dest):
+                if force:
+                    repo.git.reset(".")
+                    repo.git.restore(".")
+                else:
+                    raise RuntimeError("LLVM repository is not clean!")
+        if dest is None:
+            raise RuntimeError(f"Unsupported patch target: {target}")
+        # TODO: check if clean
+        repo.git.apply(file)
+        author = self.settings.git.author
+        mail = self.settings.git.mail
+        actor = git.Actor(author, mail)
+        prefix = self.settings.git.prefix
+        msg = patch.comment
+        if not msg:
+            msg = f"Apply patch: {patch.name}"
+        if prefix:
+            msg = prefix + " " + msg
+        repo.git.add(A=True)
+        repo.index.commit(msg, author=actor)
+        # TODO: commit
+
+    def patch(self, verbose: bool = False, stages: List[PatchStage] = None, force: bool = False):
         logger.info("Applying Seal5 patches")
-        # raise NotImplementedError
         if stages is None:
             stages = list(map(PatchStage, range(PatchStage.PHASE_4)))
         assert len(stages) > 0
+        patches_per_stage = self.collect_patches()
         for stage in stages:
             logger.info("Current stage: %s", stage)
-            patches = self.collect_patches(stage=stage)
+            patches = patches_per_stage.get(stage, [])
             print("patches", patches)
+            for patch in patches:
+                self.apply_patch(patch, force=force)
         logger.info("Completed application of Seal5 patches")
 
     def test(self, debug: bool = False, verbose: bool = False, ignore_error: bool = False):
         logger.info("Testing Seal5 LLVM")
         name = "debug" if debug else "release"
         test_paths = self.settings.test.paths
-        failing_tests = tools.llvm.test_llvm(
+        failing_tests = llvm.test_llvm(
             self.directory / "llvm" / "test", self.build_dir / name, test_paths, verbose=verbose
         )
         if len(failing_tests) > 0:
