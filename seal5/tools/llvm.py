@@ -19,12 +19,60 @@
 """LLVM utils for seal5."""
 import re
 from pathlib import Path
-from typing import List
+from typing import List, Optional
+
+import git
 
 from seal5.logging import get_logger
 from seal5 import utils
 
 logger = get_logger()
+
+
+def check_llvm_repo(path: Path):
+    repo = git.Repo(path)
+    if repo.is_dirty(untracked_files=True):
+        # Filter out .seal5/ directory
+        out = repo.git.status("--porcelain")
+        lines = out.split("\n")
+        dirty = []
+        for line in lines:
+            mode, file = line.strip().split(" ", 1)
+            if file == ".seal5/":
+                continue
+            else:
+                dirty.append(file)
+        if len(dirty) > 0:
+            logger.debug("Dirty files in LLVM repository: %s", ", ".join(dirty))
+            return False
+
+    return True
+
+
+def clone_llvm_repo(
+    dest: Path, clone_url: str, ref: Optional[str] = None, refresh: bool = False, label: str = "default"
+):
+    sha = None
+    if dest.is_dir():
+        if refresh:
+            logger.debug("Refreshing LLVM repository: %s", dest)
+            repo = git.Repo(dest)
+            repo.remotes.origin.set_url(clone_url)
+            repo.remotes.origin.fetch()
+            if ref:
+                repo.git.checkout(ref)
+                repo.git.pull("origin", ref)
+            repo.create_tag(f"seal5-{label}-base", "-f")
+            sha = repo.head.commit.hexsha
+    else:
+        logger.debug("Cloning LLVM repository: %s", clone_url)
+        repo = git.Repo.clone_from(clone_url, dest, no_checkout=ref is not None)
+        if ref:
+            logger.debug("Checking out branch: %s", ref)
+            repo.git.checkout(ref)
+        repo.create_tag(f"seal5-{label}-base", "-f")
+        sha = repo.head.commit.hexsha
+    return sha
 
 
 def build_llvm(

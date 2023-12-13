@@ -175,14 +175,6 @@ def create_seal5_directories(path: Path, directories: list):
         (path / directory).mkdir(parents=True, exist_ok=True)
 
 
-def clone_llvm_repo(dest: Path, clone_url: str, ref: Optional[str] = None):  # TODO: how to get submodule url/ref
-    logger.debug("Cloning LLVM repository: %s", clone_url)
-    repo = git.Repo.clone_from(clone_url, dest, no_checkout=ref is not None)
-    if ref:
-        logger.debug("Checking out branch: %s", ref)
-        repo.git.checkout(ref)
-
-
 class Seal5Flow:
     def __init__(self, directory: Optional[Path] = None, name: str = "default"):
         self.directory: Path = handle_directory(directory)
