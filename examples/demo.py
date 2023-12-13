@@ -18,16 +18,19 @@
 #
 """Demo script for Seal5 Python API."""
 import os
-import logging
+
+# import logging
 from pathlib import Path
 
 from seal5.flow import Seal5Flow
 from seal5.logging import set_log_level
 
-set_log_level(logging.INFO)
+# set_log_level(console_level=logging.DEBUG, file_level=logging.DEBUG)
+set_log_level(console_level="DEBUG", file_level="DEBUG")
 
 EXAMPLES_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
-VERBOSE = False
+# VERBOSE = False
+VERBOSE = True
 
 
 seal5_flow = Seal5Flow("/tmp/seal5_llvm_demo", "demo")
@@ -51,7 +54,12 @@ cdsl_files = [EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMac.core_desc"]
 seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load YAML inputs
-cfg_files = [EXAMPLES_DIR / "cfg" / "XCoreVMac.yml", EXAMPLES_DIR / "cfg" / "llvm.yml", EXAMPLES_DIR / "cfg" / "filter.yml"]
+cfg_files = [
+    EXAMPLES_DIR / "cfg" / "XCoreVMac.yml",
+    EXAMPLES_DIR / "cfg" / "llvm.yml",
+    EXAMPLES_DIR / "cfg" / "filter.yml",
+    EXAMPLES_DIR / "cfg" / "patches.yml",
+]
 seal5_flow.load(cfg_files, verbose=VERBOSE, overwrite=False)
 
 # Build initial LLVM
@@ -61,10 +69,10 @@ seal5_flow.load(cfg_files, verbose=VERBOSE, overwrite=False)
 #   1. Create M2-ISA-R metamodel
 #   2. Convert to Seal5 metamodel (including aliases, builtins,...)
 #   3. Analyse/optimize instructions
-seal5_flow.transform(verbose=VERBOSE)
+# seal5_flow.transform(verbose=VERBOSE)
 
 # Generate patches
-seal5_flow.generate(verbose=VERBOSE)
+# seal5_flow.generate(verbose=VERBOSE)
 
 # Apply patches
 seal5_flow.patch(verbose=VERBOSE)

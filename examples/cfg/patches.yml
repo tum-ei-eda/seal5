@@ -1,0 +1,23 @@
+---
+patches:
+  # manual patch
+  - name: gitignore
+    target: llvm
+    stage: 0
+    comment: ""
+    file: llvm/gitignore.patch
+  - name: gitlab_ci
+    target: llvm
+    stage: 0
+    comment: "[CI] Add CI/CD-Configuration for GitLab"
+    file: llvm/gitlab_ci.patch
+    # Alternatives (automated lookup not yet implemented):
+    # file: gitlab_ci.patch
+    # file: llvm/gitlab_ci.patch
+    # file: /absolute/path/to/gitlab_ci.patch
+  - name: insert_markers_llvm17
+  # generated patch (TODO: implement)
+  # - name: ???
+  #   target: llvm
+  #   stage: ?  # allows overriding default stage
+  #   enable: false  # can be used to skip patches
