@@ -27,7 +27,7 @@ import git
 
 from seal5.logging import get_logger, set_log_file, set_log_level
 from seal5.types import Seal5State, PatchStage
-from seal5.settings import Seal5Settings, PatchSettings
+from seal5.settings import Seal5Settings, PatchSettings, DEFAULT_SETTINGS
 
 # from seal5.dependencies import m2isar_dependency, cdsl2llvm_dependency
 from seal5 import utils
@@ -48,112 +48,10 @@ def lookup_manual_patch(patch: PatchSettings, allow_missing=False):
     res = patches[0]
     if patch.target is None:
         target = res.parent.name
-        patch.data["target"] = target
+        patch.target = target
     if patch.file is None:
-        patch.data["file"] = res
+        patch.file = res
     return res
-
-
-DEFAULT_SETTINGS = {
-    # "directory": ?,
-    "logging": {
-        "console": {
-            "level": "INFO",
-        },
-        "file": {
-            "level": "DEBUG",
-            "rotate": False,
-            "limit": 1000,
-        },
-    },
-    "git": {
-        "author": "Seal5",
-        "mail": "example@example.com",
-        "prefix": "[Seal5]",
-    },
-    "patches": [
-        {
-            "name": "gitignore",
-            "file": "gitignore.patch",
-            "target": "llvm",
-            "stage": 0,
-            "comment": "Add .seal5 directory to .gitignore",
-        },
-    ],
-    "filter": {
-        "sets": {
-            "keep": [],
-            "drop": [],
-        },
-        "instructions": {
-            "keep": [],
-            "drop": [],
-        },
-        "aliases": {
-            "keep": [],
-            "drop": [],
-        },
-        "intrinsics": {
-            "keep": [],
-            "drop": [],
-        },
-    },
-    "transform": {
-        "passes": "*",
-    },
-    "test": {
-        "paths": ["MC/RISCV", "CodeGen/RISCV"],
-    },
-    "llvm": {
-        "state": {"version": "auto", "base_commit": "unknown"},
-        "configs": {
-            "release": {
-                "options": {
-                    "CMAKE_BUILD_TYPE": "Release",
-                    "LLVM_BUILD_TOOLS": True,
-                    "LLVM_ENABLE_ASSERTIONS": False,
-                    "LLVM_OPTIMIZED_TABLEGEN": True,
-                    "LLVM_ENABLE_PROJECTS": ["clang", "lld"],
-                    "LLVM_TARGETS_TO_BUILD": ["X86", "RISCV"],
-                },
-            },
-            "release_assertions": {
-                "options": {
-                    "CMAKE_BUILD_TYPE": "Release",
-                    "LLVM_BUILD_TOOLS": True,
-                    "LLVM_ENABLE_ASSERTIONS": True,
-                    "LLVM_OPTIMIZED_TABLEGEN": True,
-                    "LLVM_ENABLE_PROJECTS": ["clang", "lld"],
-                    "LLVM_TARGETS_TO_BUILD": ["X86", "RISCV"],
-                },
-            },
-            "debug": {
-                "options": {
-                    "CMAKE_BUILD_TYPE": "Debug",
-                    "LLVM_BUILD_TOOLS": True,
-                    "LLVM_ENABLE_ASSERTIONS": True,
-                    "LLVM_OPTIMIZED_TABLEGEN": True,
-                    "LLVM_ENABLE_PROJECTS": ["clang", "lld"],
-                    "LLVM_TARGETS_TO_BUILD": ["X86", "RISCV"],
-                },
-            },
-        },
-    },
-    "inputs": [],
-    "extensions": {
-        # RV32Zpsfoperand:
-        #   feature: RV32Zpsfoperand
-        #   arch: rv32zpsfoperand
-        #   version: "1.0"
-        #   experimental: true
-        #   vendor: false
-        #   instructions/intrinsics/aliases/constraints: TODO
-        #   # patches: []
-    },
-    "groups": {
-        "all": "*",
-    },
-}
 
 
 def handle_directory(directory: Optional[Path]):
@@ -185,10 +83,11 @@ class Seal5Flow:
         if self.settings_file.is_file():
             self.settings = Seal5Settings.from_yaml_file(self.settings_file)
         if self.logs_dir.is_dir():
+            pass
             set_log_file(self.log_file_path)
             if self.settings:
                 set_log_level(
-                    console_level=self.settings.logging.console["level"], file_level=self.settings.logging.file["level"]
+                    console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level
                 )
 
     @property
@@ -271,13 +170,13 @@ class Seal5Flow:
         create_seal5_directories(
             self.meta_dir, ["deps", "models", "logs", "build", "install", "temp", "inputs", "gen", "patches"]
         )
-        self.settings = Seal5Settings(data=DEFAULT_SETTINGS)
+        self.settings = Seal5Settings.from_dict(DEFAULT_SETTINGS)
         if sha:
-            self.settings.llvm.data["state"]["base_commit"] = sha
+            self.settings.llvm.state.base_commit = sha
         self.settings.to_yaml_file(self.settings_file)
         set_log_file(self.log_file_path)
         set_log_level(
-            console_level=self.settings.logging.console["level"], file_level=self.settings.logging.file["level"]
+            console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level
         )
         logger.info("Completed initialization of Seal5")
 
@@ -325,7 +224,7 @@ class Seal5Flow:
             raise RuntimeError(f"File {filename} already loaded!")
         # Add file to inputs directory and settings
         utils.copy(file, dest)
-        self.settings.data["inputs"].append(filename)
+        self.settings.inputs.append(filename)
         # Parse CoreDSL file with M2-ISA-R (TODO: Standalone)
         dest = self.models_dir
         self.parse_coredsl(file, dest, verbose=verbose)
@@ -349,7 +248,7 @@ class Seal5Flow:
         logger.info("Building Seal5 LLVM")
         llvm_config = self.settings.llvm.configs.get(config, None)
         assert llvm_config is not None, f"Invalid llvm config: {config}"
-        cmake_options = llvm_config["options"]
+        cmake_options = llvm_config.options
         llvm.build_llvm(self.directory, self.build_dir / config, cmake_options)
         logger.info("Completed build of Seal5 LLVM")
 
@@ -630,7 +529,7 @@ class Seal5Flow:
                 # override
                 logger.debug("Overriding existing patch settings")
                 new = temp[key]
-                new.data.update(patch_settings.data)
+                new.merge(patch_settings)
                 temp[key] = new
             else:
                 temp[key] = patch_settings
@@ -638,7 +537,7 @@ class Seal5Flow:
                 logger.debug("Copying custom patch_file %s", patch_file)
                 dest = self.patches_dir / target
                 dest.mkdir(exist_ok=True)
-                print("dest", dest)
+                # print("dest", dest)
                 utils.copy(patch_file, dest / f"{name}.patch")
                 patch_settings.to_yaml_file(dest / f"{name}.yml")
         ret = {}
@@ -649,6 +548,10 @@ class Seal5Flow:
         return ret
 
     def resolve_patch_file(self, path):
+        assert path is not None, "Patch path undefined"
+        if isinstance(path, str):
+            path = Path(path)
+        assert isinstance(path, Path)
         ret = path
         if ret.is_file():
             return path.resolve()
