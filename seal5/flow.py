@@ -175,9 +175,7 @@ class Seal5Flow:
             self.settings.llvm.state.base_commit = sha
         self.settings.to_yaml_file(self.settings_file)
         set_log_file(self.log_file_path)
-        set_log_level(
-            console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level
-        )
+        set_log_level(console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level)
         logger.info("Completed initialization of Seal5")
 
     def setup(

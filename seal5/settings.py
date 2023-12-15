@@ -131,7 +131,6 @@ DEFAULT_SETTINGS = {
 
 
 class YAMLSettings:
-
     @classmethod
     def from_dict(cls, data: dict):
         # print("from_dict", data)
@@ -195,7 +194,9 @@ class YAMLSettings:
                                 v2.clear()
                             v2.extend(v1)
                         else:
-                            assert isinstance(v2, (int, float, str, bool, Path)), f"Unsupported field type for merge {t1}"
+                            assert isinstance(
+                                v2, (int, float, str, bool, Path)
+                            ), f"Unsupported field type for merge {t1}"
                             setattr(self, k1, v1)
                     break
                 # print("f2", f2.name, f2, type(f2))
@@ -207,6 +208,7 @@ class YAMLSettings:
         #     self.data.update(other.data)
         # else:
         #     # self.data = utils.merge_dicts(self.data, other.data)
+
     # @staticmethod
     # def from_yaml(text: str):
     #     data = yaml.safe_load(text)
