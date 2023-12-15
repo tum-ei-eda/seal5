@@ -59,6 +59,7 @@ cfg_files = [
     EXAMPLES_DIR / "cfg" / "llvm.yml",
     EXAMPLES_DIR / "cfg" / "filter.yml",
     EXAMPLES_DIR / "cfg" / "patches.yml",
+    EXAMPLES_DIR / "cfg" / "git.yml",
 ]
 seal5_flow.load(cfg_files, verbose=VERBOSE, overwrite=False)
 
