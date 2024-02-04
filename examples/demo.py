@@ -50,12 +50,14 @@ seal5_flow.initialize(
 seal5_flow.setup(force=True, verbose=VERBOSE)
 
 # Load CoreDSL inputs
-cdsl_files = [EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMac.core_desc"]
+# cdsl_files = [EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMac.core_desc"]
+cdsl_files = [EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMac.core_desc", EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVBranchImmediate.core_desc"]
 seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load YAML inputs
 cfg_files = [
     EXAMPLES_DIR / "cfg" / "XCoreVMac.yml",
+    EXAMPLES_DIR / "cfg" / "XCoreVBranchImmediate.yml",
     EXAMPLES_DIR / "cfg" / "llvm.yml",
     EXAMPLES_DIR / "cfg" / "filter.yml",
     EXAMPLES_DIR / "cfg" / "patches.yml",
