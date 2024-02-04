@@ -267,14 +267,14 @@ class Seal5Flow:
                 "info",
                 # "debug",
             ]
-        utils.python(
-            "-m",
-            "seal5.transform.converter",
-            *args,
-            env=self.prepare_environment(),
-            print_func=logger.info if verbose else logger.debug,
-            live=True,
-        )
+            utils.python(
+                "-m",
+                "seal5.transform.converter",
+                *args,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
 
     def optimize_model(self, verbose: bool = False, inplace: bool = True):
         assert inplace
@@ -289,14 +289,14 @@ class Seal5Flow:
                 "info",
                 # "debug",
             ]
-        utils.python(
-            "-m",
-            "seal5.transform.optimize_instructions.optimizer",
-            *args,
-            env=self.prepare_environment(),
-            print_func=logger.info if verbose else logger.debug,
-            live=True,
-        )
+            utils.python(
+                "-m",
+                "seal5.transform.optimize_instructions.optimizer",
+                *args,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
 
     def filter_model(self, verbose: bool = False, inplace: bool = True):
         assert inplace
@@ -335,14 +335,14 @@ class Seal5Flow:
                 # "info",
                 "debug",
             ]
-        utils.python(
-            "-m",
-            "seal5.transform.filter_model.filter",
-            *args,
-            env=self.prepare_environment(),
-            print_func=logger.info if verbose else logger.debug,
-            live=True,
-        )
+            utils.python(
+                "-m",
+                "seal5.transform.filter_model.filter",
+                *args,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
 
     def drop_unused(self, verbose: bool = False, inplace: bool = True):
         assert inplace
@@ -357,14 +357,14 @@ class Seal5Flow:
                 # "info",
                 "debug",
             ]
-        utils.python(
-            "-m",
-            "seal5.transform.drop_unused.optimizer",
-            *args,
-            env=self.prepare_environment(),
-            print_func=logger.info if verbose else logger.debug,
-            live=True,
-        )
+            utils.python(
+                "-m",
+                "seal5.transform.drop_unused.optimizer",
+                *args,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
 
     def detect_registers(self, verbose: bool = False, inplace: bool = True):
         assert inplace
@@ -379,14 +379,14 @@ class Seal5Flow:
                 "info",
                 # "debug",
             ]
-        utils.python(
-            "-m",
-            "seal5.transform.detect_registers",
-            *args,
-            env=self.prepare_environment(),
-            print_func=logger.info if verbose else logger.debug,
-            live=True,
-        )
+            utils.python(
+                "-m",
+                "seal5.transform.detect_registers",
+                *args,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
 
     def detect_behavior_constraints(self, verbose: bool = False, inplace: bool = True):
         assert inplace
