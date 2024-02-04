@@ -73,6 +73,7 @@ def main():
                 instr_def.assembly,
                 instr_def.operation,
                 [],
+                {},
             )
         sets[set_name] = seal5_model.Seal5InstructionSet(
             set_def.name,
