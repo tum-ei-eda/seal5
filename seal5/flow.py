@@ -424,6 +424,7 @@ class Seal5Flow:
         # self.add_intrinsics(verbose=verbose)
         # drop unused constants
         self.drop_unused(verbose=verbose)
+        self.eliminate_rd_cmp_zero(verbose=verbose)
         # optimize Seal5 Metamodel
         self.optimize_model(verbose=verbose)
         # detect registers
