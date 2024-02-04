@@ -65,6 +65,9 @@ def main():
         model_path = top_level
     else:
         model_path = pathlib.Path(args.output)
+        assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
+        if top_level.suffix == ".seal5model":
+            is_seal5_model = True
 
     logger.info("loading models")
     if not is_seal5_model:
@@ -94,6 +97,8 @@ def main():
         keep_sets = []
     if args.drop_sets:
         drop_sets = args.drop_sets.split(",")
+    else:
+        drop_sets = []
     if args.keep_instructions:
         keep_instructions = args.keep_instructions.split(",")
     else:
@@ -117,9 +122,9 @@ def main():
     }
     for set_name, set_def in model["sets"].items():
         set_def.instructions = {
-            instr_name: instr_def
-            for instr_name, instr_def in set_def.instructions.items()
-            if check_filter(instr_name, keep_instructions, drop_instructions)
+            key: instr_def
+            for key, instr_def in set_def.instructions.items()
+            if check_filter(instr_def.name, keep_instructions, drop_instructions)
         }
         # for instr_name, instr_def in set_def.instructions.items():
 
