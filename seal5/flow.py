@@ -761,5 +761,5 @@ class Seal5Flow:
         ]
         for path in to_clean:
             utils.clean_path(path, interactive=interactive)
-        self.settings.data["inputs"] = []
+        self.settings.inputs = []
         logger.info("Completed clean of Seal5 directories")
