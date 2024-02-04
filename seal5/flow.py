@@ -399,14 +399,114 @@ class Seal5Flow:
                 # "info",
                 "debug",
             ]
-        utils.python(
-            "-m",
-            "seal5.transform.collect_raises.collect",
-            *args,
-            env=self.prepare_environment(),
-            print_func=logger.info if verbose else logger.debug,
-            live=True,
-        )
+            utils.python(
+                "-m",
+                "seal5.transform.collect_raises.collect",
+                *args,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
+
+    def eliminate_rd_cmp_zero(self, verbose: bool = False, inplace: bool = True):
+        assert inplace
+        input_files = list(self.models_dir.glob("*.seal5model"))
+        assert len(input_files) > 0, "No Seal5 models found!"
+        for input_file in input_files:
+            name = input_file.name
+            logger.info("Detecting registers for %s", name)
+            args = [
+                self.models_dir / name,
+                "--log",
+                # "info",
+                "debug",
+            ]
+            utils.python(
+                "-m",
+                "seal5.transform.eliminate_rd_cmp_zero.transform",
+                *args,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
+
+    def write_cdsl(self, verbose: bool = False, inplace: bool = True):
+        assert inplace
+        input_files = list(self.models_dir.glob("*.seal5model"))
+        assert len(input_files) > 0, "No Seal5 models found!"
+        for input_file in input_files:
+            name = input_file.name
+            new_name = name.replace(".seal5model", ".core_desc")
+            logger.info("Writing CDSL for %s", name)
+            args = [
+                self.models_dir / name,
+                "--log",
+                # "info",
+                "debug",
+                "--output",
+                self.temp_dir / new_name
+            ]
+            utils.python(
+                "-m",
+                "seal5.backends.coredsl2.writer",
+                *args,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
+
+    def write_cdsl_splitted(self, verbose: bool = False, inplace: bool = True):
+        assert inplace
+        input_files = list(self.models_dir.glob("*.seal5model"))
+        assert len(input_files) > 0, "No Seal5 models found!"
+        for input_file in input_files:
+            name = input_file.name
+            sub = name.replace(".seal5model", "")
+            # set_names = ["XCoreVMac"]
+            set_names = [sub]
+            # set_names = ["XCoreVMac", "XCoreVBranchImmediate"]
+            # set_names = self.collect_set_names()
+            for set_name in set_names:
+                insn_names = ["CV_MAC", "CV_MSU", "CV_MULUN", "CV_MULSN"] if set_name == "XCoreVMac" else ["CV_BEQIMM", "CV_BNEIMM"]  # TODO
+                # insn_names = self.collect_instr_names()
+                (self.temp_dir / sub / set_name).mkdir(exist_ok=True, parents=True)
+                for insn_name in insn_names:
+                    logger.info("Writing Metamodel for %s/%s/%s", sub, set_name, insn_name)
+                    args = [
+                        self.models_dir / name,
+                        "--keep-instructions",
+                        insn_name,
+                        "--log",
+                        "debug",
+                        # "info",
+                        "--output",
+                        self.temp_dir / sub / set_name / f"{insn_name}.seal5model",
+                    ]
+                    utils.python(
+                        "-m",
+                        "seal5.transform.filter_model.filter",
+                        *args,
+                        env=self.prepare_environment(),
+                        print_func=logger.info if verbose else logger.debug,
+                        live=True,
+                    )
+                    logger.info("Writing CDSL for %s/%s", sub, insn_name)
+                    args = [
+                        self.temp_dir / sub / set_name / f"{insn_name}.seal5model",
+                        "--log",
+                        "debug",
+                        # "info",
+                        "--output",
+                        self.temp_dir / sub / set_name / f"{insn_name}.core_desc"
+                    ]
+                    utils.python(
+                        "-m",
+                        "seal5.backends.coredsl2.writer",
+                        *args,
+                        env=self.prepare_environment(),
+                        print_func=logger.info if verbose else logger.debug,
+                        live=True,
+                    )
 
     def transform(self, verbose: bool = False):
         logger.info("Tranforming Seal5 models")
@@ -427,6 +527,8 @@ class Seal5Flow:
         self.eliminate_rd_cmp_zero(verbose=verbose)
         # optimize Seal5 Metamodel
         self.optimize_model(verbose=verbose)
+        self.write_cdsl(verbose=verbose)
+        self.write_cdsl_splitted(verbose=verbose)
         # detect registers
         self.detect_registers(verbose=verbose)
         # determine static constraints (xlen,...) -> subtargetvmap
