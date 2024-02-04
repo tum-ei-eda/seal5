@@ -1,0 +1,9 @@
+---
+extensions:
+  XCoreVBranchImmediate:
+    feature: XCVBi
+    arch: xcvbi
+    version: "1.0"
+    experimental: false
+    vendor: true
+    # patches: []
