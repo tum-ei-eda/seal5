@@ -48,7 +48,7 @@ def get_logger():
     # root_logger.setLevel(logging.DEBUG)
     # root_logger.setLevel(logging.INFO)
     logger = logging.getLogger("seal5")
-    logger.setLevel(logging.DEBUG)
+    # logger.setLevel(logging.DEBUG)
     if len(logger.handlers) == 0:
         stream_handler = logging.StreamHandler(sys.stdout)
         stream_handler.setFormatter(get_formatter(minimal=True))
@@ -61,27 +61,34 @@ def get_logger():
 
 def set_log_level(console_level=None, file_level=None):
     """Set command line log level at runtime."""
+    # print("set_log_level", console_level, file_level)
     logger = logging.getLogger("seal5")
-    # logger.setLevel(level)
     for handler in logger.handlers[:]:
+        # print("handler", handler, type(handler))
         if (
             isinstance(handler, (logging.FileHandler, logging.handlers.TimedRotatingFileHandler))
             and file_level is not None
         ):
             handler.setLevel(file_level)
+            # print("NEWIF")
         elif isinstance(handler, logging.StreamHandler) and console_level is not None:
             handler.setLevel(console_level)
+            # print("NEWELIF")
+    logger.setLevel(logging.DEBUG)
 
 
 def set_log_file(path, level=logging.DEBUG, rotate=False):
     """Enable logging to a file."""
+    # print("set_log_file", level)
     logger = logging.getLogger("seal5")
+    logger.setLevel(logging.DEBUG)
     if rotate:
         file_handler = logging.handlers.TimedRotatingFileHandler(filename=path, when="midnight", backupCount=30)
     else:
         file_handler = logging.FileHandler(path, mode="a")
     file_handler.setFormatter(get_formatter())
-    file_handler.setLevel(level)
+    # file_handler.setLevel(level)
+    file_handler.setLevel(logging.DEBUG)
     for handler in logger.handlers[:]:
         if isinstance(handler, logging.FileHandler):
             logger.removeHandler(handler)
