@@ -115,6 +115,19 @@ def main():
             }
             # print("AFTER", len(set_def.memories))
         # input("CONT1")
+        context = DropUnusedContext(list(set_def.functions.keys()))
+        for instr_name, instr_def in set_def.instructions.items():
+            logger.debug("tracking use of functions for instr %s", instr_def.name)
+            instr_def.operation.generate(context)
+        # print("context.to_keep", context.to_keep)
+        # print("context.to_drop", context.to_drop)
+        if len(context.to_drop) > 0:
+            # print("BEFORE", len(set_def.memories))
+            set_def.functions = {
+                func_name: func for func_name, func in set_def.functions.items() if func_name not in context.to_drop
+            }
+            # print("AFTER", len(set_def.memories))
+        # input("CONT1")
 
     logger.info("dumping model")
     with open(model_path, "wb") as f:

@@ -135,6 +135,11 @@ def type_conv(self: behav.TypeConv, context):
 
 
 def callable_(self: behav.Callable, context):
+    if isinstance(self.ref_or_name, str):
+        name = self.ref_or_name
+    else:
+        name = self.ref_or_name.name
+    context.track(name)
     self.args = [stmt.generate(context) for stmt in self.args]
 
     return self
