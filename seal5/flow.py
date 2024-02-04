@@ -308,12 +308,10 @@ class Seal5Flow:
             filter_settings = self.settings.filter
             filter_args = []
 
-            def get_filter_args(data, suffix):
-                if data is None:
-                    return []
+            def get_filter_args(settings, suffix):
                 ret = []
-                keep = data.get("keep", None)
-                drop = data.get("drop", None)
+                keep = settings.keep
+                drop = settings.drop
                 if keep:
                     ret += [f"--keep-{suffix}", ",".join(keep)]
                 if drop:
