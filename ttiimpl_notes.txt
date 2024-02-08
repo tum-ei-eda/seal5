@@ -1,0 +1,180 @@
+# Source: lib/Analysis/TargetTransformInfo.cpp
+
+# nargs=0 -> int
+getInliningThresholdMultiplier();
+getInliningCostBenefitAnalysisSavingsMultiplier();
+getInliningCostBenefitAnalysisProfitableMultiplier();
+getInlinerVectorBonusPercent();
+getFlatAddressSpace();
+getMinVectorRegisterBitWidth();
+getCacheLineSize();
+getPrefetchDistance();
+getMaxPrefetchIterationsAhead();
+getMaxMemIntrinsicInlineSizeThreshold();
+getAtomicMemIntrinsicMaxElementSize();
+getMaxNumArgs();
+getGISelRematGlobalCost();
+getMinTripCountTailFoldingThreshold();
+
+# nargs=0 -> Optional[int]
+getMaxVScale();
+getVScaleForTuning();
+
+# nargs=0 -> BranchProbability
+getPredictableBranchThreshold();
+
+# nargs=0 -> bool
+isSingleThreaded();
+isNumRegsMajorCostOfLSR();
+!!!shouldFoldTerminatingConditionAfterLSR();
+canMacroFuseCmp();
+enableOrderedReductions();
+!!!prefersVectorizedAddressing();
+LSRWithInstrQueries();
+useAA()
+shouldBuildLookupTables();
+shouldBuildRelLookupTables();
+supportsEfficientVectorElementLoadStore();
+supportsTailCalls();
+enableSelectOptimize();
+!!!enableInterleavedAccessVectorization();
+!enableMaskedInterleavedAccessVectorization();
+isFPVectorizationPotentiallyUnsafe();
+isVScaleKnownToBeAPowerOfTwo();
+enableWritePrefetching();
+!enableScalableVectorization();
+preferEpilogueVectorization();
+supportsScalableVectors();
+
+# TODO:
+adjustInliningThreshold(CB);
+getCallerAllocaCost(CB, AI);
+getGEPCost(PointeeType, Ptr, Operands, AccessType, CostKind);
+getPointersChainCost(Ptrs, Base, Info, AccessTy, CostKind);
+getEstimatedNumberOfCaseClusters(SI, JTSize, PSI, BFI);
+getInstructionCost(U, Operands, CostKind);
+hasBranchDivergence(F);
+isSourceOfDivergence(V);
+isAlwaysUniform(V);
+isValidAddrSpaceCast(FromAS, ToAS);
+addrspacesMayAlias(FromAS, ToAS);
+collectFlatAddressOperands(OpIndexes, IID);
+isNoopAddrSpaceCast(FromAS, ToAS);
+canHaveNonUndefGlobalInitializerInAddressSpace(AS);
+getAssumedAddrSpace(V);
+getPredicatedAddrSpace(V);
+rewriteIntrinsicWithAddressSpace(II, OldV, NewV);
+isLoweredToCall(F);
+isHardwareLoopProfitable(L, SE, AC, LibInfo, HWLoopInfo);
+preferPredicateOverEpilogue(TFI);
+getPreferredTailFoldingStyle(IVUpdateMayOverflow);
+instCombineIntrinsic(IC, II);
+simplifyDemandedUseBitsIntrinsic(IC, II, DemandedMask, Known,
+simplifyDemandedVectorEltsIntrinsic(
+getUnrollingPreferences(L, SE, UP, ORE);
+getPeelingPreferences(L, SE, PP);
+isLegalAddImmediate(Imm);
+isLegalICmpImmediate(Imm);
+isLegalAddressingMode(Ty, BaseGV, BaseOffset, HasBaseReg,
+isLSRCostLess(C1, C2);
+isProfitableLSRChainElement(I);
+canSaveCmp(L, BI, SE, LI, DT, AC, LibInfo);
+getPreferredAddressingMode(L, SE);
+isLegalMaskedStore(DataType, Alignment);
+isLegalMaskedLoad(DataType, Alignment);
+isLegalNTStore(DataType, Alignment);
+isLegalNTLoad(DataType, Alignment);
+isLegalBroadcastLoad(ElementTy, NumElements);
+isLegalMaskedGather(DataType, Alignment);
+isLegalAltInstr(VecTy, Opcode0, Opcode1, OpcodeMask);
+isLegalMaskedScatter(DataType, Alignment);
+forceScalarizeMaskedGather(DataType, Alignment);
+forceScalarizeMaskedScatter(DataType, Alignment);
+isLegalMaskedCompressStore(DataType);
+isLegalMaskedExpandLoad(DataType);
+hasDivRemOp(DataType, IsSigned);
+hasVolatileVariant(I, AddrSpace);
+getScalingFactorCost(
+isTruncateFree(Ty1, Ty2);
+isProfitableToHoist(I);
+isTypeLegal(Ty);
+getRegUsageForType(Ty);
+shouldBuildLookupTablesForConstant(C);
+useColdCCForColdCall(F);
+getScalarizationOverhead(Ty, DemandedElts, Insert, Extract,
+getOperandsScalarizationOverhead(Args, Tys, CostKind);
+supportsTailCallFor(CB);
+enableAggressiveInterleaving(LoopHasReductions);
+enableMemCmpExpansion(OptSize, IsZeroCmp);
+allowsMisalignedMemoryAccesses(Context, BitWidth,
+getPopcntSupport(IntTyWidthInBit);
+haveFastSqrt(Ty);
+isExpensiveToSpeculativelyExecute(I);
+isFCmpOrdCheaperThanFCmpZero(Ty);
+getFPOpCost(Ty);
+getIntImmCodeSizeCost(Opcode, Idx, Imm, Ty);
+getIntImmCost(Imm, Ty, CostKind);
+getIntImmCostInst(Opcode, Idx, Imm, Ty, CostKind, Inst);
+getIntImmCostIntrin(IID, Idx, Imm, Ty, CostKind);
+preferToKeepConstantsAttached(Inst, Fn);
+getNumberOfRegisters(ClassID);
+getRegisterClassForType(Vector, Ty);
+getRegisterClassName(ClassID);
+getRegisterBitWidth(K);
+shouldMaximizeVectorBandwidth(K);
+getMinimumVF(ElemWidth, IsScalable);
+getMaximumVF(ElemWidth, Opcode);
+getStoreMinimumVF(VF, ScalarMemTy, ScalarValTy);
+shouldConsiderAddressTypePromotion(
+getCacheSize(Level);
+getCacheAssociativity(Level);
+getMinPrefetchStride(NumMemAccesses, NumStridedMemAccesses,
+shouldPrefetchAddressSpace(AS);
+getMaxInterleaveFactor(VF);
+getArithmeticInstrCost(Opcode, Ty, CostKind,
+getShuffleCost(Kind, Ty, Mask, CostKind, Index, SubTp, Args);
+getCastInstrCost(Opcode, Dst, Src, CCH, CostKind, I);
+getExtractWithExtendCost(Opcode, Dst, VecTy, Index);
+getCFInstrCost(Opcode, CostKind, I);
+getCmpSelInstrCost(Opcode, ValTy, CondTy, VecPred, CostKind, I);
+getVectorInstrCost(Opcode, Val, CostKind, Index, Op0, Op1);
+getVectorInstrCost(I, Val, CostKind, Index);
+getReplicationShuffleCost(
+getMemoryOpCost(
+getMaskedMemoryOpCost(Opcode, Src, Alignment,
+getGatherScatterOpCost(
+getInterleavedMemoryOpCost(
+getIntrinsicInstrCost(ICA, CostKind);
+getCallInstrCost(F, RetTy, Tys, CostKind);
+getNumberOfParts(Tp);
+getAddressComputationCost(Tp, SE, Ptr);
+getMemcpyCost(I);
+getArithmeticReductionCost(Opcode, Ty, FMF, CostKind);
+getMinMaxReductionCost(IID, Ty, FMF, CostKind);
+getExtendedReductionCost(Opcode, IsUnsigned, ResTy, Ty, FMF,
+getMulAccReductionCost(IsUnsigned, ResTy, Ty, CostKind);
+getCostOfKeepingLiveOverCall(Tys);
+getTgtMemIntrinsic(Inst, Info);
+getOrCreateResultFromMemIntrinsic(Inst, ExpectedType);
+getMemcpyLoopLoweringType(Context, Length, SrcAddrSpace,
+getMemcpyLoopResidualLoweringType(
+areInlineCompatible(Caller, Callee);
+getInlineCallPenalty(F, Call, DefaultCallPenalty);
+areTypesABICompatible(Caller, Callee, Types);
+isIndexedLoadLegal(Mode, Ty);
+isIndexedStoreLegal(Mode, Ty);
+getLoadStoreVecRegBitWidth(AS);
+isLegalToVectorizeLoad(LI);
+isLegalToVectorizeStore(SI);
+isLegalToVectorizeLoadChain(ChainSizeInBytes, Alignment,
+isLegalToVectorizeStoreChain(ChainSizeInBytes, Alignment,
+isLegalToVectorizeReduction(RdxDesc, VF);
+isElementTypeLegalForScalableVector(Ty);
+getLoadVectorFactor(VF, LoadSize, ChainSizeInBytes, VecTy);
+getStoreVectorFactor(VF, StoreSize, ChainSizeInBytes, VecTy);
+preferInLoopReduction(Opcode, Ty, Flags);
+preferPredicatedReductionSelect(Opcode, Ty, Flags);
+getVPLegalizationStrategy(VPI);
+hasArmWideBranch(Thumb);
+shouldExpandReduction(II);
+hasActiveVectorLength(Opcode, DataType, Alignment);
