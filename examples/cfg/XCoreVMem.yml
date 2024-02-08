@@ -1,0 +1,10 @@
+---
+extensions:
+  XCoreVMem:
+    feature: XCVMem
+    arch: xcvmem
+    version: "1.0"
+    experimental: false
+    vendor: true
+    model: XCoreVMem
+    # patches: []

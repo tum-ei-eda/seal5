@@ -1,0 +1,10 @@
+---
+extensions:
+  XCoreVAlu:
+    feature: XCVAlu
+    arch: xcvalu
+    version: "1.0"
+    experimental: false
+    vendor: true
+    model: XCoreVAlu
+    # patches: []
