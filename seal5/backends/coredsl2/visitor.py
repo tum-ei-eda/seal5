@@ -12,12 +12,12 @@ from m2isar.metamodel import arch, behav
 
 # pylint: disable=unused-argument
 
-import sys
-import traceback
+# import sys
+# import traceback
 
 
 def operation(self: behav.Operation, writer):
-    print("operation", self.statements)
+    # print("operation", self.statements)
     # input("66")
     if len(self.statements) > 1:
         writer.enter_block()
@@ -30,14 +30,14 @@ def operation(self: behav.Operation, writer):
 
 
 def binary_operation(self: behav.BinaryOperation, writer):
-    print("binary_operation")
+    # print("binary_operation")
     self.left = self.left.generate(writer)
     writer.write(f" {self.op.value} ")
     self.right = self.right.generate(writer)
 
 
 def slice_operation(self: behav.SliceOperation, writer):
-    print("slice_operation")
+    # print("slice_operation")
     self.expr = self.expr.generate(writer)
     writer.write("[")
     self.left = self.left.generate(writer)
@@ -47,24 +47,24 @@ def slice_operation(self: behav.SliceOperation, writer):
 
 
 def concat_operation(self: behav.ConcatOperation, writer):
-    print("concat_operation")
+    # print("concat_operation")
     self.left = self.left.generate(writer)
     writer.write(" :: ")
     self.right = self.right.generate(writer)
 
 
 def number_literal(self: behav.IntLiteral, writer):
-    print("number_literal")
+    # print("number_literal")
     writer.write(self.value)
 
 
 def int_literal(self: behav.IntLiteral, writer):
-    print("int_literal")
+    # print("int_literal")
     writer.write(self.value)
 
 
 def scalar_definition(self: behav.ScalarDefinition, writer):
-    print("scalar_definition", self.scalar, dir(self.scalar))
+    # print("scalar_definition", self.scalar, dir(self.scalar))
     # input("u")
     writer.write_type(self.scalar.data_type, self.scalar.size)
     writer.write(" ")
@@ -76,13 +76,13 @@ def scalar_definition(self: behav.ScalarDefinition, writer):
 
 
 def break_(self: behav.Break, writer):
-    print("break_")
+    # print("break_")
     writer.write_line("break;")
 
 
 def assignment(self: behav.Assignment, writer):
-    print("assignment", self, dir(self))
-    traceback.print_stack(file=sys.stdout)
+    # print("assignment", self, dir(self))
+    # traceback.print_stack(file=sys.stdout)
     self.target.generate(writer)
     writer.write(" = ")
     self.expr.generate(writer)
@@ -93,7 +93,7 @@ def assignment(self: behav.Assignment, writer):
 
 
 def conditional(self: behav.Conditional, writer):
-    print("conditional")
+    # print("conditional")
     for i, stmt in enumerate(self.stmts):
         if i == 0:
             writer.write("if (")
@@ -106,7 +106,7 @@ def conditional(self: behav.Conditional, writer):
         else:
             writer.write("else")
         writer.enter_block()
-        print("stmt", stmt)
+        # print("stmt", stmt)
         # input("ABC")
         stmt.generate(writer)
         if not isinstance(stmt, (behav.Conditional, behav.Operation)):
@@ -116,7 +116,7 @@ def conditional(self: behav.Conditional, writer):
 
 
 def loop(self: behav.Loop, writer):
-    print("loop")
+    # print("loop")
     writer.write("while (")
     self.cond.generate(writer)
     writer.write(")")
@@ -127,7 +127,7 @@ def loop(self: behav.Loop, writer):
 
 
 def ternary(self: behav.Ternary, writer):
-    print("ternary")
+    # print("ternary")
     self.cond.generate(writer)
     writer.write(" ? ")
     self.then_expr.generate(writer)
@@ -136,7 +136,7 @@ def ternary(self: behav.Ternary, writer):
 
 
 def return_(self: behav.Return, writer):
-    print("return_")
+    # print("return_")
     writer.write("return")
     if self.expr is not None:
         writer.write(" ")
@@ -145,13 +145,13 @@ def return_(self: behav.Return, writer):
 
 
 def unary_operation(self: behav.UnaryOperation, writer):
-    print("unary_operation")
-    writer.write(self.op.name)
+    # print("unary_operation")
+    writer.write(self.op.value)
     self.right.generate(writer)
 
 
 def named_reference(self: behav.NamedReference, writer):
-    print("named_reference", self.reference.name)
+    # print("named_reference", self.reference.name)
     writer.write(self.reference.name)
     if isinstance(self.reference, (arch.Constant, arch.Memory, arch.Scalar)):
         # writer.track(self.reference.name)
@@ -164,7 +164,7 @@ def named_reference(self: behav.NamedReference, writer):
 
 
 def indexed_reference(self: behav.IndexedReference, writer):
-    print("indexed_reference", self.reference.name)
+    # print("indexed_reference", self.reference.name)
     writer.write(self.reference.name)
     writer.write("[")
     # if isinstance(self.reference, arch.Memory):
@@ -175,7 +175,7 @@ def indexed_reference(self: behav.IndexedReference, writer):
 
 
 def type_conv(self: behav.TypeConv, writer):
-    print("type_conv", self, dir(self))
+    # print("type_conv", self, dir(self))
     writer.write("(")
     writer.write_type(self.data_type, self.size)
     writer.write(")")
@@ -184,11 +184,11 @@ def type_conv(self: behav.TypeConv, writer):
     writer.write(")")
 
 def callable_(self: behav.Callable, writer):
-    print("callable_", self, dir(self))
-    traceback.print_stack(file=sys.stdout)
+    # print("callable_", self, dir(self))
+    # traceback.print_stack(file=sys.stdout)
     # input("55")
-    print("args", self.args)
-    print("ron", self.ref_or_name)
+    # print("args", self.args)
+    # print("ron", self.ref_or_name)
     # input("q")
     ref = self.ref_or_name
     if isinstance(ref, arch.Function):
@@ -204,7 +204,7 @@ def callable_(self: behav.Callable, writer):
 
 
 def group(self: behav.Group, writer):
-    print("group")
+    # print("group")
     # writer.enter_block()
     writer.write("(")
     self.expr.generate(writer)

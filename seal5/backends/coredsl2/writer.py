@@ -22,10 +22,22 @@ logger = logging.getLogger("coredsl2_writer")
 
 class CoreDSL2Writer:
 
-    def __init__(self):
+    # def __init__(self, compat=False):
+    def __init__(self, compat=True, version="coredsl2"):
+        self.version = version
+        self.compat = compat  # Reduced syntax for cdsl2llvm parser
         self.text = ""
         self.indent_str = "    "
         self.level = 0
+
+    @property
+    def is_seal5(self):
+        # TODO: use this
+        return self.version == "seal5"
+
+    @property
+    def is_coredsl2(self):
+        return self.version == "coredsl2"
 
     @property
     def indent(self):
@@ -40,7 +52,7 @@ class CoreDSL2Writer:
         return len(self.text) != 0 and self.text[-1] not in ["\n", " "]
 
     def write(self, text, nl=False):
-        print("text", text, type(text))
+        # print("text", text, type(text))
         if isinstance(text, int):
             text = str(text)
         assert isinstance(text, str)
@@ -69,9 +81,9 @@ class CoreDSL2Writer:
             self.write("}", nl=nl)
 
     def write_type(self, data_type, size):
-        print("write_type")
-        print("data_type", data_type)
-        print("size", size)
+        # print("write_type")
+        # print("data_type", data_type)
+        # print("size", size)
         if data_type == arch.DataType.U:
             self.write("unsigned")
         elif data_type == arch.DataType.S:
@@ -98,6 +110,8 @@ class CoreDSL2Writer:
         # print("value", value)
 
     def write_attributes(self, attributes):
+        if self.compat:
+            return
         for attr, val in attributes.items():
             self.write_attribute(attr, val)
         # input("inp")
@@ -128,6 +142,8 @@ class CoreDSL2Writer:
         # self.leave_block()
 
     def write_functions(self, functions):
+        if self.compat:
+            return
         self.write("functions")
         # TODO: attributes
         self.enter_block()
@@ -156,28 +172,49 @@ class CoreDSL2Writer:
         self.write(" ")
         self.write(operand.name)
         self.write_attributes(operand.attributes)
+        self.write_line(";")
 
-    def write_operand_constraints(self, operand):
-        for constraint in operand.constraints:
-            print("constraint", constraint, type(constraint), dir(constraint))
+    def write_constraints(self, constraints):
+        for constraint in constraints:
+            # print("constraint", constraint, type(constraint), dir(constraint))
             for stmt in constraint.stmts:
-                self.write("; ", nl=False)
                 stmt.generate(self)
+                desc = constraint.description
+                if desc:
+                    self.write(f";  // {desc}", nl=True)
+                else:
+                    self.write(";", nl=True)
+
+    def write_instruction_constraints(self, constraints, operands):
+        if self.compat:
+            return
+        self.write("constraints: ")
+        if len(constraints) == 0:
+            self.write_line("{};")
+            return
+        self.enter_block()
+        op_constraints = sum([op.constraints for op in operands.values()], [])
+        self.write_constraints(op_constraints)
+        self.write_constraints(constraints)
+        self.leave_block()
 
     def write_operands(self, operands):
+        if self.compat:
+            return
         self.write("operands: ")
-        print("operands", operands)
+        if len(operands) == 0:
+            self.write_line("{};")
+        self.enter_block()
+        # print("operands", operands)
         for i, op in enumerate(operands.values()):
-            if i != 0:
-                self.write(", ")
             self.write_operand(op)
-        for i, op in enumerate(operands.values()):
-            self.write_operand_constraints(op)
-        self.write_line(";")
+        # for i, op in enumerate(operands.values()):
+        #     self.write_constraints(op.constraints)
+        self.leave_block()
 
     def write_encoding(self, encoding):
         self.write("encoding: ")
-        print("encoding", encoding, dir(encoding))
+        # print("encoding", encoding, dir(encoding))
         for i, elem in enumerate(encoding):
             if isinstance(elem, arch.BitVal):
                 self.write_encoding_val(elem)
@@ -193,36 +230,41 @@ class CoreDSL2Writer:
         self.write("assembly: ")
         mnemonic = instruction.mnemonic
         assembly = instruction.assembly
-        if mnemonic:
+        if mnemonic and not self.compat:
             self.write("{")
             self.write(f"\"{mnemonic}\"")
             self.write(", ")
         if assembly is None:
             assembly = ""
         self.write(f"\"{assembly}\"")
-        if mnemonic:
+        if mnemonic and not self.compat:
             self.write("}")
         self.write(";", nl=True)
 
     def write_behavior(self, instruction):
         self.write("behavior: ")
         op = instruction.operation
+        if self.compat:
+            self.enter_block()
         op.generate(self)
+        if self.compat:
+            self.leave_block()
         # self.write(";", nl=True)
 
     def write_instruction(self, instruction):
-        print("write_instruction", instruction)
+        # print("write_instruction", instruction)
         self.write(instruction.name)
         self.write_attributes(instruction.attributes)
         self.enter_block()
         self.write_operands(instruction.operands)  # seal5 only
+        self.write_instruction_constraints(instruction.constraints, instruction.operands)  # seal5 only
         self.write_encoding(instruction.encoding)
         self.write_assembly(instruction)
         self.write_behavior(instruction)
         self.leave_block()
 
     def write_instructions(self, instructions):
-        print("write_instructions", instructions)
+        # print("write_instructions", instructions)
         self.write("instructions")
         # TODO: attributes?
         self.enter_block()
@@ -232,13 +274,13 @@ class CoreDSL2Writer:
 
     def write_architectural_state(self, set_def):
         self.write("architectural_state")
-        print("set_def", set_def, dir(set_def))
+        # print("set_def", set_def, dir(set_def))
         self.enter_block()
         # TODO: scalars, memories,...
         self.leave_block()
 
     def write_set(self, set_def):
-        print("write_set", set_def)
+        # print("write_set", set_def)
         # self.write_architectural_state()
         self.write("InstructionSet ")
         self.write(set_def.name)
@@ -265,6 +307,7 @@ def main():
     parser.add_argument("top_level", help="A .m2isarmodel or .seal5model file.")
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument("--output", "-o", type=str, default=None)
+    parser.add_argument("--compat", action="store_true", help="Generate pattern-gen compatible syntax")
     args = parser.parse_args()
 
     # initialize logging
@@ -275,8 +318,8 @@ def main():
     # abs_top_level = top_level.resolve()
 
     is_seal5_model = False
-    print("top_level", top_level)
-    print("suffix", top_level.suffix)
+    # print("top_level", top_level)
+    # print("suffix", top_level.suffix)
     if top_level.suffix == ".seal5model":
         is_seal5_model = True
     if args.output is None:
@@ -307,11 +350,11 @@ def main():
                 assert False
 
     # preprocess model
-    print("model", model)
-    writer = CoreDSL2Writer()
+    # print("model", model)
+    writer = CoreDSL2Writer(compat=args.compat)
     for set_name, set_def in model["sets"].items():
-        print("set", set_def)
-        print("instrs", set_def.instructions)
+        # print("set", set_def)
+        # print("instrs", set_def.instructions)
         # input("123")
         logger.debug("writing set %s", set_def.name)
         patch_model(visitor)
