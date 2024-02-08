@@ -6,4 +6,5 @@ extensions:
     version: "1.0"
     experimental: false
     vendor: true
+    model: XCoreVMac
     # patches: []

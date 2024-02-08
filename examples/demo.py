@@ -24,13 +24,14 @@ from pathlib import Path
 
 from seal5.flow import Seal5Flow
 from seal5.logging import set_log_level
+from seal5.types import PatchStage
 
 # set_log_level(console_level=logging.DEBUG, file_level=logging.DEBUG)
 set_log_level(console_level="DEBUG", file_level="DEBUG")
 
 EXAMPLES_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
-# VERBOSE = False
-VERBOSE = True
+VERBOSE = False
+# VERBOSE = True
 
 
 seal5_flow = Seal5Flow("/tmp/seal5_llvm_demo", "demo")
@@ -47,16 +48,22 @@ seal5_flow.initialize(
 # Clone Seal5 dependencies
 # 1. M2-ISA-R (frontend only)
 # 2. CDSL2LLVM (later)
-seal5_flow.setup(force=True, verbose=VERBOSE)
+# seal5_flow.setup(force=True, verbose=VERBOSE)
 
 # Load CoreDSL inputs
-# cdsl_files = [EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMac.core_desc"]
-cdsl_files = [EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMac.core_desc", EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVBranchImmediate.core_desc"]
+cdsl_files = [
+    EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMac.core_desc",
+    EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVAlu.core_desc",
+    EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMem.core_desc",
+    EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVBranchImmediate.core_desc"
+]
 seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load YAML inputs
 cfg_files = [
     EXAMPLES_DIR / "cfg" / "XCoreVMac.yml",
+    EXAMPLES_DIR / "cfg" / "XCoreVAlu.yml",
+    EXAMPLES_DIR / "cfg" / "XCoreVMem.yml",
     EXAMPLES_DIR / "cfg" / "XCoreVBranchImmediate.yml",
     EXAMPLES_DIR / "cfg" / "llvm.yml",
     EXAMPLES_DIR / "cfg" / "filter.yml",
@@ -65,17 +72,21 @@ cfg_files = [
 ]
 seal5_flow.load(cfg_files, verbose=VERBOSE, overwrite=False)
 
+# Apply initial patches
+seal5_flow.patch(verbose=VERBOSE, stages=[PatchStage.PHASE_0])
+
 # Build initial LLVM
 # seal5_flow.build(verbose=VERBOSE, config="release")
+
 
 # Transform inputs
 #   1. Create M2-ISA-R metamodel
 #   2. Convert to Seal5 metamodel (including aliases, builtins,...)
 #   3. Analyse/optimize instructions
-# seal5_flow.transform(verbose=VERBOSE)
+seal5_flow.transform(verbose=VERBOSE)
 
 # Generate patches
-# seal5_flow.generate(verbose=VERBOSE)
+seal5_flow.generate(verbose=VERBOSE)
 
 # Apply patches
 seal5_flow.patch(verbose=VERBOSE)
