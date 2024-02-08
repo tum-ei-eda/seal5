@@ -27,11 +27,11 @@ import git
 
 from seal5.logging import get_logger, set_log_file, set_log_level
 from seal5.types import Seal5State, PatchStage
-from seal5.settings import Seal5Settings, PatchSettings, DEFAULT_SETTINGS
+from seal5.settings import Seal5Settings, PatchSettings, DEFAULT_SETTINGS, LLVMConfig
 
-# from seal5.dependencies import m2isar_dependency, cdsl2llvm_dependency
+from seal5.dependencies import cdsl2llvm_dependency
 from seal5 import utils
-from seal5.tools import llvm
+from seal5.tools import llvm, cdsl2llvm
 from seal5.resources.resources import get_patches
 
 logger = get_logger()
@@ -186,7 +186,15 @@ class Seal5Flow:
     ):
         logger.info("Installing Seal5 dependencies")
         # m2isar_dependency.clone(self.deps_dir / "M2-ISA-R", overwrite=force)
-        # cdsl2llvm_dependency.clone(self.deps_dir / "cdsl2llvm", overwrite=force)
+        logger.info("Cloning CDSL2LLVM")
+        cdsl2llvm_dependency.clone(self.deps_dir / "cdsl2llvm", overwrite=force, depth=1)
+        logger.info("Building PatternGen")
+        # llvm_config = LLVMConfig(options={"CMAKE_BUILD_TYPE": "Release", "LLVM_BUILD_TOOLS": False, "LLVM_ENABLE_ASSERTIONS": False, "LLVM_OPTIMIZED_TABLEGEN": True, "LLVM_ENABLE_PROJECT": [], "LLVM_TARGETS_TO_BUILD": ["RISCV"]})
+        llvm_config = LLVMConfig(options={"CMAKE_BUILD_TYPE": "Debug", "LLVM_BUILD_TOOLS": False, "LLVM_ENABLE_ASSERTIONS": False, "LLVM_OPTIMIZED_TABLEGEN": True, "LLVM_ENABLE_PROJECT": [], "LLVM_TARGETS_TO_BUILD": ["RISCV"]})
+        cmake_options = llvm_config.options
+        cdsl2llvm.build_pattern_gen(self.deps_dir / "cdsl2llvm", self.deps_dir / "cdsl2llvm" / "llvm", "build", cmake_options=cmake_options)
+        # input("qqqqqq")
+        logger.info("Completed build of PatternGen")
         logger.info("Completed installation of Seal5 dependencies")
 
     def load_cfg(self, file: Path, overwrite: bool = False):
@@ -507,6 +515,116 @@ class Seal5Flow:
                         print_func=logger.info if verbose else logger.debug,
                         live=True,
                     )
+                    args_compat = [
+                        self.temp_dir / sub / set_name / f"{insn_name}.seal5model",
+                        "--log",
+                        # "info",
+                        "debug",
+                        "--output",
+                        self.temp_dir / sub / set_name / f"{insn_name}.core_desc_compat",
+                        "--compat",
+                    ]
+                    utils.python(
+                        "-m",
+                        "seal5.backends.coredsl2.writer",
+                        *args_compat,
+                        env=self.prepare_environment(),
+                        print_func=logger.info if verbose else logger.debug,
+                        live=True,
+                    )
+
+    def convert_behav_to_llvmir(self, verbose: bool = False, inplace: bool = True):
+        assert inplace
+        input_files = list(self.temp_dir.glob("*.core_desc_compat"))
+        assert len(input_files) > 0, "No files found!"
+        errs = []
+        for input_file in input_files:
+            name = input_file.name
+            # new_name = name.replace(".core_desc_compat", ".ll")
+            # new_name = name.replace(".core_desc_compat", ".td")
+            logger.info("Writing LLVM-IR for %s", name)
+            try:
+                # TODO: update
+                cdsl2llvm.run_pattern_gen(self.deps_dir / "cdsl2llvm" / "llvm" / "build", input_file, None)
+            except AssertionError:
+                pass
+                # errs.append((str(input_file), str(ex)))
+        if len(errs) > 0:
+            print("errs", errs)
+
+    def convert_behav_to_llvmir_splitted(self, verbose: bool = False, inplace: bool = True):
+        assert inplace
+        # input_files = list(self.models_dir.glob("*.seal5model"))
+        # assert len(input_files) > 0, "No Seal5 models found!"
+        errs = []
+        # for input_file in input_files:
+        #     name = input_file.name
+        #     sub = name.replace(".seal5model", "")
+        for _ in [None]:
+            set_names = list(self.settings.extensions.keys())
+            assert len(set_names) > 0, "No sets found"
+            for set_name in set_names:
+                insn_names = self.settings.extensions[set_name].instructions
+                assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
+                sub = self.settings.extensions[set_name].model
+                # TODO: populate model in yaml backend!
+                if sub is None:  # Fallbacke
+                    sub = set_name
+                for insn_name in insn_names:
+                    input_file = self.temp_dir / sub / set_name / f"{insn_name}.core_desc_compat"
+                    assert input_file.is_file(), f"File not found: {input_file}"
+                    output_file = input_file.parent / (input_file.stem + ".ll")
+                    name = input_file.name
+                    logger.info("Writing LLVM-IR for %s", name)
+                    try:
+                        cdsl2llvm.run_pattern_gen(self.deps_dir / "cdsl2llvm" / "llvm" / "build", input_file, output_file, skip=True)
+                    except AssertionError:
+                        pass
+                        # errs.append((insn_name, str(ex)))
+        if len(errs) > 0:
+            # print("errs", errs)
+            for insn_name, err_str in errs:
+                print("Err:", insn_name, err_str)
+                input("!")
+
+    def convert_behav_to_tablegen_splitted(self, verbose: bool = False, inplace: bool = True):
+        assert inplace
+        # input_files = list(self.models_dir.glob("*.seal5model"))
+        # assert len(input_files) > 0, "No Seal5 models found!"
+        errs = []
+        # for input_file in input_files:
+        #     name = input_file.name
+        #     sub = name.replace(".seal5model", "")
+        for _ in [None]:
+            set_names = list(self.settings.extensions.keys())
+            assert len(set_names) > 0, "No sets found"
+            for set_name in set_names:
+                insn_names = self.settings.extensions[set_name].instructions
+                assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
+                sub = self.settings.extensions[set_name].model
+                # TODO: populate model in yaml backend!
+                if sub is None:  # Fallbacke
+                    sub = set_name
+                for insn_name in insn_names:
+                    ll_file = self.temp_dir / sub / set_name / f"{insn_name}.ll"
+                    if not ll_file.is_file():
+                        logger.warning("Skipping %s due to errors.", insn_name)
+                        continue
+                    input_file = self.temp_dir / sub / set_name / f"{insn_name}.core_desc_compat"
+                    assert input_file.is_file(), f"File not found: {input_file}"
+                    output_file = input_file.parent / (input_file.stem + ".td")
+                    name = input_file.name
+                    logger.info("Writing TableGen for %s", name)
+                    try:
+                        cdsl2llvm.run_pattern_gen(self.deps_dir / "cdsl2llvm" / "llvm" / "build", input_file, output_file, skip=False)
+                    except AssertionError:
+                        pass
+                        # errs.append((insn_name, str(ex)))
+        if len(errs) > 0:
+            # print("errs", errs)
+            for insn_name, err_str in errs:
+                print("Err:", insn_name, err_str)
+                input("!")
 
     def transform(self, verbose: bool = False):
         logger.info("Tranforming Seal5 models")

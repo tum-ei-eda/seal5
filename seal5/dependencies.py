@@ -40,7 +40,7 @@ class GitDependency(Dependency):
         self.ref: Optional[str] = ref
         self.recursive: bool = recursive
 
-    def clone(self, dest: Path, overwrite: bool = False):
+    def clone(self, dest: Path, overwrite: bool = False, depth: Optional[int] = None):
         if is_populated(dest):
             logger.debug("Updating repository: %s", dest)
             repo = git.Repo(dest)
@@ -50,7 +50,7 @@ class GitDependency(Dependency):
             repo.git.pull("origin", self.ref)
             return
         logger.debug("Cloning repository: %s", self.clone_url)
-        repo = git.Repo.clone_from(self.clone_url, dest, recursive=self.recursive, no_checkout=self.ref is not None)
+        repo = git.Repo.clone_from(self.clone_url, dest, recursive=self.recursive, no_checkout=self.ref is not None, depth=depth)
         if self.ref:
             logger.debug("Checking out: %s", self.ref)
             repo.git.checkout(self.ref)
@@ -63,7 +63,8 @@ class M2ISARDependency(GitDependency):
 
 
 class CDSL2LLVMDependency(GitDependency):
-    def __init__(self, clone_url="TODO", ref="seal5"):
+    # def __init__(self, clone_url="https://github.com/mathis-s/CoreDSL2LLVM.git", ref="main"):
+    def __init__(self, clone_url="https://github.com/PhilippvK/CoreDSL2LLVM.git", ref="philippvk"):
         super().__init__("cdsl2llvm", clone_url, ref=ref)
 
 
