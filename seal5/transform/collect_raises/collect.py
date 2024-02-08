@@ -15,6 +15,7 @@ import pickle
 from typing import Union
 
 from m2isar.metamodel import arch, patch_model
+from seal5.model import Seal5Constraint
 
 from . import visitor
 
@@ -25,6 +26,7 @@ class VisitorContext:
     def __init__(self):
         self.cond_stack = []
         self.raises = []
+        self.found_raise = False
 
 
 def main():
@@ -80,9 +82,25 @@ def main():
             context = VisitorContext()
             logger.debug("collecting raises for instr %s", instr_def.name)
             instr_def.operation.generate(context)
-            if instr_def.constraints:
-                raise NotImplementedError
-            instr_def.constraints = context.raises  # TODO: wrap in class
+            if len(instr_def.constraints) > 0:
+                raise NotImplementedError("Can not yet append existing constraints")
+            constraints = []
+            for x in context.raises:
+                # print("x", x, type(x), dir(x))
+                MODE_MAP = ["Exception", "Interrupt"]
+                mode = MODE_MAP[x[1][0]]
+                assert mode != "Interrupt", "Interrupts not supported"
+                EXEC_MAP = ["Instruction address misaligned", "Instruction_access_fault", "Illegal instruction", "Breakpoint", "Load address misaligned", "Load access fault", "Store/AMO address misaligned", "Store/AMO access fault", "Environment call from U-mode", "Environment call from S-mode", "Reserved", "Environment call from M-mode", "Instruction page fault", "Load page fault", "Reserved", "Store/AMO page fault"]
+                code = x[1][1]
+                assert code < len(EXEC_MAP), "Out of bounds"
+                text = EXEC_MAP[code]
+                description = f"{mode}({code}): {text}"
+                # print("description", description)
+                # input("qqq2")
+                constraint = Seal5Constraint([x[0]], description=description)
+                constraints.append(constraint)
+
+            instr_def.constraints = constraints
             # print("context.raises", context.raises)
             # input("next?")
 

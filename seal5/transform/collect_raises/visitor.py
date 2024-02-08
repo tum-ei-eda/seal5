@@ -12,17 +12,49 @@ from m2isar.metamodel import arch, behav
 
 # pylint: disable=unused-argument
 
+# Limitations
+# - Keep the condition stack as small as possible (move raise to highest level of behavior)
+# - If block should only have a call to raise
+# - Standalone if statements (without else/else if) are preferred
+# - Raise calls are replaced by empty blocks, to be removed in the operation visitor
+# - ~~Run optimizer afterwards to eliminate if statement.~~
+
 
 def operation(self: behav.Operation, context):
+    # print("operation", self)
     statements = []
     for stmt in self.statements:
         temp = stmt.generate(context)
         if isinstance(temp, list):
+            # for t in temp:
+            # print("t", t, type(t), dir(t))
             statements.extend(temp)
         else:
+            pass
+            # print("temp", temp, type(temp), dir(temp))
             statements.append(temp)
+    # input("eeeee")
 
     self.statements = statements
+    return self
+
+
+def block(self: behav.Block, context):
+    # print("block", self)
+
+    stmts = []
+
+    for stmt in self.statements:
+        stmt = stmt.generate(context)
+        if isinstance(stmt, behav.Conditional):
+            if len(stmt.conds) == 1:
+                if isinstance(stmt.stmts[0], behav.Block):
+                    if len(stmt.stmts[0].statements) == 0:
+                        continue
+        stmts.append(stmt)
+
+    self.statements = stmts
+
     return self
 
 
@@ -93,9 +125,24 @@ def conditional(self: behav.Conditional, context):
                 cond = behav.BinaryOperation(cond, "&&", c)
         context.cond_stack.append(cond)
         # print("before", context.cond_stack)
-        self.stmts[i] = stmt.generate(context)
+        stmt = stmt.generate(context)
+        if context.found_raise:
+            # print("stmt", stmt, dir(stmt))
+            if isinstance(stmt, behav.Block):
+                # print("block.statements", stmt.statements)
+                assert len(stmt.statements) == 1, "Raise block may only have a single operation"
+                assert isinstance(stmt.statements[0], behav.ProcedureCall), "Nesting raises not allowed"
+                assert isinstance(stmt.statements[0].ref_or_name, arch.Function), "Expected function"
+                assert stmt.statements[0].ref_or_name.name == "raise", "Expected raise operation"
+                stmt = behav.Block([])  # Replace with empty block
+                context.found_raise = False
+            else:
+                raise NotImplementedError
+            # input("aaaa")
+        self.stmts[i] = stmt
         # print("after", context.cond_stack)
         context.cond_stack.pop()
+    # print("self.stmts", self.stmts)
 
     return self
 
@@ -151,6 +198,7 @@ def callable_(self: behav.Callable, context):
 
 
 def group(self: behav.Group, context):
+    # print("group", group)
     self.expr = self.expr.generate(context)
 
     return self
@@ -171,7 +219,11 @@ def procedure_call(self: behav.ProcedureCall, context):
         if len(context.cond_stack) == 0:
             cond = None
         else:
-            cond = context.cond_stack[0]
-            for c in context.cond_stack[1:]:
-                cond = behav.BinaryOperation(cond, "&&", c)
+            cond = context.cond_stack[-1]
+            # for c in context.cond_stack[1:]:
+            cond = behav.UnaryOperation(behav.Operator("!"), behav.Group(cond))
+            # TODO: transform !(imm % 4) -> !(imm % 4 != 0) -> imm % 4 == 0
         context.raises.append((cond, args))
+        context.found_raise = True
+        # input("qqqq")
+    return self

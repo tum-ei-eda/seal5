@@ -22,8 +22,8 @@ logger = logging.getLogger("collect_operand_types")
 
 
 class VisitorContext:
-    def __init__(self):
-        self.todo = {}
+    def __init__(self, operands):
+        self.operands = operands
 
 
 def main():
@@ -73,15 +73,13 @@ def main():
                 assert False
 
     for set_name, set_def in model["sets"].items():
-        logger.debug("collecting raises for set %s", set_def.name)
+        logger.debug("collecting operand types for set %s", set_def.name)
         patch_model(visitor)
         for instr_name, instr_def in set_def.instructions.items():
-            context = VisitorContext()
-            logger.debug("collecting raises for instr %s", instr_def.name)
+            context = VisitorContext(instr_def.operands)
+            logger.debug("collecting operand types for instr %s", instr_def.name)
             instr_def.operation.generate(context)
-            if instr_def.constraints:
-                raise NotImplementedError
-            instr_def.constraints = context.raises  # TODO: wrap in class
+            instr_def.operands = context.operands
             # print("context.raises", context.raises)
             # input("next?")
 

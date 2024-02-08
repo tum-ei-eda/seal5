@@ -107,7 +107,7 @@ def unary_operation(self: behav.UnaryOperation, context):
 
 
 def named_reference(self: behav.NamedReference, context):
-    print("named_reference", self.reference.name)
+    # print("named_reference", self.reference.name)
     if isinstance(self.reference, (arch.Constant, arch.Memory, arch.Scalar)):
         context.track(self.reference.name)
     # if isinstance(self.reference, arch.Constant):
@@ -120,7 +120,7 @@ def named_reference(self: behav.NamedReference, context):
 
 
 def indexed_reference(self: behav.IndexedReference, context):
-    print("indexed_reference", self.reference.name)
+    # print("indexed_reference", self.reference.name)
     if isinstance(self.reference, arch.Memory):
         context.track(self.reference.name)
     self.index = self.index.generate(context)

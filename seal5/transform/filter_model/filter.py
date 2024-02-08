@@ -107,8 +107,12 @@ def main():
         drop_instructions = args.drop_instructions.split(",")
     else:
         drop_instructions = []
+    # print("keep", keep_instructions)
+    # print("drop", drop_instructions)
+    # input("456")
 
     def check_filter(name, keep, drop):
+        # print("check_filter", name, keep, drop)
         if drop and keep:
             return name not in drop or name in keep
         elif keep:

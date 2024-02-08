@@ -9,6 +9,7 @@
 """TODO"""
 
 from m2isar.metamodel import arch, behav
+from seal5 import model
 
 # pylint: disable=unused-argument
 
@@ -108,8 +109,8 @@ def unary_operation(self: behav.UnaryOperation, context):
 
 
 def named_reference(self: behav.NamedReference, context):
-    if isinstance(self.reference, arch.BitFieldDescr):
-        raise NotImplementedError
+    # if isinstance(self.reference, arch.BitFieldDescr):
+    # raise NotImplementedError
     return self
 
 
@@ -120,7 +121,72 @@ def indexed_reference(self: behav.IndexedReference, context):
 
 
 def type_conv(self: behav.TypeConv, context):
+    # print("type_conv", self, dir(self))
     self.expr = self.expr.generate(context)
+    if isinstance(self.expr, behav.NamedReference):  # imm?
+        if isinstance(self.expr.reference, arch.BitFieldDescr):
+            name = self.expr.reference.name
+            assert name in context.operands
+            op = context.operands[name]
+            assert isinstance(op, model.Seal5ImmOperand)
+            ty = op.ty
+            width = ty.width
+            if ty != self.data_type:
+                # update
+                if ty.datatype == arch.DataType.U:
+                    ty.datatype = self.data_type
+                    op.ty = ty
+
+                else:
+                    assert False, "Conflicting types"
+            if self.size is not None:
+                if width != self.size:
+                    if self.size < width:  # trunc!
+                        assert False, "truncation not allowed here"
+                    elif self.size > width:  # zext/sext!
+                        assert False, "sign/zero extension not allowed here"
+            # print("op", name, op, type(op))
+            # if not isinstance(op, model.Seal5ImmOperand):
+            # op = model.Seal5ImmOperand(op.name, op.ty, op.attributes, op.constraints)
+            context.operands[name] = op
+            # if self.data_type != arch.DataType.U:  # Default to unsigned
+            # if self.size is not None:
+            #     # Do not allow truncation
+            #     assert self.size == self.expr.reference.size
+            # else:
+            #     # add explicit size (optional?)
+            #     self.size = self.expr.reference.size
+            # if self.data_type:
+            #     if self.data_type != self.reference.data_type:
+            #         # Do not update BitFieldDescr for now...
+            #         # self.expr.reference.data_type = self.data_type
+    elif isinstance(self.expr, behav.IndexedReference):  # X[reg]?
+        if isinstance(self.expr.reference, arch.Memory):
+            if isinstance(self.expr.index, behav.NamedReference):
+                if isinstance(self.expr.index.reference, arch.BitFieldDescr):
+                    op_name = self.expr.index.reference.name
+                    assert op_name in context.operands
+                    op = context.operands[op_name]
+                    assert isinstance(op, model.Seal5RegOperand)
+                    reg_ty = op.reg_ty
+                    width = reg_ty.width
+                    # print("op", op, op.name, op.reg_class, op.reg_ty, op.ty, op.attributes, op.constraints)
+                    if reg_ty != self.data_type:
+                        # update
+                        if reg_ty.datatype == arch.DataType.U:
+                            reg_ty.datatype = self.data_type
+                            op.reg_ty = reg_ty
+
+                        else:
+                            assert False, "Conflicting types"
+                    if self.size is not None:
+                        if width != self.size:
+                            if self.size < width:  # trunc!
+                                return self
+                                # assert False, "truncation not allowed here"
+                            elif self.size > width:  # zext/sext!
+                                assert False, "sign/zero extension not allowed here"
+                    context.operands[op_name] = op
 
     return self
 
