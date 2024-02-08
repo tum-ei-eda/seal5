@@ -416,13 +416,126 @@ class Seal5Flow:
                 live=True,
             )
 
+    def detect_side_effects(self, verbose: bool = False, inplace: bool = True):
+        assert inplace
+        input_files = list(self.models_dir.glob("*.seal5model"))
+        assert len(input_files) > 0, "No Seal5 models found!"
+        for input_file in input_files:
+            name = input_file.name
+            logger.info("Detecting side effects for %s", name)
+            args = [
+                self.models_dir / name,
+                "--log",
+                # "info",
+                "debug",
+            ]
+            utils.python(
+                "-m",
+                "seal5.transform.detect_side_effects.collect",
+                *args,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
+
+    def detect_inouts(self, verbose: bool = False, inplace: bool = True):
+        assert inplace
+        input_files = list(self.models_dir.glob("*.seal5model"))
+        assert len(input_files) > 0, "No Seal5 models found!"
+        for input_file in input_files:
+            name = input_file.name
+            logger.info("Detecting inouts for %s", name)
+            args = [
+                self.models_dir / name,
+                "--log",
+                # "info",
+                "debug",
+            ]
+            utils.python(
+                "-m",
+                "seal5.transform.detect_inouts.collect",
+                *args,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
+
+    def collect_operand_types(self, verbose: bool = False, inplace: bool = True):
+        assert inplace
+        input_files = list(self.models_dir.glob("*.seal5model"))
+        assert len(input_files) > 0, "No Seal5 models found!"
+        for input_file in input_files:
+            # print("input_file", input_file)
+            # input(">")
+            name = input_file.name
+            logger.info("Collecting operand types for %s", name)
+            args = [
+                self.models_dir / name,
+                "--log",
+                # "info",
+                "debug",
+            ]
+            utils.python(
+                "-m",
+                "seal5.transform.collect_operand_types.collect",
+                *args,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
+            # input("<")
+
+    def collect_register_operands(self, verbose: bool = False, inplace: bool = True):
+        assert inplace
+        input_files = list(self.models_dir.glob("*.seal5model"))
+        assert len(input_files) > 0, "No Seal5 models found!"
+        for input_file in input_files:
+            name = input_file.name
+            logger.info("Collecting register operands for %s", name)
+            args = [
+                self.models_dir / name,
+                "--log",
+                # "info",
+                "debug",
+            ]
+            utils.python(
+                "-m",
+                "seal5.transform.collect_register_operands.collect",
+                *args,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
+
+    def collect_immediate_operands(self, verbose: bool = False, inplace: bool = True):
+        assert inplace
+        input_files = list(self.models_dir.glob("*.seal5model"))
+        assert len(input_files) > 0, "No Seal5 models found!"
+        for input_file in input_files:
+            name = input_file.name
+            logger.info("Collecting immediate operands for %s", name)
+            args = [
+                self.models_dir / name,
+                "--log",
+                # "info",
+                "debug",
+            ]
+            utils.python(
+                "-m",
+                "seal5.transform.collect_immediate_operands.collect",
+                *args,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
+
     def eliminate_rd_cmp_zero(self, verbose: bool = False, inplace: bool = True):
         assert inplace
         input_files = list(self.models_dir.glob("*.seal5model"))
         assert len(input_files) > 0, "No Seal5 models found!"
         for input_file in input_files:
             name = input_file.name
-            logger.info("Detecting registers for %s", name)
+            logger.info("Eliminating rd == 0 for %s", name)
             args = [
                 self.models_dir / name,
                 "--log",
@@ -437,6 +550,54 @@ class Seal5Flow:
                 print_func=logger.info if verbose else logger.debug,
                 live=True,
             )
+
+    def eliminate_mod_rfs(self, verbose: bool = False, inplace: bool = True):
+        assert inplace
+        input_files = list(self.models_dir.glob("*.seal5model"))
+        assert len(input_files) > 0, "No Seal5 models found!"
+        for input_file in input_files:
+            name = input_file.name
+            logger.info("Eliminating op % RFS for %s", name)
+            args = [
+                self.models_dir / name,
+                "--log",
+                # "info",
+                "debug",
+            ]
+            utils.python(
+                "-m",
+                "seal5.transform.eliminate_mod_rfs.transform",
+                *args,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
+
+    def write_yaml(self, verbose: bool = False, inplace: bool = True):
+        assert inplace
+        input_files = list(self.models_dir.glob("*.seal5model"))
+        assert len(input_files) > 0, "No Seal5 models found!"
+        for input_file in input_files:
+            name = input_file.name
+            new_name = name.replace(".seal5model", ".yml")
+            logger.info("Writing YAML for %s", name)
+            args = [
+                self.models_dir / name,
+                "--log",
+                # "info",
+                "debug",
+                "--output",
+                self.temp_dir / new_name
+            ]
+            utils.python(
+                "-m",
+                "seal5.backends.yaml.writer",
+                *args,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
+            self.load_cfg(self.temp_dir / new_name, overwrite=False)
 
     def write_cdsl(self, verbose: bool = False, inplace: bool = True):
         assert inplace
@@ -462,26 +623,50 @@ class Seal5Flow:
                 print_func=logger.info if verbose else logger.debug,
                 live=True,
             )
+            args_compat = [
+                self.models_dir / name,
+                "--log",
+                # "info",
+                "debug",
+                "--output",
+                self.temp_dir / f"{new_name}_compat",
+                "--compat",
+            ]
+            utils.python(
+                "-m",
+                "seal5.backends.coredsl2.writer",
+                *args_compat,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
 
     def write_cdsl_splitted(self, verbose: bool = False, inplace: bool = True):
         assert inplace
-        input_files = list(self.models_dir.glob("*.seal5model"))
-        assert len(input_files) > 0, "No Seal5 models found!"
-        for input_file in input_files:
-            name = input_file.name
-            sub = name.replace(".seal5model", "")
-            # set_names = ["XCoreVMac"]
-            set_names = [sub]
-            # set_names = ["XCoreVMac", "XCoreVBranchImmediate"]
-            # set_names = self.collect_set_names()
+        # input_files = list(self.models_dir.glob("*.seal5model"))
+        # assert len(input_files) > 0, "No Seal5 models found!"
+        # for input_file in input_files:
+        #     name = input_file.name
+        #     sub = name.replace(".seal5model", "")
+        for _ in [None]:
+            set_names = list(self.settings.extensions.keys())
+            # print("set_names", set_names)
+            assert len(set_names) > 0, "No sets found"
             for set_name in set_names:
-                insn_names = ["CV_MAC", "CV_MSU", "CV_MULUN", "CV_MULSN"] if set_name == "XCoreVMac" else ["CV_BEQIMM", "CV_BNEIMM"]  # TODO
+                insn_names = self.settings.extensions[set_name].instructions
+                sub = self.settings.extensions[set_name].model
+                # TODO: populate model in yaml backend!
+                if sub is None:  # Fallback
+                    sub = set_name
+                input_file = self.models_dir / f"{sub}.seal5model"
+                assert input_file.is_file()
+                assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
                 # insn_names = self.collect_instr_names()
                 (self.temp_dir / sub / set_name).mkdir(exist_ok=True, parents=True)
                 for insn_name in insn_names:
                     logger.info("Writing Metamodel for %s/%s/%s", sub, set_name, insn_name)
                     args = [
-                        self.models_dir / name,
+                        input_file,
                         "--keep-instructions",
                         insn_name,
                         "--log",
@@ -643,43 +828,41 @@ class Seal5Flow:
         # drop unused constants
         self.drop_unused(verbose=verbose)
         self.eliminate_rd_cmp_zero(verbose=verbose)
+        self.eliminate_mod_rfs(verbose=verbose)
+        self.drop_unused(verbose=verbose)
         # optimize Seal5 Metamodel
         self.optimize_model(verbose=verbose)
-        self.write_cdsl(verbose=verbose)
-        self.write_cdsl_splitted(verbose=verbose)
-        # detect registers
-        self.detect_registers(verbose=verbose)
-        # determine static constraints (xlen,...) -> subtargetvmap
-        # self.detect_encoding_constraits(verbose=verbose)
+        self.write_yaml(verbose=verbose)
         # determine dyn constraints (eliminate raise)
         self.detect_behavior_constraints(verbose=verbose)
-        # add explicit constraints to cdsl
-        # self.gen_explicit_constraints(verbose=verbose)
         # determine operand types
+        self.collect_register_operands(verbose=verbose)
+        self.collect_immediate_operands(verbose=verbose)
         self.collect_operand_types(verbose=verbose)
-        # add explicit operand types to cdsl
-        self.gen_explicit_operands(verbose=verbose)
-        # detect ins/outs
-        self.detect_inouts(verbose=verbose)
-        # annotate ins/outs with attributes
-        # self.annotate_inouts(verbose=verbose)
         # detect side effects
         self.detect_side_effects(verbose=verbose)
+        # detect ins/outs
+        self.detect_inouts(verbose=verbose)
+        # detect registers
+        self.detect_registers(verbose=verbose)
+        # TODO: determine static constraints (xlen,...) -> subtargetvmap
         # detect memory adressing modes
-        self.detect_adressing_modes(verbose)
+        # self.detect_adressing_modes(verbose)  # TODO
+        # write temporary coredsl
+        # self.write_cdsl(verbose=verbose)
+        # write temporary coredsl (splitted by set and insn)
+        self.write_cdsl_splitted(verbose=verbose)
 
-        # dump cdsl for each instr
-        self.dump_cdsl_instrs(verbose=verbose)
         # generate llvm-ir behavior
-        self.convert_behav_to_llvmir(verbose=verbose)
+        # self.convert_behav_to_llvmir(verbose=verbose)
+        self.convert_behav_to_llvmir_splitted(verbose=verbose)
+        self.convert_behav_to_tablegen_splitted(verbose=verbose)
         # generate llvm-gmir behavior
-        self.convert_llvmir_to_gmir(verbose=verbose)
+        # self.convert_llvmir_to_gmir(verbose=verbose)  # TODO
         # detect legal GMIR ops (and map to selectiondag?)
-        self.detect_legal_ops(verbose=verbose)
-        # add legal ops to metamodel
-        self.add_legalizer_settings(verbose=verbose)
+        # self.detect_legal_ops(verbose=verbose)  # TODO
         # extract costs/heuristics
-        self.extract_costs_and_heuristics(verbose)
+        # self.extract_costs_and_heuristics(verbose)  # TODO
 
         logger.info("Completed tranformation of Seal5 models")
 
@@ -738,7 +921,7 @@ class Seal5Flow:
         patches_settings = self.settings.patches
         for patch_settings in patches_settings:
             patch_file = lookup_manual_patch(patch_settings, allow_missing=True)
-            print("patch_file", patch_file)
+            # print("patch_file", patch_file)
             target = patch_settings.target
             name = patch_settings.name
             key = (target, name)
@@ -822,7 +1005,7 @@ class Seal5Flow:
         for stage in stages:
             logger.info("Current stage: %s", stage)
             patches = patches_per_stage.get(stage, [])
-            print("patches", patches)
+            # print("patches", patches)
             for patch in patches:
                 self.apply_patch(patch, force=force)
         logger.info("Completed application of Seal5 patches")
