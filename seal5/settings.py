@@ -289,6 +289,8 @@ class ExtensionsSettings(YAMLSettings):
     version: Optional[str] = None
     experimental: Optional[bool] = None
     vendor: Optional[bool] = None
+    model: Optional[str] = None
+    instructions: Optional[List[str]] = None
     # patches
 
 
@@ -327,6 +329,7 @@ class FilterSettings(YAMLSettings):
     instructions: Optional[FilterSetting] = None
     aliases: Optional[FilterSetting] = None
     intrinsics: Optional[FilterSetting] = None
+    # TODO: functions
 
 
 @dataclass
