@@ -57,6 +57,8 @@ class Seal5RegisterClass(IntEnum):
     FPR = 1
     CSR = 2
     CUSTOM = 3
+    UNKNOWN = 4
+    # TODO: GPRv2, GPRv4 // GPR32V2, GPR32V4
 
 
 class Seal5Register:
@@ -90,9 +92,11 @@ class Seal5Intrinsic:
 
 class Seal5Constraint:
     stmts: List[BaseNode]
+    description: Optional[str] = None
 
-    def __init__(self, stmts):
+    def __init__(self, stmts, description=None):
         self.stmts = stmts
+        self.description = description
 
 
 class Seal5Alias:
@@ -112,13 +116,22 @@ class Seal5OperandAttribute(Enum):
     OUT = auto()  # or: WRITE (W)
     INOUT = auto()  # or: READWRITE (RW)
     UNUSED = auto()
-    LANES = auto()
+    # LANES = auto()
     IS_REG = auto()
     IS_IMM = auto()
+    TYPE = auto()
+    REG_CLASS = auto()
+    REG_TYPE = auto()
 
 
 class Seal5DataType(Enum):
     pass
+
+
+# class Seal5OperandClass(Enum):
+#     UNKNOWN = auto()
+#     REG = auto()
+#     IMM = auto()
 
 
 class Seal5Type:
@@ -132,30 +145,107 @@ class Seal5Type:
         self.width = width
         self.lanes = lanes
 
+    def __repr__(self):
+        sign_letter = None
+        if self.datatype == DataType.U:
+            sign_letter = "u"
+        elif self.datatype == DataType.S:
+            sign_letter = "s"
+        assert sign_letter is not None
+        if self.lanes is None:
+            lanes = 1
+        else:
+            lanes = self.lanes
+        if self.width is None:
+            width_ = "?"
+        else:
+            assert self.width % lanes == 0
+            width_ = self.width // lanes
+        ret = f"{sign_letter}{width_}"
+        if lanes > 1:
+            ret = f"v{lanes}{ret}"
+        return ret
+
 
 class Seal5Operand:
     name: str
     ty: Seal5Type
-    attributes: Dict[Seal5OperandAttribute, List[BaseNode]] = {}
+    _attributes: Dict[Seal5OperandAttribute, List[BaseNode]] = {}
     constraints: List[Seal5Constraint] = []
     # TODO: track imm, const?
     # TODO: helpers (is_float, is_int,...)
 
+    @property
+    def attributes(self):
+        ret = self._attributes
+        if self.ty is not None:
+            # if Seal5OperandAttribute.LANES not in ret:
+            #     lanes = int(self.ty.lanes)
+            #     ret[Seal5OperandAttribute.LANES] = lanes
+            ret[Seal5OperandAttribute.TYPE] = str(self.ty)
+        return ret
+
     def __init__(self, name, ty, attributes, constraints):
         self.name = name
         self.ty = ty
-        self.attributes = attributes
+        self._attributes = attributes
         self.constraints = constraints
-        if self.ty.lanes is not None and Seal5OperandAttribute.LANES not in self.attributes:
-            lanes = int(self.ty.lanes)
-            self.attributes[Seal5OperandAttribute.LANES] = lanes
-        if self.name in ["rd", "rs1", "rs2", "rs3"] and Seal5OperandAttribute.IS_REG not in self.attributes:
-            self.attributes[Seal5OperandAttribute.IS_REG] = []
-        if "imm" in self.name and Seal5OperandAttribute.IS_IMM not in self.attributes:
+
+
+class Seal5ImmOperand(Seal5Operand):
+
+    def __init__(self, name, ty, attributes, constraints):
+        super().__init__(name, ty, attributes, constraints)
+        if Seal5OperandAttribute.IS_IMM not in self.attributes:
             self.attributes[Seal5OperandAttribute.IS_IMM] = []
-        # TODO: shorter with op.is_imm,...
-        if Seal5OperandAttribute.IS_IMM in self.attributes and (Seal5OperandAttribute.OUT in self.attributes or Seal5OperandAttribute.INOUT in self.attributes):
+        if Seal5OperandAttribute.OUT in self.attributes or Seal5OperandAttribute.INOUT in self.attributes:
             raise RuntimeError("Imm operands can not be outputs!")
+
+    @property
+    def attributes(self):
+        ret = super().attributes
+        if Seal5OperandAttribute.IS_IMM not in ret:
+            ret[Seal5OperandAttribute.IS_IMM] = []
+        return ret
+
+
+class Seal5RegOperand(Seal5Operand):
+    reg_class: Seal5RegisterClass
+    reg_ty: Seal5Type
+
+    def __init__(self, name, ty, attributes, constraints, reg_class=Seal5RegisterClass.UNKNOWN, reg_ty=None):
+        super().__init__(name, ty, attributes, constraints)
+        self.reg_class = reg_class
+        self.reg_ty = reg_ty
+
+    @property
+    def attributes(self):
+        ret = super().attributes
+        if Seal5OperandAttribute.IS_REG not in ret:
+            ret[Seal5OperandAttribute.IS_REG] = []
+        if Seal5OperandAttribute.REG_CLASS not in ret:
+            ret[Seal5OperandAttribute.REG_CLASS] = self.reg_class.name
+        if Seal5OperandAttribute.REG_TYPE not in ret:
+            ret[Seal5OperandAttribute.REG_TYPE] = str(self.reg_ty)
+        return ret
+
+
+class Seal5GPROperand(Seal5RegOperand):
+
+    def __init__(self, name, ty, attributes, constraints, reg_ty):
+        super().__init__(name, ty, attributes, constraints, Seal5RegisterClass.GPR, reg_ty)
+
+
+class Seal5FPROperand(Seal5RegOperand):
+
+    def __init__(self, name, ty, attributes, constraints, reg_ty):
+        super().__init__(name, ty, attributes, constraints, Seal5RegisterClass.FPR, reg_ty)
+
+
+class Seal5CSROperand(Seal5RegOperand):
+
+    def __init__(self, name, ty, attributes, constraints, reg_ty):
+        super().__init__(name, ty, attributes, constraints, Seal5RegisterClass.CSR, reg_ty)
 
 
 class Seal5Instruction(Instruction):
@@ -171,7 +261,7 @@ class Seal5Instruction(Instruction):
         operands: "dict[str, Seal5Operand]",
     ):
         super().__init__(name, attributes, encoding, mnemonic, assembly, operation)
-        print("name", name)
+        # print("name", name)
         self.constraints = constraints
         self.operands = {}
         for field_name, field in self.fields.items():
@@ -181,23 +271,24 @@ class Seal5Instruction(Instruction):
             datatype = field.data_type
             lanes = None
             ty = Seal5Type(width=width, datatype=datatype, lanes=lanes)
-            op_attrs = {Seal5OperandAttribute.IN: []}
+            # op_attrs = {Seal5OperandAttribute.IN: []}
+            op_attrs = {}
             # check for fixed bits
             temp = [False] * width
-            print("field_name", field_name)
-            print("temp", temp)
+            # print("field_name", field_name)
+            # print("temp", temp)
             for enc in self.encoding:
                 if isinstance(enc, BitField):
                     if enc.name == field_name:
-                        print("enc", enc, dir(enc))
+                        # print("enc", enc, dir(enc))
                         rng = enc.range
-                        print("rng", rng)
+                        # print("rng", rng)
                         assert rng.lower <= rng.upper
                         for pos in range(rng.lower, rng.upper + 1):
-                            print("pos", pos)
+                            # print("pos", pos)
                             assert pos < len(temp)
                             temp[pos] = True
-            print("temp", temp)
+            # print("temp", temp)
             temp = [pos for pos, val in enumerate(temp) if not val]
             temp2 = []
             cur = None
@@ -213,7 +304,7 @@ class Seal5Instruction(Instruction):
             if cur is not None:
                 temp2.append(f"{cur[0]}:{cur[1]}")
             temp = temp2
-            print("temp", temp)
+            # print("temp", temp)
             # input("pp")
             constraints = []
             for pos in temp:
@@ -224,11 +315,16 @@ class Seal5Instruction(Instruction):
                 stmt = BinaryOperation(SliceOperation(NamedReference(SizedRefOrConst(field_name, sz)), IntLiteral(upper), IntLiteral(lower)), Operator("=="), IntLiteral(0))
                 constraint = Seal5Constraint([stmt])
                 constraints.append(constraint)
-            print("constraints", constraints)
+            # print("constraints", constraints)
             if len(constraints) > 0:
                 # input("eee")
                 pass
-            op = Seal5Operand(field_name, ty, op_attrs, constraints)
+            # if "imm" in field_name:
+            #     cls = Seal5ImmOperand
+            # elif field_name in ["rd", "rs1", "rs2", "rs3"]:
+            #     cls = Seal5RegOperand
+            cls = Seal5Operand
+            op = cls(field_name, ty, op_attrs, constraints)
             self.operands[field_name] = op
         # Test:
         # self.attributes[Seal5InstrAttribute.MAY_LOAD] = []

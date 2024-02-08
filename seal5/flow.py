@@ -48,9 +48,9 @@ def lookup_manual_patch(patch: PatchSettings, allow_missing=False):
     res = patches[0]
     if patch.target is None:
         target = res.parent.name
-        patch.target = target
+        patch.target = str(target)
     if patch.file is None:
-        patch.file = res
+        patch.file = str(res)
     return res
 
 
@@ -400,7 +400,7 @@ class Seal5Flow:
         assert len(input_files) > 0, "No Seal5 models found!"
         for input_file in input_files:
             name = input_file.name
-            logger.info("Detecting registers for %s", name)
+            logger.info("Collecting constraints for %s", name)
             args = [
                 self.models_dir / name,
                 "--log",
