@@ -25,12 +25,12 @@ from typing import Optional
 def get_patches(patch_name: Optional[str] = None, target: Optional[str] = None, allow_empty: bool = False):
     ret = []
     for entry in importlib_resources.files("seal5.resources.patches").iterdir():
-        print("entry", entry.name)
+        # print("entry", entry.name)
         if entry.is_dir():
             if target and target != entry.name:
                 continue
             for entry2 in entry.iterdir():
-                print("entry2", entry2.name)
+                # print("entry2", entry2.name)
                 assert not entry2.is_dir(), "Nested patches are not allowed"
                 assert entry2.is_file(), f"Invalid patch: {entry.name}"
                 if patch_name and patch_name not in entry2.stem:
