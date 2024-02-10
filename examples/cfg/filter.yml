@@ -2,3 +2,5 @@
 filter:
   sets:
     drop: [RISCVBase, RISCVEncoding, Zicsr, Zifencei, RVSMode, RVDebug, RV32I, RVNMode]
+  instructions:
+    drop: [CV_CLIPU, CV_CLIPR, CV_CLIPUR]
