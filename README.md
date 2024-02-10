@@ -25,4 +25,8 @@ See ['examples/demo.py'](examples/demo.py)!
 
 TODO: Sphinx Documentation
 
+## Limitations
+
+See [here](./LIMITATIONS.md).
+
 ## References
