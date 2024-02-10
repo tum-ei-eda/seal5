@@ -1,0 +1,10 @@
+---
+extensions:
+  XCoreVBitmanip:
+    feature: XCVBitmanip
+    arch: xcvbitmanip
+    version: "1.0"
+    experimental: false
+    vendor: true
+    model: XCoreVBitmanip
+    # patches: []
