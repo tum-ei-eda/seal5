@@ -4,3 +4,6 @@
 [submodule "examples/cdsl/rv_xcorev"]
 	path = examples/cdsl/rv_xcorev
 	url = https://github.com/tum-ei-eda/CoreV_ISA_CoreDSL.git
+[submodule "examples/cdsl/rv_s4e"]
+	path = examples/cdsl/rv_s4e
+	url = https://github.com/DLR-SE/riscv-coredsl-extensions.git
