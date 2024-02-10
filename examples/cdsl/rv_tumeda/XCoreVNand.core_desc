@@ -1,0 +1,20 @@
+import "../rv_base/RISCVBase.core_desc"
+
+InstructionSet XCoreVNand extends RISCVBase {
+    instructions {
+        // CV_NAND_LOGICAL {
+        //     encoding: 7'b1001000 :: rs2[4:0] :: rs1[4:0] :: 3'b110 :: rd[4:0] :: 7'b0101011;
+        //     assembly: {"cv.nand_logical", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+        //     behavior: {
+        //       if(rd != 0) X[rd] = !(X[rs1] && X[rs2]);
+        //     }
+        // }
+        CV_NAND_BITWISE {
+            encoding: 7'b1001001 :: rs2[4:0] :: rs1[4:0] :: 3'b110 :: rd[4:0] :: 7'b0101011;
+            assembly: {"cv.nand_bitwise", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: {
+              if(rd != 0) X[rd] = ~(X[rs1] & X[rs2]);
+            }
+        }
+    }
+}

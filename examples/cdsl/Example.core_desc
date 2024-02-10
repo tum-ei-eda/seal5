@@ -1,0 +1,14 @@
+InstructionSet XExample extends RISCVBase {
+  instructions {
+    // TODO: remove/replace prefix
+    CV_SUBINCACC {
+      encoding: 7'b0101000 :: 5'b00000 :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+      assembly: "{name(rd)}, {name(rs1)}";
+      behavior: {
+        if (rd != 0) {
+          X[rd] += X[rs1] - X[rs2] + 1;
+        }
+      }
+    }
+  }
+}
