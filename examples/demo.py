@@ -63,12 +63,12 @@ seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load YAML inputs
 cfg_files = [
-    EXAMPLES_DIR / "cfg" / "XCoreVMac.yml",
-    EXAMPLES_DIR / "cfg" / "XCoreVAlu.yml",
-    EXAMPLES_DIR / "cfg" / "XCoreVBitmanip.yml",
-    EXAMPLES_DIR / "cfg" / "XCoreVSimd.yml",
-    EXAMPLES_DIR / "cfg" / "XCoreVMem.yml",
-    EXAMPLES_DIR / "cfg" / "XCoreVBranchImmediate.yml",
+    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVMac.yml",
+    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVAlu.yml",
+    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVBitmanip.yml",
+    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVSimd.yml",
+    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVMem.yml",
+    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVBranchImmediate.yml",
     EXAMPLES_DIR / "cfg" / "llvm.yml",
     EXAMPLES_DIR / "cfg" / "filter.yml",
     EXAMPLES_DIR / "cfg" / "patches.yml",
