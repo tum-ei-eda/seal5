@@ -815,6 +815,43 @@ class Seal5Flow:
                 print("Err:", insn_name, err_str)
                 input("!")
 
+    def convert_llvmir_to_gmir_splitted(self, verbose: bool = False, inplace: bool = True):
+        assert inplace
+        # input_files = list(self.models_dir.glob("*.seal5model"))
+        # assert len(input_files) > 0, "No Seal5 models found!"
+        errs = []
+        # for input_file in input_files:
+        #     name = input_file.name
+        #     sub = name.replace(".seal5model", "")
+        for _ in [None]:
+            set_names = list(self.settings.extensions.keys())
+            assert len(set_names) > 0, "No sets found"
+            for set_name in set_names:
+                insn_names = self.settings.extensions[set_name].instructions
+                assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
+                sub = self.settings.extensions[set_name].model
+                # TODO: populate model in yaml backend!
+                if sub is None:  # Fallbacke
+                    sub = set_name
+                for insn_name in insn_names:
+                    ll_file = self.temp_dir / sub / set_name / f"{insn_name}.ll"
+                    if not ll_file.is_file():
+                        logger.warning("Skipping %s due to errors.", insn_name)
+                        continue
+                    output_file = ll_file.parent / (ll_file.stem + ".gmir")
+                    name = ll_file.name
+                    logger.info("Writing TableGen for %s", name)
+                    try:
+                        cdsl2llvm.convert_ll_to_gmir(self.deps_dir / "cdsl2llvm" / "llvm" / "build", ll_file, output_file)
+                    except AssertionError:
+                        pass
+                        # errs.append((insn_name, str(ex)))
+        if len(errs) > 0:
+            # print("errs", errs)
+            for insn_name, err_str in errs:
+                print("Err:", insn_name, err_str)
+                input("!")
+
     def transform(self, verbose: bool = False):
         logger.info("Tranforming Seal5 models")
         inplace = True
@@ -860,6 +897,7 @@ class Seal5Flow:
         # generate llvm-ir behavior
         # self.convert_behav_to_llvmir(verbose=verbose)
         self.convert_behav_to_llvmir_splitted(verbose=verbose)
+        self.convert_llvmir_to_gmir_splitted(verbose=verbose)
         self.convert_behav_to_tablegen_splitted(verbose=verbose)
         # generate llvm-gmir behavior
         # self.convert_llvmir_to_gmir(verbose=verbose)  # TODO
