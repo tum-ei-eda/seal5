@@ -104,7 +104,7 @@ def exec_getout(
             while exit_code is None:
                 exit_code = process.poll()
             if handle_exit is not None:
-                exit_code = handle_exit(exit_code)
+                exit_code = handle_exit(exit_code, out_str)
             if exit_code != 0:
                 err_func(out_str)
             assert exit_code == 0, "The process returned an non-zero exit code {}! (CMD: `{}`)".format(
@@ -116,7 +116,7 @@ def exec_getout(
         exit_code = p.poll()
         print_func(out_str)
         if handle_exit is not None:
-            exit_code = handle_exit(exit_code)
+            exit_code = handle_exit(exit_code, out_str)
         if exit_code != 0:
             err_func(out_str)
         assert exit_code == 0, "The process returned an non-zero exit code {}! (CMD: `{}`)".format(
@@ -150,7 +150,7 @@ def cmake(src, *args, debug: Optional[bool] = None, use_ninja=False, cwd=None, *
         extraArgs.append("-DCMAKE_BUILD_TYPE=" + buildType)
     if use_ninja:
         extraArgs.append("-GNinja")
-    cmd = ["cmake", str(src)] + extraArgs + list(args)
+    cmd = ["cmake", "-B", cwd, "-S", str(src)] + extraArgs + list(args)
     return exec_getout(*cmd, cwd=cwd, **kwargs)
 
 
