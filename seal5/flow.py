@@ -189,12 +189,15 @@ class Seal5Flow:
         logger.info("Cloning CDSL2LLVM")
         cdsl2llvm_dependency.clone(self.deps_dir / "cdsl2llvm", overwrite=force, depth=1)
         logger.info("Building PatternGen")
-        # llvm_config = LLVMConfig(options={"CMAKE_BUILD_TYPE": "Release", "LLVM_BUILD_TOOLS": False, "LLVM_ENABLE_ASSERTIONS": False, "LLVM_OPTIMIZED_TABLEGEN": True, "LLVM_ENABLE_PROJECT": [], "LLVM_TARGETS_TO_BUILD": ["RISCV"]})
-        llvm_config = LLVMConfig(options={"CMAKE_BUILD_TYPE": "Debug", "LLVM_BUILD_TOOLS": False, "LLVM_ENABLE_ASSERTIONS": False, "LLVM_OPTIMIZED_TABLEGEN": True, "LLVM_ENABLE_PROJECT": [], "LLVM_TARGETS_TO_BUILD": ["RISCV"]})
+        llvm_config = LLVMConfig(options={"CMAKE_BUILD_TYPE": "Release", "LLVM_BUILD_TOOLS": False, "LLVM_ENABLE_ASSERTIONS": False, "LLVM_OPTIMIZED_TABLEGEN": True, "LLVM_ENABLE_PROJECT": [], "LLVM_TARGETS_TO_BUILD": ["RISCV"]})
+        # llvm_config = LLVMConfig(options={"CMAKE_BUILD_TYPE": "Debug", "LLVM_BUILD_TOOLS": False, "LLVM_ENABLE_ASSERTIONS": False, "LLVM_OPTIMIZED_TABLEGEN": True, "LLVM_ENABLE_PROJECT": [], "LLVM_TARGETS_TO_BUILD": ["RISCV"]})
         cmake_options = llvm_config.options
-        cdsl2llvm.build_pattern_gen(self.deps_dir / "cdsl2llvm", self.deps_dir / "cdsl2llvm" / "llvm", "build", cmake_options=cmake_options)
-        # input("qqqqqq")
+        cdsl2llvm.build_pattern_gen(self.deps_dir / "cdsl2llvm", self.deps_dir / "cdsl2llvm" / "llvm" / "build", cmake_options=cmake_options, use_ninja=True)
         logger.info("Completed build of PatternGen")
+        logger.info("Building llc")
+        cdsl2llvm.build_llc(self.deps_dir / "cdsl2llvm", self.deps_dir / "cdsl2llvm" / "llvm" / "build", cmake_options=cmake_options, use_ninja=True)
+        logger.info("Completed build of llc")
+        # input("qqqqqq")
         logger.info("Completed installation of Seal5 dependencies")
 
     def load_cfg(self, file: Path, overwrite: bool = False):
