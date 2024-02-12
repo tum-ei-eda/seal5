@@ -60,7 +60,7 @@ class CoreDSL2Writer:
         for i, line in enumerate(lines):
             if self.isstartofline:
                 self.text += self.indent
-            self.text += text
+            self.text += line
             if (i < len(lines) - 1) or nl:
                 self.text += "\n"
 
