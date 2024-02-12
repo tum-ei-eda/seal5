@@ -8,8 +8,8 @@
 
 """Very crude expression evaluation functions for use during model generation."""
 
-from ... import M2ValueError
-from ...metamodel import arch, behav
+from m2isar import M2ValueError
+from m2isar.metamodel import arch, behav
 
 
 def group(self: behav.Group, context):

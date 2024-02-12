@@ -8,9 +8,9 @@
 
 import logging
 
-from ... import M2NameError, M2SyntaxError, M2TypeError, flatten
-from ...metamodel import arch, behav, intrinsics
-from ...metamodel.utils import StaticType
+from m2isar import M2NameError, M2SyntaxError, M2TypeError, flatten
+from m2isar.metamodel import arch, behav, intrinsics
+from m2isar.metamodel.utils import StaticType
 from .parser_gen import CoreDSL2Parser, CoreDSL2Visitor
 from .utils import BOOLCONST, RADIX, SHORTHANDS, SIGNEDNESS
 

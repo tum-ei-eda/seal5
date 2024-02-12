@@ -13,8 +13,8 @@ import pathlib
 import pickle
 import sys
 
-from ... import M2Error, M2SyntaxError
-from ...metamodel import arch, behav, patch_model
+from m2isar import M2Error, M2SyntaxError
+from m2isar.metamodel import arch, behav, patch_model
 from . import expr_interpreter
 from .architecture_model_builder import ArchitectureModelBuilder
 from .behavior_model_builder import BehaviorModelBuilder

@@ -218,7 +218,7 @@ class Seal5Flow:
         ]
         utils.python(
             "-m",
-            "m2isar.frontends.coredsl2_seal5.parser",
+            "seal5.frontends.coredsl2_seal5.parser",
             *args,
             env=self.prepare_environment(),
             print_func=logger.info if verbose else logger.debug,

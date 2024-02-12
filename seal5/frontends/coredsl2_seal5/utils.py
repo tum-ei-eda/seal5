@@ -9,7 +9,7 @@
 import antlr4
 import antlr4.error.ErrorListener
 
-from ... import M2SyntaxError
+from m2isar import M2SyntaxError
 from .parser_gen import CoreDSL2Lexer, CoreDSL2Parser
 
 RADIX = {

@@ -10,8 +10,8 @@ import itertools
 import logging
 from typing import Union
 
-from ... import M2DuplicateError, M2NameError, M2TypeError, M2ValueError, flatten
-from ...metamodel import arch, behav, intrinsics
+from m2isar import M2DuplicateError, M2NameError, M2TypeError, M2ValueError, flatten
+from m2isar.metamodel import arch, behav, intrinsics
 from .parser_gen import CoreDSL2Parser, CoreDSL2Visitor
 from .utils import RADIX, SHORTHANDS, SIGNEDNESS
 
