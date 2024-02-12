@@ -1,6 +1,8 @@
-import "../rv_base/RISCVBase.core_desc"
+// import "../rv_base/RISCVBase.core_desc"
+import "../rv_base/RV32I.core_desc"
 
-InstructionSet XCoreVNand extends RISCVBase {
+// InstructionSet XCoreVNand extends RISCVBase {
+InstructionSet XCoreVNand extends RV32I {
     instructions {
         // CV_NAND_LOGICAL {
         //     encoding: 7'b1001000 :: rs2[4:0] :: rs1[4:0] :: 3'b110 :: rd[4:0] :: 7'b0101011;
