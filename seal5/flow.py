@@ -702,6 +702,9 @@ class Seal5Flow:
             assert len(set_names) > 0, "No sets found"
             for set_name in set_names:
                 insn_names = self.settings.extensions[set_name].instructions
+                if insn_names is None:
+                    logger.warning("Skipping empty set %s", set_name)
+                    continue
                 sub = self.settings.extensions[set_name].model
                 # TODO: populate model in yaml backend!
                 if sub is None:  # Fallback
@@ -798,6 +801,9 @@ class Seal5Flow:
             assert len(set_names) > 0, "No sets found"
             for set_name in set_names:
                 insn_names = self.settings.extensions[set_name].instructions
+                if insn_names is None:
+                    logger.warning("Skipping empty set %s", set_name)
+                    continue
                 assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
                 sub = self.settings.extensions[set_name].model
                 # TODO: populate model in yaml backend!
@@ -833,6 +839,9 @@ class Seal5Flow:
             assert len(set_names) > 0, "No sets found"
             for set_name in set_names:
                 insn_names = self.settings.extensions[set_name].instructions
+                if insn_names is None:
+                    logger.warning("Skipping empty set %s", set_name)
+                    continue
                 assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
                 sub = self.settings.extensions[set_name].model
                 # TODO: populate model in yaml backend!
@@ -872,6 +881,9 @@ class Seal5Flow:
             assert len(set_names) > 0, "No sets found"
             for set_name in set_names:
                 insn_names = self.settings.extensions[set_name].instructions
+                if insn_names is None:
+                    logger.warning("Skipping empty set %s", set_name)
+                    continue
                 assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
                 sub = self.settings.extensions[set_name].model
                 # TODO: populate model in yaml backend!
