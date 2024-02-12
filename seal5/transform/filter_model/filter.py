@@ -114,7 +114,7 @@ def main():
     def check_filter(name, keep, drop):
         # print("check_filter", name, keep, drop)
         if drop and keep:
-            return name not in drop or name in keep
+            return name not in drop and name in keep
         elif keep:
             return name in keep
         elif drop:
