@@ -45,10 +45,14 @@ seal5_flow.initialize(
     verbose=VERBOSE,
 )
 
+# Optional: clean existing settings/models for fresh run
+# seal5.reset(models=True, settings=True, force=True)
+
 # Clone Seal5 dependencies
 # 1. M2-ISA-R (frontend only)
 # 2. CDSL2LLVM (later)
-# seal5_flow.setup(force=True, verbose=VERBOSE)
+# TODO: refresh refs
+seal5_flow.setup(force=True, verbose=VERBOSE)
 
 # Load CoreDSL inputs
 cdsl_files = [
@@ -60,12 +64,15 @@ cdsl_files = [
     EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMem.core_desc",
     EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVBranchImmediate.core_desc",
     # RVP (will not work)
-    # EXAMPLES_DIR / "cdsl" / "rv_s4e" / "RVP.core_desc",:
-    # S4E (untested)
-    # EXAMPLES_DIR / "cdsl" / "rv_s4e" / "s4e-mac.core_desc",:
+    # EXAMPLES_DIR / "cdsl" / "RVP.core_desc",
+    # S4E (untested) -> undefined XLEN
+    # EXAMPLES_DIR / "cdsl" / "rv_s4e" / "s4e-mac.core_desc",
     # TUMEDA (untested)
+    EXAMPLES_DIR / "cdsl" / "rv_tumeda" / "XCoreVNand.core_desc",
     # GENERATED (untested)
+    EXAMPLES_DIR / "cdsl" / "rv_gen" / "test.core_desc",
     # OTHERS (untested)
+    EXAMPLES_DIR / "cdsl" / "Example.core_desc",
 ]
 seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
@@ -95,7 +102,6 @@ seal5_flow.patch(verbose=VERBOSE, stages=[PatchStage.PHASE_0])
 # Build initial LLVM
 # seal5_flow.build(verbose=VERBOSE, config="release")
 
-
 # Transform inputs
 #   1. Create M2-ISA-R metamodel
 #   2. Convert to Seal5 metamodel (including aliases, builtins,...)
@@ -119,3 +125,6 @@ seal5_flow.deploy(verbose=VERBOSE)
 
 # Export patches, logs, reports
 seal5_flow.export("/tmp/seal5_llvm_demo.tar.gz", verbose=VERBOSE)
+
+# Optional: cleanup temorary files, build dirs,...
+# seal5.cleanup(temp=True, build=True, deps=True, force=True)
