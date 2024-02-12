@@ -331,6 +331,28 @@ class Seal5Flow:
                 live=True,
             )
 
+    def simplify_trivial_slices(self, verbose: bool = False, inplace: bool = True):
+        assert inplace
+        input_files = list(self.models_dir.glob("*.seal5model"))
+        assert len(input_files) > 0, "No Seal5 models found!"
+        for input_file in input_files:
+            name = input_file.name
+            logger.info("Infering types for %s", name)
+            args = [
+                self.models_dir / name,
+                "--log",
+                "info",
+                # "debug",
+            ]
+            utils.python(
+                "-m",
+                "seal5.transform.simplify_trivial_slices.transform",
+                *args,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
+
     def filter_model(self, verbose: bool = False, inplace: bool = True):
         assert inplace
         input_files = list(self.models_dir.glob("*.seal5model"))
@@ -896,6 +918,7 @@ class Seal5Flow:
         # optimize Seal5 Metamodel
         self.optimize_model(verbose=verbose)
         self.infer_types(verbose=verbose)
+        self.simplify_trivial_slices(verbose=verbose)
         self.write_yaml(verbose=verbose)
         # determine dyn constraints (eliminate raise)
         self.detect_behavior_constraints(verbose=verbose)
