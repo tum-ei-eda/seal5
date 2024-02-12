@@ -1,0 +1,64 @@
+import "../rv_base/RV32I.core_desc"
+// import "../rv_base/RVM.core_desc"
+// import "../rv_base/RVC.core_desc"
+// import "../rv_base/RVF.core_desc"
+// import "../rv_base/RVD.core_desc"
+// import "tum_mod.core_desc"
+// import "tum_rva.core_desc"
+// import "tum_rvm.core_desc"
+
+// InstructionSet myext_alu {
+InstructionSet myext_alu extends RV32I {
+    instructions {
+        adds16 {
+            encoding: 7'b0000000 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.adds16", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: X[rd] = (signed<16>)(X[rs1]) + (signed<16>)(X[rs2]);
+        }
+        adds32 {
+            encoding: 7'b0000001 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.adds32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: X[rd] = (signed<32>)(X[rs1]) + (signed<32>)(X[rs2]);
+        }
+    }
+}
+
+// InstructionSet myext_simd {
+InstructionSet myext_simd extends RV32I {
+    instructions {
+        simd_add8 {
+            encoding: 7'b0000010 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.simd_add8", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: {
+                X[rd][7:0] = (signed<8>)(X[rs1])[7:0] + (signed<8>)(X[rs2])[7:0];
+                X[rd][15:8] = (signed<8>)(X[rs1])[15:8] + (signed<8>)(X[rs2])[15:8];
+                X[rd][23:16] = (signed<8>)(X[rs1])[23:16] + (signed<8>)(X[rs2])[23:16];
+                X[rd][31:24] = (signed<8>)(X[rs1])[31:24] + (signed<8>)(X[rs2])[31:24];
+            }
+        }
+        simd_add16 {
+            encoding: 7'b0000011 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.simd_add16", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: {
+                X[rd][15:0] = (signed<16>)(X[rs1])[15:0] + (signed<16>)(X[rs2])[15:0];
+                X[rd][31:16] = (signed<16>)(X[rs1])[31:16] + (signed<16>)(X[rs2])[31:16];
+            }
+        }
+    }
+}
+
+// Core TestCore provides RV32I, RV32IC, RV32M, RV32A, RV32F, RV32FC, RV32D, RV32DC, myext_alu, myext_simd, Zifencei, tum_csr, tum_ret, tum_rva, tum_semihosting {
+//     architectural_state {
+//         CSR[0x000] = 0x0000000B; // ustatus
+//         CSR[RV_CSR_SSTATUS] = 0x0000000B; // sstatus
+//         CSR[RV_CSR_MSTATUS] = 0x0000000B; // mstatus
+//
+//         CSR[RV_CSR_MISA] = 0x4014112D; // misa
+//
+//         CSR[0xC10] = 0x00000003;
+//
+//         CSR[RV_CSR_MIE] = 0xFFFFFBBB; // mie
+//         CSR[RV_CSR_SIE] = CSR[0x304] & (~(0x888)); // sie
+//         CSR[0x004] = CSR[0x304] & (~(0xAAA)); // uie
+//     }
+// }
