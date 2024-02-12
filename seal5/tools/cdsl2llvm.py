@@ -38,7 +38,23 @@ def build_pattern_gen(
         print_func=logger.info if verbose else logger.debug,
         live=True,
     )
-    utils.make("pattern-gen", cwd=dest, print_func=logger.info if verbose else logger.debug, live=True)
+    utils.make("pattern-gen", cwd=dest, print_func=logger.info if verbose else logger.debug, live=True, use_ninja=use_ninja)
+
+
+def build_llc(
+    src: Path, dest: Path, debug: bool = False, use_ninja: bool = False, verbose: bool = False, cmake_options: dict = {}
+):
+    cmake_args = utils.get_cmake_args(cmake_options)
+    dest.mkdir(exist_ok=True)
+    utils.cmake(
+        src / "llvm",
+        *cmake_args,
+        use_ninja=use_ninja,
+        cwd=dest,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+    utils.make("llc", cwd=dest, print_func=logger.info if verbose else logger.debug, live=True, use_ninja=use_ninja)
 
 
 def run_pattern_gen(
@@ -71,13 +87,19 @@ def run_pattern_gen(
     # break_on_err = True
     break_on_err = False
     # TODO: dump gmir?
-    # TODO: def handle(out):
+    def handle_exit(code=None, out=None):
+        if code is not None and code != 0:
+            err_file = str(dest) + ".err"
+            with open(err_file, "w") as f:
+                f.write(out)
+        return code
     try:
         out = utils.exec_getout(
             build_dir / "bin" / "pattern-gen",
             *pattern_gen_args,
             # cwd=dest,
             print_func=logger.info if verbose else logger.debug,
+            handle_exit=handle_exit,
             live=True,
         )
     except Exception as e:
@@ -90,39 +112,71 @@ def run_pattern_gen(
                 dest.unlink()
         raise e
     if not skip:
-        errs = None
-        opt_ll = None
+        # errs = None
+        # opt_ll = None
         pat = []
         found_pattern = False
-        rest = []
+        # reason = None
+        # rest = []
+        is_err = False
         for line in out.split("\n"):
             # print("line", line)
             if found_pattern:
                 # print("A1")
                 pat.append(line)
+                # found_pattern = False
             else:
                 # print("A2")
                 if "Pattern for" in line:
                     # print("B1")
-                    found_pattern = True
-                    continue
-                else:
-                    # print("B2")
-                    rest.append(line)
-            # if errs is None:
-        # print("pat", pat)
+                    pat = [line.split(":", 1)[1]]
+                    # found_pattern = True
+                elif "Pattern Generation failed for" in line:
+                    # reason = line
+                    is_err = True
+        print("pat", pat)
         if len(pat) > 0:
             pat = "\n".join(pat)
-            pat_file = dest
+            pat_file = str(dest) + ".pat"
             with open(pat_file, "w") as f:
                 f.write(pat)
         else:
+            is_err = True
+        # else:
+        #     if break_on_err:
+        #         print("\n".join(rest))
+        #         input("^^^Pattern not found^^^")
+        if is_err:
             if break_on_err:
-                print("\n".join(rest))
-                input("^^^Pattern not found^^^")
+                print(out)
+                input("^^^ERROR^^^")
             dest.unlink()
-        if len(rest) > 0:
-            rest = "\n".join(rest)
-            rest_file = str(dest).replace(".td", ".out")
-            with open(rest_file, "w") as f:
-                f.write(rest)
+        out_file = str(dest) + (".err" if is_err else ".out")
+        with open(out_file, "w") as f:
+            f.write(out)
+        # if len(rest) > 0:
+        #     rest = "\n".join(rest)
+        #     rest_file = str(dest) + (".err" if is_err else ".out")
+        #     with open(rest_file, "w") as f:
+        #         f.write(rest)
+        # if reason:
+        #     reason_file = str(dest) + ".reason"
+        #     with open(reason_file, "w") as f:
+        #         f.write(reason)
+
+
+def convert_ll_to_gmir(
+    build_dir: Path, src: Path, dest: Path, verbose: bool = False,
+):
+    llc_args = [src, "-mtriple=riscv32-unknown-elf", "-stop-after=irtranslator", "-global-isel", "-O3"]
+
+    assert dest is not None
+    llc_args.extend(["-o", str(dest)])
+
+    _ = utils.exec_getout(
+        build_dir / "bin" / "llc",
+        *llc_args,
+        # cwd=dest,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
