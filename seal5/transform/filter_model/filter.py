@@ -132,6 +132,11 @@ def main():
         }
         # for instr_name, instr_def in set_def.instructions.items():
 
+    # Remove sets without instructions
+    model["sets"] = {
+        set_name: set_def for set_name, set_def in model["sets"].items() if len(set_def.instructions) > 0
+    }
+
     logger.info("dumping model")
     with open(model_path, "wb") as f:
         if is_seal5_model:

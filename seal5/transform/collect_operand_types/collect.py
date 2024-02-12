@@ -34,6 +34,7 @@ def main():
     parser.add_argument("top_level", help="A .m2isarmodel or .seal5model file.")
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument("--output", "-o", type=str, default=None)
+    parser.add_argument("--skip-failing", action="store_true")
     args = parser.parse_args()
 
     # initialize logging
@@ -78,7 +79,13 @@ def main():
         for instr_name, instr_def in set_def.instructions.items():
             context = VisitorContext(instr_def.operands)
             logger.debug("collecting operand types for instr %s", instr_def.name)
-            instr_def.operation.generate(context)
+            try:
+                instr_def.operation.generate(context)
+            except Exception as ex:
+                if args.skip_failing:
+                    logger.warning("Transformation failed for instr %s", instr_name)
+                else:
+                    raise ex
             instr_def.operands = context.operands
             # print("context.raises", context.raises)
             # input("next?")
