@@ -31,6 +31,7 @@ logger = logging.getLogger("yaml_writer")
 #     experimental: Optional[bool] = None
 #     vendor: Optional[bool] = None
 #     instructions: Optional[List[str]] = None
+#     NEW: model
 #     # patches
 
 
@@ -89,6 +90,7 @@ def main():
     for set_name, set_def in model["sets"].items():
         # print("set", set_def)
         set_data = {"instructions": []}
+        set_data["model"] = top_level.stem
         for instr in set_def.instructions.values():
             set_data["instructions"].append(instr.name)
         data["extensions"][set_name] = set_data
