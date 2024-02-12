@@ -337,7 +337,7 @@ class Seal5Flow:
         assert len(input_files) > 0, "No Seal5 models found!"
         for input_file in input_files:
             name = input_file.name
-            logger.info("Infering types for %s", name)
+            logger.info("Simplifying trivial slices for %s", name)
             args = [
                 self.models_dir / name,
                 "--log",
