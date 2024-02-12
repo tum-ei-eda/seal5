@@ -477,6 +477,7 @@ class Seal5Flow:
                 "--log",
                 # "info",
                 "debug",
+                "--skip-failing",
             ]
             utils.python(
                 "-m",
@@ -560,7 +561,7 @@ class Seal5Flow:
         assert len(input_files) > 0, "No Seal5 models found!"
         for input_file in input_files:
             name = input_file.name
-            logger.info("Eliminating op % RFS for %s", name)
+            logger.info("Eliminating op MOD RFS for %s", name)
             args = [
                 self.models_dir / name,
                 "--log",
@@ -662,7 +663,7 @@ class Seal5Flow:
                 if sub is None:  # Fallback
                     sub = set_name
                 input_file = self.models_dir / f"{sub}.seal5model"
-                assert input_file.is_file()
+                assert input_file.is_file(), f"File not found: {input_file}"
                 assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
                 # insn_names = self.collect_instr_names()
                 (self.temp_dir / sub / set_name).mkdir(exist_ok=True, parents=True)
