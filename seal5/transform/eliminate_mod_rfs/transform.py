@@ -68,11 +68,11 @@ def main():
                 assert False
 
     for set_name, set_def in model["sets"].items():
-        logger.debug("eliminating op % RFS for set %s", set_def.name)
+        logger.debug("eliminating op mod RFS for set %s", set_def.name)
         patch_model(visitor)
         # TODO: handle RFS symbolically
         for instr_name, instr_def in set_def.instructions.items():
-            logger.debug("eliminating op % RFS for instr %s", instr_def.name)
+            logger.debug("eliminating op mod RFS for instr %s", instr_def.name)
             instr_def.operation.generate(None)
 
     logger.info("dumping model")
