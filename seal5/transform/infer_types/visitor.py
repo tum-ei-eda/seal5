@@ -122,9 +122,9 @@ def binary_operation(self: behav.BinaryOperation, context):
             pass
         elif self.op.value in ["<", ">", "==", "!=", ">=", "<="]:
             self.inferred_type = arch.IntegerType(1, False, None)  # unsigned<1> / bool
-    # print("sit", self.inferred_type)
+    # print("sit", self.inferred_type.width)
     assert self.inferred_type is not None
-    # input("!")
+    # input("!x!")
 
     return self
 
@@ -190,9 +190,17 @@ def int_literal(self: behav.IntLiteral, context):
     return self
 
 def scalar_definition(self: behav.ScalarDefinition, context):
+    # type inference
+    # print("scalar_definition", self, dir(self), self.scalar, self.scalar.size, self.scalar.data_type)
+    signed = self.scalar.data_type == arch.DataType.S
+    width = self.scalar.size
+    self.inferred_type = arch.IntegerType(width, signed, None)
     return self
 
 def assignment(self: behav.Assignment, context):
+    # print("assignment", self)
+    # print("at_", self.target)
+    # print("ae_", self.expr)
     self.target = self.target.generate(context)
     self.expr = self.expr.generate(context)
 
@@ -200,14 +208,28 @@ def assignment(self: behav.Assignment, context):
 #       self.target.scalar.value = self.expr.value
 
     # type inference
-    # TODO
+    # print("at", self.target)
+    # print("ae", self.expr)
+    # print("at1", self.target.inferred_type)
+    # print("ae1", self.expr.inferred_type)
+    # print("at2", self.target.inferred_type.width)
+    # print("ae2", self.expr.inferred_type.width)
+    # input("ccc")
     self.inferred_type = None
 
     return self
 
 def conditional(self: behav.Conditional, context):
     self.conds = [x.generate(context) for x in self.conds]
-    self.stmts = [[y.generate(context) for y in x] for x in self.stmts]
+    # self.stmts = [[y.generate(context) for y in x] for x in self.stmts]
+    stmts = []
+    for stmt in self.stmts:
+        if isinstance(stmt, list):  # TODO: legacy?
+            new = [y.generate(context) for y in stmt]
+        else:
+            new = stmt.generate(context)
+        stmts.append(new)
+    self.stmts = stmts
 
     return self
 
@@ -218,13 +240,30 @@ def loop(self: behav.Loop, context):
     return self
 
 def ternary(self: behav.Ternary, context):
+    # print("ternary")
+
     self.cond = self.cond.generate(context)
     self.then_expr = self.then_expr.generate(context)
     self.else_expr = self.else_expr.generate(context)
 
-    # type inference (only possible if static?)
+    # print("ste", self.then_expr)
+    # print("see", self.else_expr)
+    # print("ste1", self.then_expr.inferred_type)
+    # print("see1", self.else_expr.inferred_type)
+    # print("ste2", self.then_expr.inferred_type.width)
+    # print("see2", self.else_expr.inferred_type.width)
     # TODO
-    self.inferred_type = None
+    then_ty = self.then_expr.inferred_type
+    else_ty = self.else_expr.inferred_type
+    if then_ty and else_ty:
+        # assert then_ty.signed == else_ty.signed
+        wt = then_ty.width
+        we = else_ty.width
+        wr = max(wt, we)
+        # print("wr", wr)
+        # input("o")
+        self.inferred_type = arch.IntegerType(wr, True, None)
+    # input("ppp")
 
     return self
 
@@ -236,8 +275,24 @@ def return_(self: behav.Return, context):
 
 def unary_operation(self: behav.UnaryOperation, context):
     # print("unary_operation")
-    # input("!")
+
     self.right = self.right.generate(context)
+
+    # print("sr", self.right)
+    # print("sr1", self.right.inferred_type)
+    # print("sr2", self.right.inferred_type.width)
+    # input("!")
+    if self.right.inferred_type:
+        w1 = self.right.inferred_type.width
+        if self.op.value == "-":
+            inferred_type = arch.IntegerType(w1 + 1, True, None)
+        elif self.op.value == "~":
+            inferred_type = arch.IntegerType(w1, True, None)
+        elif self.op.value == "!":
+            inferred_type = arch.IntegerType(1, False, None)
+        else:
+            inferred_type = None
+        self.inferred_type = inferred_type
 
     return self
 
