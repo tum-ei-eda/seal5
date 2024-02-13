@@ -669,13 +669,16 @@ class Seal5Flow:
             )
             self.load_cfg(self.temp_dir / new_name, overwrite=False)
 
-    def write_cdsl(self, verbose: bool = False, inplace: bool = True):
+    def write_cdsl(self, verbose: bool = False, inplace: bool = True, split: bool = False, compat: bool = False):
         assert inplace
         input_files = list(self.models_dir.glob("*.seal5model"))
         assert len(input_files) > 0, "No Seal5 models found!"
         for input_file in input_files:
             name = input_file.name
-            new_name = name.replace(".seal5model", ".core_desc")
+            if split:
+                new_name = name.replace(".seal5model", "")
+            else:
+                new_name = name.replace(".seal5model", ".core_desc")
             logger.info("Writing CDSL for %s", name)
             args = [
                 self.models_dir / name,
@@ -685,6 +688,11 @@ class Seal5Flow:
                 "--output",
                 self.temp_dir / new_name
             ]
+            if split:
+                (self.temp_dir / new_name).mkdir(exist_ok=True)
+                args.append("--splitted")
+            if compat:
+                args.append("--compat")
             utils.python(
                 "-m",
                 "seal5.backends.coredsl2.writer",
@@ -693,107 +701,111 @@ class Seal5Flow:
                 print_func=logger.info if verbose else logger.debug,
                 live=True,
             )
-            args_compat = [
-                self.models_dir / name,
-                "--log",
-                # "info",
-                "debug",
-                "--output",
-                self.temp_dir / f"{new_name}_compat",
-                "--compat",
-            ]
-            utils.python(
-                "-m",
-                "seal5.backends.coredsl2.writer",
-                *args_compat,
-                env=self.prepare_environment(),
-                print_func=logger.info if verbose else logger.debug,
-                live=True,
-            )
+            # args_compat = [
+            #     self.models_dir / name,
+            #     "--log",
+            #     # "info",
+            #     "debug",
+            #     "--output",
+            #     self.temp_dir / f"{new_name}_compat",
+            #     "--compat",
+            # ]
+            # if split:
+            #     args.append("--splitted")
+            # utils.python(
+            #     "-m",
+            #     "seal5.backends.coredsl2.writer",
+            #     *args_compat,
+            #     env=self.prepare_environment(),
+            #     print_func=logger.info if verbose else logger.debug,
+            #     live=True,
+            # )
 
-    def write_cdsl_splitted(self, verbose: bool = False, inplace: bool = True):
-        assert inplace
-        # input_files = list(self.models_dir.glob("*.seal5model"))
-        # assert len(input_files) > 0, "No Seal5 models found!"
-        # for input_file in input_files:
-        #     name = input_file.name
-        #     sub = name.replace(".seal5model", "")
-        for _ in [None]:
-            set_names = list(self.settings.extensions.keys())
-            # print("set_names", set_names)
-            assert len(set_names) > 0, "No sets found"
-            for set_name in set_names:
-                insn_names = self.settings.extensions[set_name].instructions
-                if insn_names is None:
-                    logger.warning("Skipping empty set %s", set_name)
-                    continue
-                sub = self.settings.extensions[set_name].model
-                # TODO: populate model in yaml backend!
-                if sub is None:  # Fallback
-                    sub = set_name
-                input_file = self.models_dir / f"{sub}.seal5model"
-                assert input_file.is_file(), f"File not found: {input_file}"
-                assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
-                # insn_names = self.collect_instr_names()
-                (self.temp_dir / sub / set_name).mkdir(exist_ok=True, parents=True)
-                for insn_name in insn_names:
-                    logger.info("Writing Metamodel for %s/%s/%s", sub, set_name, insn_name)
-                    args = [
-                        input_file,
-                        "--keep-instructions",
-                        insn_name,
-                        "--log",
-                        "debug",
-                        # "info",
-                        "--output",
-                        self.temp_dir / sub / set_name / f"{insn_name}.seal5model",
-                    ]
-                    utils.python(
-                        "-m",
-                        "seal5.transform.filter_model.filter",
-                        *args,
-                        env=self.prepare_environment(),
-                        print_func=logger.info if verbose else logger.debug,
-                        live=True,
-                    )
-                    logger.info("Writing CDSL for %s/%s", sub, insn_name)
-                    args = [
-                        self.temp_dir / sub / set_name / f"{insn_name}.seal5model",
-                        "--log",
-                        "debug",
-                        # "info",
-                        "--output",
-                        self.temp_dir / sub / set_name / f"{insn_name}.core_desc"
-                    ]
-                    utils.python(
-                        "-m",
-                        "seal5.backends.coredsl2.writer",
-                        *args,
-                        env=self.prepare_environment(),
-                        print_func=logger.info if verbose else logger.debug,
-                        live=True,
-                    )
-                    args_compat = [
-                        self.temp_dir / sub / set_name / f"{insn_name}.seal5model",
-                        "--log",
-                        # "info",
-                        "debug",
-                        "--output",
-                        self.temp_dir / sub / set_name / f"{insn_name}.core_desc_compat",
-                        "--compat",
-                    ]
-                    utils.python(
-                        "-m",
-                        "seal5.backends.coredsl2.writer",
-                        *args_compat,
-                        env=self.prepare_environment(),
-                        print_func=logger.info if verbose else logger.debug,
-                        live=True,
-                    )
+    # def write_cdsl_splitted(self, verbose: bool = False, inplace: bool = True):
+    #     assert inplace
+    #     # input_files = list(self.models_dir.glob("*.seal5model"))
+    #     # assert len(input_files) > 0, "No Seal5 models found!"
+    #     # for input_file in input_files:
+    #     #     name = input_file.name
+    #     #     sub = name.replace(".seal5model", "")
+    #     for _ in [None]:
+    #         set_names = list(self.settings.extensions.keys())
+    #         # print("set_names", set_names)
+    #         assert len(set_names) > 0, "No sets found"
+    #         for set_name in set_names:
+    #             insn_names = self.settings.extensions[set_name].instructions
+    #             if insn_names is None:
+    #                 logger.warning("Skipping empty set %s", set_name)
+    #                 continue
+    #             sub = self.settings.extensions[set_name].model
+    #             # TODO: populate model in yaml backend!
+    #             if sub is None:  # Fallback
+    #                 sub = set_name
+    #             input_file = self.models_dir / f"{sub}.seal5model"
+    #             assert input_file.is_file(), f"File not found: {input_file}"
+    #             assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
+    #             # insn_names = self.collect_instr_names()
+    #             (self.temp_dir / sub / set_name).mkdir(exist_ok=True, parents=True)
+    #             for insn_name in insn_names:
+    #                 logger.info("Writing Metamodel for %s/%s/%s", sub, set_name, insn_name)
+    #                 args = [
+    #                     input_file,
+    #                     "--keep-instructions",
+    #                     insn_name,
+    #                     "--log",
+    #                     "debug",
+    #                     # "info",
+    #                     "--output",
+    #                     self.temp_dir / sub / set_name / f"{insn_name}.seal5model",
+    #                 ]
+    #                 utils.python(
+    #                     "-m",
+    #                     "seal5.transform.filter_model.filter",
+    #                     *args,
+    #                     env=self.prepare_environment(),
+    #                     print_func=logger.info if verbose else logger.debug,
+    #                     live=True,
+    #                 )
+    #                 logger.info("Writing CDSL for %s/%s", sub, insn_name)
+    #                 args = [
+    #                     self.temp_dir / sub / set_name / f"{insn_name}.seal5model",
+    #                     "--log",
+    #                     "debug",
+    #                     # "info",
+    #                     "--output",
+    #                     self.temp_dir / sub / set_name / f"{insn_name}.core_desc"
+    #                 ]
+    #                 utils.python(
+    #                     "-m",
+    #                     "seal5.backends.coredsl2.writer",
+    #                     *args,
+    #                     env=self.prepare_environment(),
+    #                     print_func=logger.info if verbose else logger.debug,
+    #                     live=True,
+    #                 )
+    #                 args_compat = [
+    #                     self.temp_dir / sub / set_name / f"{insn_name}.seal5model",
+    #                     "--log",
+    #                     # "info",
+    #                     "debug",
+    #                     "--output",
+    #                     self.temp_dir / sub / set_name / f"{insn_name}.core_desc_compat",
+    #                     "--compat",
+    #                 ]
+    #                 utils.python(
+    #                     "-m",
+    #                     "seal5.backends.coredsl2.writer",
+    #                     *args_compat,
+    #                     env=self.prepare_environment(),
+    #                     print_func=logger.info if verbose else logger.debug,
+    #                     live=True,
+    #                 )
 
     def convert_behav_to_llvmir(self, verbose: bool = False, inplace: bool = True):
         assert inplace
-        input_files = list(self.temp_dir.glob("*.core_desc_compat"))
+        # input_files = list(self.temp_dir.glob("*.core_desc_compat"))
+        # TODO: use different file ext for non-compat?
+        input_files = list(self.temp_dir.glob("*.core_desc"))
         assert len(input_files) > 0, "No files found!"
         errs = []
         for input_file in input_files:
@@ -832,7 +844,8 @@ class Seal5Flow:
                 if sub is None:  # Fallbacke
                     sub = set_name
                 for insn_name in insn_names:
-                    input_file = self.temp_dir / sub / set_name / f"{insn_name}.core_desc_compat"
+                    # input_file = self.temp_dir / sub / set_name / f"{insn_name}.core_desc_compat"
+                    input_file = self.temp_dir / sub / set_name / f"{insn_name}.core_desc"
                     assert input_file.is_file(), f"File not found: {input_file}"
                     output_file = input_file.parent / (input_file.stem + ".ll")
                     name = input_file.name
@@ -874,7 +887,8 @@ class Seal5Flow:
                     if not ll_file.is_file():
                         logger.warning("Skipping %s due to errors.", insn_name)
                         continue
-                    input_file = self.temp_dir / sub / set_name / f"{insn_name}.core_desc_compat"
+                    # input_file = self.temp_dir / sub / set_name / f"{insn_name}.core_desc_compat"
+                    input_file = self.temp_dir / sub / set_name / f"{insn_name}.core_desc"
                     assert input_file.is_file(), f"File not found: {input_file}"
                     output_file = input_file.parent / (input_file.stem + ".td")
                     name = input_file.name
@@ -971,9 +985,9 @@ class Seal5Flow:
         # detect memory adressing modes
         # self.detect_adressing_modes(verbose)  # TODO
         # write temporary coredsl
-        # self.write_cdsl(verbose=verbose)
         # write temporary coredsl (splitted by set and insn)
-        self.write_cdsl_splitted(verbose=verbose)
+        self.write_cdsl(verbose=verbose, split=True, compat=True)
+        # self.write_cdsl_splitted(verbose=verbose)
 
         # generate llvm-ir behavior
         # self.convert_behav_to_llvmir(verbose=verbose)

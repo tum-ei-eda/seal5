@@ -8,6 +8,7 @@
 
 """Clean M2-ISA-R/Seal5 metamodel to .core_desc file."""
 
+import copy
 import argparse
 import logging
 import pathlib
@@ -308,6 +309,8 @@ def main():
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--compat", action="store_true", help="Generate pattern-gen compatible syntax")
+    parser.add_argument("--splitted", action="store_true", help="Split per set and instruction")
+    parser.add_argument("--ext", type=str, default="core_desc", help="Default file extension (if using --splitted)")
     args = parser.parse_args()
 
     # initialize logging
@@ -351,17 +354,38 @@ def main():
 
     # preprocess model
     # print("model", model)
-    writer = CoreDSL2Writer(compat=args.compat)
-    for set_name, set_def in model["sets"].items():
-        # print("set", set_def)
-        # print("instrs", set_def.instructions)
-        # input("123")
-        logger.debug("writing set %s", set_def.name)
-        patch_model(visitor)
-        writer.write_set(set_def)
-    content = writer.text
-    with open(out_path, "w") as f:
-        f.write(content)
+    if args.splitted:
+        assert out_path.is_dir(), "Expecting output directory when using --splitted"
+        for set_name, set_def in model["sets"].items():
+            for instr_def in set_def.instructions.values():
+                writer = CoreDSL2Writer(compat=args.compat)
+                logger.debug("writing instr %s/%s", set_def.name, instr_def.name)
+                patch_model(visitor)
+                set_def_ = copy.deepcopy(set_def)
+                set_def_.instructions = {
+                    key: instr_def
+                    for key, instr_def_ in set_def.instructions.items()
+                    if instr_def.name == instr_def_.name
+                }
+                # TODO: drop_ununsed
+                writer.write_set(set_def_)
+                content = writer.text
+                out_path_ = out_path / set_name / f"{instr_def.name}.{args.ext}"
+                out_path_.parent.mkdir(exist_ok=True)
+                with open(out_path_, "w") as f:
+                    f.write(content)
+    else:
+        writer = CoreDSL2Writer(compat=args.compat)
+        for set_name, set_def in model["sets"].items():
+            # print("set", set_def)
+            # print("instrs", set_def.instructions)
+            # input("123")
+            logger.debug("writing set %s", set_def.name)
+            patch_model(visitor)
+            writer.write_set(set_def)
+        content = writer.text
+        with open(out_path, "w") as f:
+            f.write(content)
 
 
 if __name__ == "__main__":
