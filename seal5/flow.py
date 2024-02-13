@@ -893,7 +893,8 @@ class Seal5Flow:
                     name = input_file.name
                     logger.info("Writing TableGen for %s", name)
                     ext = self.settings.extensions[set_name].feature
-                    assert ext is not None
+                    if ext is None:  # fallback to set_name
+                        ext = set_name.replace("_", "")
                     try:
                         cdsl2llvm.run_pattern_gen(self.deps_dir / "cdsl2llvm" / "llvm" / "build", input_file, output_file, skip_patterns=False, skip_formats=False, ext=ext)
                     except AssertionError:
