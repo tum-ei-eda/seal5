@@ -68,6 +68,13 @@ def run_pattern_gen(
     if ext:
         pattern_gen_args.extend(["--ext", ext])
 
+    if mattr is None:
+        attrs = ["+m", "+fast-unaligned-access"]
+        if ext:
+            ext_ = ext.lower()
+            attrs.append(f"+{ext_}")
+        mattr = ",".join(attrs)
+
     if mattr:
         pattern_gen_args.extend(["--mattr2", mattr])
 
@@ -83,12 +90,6 @@ def run_pattern_gen(
     if debug:
         pattern_gen_args.append("--debug")
 
-    if mattr is None:
-        attrs = ["+m"]
-        if ext:
-            ext_ = ext.lower()
-            attrs.append(f"+{ext_}")
-        mattr = ",".join(attrs)
 
     # break_on_err = True
     break_on_err = False
