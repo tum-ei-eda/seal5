@@ -58,7 +58,7 @@ def build_llc(
 
 
 def run_pattern_gen(
-    build_dir: Path, src: Path, dest: Path, verbose: bool = False, ext=None, mattr=None, skip_formats=False, skip_patterns=False, debug=False,
+    build_dir: Path, src: Path, dest: Path, verbose: bool = False, ext=None, mattr=None, skip_formats=False, skip_patterns=False, skip_verify=True, debug=False,
 ):
     pattern_gen_args = [src]
 
@@ -76,6 +76,9 @@ def run_pattern_gen(
 
     if skip_formats:
         pattern_gen_args.append("--skip-formats")
+
+    if skip_verify:
+        pattern_gen_args.append("--skip-verify")
 
     if debug:
         pattern_gen_args.append("--debug")
