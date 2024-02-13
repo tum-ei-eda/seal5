@@ -207,7 +207,8 @@ class Seal5Flow:
 
     def prepare_environment(self):
         env = os.environ.copy()
-        env["PYTHONPATH"] = self.deps_dir / "M2-ISA-R"
+        # env["PYTHONPATH"] = str(self.deps_dir / "M2-ISA-R")
+        env["CDSL2LLVM_DIR"] = str(self.deps_dir / "cdsl2llvm")
         return env
 
     def parse_coredsl(self, file, out_dir, verbose: bool = False):
@@ -821,44 +822,36 @@ class Seal5Flow:
         if len(errs) > 0:
             print("errs", errs)
 
-    def convert_behav_to_llvmir_splitted(self, verbose: bool = False, inplace: bool = True):
-        assert inplace
-        # input_files = list(self.models_dir.glob("*.seal5model"))
-        # assert len(input_files) > 0, "No Seal5 models found!"
-        errs = []
-        # for input_file in input_files:
-        #     name = input_file.name
-        #     sub = name.replace(".seal5model", "")
-        for _ in [None]:
-            set_names = list(self.settings.extensions.keys())
-            assert len(set_names) > 0, "No sets found"
-            for set_name in set_names:
-                insn_names = self.settings.extensions[set_name].instructions
-                if insn_names is None:
-                    logger.warning("Skipping empty set %s", set_name)
-                    continue
-                assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
-                sub = self.settings.extensions[set_name].model
-                # TODO: populate model in yaml backend!
-                if sub is None:  # Fallbacke
-                    sub = set_name
-                for insn_name in insn_names:
-                    # input_file = self.temp_dir / sub / set_name / f"{insn_name}.core_desc_compat"
-                    input_file = self.temp_dir / sub / set_name / f"{insn_name}.core_desc"
-                    assert input_file.is_file(), f"File not found: {input_file}"
-                    output_file = input_file.parent / (input_file.stem + ".ll")
-                    name = input_file.name
-                    logger.info("Writing LLVM-IR for %s", name)
-                    try:
-                        cdsl2llvm.run_pattern_gen(self.deps_dir / "cdsl2llvm" / "llvm" / "build", input_file, output_file, skip_patterns=True, skip_formats=True)
-                    except AssertionError:
-                        pass
-                        # errs.append((insn_name, str(ex)))
-        if len(errs) > 0:
-            # print("errs", errs)
-            for insn_name, err_str in errs:
-                print("Err:", insn_name, err_str)
-                input("!")
+    def convert_behav_to_llvmir_splitted(self, verbose: bool = False, split: bool = True):
+        assert split, "TODO"
+        input_files = list(self.models_dir.glob("*.seal5model"))
+        assert len(input_files) > 0, "No Seal5 models found!"
+        for input_file in input_files:
+            name = input_file.name
+            if split:
+                new_name = name.replace(".seal5model", "")
+            else:
+                new_name = name.replace(".seal5model", ".ll")
+            logger.info("Writing LLVM-IR for %s", name)
+            args = [
+                self.models_dir / name,
+                "--log",
+                # "info",
+                "debug",
+                "--output",
+                self.temp_dir / new_name
+            ]
+            if split:
+                (self.temp_dir / new_name).mkdir(exist_ok=True)
+                args.append("--splitted")
+            utils.python(
+                "-m",
+                "seal5.backends.llvmir.writer",
+                *args,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
 
     def convert_behav_to_tablegen_splitted(self, verbose: bool = False, inplace: bool = True):
         assert inplace
