@@ -8,7 +8,7 @@
 
 from antlr4 import ParserRuleContext
 
-from ... import M2DuplicateError, M2NameError
+from m2isar import M2DuplicateError, M2NameError
 from .parser_gen import CoreDSL2Parser, CoreDSL2Visitor
 
 
