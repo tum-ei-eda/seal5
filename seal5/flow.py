@@ -376,6 +376,31 @@ class Seal5Flow:
                 live=True,
             )
 
+    def process_settings(self, verbose: bool = False, inplace: bool = True):
+        assert inplace
+        input_files = list(self.models_dir.glob("*.seal5model"))
+        assert len(input_files) > 0, "No Seal5 models found!"
+        for input_file in input_files:
+            name = input_file.name
+            logger.info("Processing settings for %s", name)
+            args = [
+                self.models_dir / name,
+                "--log",
+                "info",
+                # "debug",
+                "--yaml",
+                self.settings_file,
+
+            ]
+            utils.python(
+                "-m",
+                "seal5.transform.process_settings.transform",
+                *args,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
+
     def filter_model(self, verbose: bool = False, inplace: bool = True):
         assert inplace
         input_files = list(self.models_dir.glob("*.seal5model"))
@@ -668,6 +693,7 @@ class Seal5Flow:
                 print_func=logger.info if verbose else logger.debug,
                 live=True,
             )
+            print(self.temp_dir / new_name)
             self.load_cfg(self.temp_dir / new_name, overwrite=False)
 
     def write_cdsl(self, verbose: bool = False, inplace: bool = True, split: bool = False, compat: bool = False):
@@ -826,6 +852,7 @@ class Seal5Flow:
         assert split, "TODO"
         input_files = list(self.models_dir.glob("*.seal5model"))
         assert len(input_files) > 0, "No Seal5 models found!"
+        gen_metrics_file = True
         for input_file in input_files:
             name = input_file.name
             if split:
@@ -844,6 +871,10 @@ class Seal5Flow:
             if split:
                 (self.temp_dir / new_name).mkdir(exist_ok=True)
                 args.append("--splitted")
+            if gen_metrics_file:
+                # TODO: move to .seal5/metrics
+                metrics_file = self.temp_dir / (new_name + "_llvmir_metrics.csv")
+                args.extend(["--metrics", metrics_file])
             utils.python(
                 "-m",
                 "seal5.backends.llvmir.writer",
@@ -853,51 +884,93 @@ class Seal5Flow:
                 live=True,
             )
 
-    def convert_behav_to_tablegen_splitted(self, verbose: bool = False, inplace: bool = True):
-        assert inplace
-        # input_files = list(self.models_dir.glob("*.seal5model"))
-        # assert len(input_files) > 0, "No Seal5 models found!"
-        errs = []
-        # for input_file in input_files:
-        #     name = input_file.name
-        #     sub = name.replace(".seal5model", "")
-        for _ in [None]:
-            set_names = list(self.settings.extensions.keys())
-            assert len(set_names) > 0, "No sets found"
-            for set_name in set_names:
-                insn_names = self.settings.extensions[set_name].instructions
-                if insn_names is None:
-                    logger.warning("Skipping empty set %s", set_name)
-                    continue
-                assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
-                sub = self.settings.extensions[set_name].model
-                # TODO: populate model in yaml backend!
-                if sub is None:  # Fallbacke
-                    sub = set_name
-                for insn_name in insn_names:
-                    ll_file = self.temp_dir / sub / set_name / f"{insn_name}.ll"
-                    if not ll_file.is_file():
-                        logger.warning("Skipping %s due to errors.", insn_name)
-                        continue
-                    # input_file = self.temp_dir / sub / set_name / f"{insn_name}.core_desc_compat"
-                    input_file = self.temp_dir / sub / set_name / f"{insn_name}.core_desc"
-                    assert input_file.is_file(), f"File not found: {input_file}"
-                    output_file = input_file.parent / (input_file.stem + ".td")
-                    name = input_file.name
-                    logger.info("Writing TableGen for %s", name)
-                    ext = self.settings.extensions[set_name].feature
-                    if ext is None:  # fallback to set_name
-                        ext = set_name.replace("_", "")
-                    try:
-                        cdsl2llvm.run_pattern_gen(self.deps_dir / "cdsl2llvm" / "llvm" / "build", input_file, output_file, skip_patterns=False, skip_formats=False, ext=ext)
-                    except AssertionError:
-                        pass
-                        # errs.append((insn_name, str(ex)))
-        if len(errs) > 0:
-            # print("errs", errs)
-            for insn_name, err_str in errs:
-                print("Err:", insn_name, err_str)
-                input("!")
+    def convert_behav_to_tablegen(self, verbose: bool = False, split: bool = True):
+        assert split, "TODO"
+        input_files = list(self.models_dir.glob("*.seal5model"))
+        assert len(input_files) > 0, "No Seal5 models found!"
+        formats = True
+        gen_metrics_file = True
+        gen_index_file = True
+        for input_file in input_files:
+            name = input_file.name
+            if split:
+                new_name = name.replace(".seal5model", "")
+            else:
+                new_name = name.replace(".seal5model", ".td")
+            logger.info("Writing TableGen patterns for %s", name)
+            args = [
+                self.models_dir / name,
+                "--log",
+                # "info",
+                "debug",
+                "--output",
+                self.temp_dir / new_name
+            ]
+            if split:
+                (self.temp_dir / new_name).mkdir(exist_ok=True)
+                args.append("--splitted")
+            if formats:
+                args.append("--formats")
+            if gen_metrics_file:
+                metrics_file = self.temp_dir / (new_name + "_tblgen_patterns_metrics.csv")
+                args.extend(["--metrics", metrics_file])
+            if gen_index_file:
+                index_file = self.temp_dir / (new_name + "_tblgen_patterns_index.yml")
+                args.extend(["--index", index_file])
+            utils.python(
+                "-m",
+                "seal5.backends.patterngen.writer",
+                *args,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
+
+    # def convert_behav_to_tablegen_splitted(self, verbose: bool = False, inplace: bool = True):
+    #     assert inplace
+    #     # input_files = list(self.models_dir.glob("*.seal5model"))
+    #     # assert len(input_files) > 0, "No Seal5 models found!"
+    #     errs = []
+    #     # for input_file in input_files:
+    #     #     name = input_file.name
+    #     #     sub = name.replace(".seal5model", "")
+    #     for _ in [None]:
+    #         set_names = list(self.settings.extensions.keys())
+    #         assert len(set_names) > 0, "No sets found"
+    #         for set_name in set_names:
+    #             insn_names = self.settings.extensions[set_name].instructions
+    #             if insn_names is None:
+    #                 logger.warning("Skipping empty set %s", set_name)
+    #                 continue
+    #             assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
+    #             sub = self.settings.extensions[set_name].model
+    #             # TODO: populate model in yaml backend!
+    #             if sub is None:  # Fallbacke
+    #                 sub = set_name
+    #             for insn_name in insn_names:
+    #                 ll_file = self.temp_dir / sub / set_name / f"{insn_name}.ll"
+    #                 if not ll_file.is_file():
+    #                     logger.warning("Skipping %s due to errors.", insn_name)
+    #                     continue
+    #                 # input_file = self.temp_dir / sub / set_name / f"{insn_name}.core_desc_compat"
+    #                 input_file = self.temp_dir / sub / set_name / f"{insn_name}.core_desc"
+    #                 assert input_file.is_file(), f"File not found: {input_file}"
+    #                 output_file = input_file.parent / (input_file.stem + ".td")
+    #                 name = input_file.name
+    #                 logger.info("Writing TableGen for %s", name)
+    #                 ext = self.settings.extensions[set_name].feature
+    #                 if ext is None:  # fallback to set_name
+    #                     ext = set_name.replace("_", "")
+    #                 try:
+    #                     cdsl2llvm.run_pattern_gen(self.deps_dir / "cdsl2llvm" / "llvm" / "build", input_file, output_file, skip_patterns=False, skip_formats=False, ext=ext)
+    #                 except AssertionError:
+    #                     pass
+    #                     # errs.append((insn_name, str(ex)))
+    #     if len(errs) > 0:
+    #         # print("errs", errs)
+    #         for insn_name, err_str in errs:
+    #             print("Err:", insn_name, err_str)
+    #             input("!")
 
     def convert_llvmir_to_gmir_splitted(self, verbose: bool = False, inplace: bool = True):
         assert inplace
@@ -963,6 +1036,7 @@ class Seal5Flow:
         self.infer_types(verbose=verbose)
         self.simplify_trivial_slices(verbose=verbose)
         self.explicit_truncations(verbose=verbose)
+        self.process_settings(verbose=verbose)
         self.write_yaml(verbose=verbose)
         # determine dyn constraints (eliminate raise)
         self.detect_behavior_constraints(verbose=verbose)
@@ -988,7 +1062,8 @@ class Seal5Flow:
         # self.convert_behav_to_llvmir(verbose=verbose)
         self.convert_behav_to_llvmir_splitted(verbose=verbose)
         self.convert_llvmir_to_gmir_splitted(verbose=verbose)
-        self.convert_behav_to_tablegen_splitted(verbose=verbose)
+        # self.convert_behav_to_tablegen_splitted(verbose=verbose)
+        self.convert_behav_to_tablegen(verbose=verbose, split=True)
         # generate llvm-gmir behavior
         # self.convert_llvmir_to_gmir(verbose=verbose)  # TODO
         # detect legal GMIR ops (and map to selectiondag?)
