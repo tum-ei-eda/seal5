@@ -933,7 +933,7 @@ class Seal5Flow:
                         continue
                     output_file = ll_file.parent / (ll_file.stem + ".gmir")
                     name = ll_file.name
-                    logger.info("Writing TableGen for %s", name)
+                    logger.info("Writing gmir for %s", name)
                     try:
                         cdsl2llvm.convert_ll_to_gmir(self.deps_dir / "cdsl2llvm" / "llvm" / "build", ll_file, output_file)
                     except AssertionError:
