@@ -18,6 +18,7 @@ from typing import Union
 from m2isar.metamodel import arch
 
 from seal5.tools import cdsl2llvm
+from seal5.model import Seal5InstrAttribute
 
 logger = logging.getLogger("llvmir_behavior_writer")
 
@@ -31,6 +32,7 @@ def main():
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--splitted", action="store_true", help="Split per set and instruction")
+    parser.add_argument("--metrics", default=None, help="Output metrics to file")
     parser.add_argument("--ext", type=str, default="ll", help="Default file extension (if using --splitted)")
     args = parser.parse_args()
 
@@ -76,23 +78,48 @@ def main():
 
     # preprocess model
     # print("model", model)
+    metrics = {
+        "n_sets": 0,
+        "n_instructions": 0,
+        "n_skipped": 0,
+        "n_failed": 0,
+        "n_success": 0,
+    }
     if args.splitted:
         # errs = []
         assert out_path.is_dir(), "Expecting output directory when using --splitted"
         for set_name, set_def in model["sets"].items():
+            metrics["n_sets"] += 1
             for instr_def in set_def.instructions.values():
+                metrics["n_instructions"] += 1
+                attrs = instr_def.attributes
+                if len(attrs) > 0:
+                    skip = False
+                    if Seal5InstrAttribute.MAY_LOAD in attrs:
+                        skip = True
+                    elif Seal5InstrAttribute.MAY_STORE in attrs:
+                        skip = True
+                    elif arch.InstrAttribute.COND in attrs:
+                        skip = True
+                    elif arch.InstrAttribute.NO_CONT in attrs:
+                        skip = True
+                    if skip:
+                        metrics["n_skipped"] += 1
+                        continue
                 input_file = out_path / set_name / f"{instr_def.name}.core_desc"
                 if not input_file.is_file():
-                    pass  # skipping
+                    metrics["n_skipped"] += 1
                     # errs.append(TODO)
-                output_file = out_path / set_name / f"{instr_def.name}.{ext}"
+                output_file = out_path / set_name / f"{instr_def.name}.{args.ext}"
                 install_dir = os.getenv("CDSL2LLVM_DIR", None)
                 assert install_dir is not None
                 install_dir = pathlib.Path(install_dir)
                 try:
                     cdsl2llvm.run_pattern_gen(install_dir / "llvm" / "build", input_file, output_file, skip_patterns=True, skip_formats=True)
+                    metrics["n_success"] += 1
                 except AssertionError:
                     pass
+                    metrics["n_failed"] += 1
                     # errs.append((insn_name, str(ex)))
         # if len(errs) > 0:
         #     # print("errs", errs)
@@ -104,6 +131,13 @@ def main():
         #         out_path_.parent.mkdir(exist_ok=True)
     else:
         raise NotImplementedError
+    if args.metrics:
+        metrics_file = args.metrics
+        with open(metrics_file, "w") as f:
+            f.write(",".join(metrics.keys()))
+            f.write("\n")
+            f.write(",".join(map(str, metrics.values())))
+            f.write("\n")
 
 
 if __name__ == "__main__":
