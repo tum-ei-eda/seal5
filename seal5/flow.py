@@ -814,7 +814,6 @@ class Seal5Flow:
             # new_name = name.replace(".core_desc_compat", ".td")
             logger.info("Writing LLVM-IR for %s", name)
             try:
-                # TODO: update
                 cdsl2llvm.run_pattern_gen(self.deps_dir / "cdsl2llvm" / "llvm" / "build", input_file, None, skip_patterns=True, skip_formats=True)
             except AssertionError:
                 pass
@@ -893,8 +892,10 @@ class Seal5Flow:
                     output_file = input_file.parent / (input_file.stem + ".td")
                     name = input_file.name
                     logger.info("Writing TableGen for %s", name)
+                    ext = self.settings.extensions[set_name].feature
+                    assert ext is not None
                     try:
-                        cdsl2llvm.run_pattern_gen(self.deps_dir / "cdsl2llvm" / "llvm" / "build", input_file, output_file, skip_patterns=False, skip_formats=False)
+                        cdsl2llvm.run_pattern_gen(self.deps_dir / "cdsl2llvm" / "llvm" / "build", input_file, output_file, skip_patterns=False, skip_formats=False, ext=ext)
                     except AssertionError:
                         pass
                         # errs.append((insn_name, str(ex)))
