@@ -74,10 +74,8 @@ def slice_operation(self: behav.SliceOperation, context):
     if source_width == target_width:
         return behav.Group(self.expr)
 
-    if self.right.value == 0:
-        return behav.TypeConv(arch.DataType.S if self.expr.inferred_type.signed else arch.DataType.U, target_width, self.expr)
-
-
+    # if self.right.value == 0:
+    #     return behav.TypeConv(arch.DataType.S if self.expr.inferred_type.signed else arch.DataType.U, target_width, self.expr)
     return self
 
 def concat_operation(self: behav.ConcatOperation, context):
@@ -106,7 +104,8 @@ def assignment(self: behav.Assignment, context):
 
 def conditional(self: behav.Conditional, context):
     self.conds = [x.generate(context) for x in self.conds]
-    self.stmts = [[y.generate(context) for y in x] for x in self.stmts]
+    # self.stmts = [[y.generate(context) for y in x] for x in self.stmts]
+    self.stmts = [x.generate(context) for x in self.stmts]
 
     return self
 
