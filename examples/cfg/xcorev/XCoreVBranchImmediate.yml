@@ -6,5 +6,4 @@ extensions:
     version: "1.0"
     experimental: false
     vendor: true
-    model: XCoreVBranchImmediate
     # patches: []

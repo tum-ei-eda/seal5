@@ -1,10 +1,9 @@
 ---
 extensions:
-  XCoreVAlu:
-    feature: XCVAlu
-    arch: xcvalu
+  XCoreVSimd:
+    feature: XCVSimd
+    arch: xcvsimd
     version: "1.0"
     experimental: false
     vendor: true
-    model: XCoreVAlu
     # patches: []
