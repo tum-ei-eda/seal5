@@ -803,7 +803,7 @@ class Seal5Flow:
             logger.info("Writing LLVM-IR for %s", name)
             try:
                 # TODO: update
-                cdsl2llvm.run_pattern_gen(self.deps_dir / "cdsl2llvm" / "llvm" / "build", input_file, None)
+                cdsl2llvm.run_pattern_gen(self.deps_dir / "cdsl2llvm" / "llvm" / "build", input_file, None, skip_patterns=True, skip_formats=True)
             except AssertionError:
                 pass
                 # errs.append((str(input_file), str(ex)))
@@ -838,7 +838,7 @@ class Seal5Flow:
                     name = input_file.name
                     logger.info("Writing LLVM-IR for %s", name)
                     try:
-                        cdsl2llvm.run_pattern_gen(self.deps_dir / "cdsl2llvm" / "llvm" / "build", input_file, output_file, skip=True)
+                        cdsl2llvm.run_pattern_gen(self.deps_dir / "cdsl2llvm" / "llvm" / "build", input_file, output_file, skip_patterns=True, skip_formats=True)
                     except AssertionError:
                         pass
                         # errs.append((insn_name, str(ex)))
@@ -880,7 +880,7 @@ class Seal5Flow:
                     name = input_file.name
                     logger.info("Writing TableGen for %s", name)
                     try:
-                        cdsl2llvm.run_pattern_gen(self.deps_dir / "cdsl2llvm" / "llvm" / "build", input_file, output_file, skip=False)
+                        cdsl2llvm.run_pattern_gen(self.deps_dir / "cdsl2llvm" / "llvm" / "build", input_file, output_file, skip_patterns=False, skip_formats=False)
                     except AssertionError:
                         pass
                         # errs.append((insn_name, str(ex)))
