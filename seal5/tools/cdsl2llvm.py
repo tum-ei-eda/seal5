@@ -58,7 +58,7 @@ def build_llc(
 
 
 def run_pattern_gen(
-    build_dir: Path, src: Path, dest: Path, verbose: bool = False, ext=None, mattr=None, skip=False, debug=False,
+    build_dir: Path, src: Path, dest: Path, verbose: bool = False, ext=None, mattr=None, skip_formats=False, skip_patterns=False, debug=False,
 ):
     pattern_gen_args = [src]
 
@@ -71,8 +71,11 @@ def run_pattern_gen(
     if mattr:
         pattern_gen_args.extend(["--mattr2", mattr])
 
-    if skip:
-        pattern_gen_args.append("-s")
+    if skip_patterns:
+        pattern_gen_args.append("--skip-patterns")
+
+    if skip_formats:
+        pattern_gen_args.append("--skip-formats")
 
     if debug:
         pattern_gen_args.append("--debug")
@@ -111,7 +114,7 @@ def run_pattern_gen(
             if len(content) == 0:
                 dest.unlink()
         raise e
-    if not skip:
+    if not skip_patterns:
         # errs = None
         # opt_ll = None
         pat = []
