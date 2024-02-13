@@ -25,6 +25,8 @@ from m2isar.metamodel.arch import (
 )
 from m2isar.metamodel.behav import Operation, BinaryOperation, Operator, NamedReference, IntLiteral, SliceOperation
 
+from seal5.settings import ExtensionsSettings
+
 
 class Seal5InstructionSet(InstructionSet):
     """TODO."""
@@ -50,6 +52,7 @@ class Seal5InstructionSet(InstructionSet):
         self.aliases = aliases
         self.registers = registers
         self.register_groups = register_groups
+        self.settings: ExtensionsSettings = None
 
 
 class Seal5RegisterClass(IntEnum):
