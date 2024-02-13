@@ -180,7 +180,9 @@ class YAMLSettings:
                 v2 = getattr(self, k2)
                 if k2 == k1:
                     found = True
-                    if v2 is not None:
+                    if v2 is None:
+                        setattr(self, k2, v1)
+                    else:
                         t2 = type(v2)
                         assert t1 is t2, "Type conflict"
                         if isinstance(v1, YAMLSettings):
@@ -188,7 +190,15 @@ class YAMLSettings:
                         elif isinstance(v1, dict):
                             if overwrite:
                                 v2.clear()
-                            v2.update(v1)
+                                v2.update(v1)
+                            else:
+                                for dict_key, dict_val in v1.items():
+                                    if dict_key in v2:
+                                        if isinstance(dict_val, YAMLSettings):
+                                            assert isinstance(v2[dict_key], YAMLSettings)
+                                            v2[dict_key].merge(dict_val, overwrite=overwrite)
+                                    else:
+                                        v2[dict_key] = dict_val
                         elif isinstance(v1, list):
                             if overwrite:
                                 v2.clear()
