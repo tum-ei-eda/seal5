@@ -121,7 +121,7 @@ def main():
                     metrics["n_skipped"] += 1
                     continue
                 out_name = f"{instr_def.name}.{args.ext}"
-                out_name_fmt = f"{instr_def.name}Format.{args.ext}"
+                out_name_fmt = f"{instr_def.name}InstrFormat.{args.ext}"
                 output_file = set_dir / out_name
                 output_file_fmt = set_dir / out_name_fmt
                 install_dir = os.getenv("CDSL2LLVM_DIR", None)
@@ -142,18 +142,21 @@ def main():
                         skip_formats=not args.formats,
                         ext=ext,
                     )
-                    metrics["n_success"] += 1
-                    file_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}/{out_name}"
-                    file_artifact = File(file_artifact_dest, src_path=output_file)
-                    artifacts[set_name].append(file_artifact)
-                    include_path = f"{set_name}/{out_name}"
-                    includes.append(include_path)
-                    if args.formats:
-                        file_artifact_fmt_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}/{out_name_fmt}"
-                        file_artifact_fmt = File(file_artifact_fmt_dest, src_path=output_file_fmt)
-                        artifacts[set_name].append(file_artifact_fmt)
-                        include_path_fmt = f"{set_name}/{out_name_fmt}"
-                        includes.append(include_path_fmt)
+                    if output_file.is_file():
+                        metrics["n_success"] += 1
+                        file_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}/{out_name}"
+                        file_artifact = File(file_artifact_dest, src_path=output_file)
+                        artifacts[set_name].append(file_artifact)
+                        include_path = f"{set_name}/{out_name}"
+                        includes.append(include_path)
+                        if args.formats:
+                            file_artifact_fmt_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}/{out_name_fmt}"
+                            file_artifact_fmt = File(file_artifact_fmt_dest, src_path=output_file_fmt)
+                            artifacts[set_name].append(file_artifact_fmt)
+                            include_path_fmt = f"{set_name}/{out_name_fmt}"
+                            includes.append(include_path_fmt)
+                    else:
+                        metrics["n_failed"] += 1
                 except AssertionError:
                     metrics["n_failed"] += 1
                     # errs.append((insn_name, str(ex)))

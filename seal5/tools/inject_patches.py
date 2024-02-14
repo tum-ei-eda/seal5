@@ -20,6 +20,7 @@
 import os
 import argparse
 import yaml
+from pathlib import Path
 from email.utils import formatdate
 
 from seal5.logging import get_logger
@@ -28,7 +29,14 @@ logger = get_logger()
 
 
 def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=None, msg=None, append=None):
-    base_dir = os.path.dirname(index_file)
+    # base_dir = os.path.dirname(index_file)
+    if msg:
+        if not isinstance(msg, str):
+            assert isinstance(msg, list)
+            assert len(msg) == 1
+            msg = msg[0]
+    else:
+        msg = "Placeholder"
 
     with open(index_file) as file:
         index = yaml.safe_load(file)
@@ -42,7 +50,7 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
         userEmail = mail
         ps += "From: {0} <{1}>\n".format(userName, userEmail)
         ps += "Date: {0}\n".format(formatdate())
-        ps += "Subject: {0}\n\n\n".format(" ".join(msg))
+        ps += "Subject: {0}\n\n\n".format(msg)
         for fragment in fragments:
             ps += fragment
         return ps
@@ -87,44 +95,57 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
         return siteLine, siteLen, startMark, endMark
 
     def generate_patch_fragment(artifact):
-        assert "path" in artifact
+        dest_path = artifact.get("dest_path", None)
+        src_path = artifact.get("src_path", None)
+        key = artifact.get("key", None)
+        start = artifact.get("start", None)
+        end = artifact.get("end", None)
+        line = artifact.get("line", None)
+        content_ = artifact.get("content", None)
+        assert dest_path is not None
         is_file = False
         is_patch = False
-        if "key" in artifact:  # NamedPatch
-            assert "src" in artifact
+        # TODO: do not depend on dest_path
+        if key:  # NamedPatch
             is_patch = True
-        elif "start" in artifact and "end" in artifact:
+        elif start is not None and end is not None:
             raise NotImplementedError
-        elif "line" in artifact:
+        elif line is not None:
             raise NotImplementedError
         else:  # File
             is_file = True
-        with open(os.path.join(base_dir, artifact["src"] if is_patch else artifact["path"]), "r") as f:
-            content_ = f.read()
+        if content_:
+            assert isinstance(content_, str)
+        else:
+            assert src_path is not None
+            assert Path(src_path).is_file(), f"File not found: {src_path}"
+            with open(src_path, "r") as f:
+                content_ = f.read()
         content = "+" + content_.replace("\n", "\n+")
         if is_patch:
             # Updating existing file
-            origFile = "a/" + artifact["path"]
-            newFile = "b/" + artifact["path"]
-            siteLine, siteLen, startMark, endMark = find_site(artifact["path"], artifact["key"])
+            origFile = "a/" + dest_path
+            newFile = "b/" + dest_path
+            siteLine, siteLen, startMark, endMark = find_site(dest_path, key)
             newStart = siteLine + 1
             newLen = content_.count("\n") + 1 + siteLen
             # ensure all existing lines in the match prefixed by a space
             startMark = startMark.rstrip("\n").replace("\n", "\n ")
             content = " {0}\n{1}\n {2}".format(startMark, content, endMark)
         else:
+            assert is_file
             # Adding new file
             origFile = "/dev/null"
-            newFile = "b/" + artifact["path"]
+            newFile = "b/" + dest_path
             newStart = 1
             siteLen = 0
             siteLine = -1
             newLen = content_.count("\n") + 1
         return """--- {0}
-    +++ {1}
-    @@ -{2},{3} +{4},{5} @@
-    {6}
-    """.format(
++++ {1}
+@@ -{2},{3} +{4},{5} @@
+{6}
+""".format(
             origFile, newFile, siteLine + 1, siteLen, newStart, newLen, content
         )
 

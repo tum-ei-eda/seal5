@@ -130,7 +130,7 @@ DEFAULT_SETTINGS = {
 }
 
 
-def check_supported_types(data: dict):
+def check_supported_types(data):
     ALLOWED_TYPES = (int, float, str, bool)
     if isinstance(data, dict):
         for value in data.values():

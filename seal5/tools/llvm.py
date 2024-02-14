@@ -96,7 +96,7 @@ def test_llvm(base: Path, build_dir: Path, test_paths: List[str] = [], verbose: 
     failing_tests = []
     for test_path in test_paths:
 
-        def handler(code):
+        def handler(code, out):
             return 0
 
         out = utils.exec_getout(

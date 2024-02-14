@@ -1164,6 +1164,10 @@ class Seal5Flow:
         # user-defined patches
         patches_settings = self.settings.patches
         for patch_settings in patches_settings:
+            if patch_settings.stage is None:
+                patch_settings.stage = int(PatchStage.PHASE_0)
+                logger.warning("Undefined patch stage for patch %s. Defaulting to PHASE_0", patch_settings.name)
+                # raise NotImplementedError("Undefined patch stage!")
             if patch_settings.generated:  # not manual
                 if patch_settings.target != "llvm":
                     raise NotImplementedError("Only supporting llvm patches so far")
@@ -1211,8 +1215,8 @@ class Seal5Flow:
             if patch_settings.stage not in ret:
                 ret[patch_settings.stage] = []
             ret[patch_settings.stage].append(patch_settings)
-        print("ret", ret)
-        input("!r!")
+        # print("ret", ret)
+        # input("!r!")
         return ret
 
     def resolve_patch_file(self, path):
@@ -1239,7 +1243,7 @@ class Seal5Flow:
         if patch.index:
             # use inject_extensions_script
             file = self.patches_dir / target / f"{name}.patch"
-            assert not file.is_file(), f"Patch already exists: {file}"
+            # assert not file.is_file(), f"Patch already exists: {file}"
             prefix = self.settings.git.prefix
             comment = patch.comment
             msg = f"{prefix} {comment}"
