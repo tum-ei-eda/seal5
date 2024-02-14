@@ -53,11 +53,11 @@ class NamedPatch(Patch):
     ):
         super().__init__(dest_path, src_path=src_path, content=content, append=append)
         self.key: str = key
-        self.src: str = self.out_path
+        # self.src: str = self.out_path
 
-    @property
-    def out_path(self):
-        return self.path + "." + self.key
+    # @property
+    # def out_path(self):
+    #     return self.path + "." + self.key
 
 
 class IndexedPatch(Patch):

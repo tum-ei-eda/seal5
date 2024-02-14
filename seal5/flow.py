@@ -33,6 +33,7 @@ from seal5.dependencies import cdsl2llvm_dependency
 from seal5 import utils
 from seal5.tools import llvm, cdsl2llvm, inject_patches
 from seal5.resources.resources import get_patches
+from seal5.index import File, NamedPatch, write_index_yaml
 
 logger = get_logger()
 
@@ -1053,6 +1054,41 @@ class Seal5Flow:
                 print("Err:", insn_name, err_str)
                 input("!")
 
+    def gen_seal5_td(self, verbose: bool = False):
+        patch_name = "seal5_td"
+        dest = "llvm/lib/Target/RISCV/seal5.td"
+        dest2 = "llvm/lib/Target/RISCV/RISCV.td"
+        content = """
+// Includes
+// seal5.td - seal5_td_includes - INSERTION_START
+// seal5.td - seal5_td_includes - INSERTION_END
+"""
+        content2 = """
+include "seal5.td"
+"""
+        file_artifact = File(
+            dest,
+            content=content,
+        )
+        patch_artifact = NamedPatch(
+            dest2,
+            key="riscv_td_includes",
+            content=content2,
+        )
+        artifacts = [file_artifact, patch_artifact]
+
+        index_file = self.temp_dir / "seal5_td_index.yml"
+        write_index_yaml(index_file, artifacts, {}, content=True)
+        patch_settings = PatchSettings(
+            name=patch_name,
+            stage=int(PatchStage.PHASE_1),
+            comment="Add seal5.td to llvm/lib/Target/RISCV",
+            index=str(index_file),
+            generated=True,
+            target="llvm",
+        )
+        self.settings.patches.append(patch_settings)
+
     def transform(self, verbose: bool = False):
         logger.info("Tranforming Seal5 models")
         inplace = True
@@ -1094,19 +1130,6 @@ class Seal5Flow:
         # TODO: determine static constraints (xlen,...) -> subtargetvmap
         # detect memory adressing modes
         # self.detect_adressing_modes(verbose)  # TODO
-        # write temporary coredsl
-        # write temporary coredsl (splitted by set and insn)
-        self.write_cdsl(verbose=verbose, split=True, compat=True)
-        # self.write_cdsl_splitted(verbose=verbose)
-
-        # generate llvm-ir behavior
-        # self.convert_behav_to_llvmir(verbose=verbose)
-        self.convert_behav_to_llvmir_splitted(verbose=verbose)
-        self.convert_llvmir_to_gmir_splitted(verbose=verbose)
-        # self.convert_behav_to_tablegen_splitted(verbose=verbose)
-        self.convert_behav_to_tablegen(verbose=verbose, split=True)
-        # generate llvm-gmir behavior
-        # self.convert_llvmir_to_gmir(verbose=verbose)  # TODO
         # detect legal GMIR ops (and map to selectiondag?)
         # self.detect_legal_ops(verbose=verbose)  # TODO
         # extract costs/heuristics
@@ -1120,6 +1143,10 @@ class Seal5Flow:
         patches = []
         skip = []  # TODO: User, Global, PerInstr
         # TODO: only: []
+
+        # Prerequisites
+        self.write_cdsl(verbose=verbose, split=True, compat=True)
+        self.gen_seal5_td(verbose=verbose)
 
         # # General
         # if "subtarget_features" not in skip:
@@ -1154,6 +1181,12 @@ class Seal5Flow:
         #     patches.extend(self.gen_isel_patterns_patches())
         # if "codegen_test" not in skip:
         #     patches.extend(self.gen_codegen_tests_patches())
+
+        # Others
+        if "pattern_gen" not in skip:
+            self.convert_behav_to_llvmir_splitted(verbose=verbose)  # TODO: add split arg
+            self.convert_llvmir_to_gmir_splitted(verbose=verbose)  # TODO: add split arg
+            self.convert_behav_to_tablegen(verbose=verbose, split=True)
 
         logger.info("Completed generation of Seal5 patches")
 

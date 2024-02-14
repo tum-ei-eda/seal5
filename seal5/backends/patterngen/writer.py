@@ -18,7 +18,7 @@ from typing import Union
 from m2isar.metamodel import arch
 
 from seal5.tools import cdsl2llvm
-from seal5.index import write_index_yaml, File
+from seal5.index import write_index_yaml, File, NamedPatch
 from seal5.model import Seal5InstrAttribute
 
 logger = logging.getLogger("patterngen_tablegen_writer")
@@ -169,7 +169,8 @@ def main():
         if len(model_includes) > 0:
             model_includes_str = "\n".join([f'include "seal5/{inc}"' for inc in model_includes])
             model_includes_artifact_dest = "llvm/lib/Target/RISCV/seal5.td"
-            model_includes_artifact = File(model_includes_artifact_dest, content=model_includes_str)
+            key = "seal5_td_includes"
+            model_includes_artifact = NamedPatch(model_includes_artifact_dest, key, content=model_includes_str)
             artifacts[None].append(model_includes_artifact)
         # if len(errs) > 0:
         #     # print("errs", errs)

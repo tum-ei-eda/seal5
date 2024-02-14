@@ -72,6 +72,17 @@ diff --git a/llvm/lib/Target/RISCV/MCTargetDesc/RISCVBaseInfo.h b/llvm/lib/Targe
    OPERAND_RVKRNUM,
    OPERAND_RVKRNUM_0_7,
    OPERAND_RVKRNUM_1_10,
+diff --git a/llvm/lib/Target/RISCV/RISCV.td b/llvm/lib/Target/RISCV/RISCV.td
+index be93d5933d33..caf548d2e258 100644
+--- a/llvm/lib/Target/RISCV/RISCV.td
++++ b/llvm/lib/Target/RISCV/RISCV.td
+@@ -67,3 +67,6 @@ def RISCV : Target {
+   let AssemblyWriters = [RISCVAsmWriter];
+   let AllowRegisterRenaming = 1;
+ }
++
++// RISCV.td - riscv_td_includes - INSERTION_START
++// RISCV.td - riscv_td_includes - INSERTION_END
 diff --git a/llvm/lib/Target/RISCV/RISCVFeatures.td b/llvm/lib/Target/RISCV/RISCVFeatures.td
 --- a/llvm/lib/Target/RISCV/RISCVFeatures.td
 +++ b/llvm/lib/Target/RISCV/RISCVFeatures.td
