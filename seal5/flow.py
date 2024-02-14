@@ -31,7 +31,7 @@ from seal5.settings import Seal5Settings, PatchSettings, DEFAULT_SETTINGS, LLVMC
 
 from seal5.dependencies import cdsl2llvm_dependency
 from seal5 import utils
-from seal5.tools import llvm, cdsl2llvm
+from seal5.tools import llvm, cdsl2llvm, inject_patches
 from seal5.resources.resources import get_patches
 
 logger = get_logger()
@@ -949,6 +949,11 @@ class Seal5Flow:
                 print_func=logger.info if verbose else logger.debug,
                 live=True,
             )
+            if gen_index_file:
+                patch_name = f"tblgen_patterns_{input_file.stem}"
+                patch_settings = PatchSettings(name=patch_name, stage=int(PatchStage.PHASE_2), comment=f"CDSL2LLVM Generated Tablegen Patterns for {input_file.name}", index=str(index_file), generated=True, target="llvm")
+                self.settings.patches.append(patch_settings)
+                self.settings.to_yaml_file(self.settings_file)
 
     # def convert_behav_to_tablegen_splitted(self, verbose: bool = False, inplace: bool = True):
     #     assert inplace
@@ -1106,39 +1111,39 @@ class Seal5Flow:
         skip = []  # TODO: User, Global, PerInstr
         # TODO: only: []
 
-        # General
-        if "subtarget_features" not in skip:
-            patches.extend(self.gen_subtarget_feature_patches())
-        if "subtarget_tests" not in skip:
-            patches.extend(self.gen_subtarget_tests_patches())
+        # # General
+        # if "subtarget_features" not in skip:
+        #     patches.extend(self.gen_subtarget_feature_patches())
+        # if "subtarget_tests" not in skip:
+        #     patches.extend(self.gen_subtarget_tests_patches())
 
-        # MC Level
-        if "register_types" not in skip:
-            patches.extend(self.gen_register_types_patches())
-        if "operand_types" not in skip:
-            patches.extend(self.gen_operand_types_patches())
-        if "instruction_formats" not in skip:
-            patches.extend(self.gen_instruction_format_patches())
-        if "instruction_infos" not in skip:
-            patches.extend(self.gen_instruction_infos_patches())
-        if "disassembler" not in skip:
-            patches.extend(self.gen_disassembler_patches())
-        if "mc_tests" not in skip:
-            patches.extend(self.gen_mc_tests_patches())
+        # # MC Level
+        # if "register_types" not in skip:
+        #     patches.extend(self.gen_register_types_patches())
+        # if "operand_types" not in skip:
+        #     patches.extend(self.gen_operand_types_patches())
+        # if "instruction_formats" not in skip:
+        #     patches.extend(self.gen_instruction_format_patches())
+        # if "instruction_infos" not in skip:
+        #     patches.extend(self.gen_instruction_infos_patches())
+        # if "disassembler" not in skip:
+        #     patches.extend(self.gen_disassembler_patches())
+        # if "mc_tests" not in skip:
+        #     patches.extend(self.gen_mc_tests_patches())
 
-        # Codegen Level
-        if "selection_dag_legalizer" not in skip:
-            patches.extend(self.gen_selection_dag_legalizer_patches())
-        if "globalisel_legalizer" not in skip:
-            patches.extend(self.gen_globalisel_legalizer_patches())
-        if "scalar_costs" not in skip:
-            patches.extend(self.gen_scalar_costs_patches())
-        if "simd_costs" not in skip:
-            patches.extend(self.gen_simd_costs_patches())
-        if "isel_patterns" not in skip:
-            patches.extend(self.gen_isel_patterns_patches())
-        if "codegen_test" not in skip:
-            patches.extend(self.gen_codegen_tests_patches())
+        # # Codegen Level
+        # if "selection_dag_legalizer" not in skip:
+        #     patches.extend(self.gen_selection_dag_legalizer_patches())
+        # if "globalisel_legalizer" not in skip:
+        #     patches.extend(self.gen_globalisel_legalizer_patches())
+        # if "scalar_costs" not in skip:
+        #     patches.extend(self.gen_scalar_costs_patches())
+        # if "simd_costs" not in skip:
+        #     patches.extend(self.gen_simd_costs_patches())
+        # if "isel_patterns" not in skip:
+        #     patches.extend(self.gen_isel_patterns_patches())
+        # if "codegen_test" not in skip:
+        #     patches.extend(self.gen_codegen_tests_patches())
 
         logger.info("Completed generation of Seal5 patches")
 
@@ -1148,36 +1153,59 @@ class Seal5Flow:
     def collect_patches(self):
         # generated patches
         temp: Dict[Tuple[str, str], PatchSettings] = {}
-        # TODO: loop over generated files
 
         # user-defined patches
         patches_settings = self.settings.patches
         for patch_settings in patches_settings:
-            patch_file = lookup_manual_patch(patch_settings, allow_missing=True)
-            # print("patch_file", patch_file)
-            target = patch_settings.target
-            name = patch_settings.name
-            key = (target, name)
-            if key in temp:
-                # override
-                logger.debug("Overriding existing patch settings")
-                new = temp[key]
-                new.merge(patch_settings)
-                temp[key] = new
+            if patch_settings.generated:  # not manual
+                if patch_settings.target != "llvm":
+                    raise NotImplementedError("Only supporting llvm patches so far")
+                if patch_settings.file is None:
+                    assert patch_settings.index
+                    name = patch_settings.name
+                    target = patch_settings.target
+                    key = (target, name)
+                    dest = self.patches_dir / target
+                    patch_settings.to_yaml_file(dest / f"{name}.yml")
+                    # assert key not in temp
+                    if key in temp:
+                        # override
+                        logger.debug("Overriding existing patch settings")
+                        new = temp[key]
+                        new.merge(patch_settings)
+                        temp[key] = new
+                    else:
+                        temp[key] = patch_settings
+                else:
+                    raise NotImplementedError("Only supporting index based patches so far")
             else:
-                temp[key] = patch_settings
-            if patch_file:
-                logger.debug("Copying custom patch_file %s", patch_file)
-                dest = self.patches_dir / target
-                dest.mkdir(exist_ok=True)
-                # print("dest", dest)
-                utils.copy(patch_file, dest / f"{name}.patch")
-                patch_settings.to_yaml_file(dest / f"{name}.yml")
+                patch_file = lookup_manual_patch(patch_settings, allow_missing=True)
+                # print("patch_file", patch_file)
+                target = patch_settings.target
+                name = patch_settings.name
+                key = (target, name)
+                if key in temp:
+                    # override
+                    logger.debug("Overriding existing patch settings")
+                    new = temp[key]
+                    new.merge(patch_settings)
+                    temp[key] = new
+                else:
+                    temp[key] = patch_settings
+                if patch_file:
+                    logger.debug("Copying custom patch_file %s", patch_file)
+                    dest = self.patches_dir / target
+                    dest.mkdir(exist_ok=True)
+                    # print("dest", dest)
+                    utils.copy(patch_file, dest / f"{name}.patch")
+                    patch_settings.to_yaml_file(dest / f"{name}.yml")
         ret = {}
         for patch_settings in temp.values():
             if patch_settings.stage not in ret:
                 ret[patch_settings.stage] = []
             ret[patch_settings.stage].append(patch_settings)
+        print("ret", ret)
+        input("!r!")
         return ret
 
     def resolve_patch_file(self, path):
@@ -1196,12 +1224,22 @@ class Seal5Flow:
     def apply_patch(self, patch: PatchSettings, force: bool = False):
         name = patch.name
         target = patch.target
-        file = self.resolve_patch_file(patch.file)
         if patch.enable:
             logger.info("Applying patch '%s' on '%s'", name, target)
         else:
             logger.info("Skipping patch '%s' on '%s'", name, target)
             return
+        if patch.index:
+            # use inject_extensions_script
+            file = self.patches_dir / target / f"{name}.patch"
+            assert not file.is_file(), f"Patch already exists: {file}"
+            prefix = self.settings.git.prefix
+            comment = patch.comment
+            msg = f"{prefix} {comment}"
+            inject_patches.generate_patch(file, patch.index, author=self.settings.git.author, mail=self.settings.git.mail, msg=msg)
+
+        else:
+            file = self.resolve_patch_file(patch.file)
         dest = None
         if target == "llvm":
             dest = self.directory
@@ -1227,6 +1265,8 @@ class Seal5Flow:
             msg = prefix + " " + msg
         repo.git.add(A=True)
         repo.index.commit(msg, author=actor)
+        patch.applied = True
+        self.settings.to_yaml_file(self.settings_file)
         # TODO: commit
 
     def patch(self, verbose: bool = False, stages: List[PatchStage] = None, force: bool = False):
@@ -1240,6 +1280,9 @@ class Seal5Flow:
             patches = patches_per_stage.get(stage, [])
             # print("patches", patches)
             for patch in patches:
+                if patch.applied:
+                    # skipping
+                    continue
                 self.apply_patch(patch, force=force)
         logger.info("Completed application of Seal5 patches")
 
