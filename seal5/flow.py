@@ -950,17 +950,20 @@ class Seal5Flow:
                 live=True,
             )
             if gen_index_file:
-                patch_name = f"tblgen_patterns_{input_file.stem}"
-                patch_settings = PatchSettings(
-                    name=patch_name,
-                    stage=int(PatchStage.PHASE_2),
-                    comment=f"CDSL2LLVM Generated Tablegen Patterns for {input_file.name}",
-                    index=str(index_file),
-                    generated=True,
-                    target="llvm",
-                )
-                self.settings.patches.append(patch_settings)
-                self.settings.to_yaml_file(self.settings_file)
+                if index_file.is_file():
+                    patch_name = f"tblgen_patterns_{input_file.stem}"
+                    patch_settings = PatchSettings(
+                        name=patch_name,
+                        stage=int(PatchStage.PHASE_2),
+                        comment=f"CDSL2LLVM Generated Tablegen Patterns for {input_file.name}",
+                        index=str(index_file),
+                        generated=True,
+                        target="llvm",
+                    )
+                    self.settings.patches.append(patch_settings)
+                    self.settings.to_yaml_file(self.settings_file)
+                else:
+                    logger.warning("No patches found!")
 
     # def convert_behav_to_tablegen_splitted(self, verbose: bool = False, inplace: bool = True):
     #     assert inplace

@@ -144,30 +144,30 @@ def main():
                     )
                     if output_file.is_file():
                         metrics["n_success"] += 1
-                        file_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}/{out_name}"
-                        file_artifact = File(file_artifact_dest, src_path=output_file)
-                        artifacts[set_name].append(file_artifact)
-                        include_path = f"{set_name}/{out_name}"
-                        includes.append(include_path)
                         if args.formats:
                             file_artifact_fmt_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}/{out_name_fmt}"
                             file_artifact_fmt = File(file_artifact_fmt_dest, src_path=output_file_fmt)
                             artifacts[set_name].append(file_artifact_fmt)
                             include_path_fmt = f"{set_name}/{out_name_fmt}"
                             includes.append(include_path_fmt)
+                        file_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}/{out_name}"
+                        file_artifact = File(file_artifact_dest, src_path=output_file)
+                        artifacts[set_name].append(file_artifact)
+                        include_path = f"{set_name}/{out_name}"
+                        includes.append(include_path)
                     else:
                         metrics["n_failed"] += 1
                 except AssertionError:
                     metrics["n_failed"] += 1
                     # errs.append((insn_name, str(ex)))
             if len(includes) > 0:
-                set_includes_str = "\n".join([f'include "{inc}"' for inc in includes])
+                set_includes_str = "\n".join([f'include "seal5/{inc}"' for inc in includes])
                 set_includes_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}.td"
                 set_includes_artifact = File(set_includes_artifact_dest, content=set_includes_str)
                 artifacts[set_name].append(set_includes_artifact)
                 model_includes.append(f"{set_name}.td")
         if len(model_includes) > 0:
-            model_includes_str = "\n".join([f'include "{inc}"' for inc in model_includes])
+            model_includes_str = "\n".join([f'include "seal5/{inc}"' for inc in model_includes])
             model_includes_artifact_dest = "llvm/lib/Target/RISCV/seal5.td"
             model_includes_artifact = File(model_includes_artifact_dest, content=model_includes_str)
             artifacts[None].append(model_includes_artifact)
@@ -189,10 +189,13 @@ def main():
             f.write(",".join(map(str, metrics.values())))
             f.write("\n")
     if args.index:
-        global_artifacts = artifacts.get(None, [])
-        set_artifacts = {key: value for key, value in artifacts.items() if key is not None}
-        index_file = args.index
-        write_index_yaml(index_file, global_artifacts, set_artifacts, content=True)
+        if sum(map(lambda x: len(x), artifacts.values())) > 0:
+            global_artifacts = artifacts.get(None, [])
+            set_artifacts = {key: value for key, value in artifacts.items() if key is not None}
+            index_file = args.index
+            write_index_yaml(index_file, global_artifacts, set_artifacts, content=True)
+        else:
+            logger.warning("No patches generated. No index file will be written.")
 
 
 if __name__ == "__main__":
