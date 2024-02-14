@@ -951,7 +951,14 @@ class Seal5Flow:
             )
             if gen_index_file:
                 patch_name = f"tblgen_patterns_{input_file.stem}"
-                patch_settings = PatchSettings(name=patch_name, stage=int(PatchStage.PHASE_2), comment=f"CDSL2LLVM Generated Tablegen Patterns for {input_file.name}", index=str(index_file), generated=True, target="llvm")
+                patch_settings = PatchSettings(
+                    name=patch_name,
+                    stage=int(PatchStage.PHASE_2),
+                    comment=f"CDSL2LLVM Generated Tablegen Patterns for {input_file.name}",
+                    index=str(index_file),
+                    generated=True,
+                    target="llvm",
+                )
                 self.settings.patches.append(patch_settings)
                 self.settings.to_yaml_file(self.settings_file)
 
@@ -1236,7 +1243,9 @@ class Seal5Flow:
             prefix = self.settings.git.prefix
             comment = patch.comment
             msg = f"{prefix} {comment}"
-            inject_patches.generate_patch(file, patch.index, author=self.settings.git.author, mail=self.settings.git.mail, msg=msg)
+            inject_patches.generate_patch(
+                file, patch.index, author=self.settings.git.author, mail=self.settings.git.mail, msg=msg
+            )
 
         else:
             file = self.resolve_patch_file(patch.file)

@@ -28,7 +28,6 @@ logger = get_logger()
 
 
 def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=None, msg=None, append=None):
-
     base_dir = os.path.dirname(index_file)
 
     with open(index_file) as file:
@@ -37,13 +36,13 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
     global_artifacts = index["artifacts"]
 
     def generate_patch_set(fragments):
-        ps = ''
+        ps = ""
         # Build minimal patch header for 'git am'
         userName = author
         userEmail = mail
-        ps += 'From: {0} <{1}>\n'.format(userName, userEmail)
-        ps += 'Date: {0}\n'.format(formatdate())
-        ps += 'Subject: {0}\n\n\n'.format(" ".join(msg))
+        ps += "From: {0} <{1}>\n".format(userName, userEmail)
+        ps += "Date: {0}\n".format(formatdate())
+        ps += "Subject: {0}\n\n\n".format(" ".join(msg))
         for fragment in fragments:
             ps += fragment
         return ps
@@ -53,11 +52,11 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
         # startMark = key + ' - INSERTION_START'
         # endMark = key + ' - INSERTION_END'
         if key:
-            startMark_ = path.split("/")[-1] + ' - ' + key + ' - INSERTION_START'
-            endMark_ = path.split("/")[-1] + ' - ' + key + ' - INSERTION_END'
+            startMark_ = path.split("/")[-1] + " - " + key + " - INSERTION_START"
+            endMark_ = path.split("/")[-1] + " - " + key + " - INSERTION_END"
         else:
-            startMark_ = path.split("/")[-1] + ' - INSERTION_START'
-            endMark_ = path.split("/")[-1] + ' - INSERTION_END'
+            startMark_ = path.split("/")[-1] + " - INSERTION_START"
+            endMark_ = path.split("/")[-1] + " - INSERTION_END"
         # print("start", startMark_)
         # print("end", endMark_)
         siteLine = -1
@@ -71,7 +70,7 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
                     startMark = line
                     siteLine = lines.index(line)
                 elif line.find(endMark_) != -1:
-                    endMark = line.rstrip('\n')
+                    endMark = line.rstrip("\n")
                     siteLen = lines.index(line) - siteLine + 1
                     break
                 elif siteLine >= 0:
@@ -102,36 +101,32 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
             is_file = True
         with open(os.path.join(base_dir, artifact["src"] if is_patch else artifact["path"]), "r") as f:
             content_ = f.read()
-        content = '+' + content_.replace('\n', '\n+')
+        content = "+" + content_.replace("\n", "\n+")
         if is_patch:
             # Updating existing file
-            origFile = 'a/' + artifact["path"]
-            newFile = 'b/' + artifact["path"]
+            origFile = "a/" + artifact["path"]
+            newFile = "b/" + artifact["path"]
             siteLine, siteLen, startMark, endMark = find_site(artifact["path"], artifact["key"])
             newStart = siteLine + 1
-            newLen = content_.count('\n') + 1 + siteLen
+            newLen = content_.count("\n") + 1 + siteLen
             # ensure all existing lines in the match prefixed by a space
-            startMark = startMark.rstrip('\n').replace('\n', '\n ')
-            content = ' {0}\n{1}\n {2}'.format(startMark, content, endMark)
+            startMark = startMark.rstrip("\n").replace("\n", "\n ")
+            content = " {0}\n{1}\n {2}".format(startMark, content, endMark)
         else:
             # Adding new file
-            origFile = '/dev/null'
-            newFile = 'b/' + artifact["path"]
+            origFile = "/dev/null"
+            newFile = "b/" + artifact["path"]
             newStart = 1
             siteLen = 0
             siteLine = -1
-            newLen = content_.count('\n') + 1
-        return '''--- {0}
+            newLen = content_.count("\n") + 1
+        return """--- {0}
     +++ {1}
     @@ -{2},{3} +{4},{5} @@
     {6}
-    '''.format(origFile,
-               newFile,
-               siteLine + 1,
-               siteLen,
-               newStart,
-               newLen,
-               content)
+    """.format(
+            origFile, newFile, siteLine + 1, siteLen, newStart, newLen, content
+        )
 
     fragments = []
 
@@ -163,15 +158,30 @@ def process_arguments():
     parser.add_argument("--out-file", type=str, default=None, help="write patchset to file (default: print to stdout)")
     parser.add_argument("--author", type=str, default="bob", help="author name in patchset")
     parser.add_argument("--mail", type=str, default="bob@bob.com", help="author mail in patchset")
-    parser.add_argument("--msg", type=str, nargs="+", default="[PATCH] Instructions injected", help="custom text for commit message")
-    parser.add_argument("--append", "-a", action="store_true", help="whether existing patches should be appended instead of beeing overwritten")
+    parser.add_argument(
+        "--msg", type=str, nargs="+", default="[PATCH] Instructions injected", help="custom text for commit message"
+    )
+    parser.add_argument(
+        "--append",
+        "-a",
+        action="store_true",
+        help="whether existing patches should be appended instead of beeing overwritten",
+    )
     args = parser.parse_args()
     return args
 
 
 def main():
     args = process_arguments()
-    generate_patch(args.index_file, llvm_dir=args.llvm_dir, out_file=args.out_file, author=args.authot, mail=args.mail, msg=args.msg, append=args.append)
+    generate_patch(
+        args.index_file,
+        llvm_dir=args.llvm_dir,
+        out_file=args.out_file,
+        author=args.authot,
+        mail=args.mail,
+        msg=args.msg,
+        append=args.append,
+    )
 
 
 if __name__ == "__main__":

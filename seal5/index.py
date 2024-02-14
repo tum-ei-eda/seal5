@@ -103,7 +103,9 @@ class File(Artifact):
         return self.path
 
 
-def write_index_yaml(out_path: Path, global_artifacts: List[Artifact], ext_artifacts: Dict[str, List[Artifact]], content=False):
+def write_index_yaml(
+    out_path: Path, global_artifacts: List[Artifact], ext_artifacts: Dict[str, List[Artifact]], content=False
+):
     extensions_yaml_data = []
     for ext, artifacts_ in ext_artifacts.items():
         extension_yaml_data = {"name": ext, "artifacts": list(map(lambda a: a.to_dict(content=content), artifacts_))}
