@@ -196,7 +196,6 @@ class Seal5Operand:
 
 
 class Seal5ImmOperand(Seal5Operand):
-
     def __init__(self, name, ty, attributes, constraints):
         super().__init__(name, ty, attributes, constraints)
         if Seal5OperandAttribute.IS_IMM not in self.attributes:
@@ -234,19 +233,16 @@ class Seal5RegOperand(Seal5Operand):
 
 
 class Seal5GPROperand(Seal5RegOperand):
-
     def __init__(self, name, ty, attributes, constraints, reg_ty):
         super().__init__(name, ty, attributes, constraints, Seal5RegisterClass.GPR, reg_ty)
 
 
 class Seal5FPROperand(Seal5RegOperand):
-
     def __init__(self, name, ty, attributes, constraints, reg_ty):
         super().__init__(name, ty, attributes, constraints, Seal5RegisterClass.FPR, reg_ty)
 
 
 class Seal5CSROperand(Seal5RegOperand):
-
     def __init__(self, name, ty, attributes, constraints, reg_ty):
         super().__init__(name, ty, attributes, constraints, Seal5RegisterClass.CSR, reg_ty)
 
@@ -315,7 +311,13 @@ class Seal5Instruction(Instruction):
                 lower = int(lower)
                 upper = int(upper)
                 sz = upper - lower + 1
-                stmt = BinaryOperation(SliceOperation(NamedReference(SizedRefOrConst(field_name, sz)), IntLiteral(upper), IntLiteral(lower)), Operator("=="), IntLiteral(0))
+                stmt = BinaryOperation(
+                    SliceOperation(
+                        NamedReference(SizedRefOrConst(field_name, sz)), IntLiteral(upper), IntLiteral(lower)
+                    ),
+                    Operator("=="),
+                    IntLiteral(0),
+                )
                 constraint = Seal5Constraint([stmt])
                 constraints.append(constraint)
             # print("constraints", constraints)

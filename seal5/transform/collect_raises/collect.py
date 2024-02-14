@@ -90,7 +90,24 @@ def main():
                 MODE_MAP = ["Exception", "Interrupt"]
                 mode = MODE_MAP[x[1][0]]
                 assert mode != "Interrupt", "Interrupts not supported"
-                EXEC_MAP = ["Instruction address misaligned", "Instruction_access_fault", "Illegal instruction", "Breakpoint", "Load address misaligned", "Load access fault", "Store/AMO address misaligned", "Store/AMO access fault", "Environment call from U-mode", "Environment call from S-mode", "Reserved", "Environment call from M-mode", "Instruction page fault", "Load page fault", "Reserved", "Store/AMO page fault"]
+                EXEC_MAP = [
+                    "Instruction address misaligned",
+                    "Instruction_access_fault",
+                    "Illegal instruction",
+                    "Breakpoint",
+                    "Load address misaligned",
+                    "Load access fault",
+                    "Store/AMO address misaligned",
+                    "Store/AMO access fault",
+                    "Environment call from U-mode",
+                    "Environment call from S-mode",
+                    "Reserved",
+                    "Environment call from M-mode",
+                    "Instruction page fault",
+                    "Load page fault",
+                    "Reserved",
+                    "Store/AMO page fault",
+                ]
                 code = x[1][1]
                 assert code < len(EXEC_MAP), "Out of bounds"
                 text = EXEC_MAP[code]

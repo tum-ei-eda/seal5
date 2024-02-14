@@ -27,7 +27,6 @@ def operation(self: behav.Operation, context):
 
 
 def binary_operation(self: behav.BinaryOperation, context):
-
     if self.op.value == "!=":
         if isinstance(self.left, behav.NamedReference):
             if self.left.reference.name == "rd":

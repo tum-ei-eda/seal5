@@ -52,7 +52,6 @@ def main():
     if not is_seal5_model:
         raise NotImplementedError
 
-
     # load settings
     if args.yaml is None:
         raise RuntimeError("Undefined --yaml not allowed")

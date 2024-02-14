@@ -29,6 +29,7 @@ from m2isar.metamodel import arch, behav
 
 # pylint: disable=unused-argument
 
+
 def operation(self: behav.Operation, context):
     statements = []
     for stmt in self.statements:
@@ -43,6 +44,7 @@ def operation(self: behav.Operation, context):
 
     self.statements = statements
     return self
+
 
 def binary_operation(self: behav.BinaryOperation, context):
     # print("binary_operation")
@@ -128,6 +130,7 @@ def binary_operation(self: behav.BinaryOperation, context):
 
     return self
 
+
 def slice_operation(self: behav.SliceOperation, context):
     # print("slice_operation")
     self.expr = self.expr.generate(context)
@@ -162,12 +165,14 @@ def slice_operation(self: behav.SliceOperation, context):
 
     return self
 
+
 def concat_operation(self: behav.ConcatOperation, context):
     # print("concat_coperation")
     self.left = self.left.generate(context)
     self.right = self.right.generate(context)
 
     return self
+
 
 def number_literal(self: behav.IntLiteral, context):
     # print("number_literal")
@@ -177,6 +182,7 @@ def number_literal(self: behav.IntLiteral, context):
 
         self.inferred_type = arch.IntegerType(bit_size, signed, None)
     return self
+
 
 def int_literal(self: behav.IntLiteral, context):
     # print("int_literal")
@@ -189,6 +195,7 @@ def int_literal(self: behav.IntLiteral, context):
 
     return self
 
+
 def scalar_definition(self: behav.ScalarDefinition, context):
     # type inference
     # print("scalar_definition", self, dir(self), self.scalar, self.scalar.size, self.scalar.data_type)
@@ -197,6 +204,7 @@ def scalar_definition(self: behav.ScalarDefinition, context):
     self.inferred_type = arch.IntegerType(width, signed, None)
     return self
 
+
 def assignment(self: behav.Assignment, context):
     # print("assignment", self)
     # print("at_", self.target)
@@ -204,8 +212,8 @@ def assignment(self: behav.Assignment, context):
     self.target = self.target.generate(context)
     self.expr = self.expr.generate(context)
 
-    #if isinstance(self.expr, behav.IntLiteral) and isinstance(self.target, behav.ScalarDefinition):
-#       self.target.scalar.value = self.expr.value
+    # if isinstance(self.expr, behav.IntLiteral) and isinstance(self.target, behav.ScalarDefinition):
+    #       self.target.scalar.value = self.expr.value
 
     # type inference
     # print("at", self.target)
@@ -218,6 +226,7 @@ def assignment(self: behav.Assignment, context):
     self.inferred_type = None
 
     return self
+
 
 def conditional(self: behav.Conditional, context):
     self.conds = [x.generate(context) for x in self.conds]
@@ -233,11 +242,13 @@ def conditional(self: behav.Conditional, context):
 
     return self
 
+
 def loop(self: behav.Loop, context):
     self.cond = self.cond.generate(context)
     self.stmts = [x.generate(context) for x in self.stmts]
 
     return self
+
 
 def ternary(self: behav.Ternary, context):
     # print("ternary")
@@ -267,11 +278,13 @@ def ternary(self: behav.Ternary, context):
 
     return self
 
+
 def return_(self: behav.Return, context):
     if self.expr is not None:
         self.expr = self.expr.generate(context)
 
     return self
+
 
 def unary_operation(self: behav.UnaryOperation, context):
     # print("unary_operation")
@@ -296,12 +309,12 @@ def unary_operation(self: behav.UnaryOperation, context):
 
     return self
 
+
 def named_reference(self: behav.NamedReference, context):
     # print("named_reference", self)
     # print("dir", dir(self))
     # print("self.reference", self.reference)
     reference = self.reference
-
 
     # type inference
     # self.infered_type = ?
@@ -331,6 +344,7 @@ def named_reference(self: behav.NamedReference, context):
 
     return self
 
+
 def indexed_reference(self: behav.IndexedReference, context):
     # print("indexed_reference")
     self.index = self.index.generate(context)
@@ -347,6 +361,7 @@ def indexed_reference(self: behav.IndexedReference, context):
     # input("111")
 
     return self
+
 
 def type_conv(self: behav.TypeConv, context):
     # print("type_conv")
@@ -368,14 +383,15 @@ def type_conv(self: behav.TypeConv, context):
 
     return self
 
+
 def callable_(self: behav.Callable, context):
     self.args = [stmt.generate(context) for stmt in self.args]
 
     return self
 
+
 def group(self: behav.Group, context):
     self.expr = self.expr.generate(context)
-
 
     if isinstance(self.expr, behav.IntLiteral):
         return self.expr

@@ -38,7 +38,9 @@ def build_pattern_gen(
         print_func=logger.info if verbose else logger.debug,
         live=True,
     )
-    utils.make("pattern-gen", cwd=dest, print_func=logger.info if verbose else logger.debug, live=True, use_ninja=use_ninja)
+    utils.make(
+        "pattern-gen", cwd=dest, print_func=logger.info if verbose else logger.debug, live=True, use_ninja=use_ninja
+    )
 
 
 def build_llc(
@@ -58,7 +60,16 @@ def build_llc(
 
 
 def run_pattern_gen(
-    build_dir: Path, src: Path, dest: Path, verbose: bool = False, ext=None, mattr=None, skip_formats=False, skip_patterns=False, skip_verify=True, debug=False,
+    build_dir: Path,
+    src: Path,
+    dest: Path,
+    verbose: bool = False,
+    ext=None,
+    mattr=None,
+    skip_formats=False,
+    skip_patterns=False,
+    skip_verify=True,
+    debug=False,
 ):
     pattern_gen_args = [src]
 
@@ -90,9 +101,9 @@ def run_pattern_gen(
     if debug:
         pattern_gen_args.append("--debug")
 
-
     # break_on_err = True
     break_on_err = False
+
     # TODO: dump gmir?
     def handle_exit(code=None, out=None):
         if code is not None and code != 0:
@@ -100,6 +111,7 @@ def run_pattern_gen(
             with open(err_file, "w") as f:
                 f.write(out)
         return code
+
     try:
         out = utils.exec_getout(
             build_dir / "bin" / "pattern-gen",
@@ -173,7 +185,10 @@ def run_pattern_gen(
 
 
 def convert_ll_to_gmir(
-    build_dir: Path, src: Path, dest: Path, verbose: bool = False,
+    build_dir: Path,
+    src: Path,
+    dest: Path,
+    verbose: bool = False,
 ):
     llc_args = [src, "-mtriple=riscv32-unknown-elf", "-stop-after=irtranslator", "-global-isel", "-O3"]
 

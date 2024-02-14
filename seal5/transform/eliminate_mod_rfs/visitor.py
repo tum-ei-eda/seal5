@@ -27,7 +27,6 @@ def operation(self: behav.Operation, context):
 
 
 def binary_operation(self: behav.BinaryOperation, context):
-
     # TODO: figure out rfs from symbols!
     RFS = 32
     # TODO: support swapped operand order

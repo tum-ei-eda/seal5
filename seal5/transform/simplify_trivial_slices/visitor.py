@@ -27,6 +27,7 @@ from m2isar.metamodel import arch, behav
 
 # pylint: disable=unused-argument
 
+
 def operation(self: behav.Operation, context):
     statements = []
     for stmt in self.statements:
@@ -42,12 +43,13 @@ def operation(self: behav.Operation, context):
     self.statements = statements
     return self
 
-def binary_operation(self: behav.BinaryOperation, context):
 
+def binary_operation(self: behav.BinaryOperation, context):
     self.left = self.left.generate(context)
     self.right = self.right.generate(context)
 
     return self
+
 
 def slice_operation(self: behav.SliceOperation, context):
     # print("slice_operation")
@@ -78,29 +80,35 @@ def slice_operation(self: behav.SliceOperation, context):
     #     return behav.TypeConv(arch.DataType.S if self.expr.inferred_type.signed else arch.DataType.U, target_width, self.expr)
     return self
 
+
 def concat_operation(self: behav.ConcatOperation, context):
     self.left = self.left.generate(context)
     self.right = self.right.generate(context)
 
     return self
 
+
 def number_literal(self: behav.IntLiteral, context):
     return self
+
 
 def int_literal(self: behav.IntLiteral, context):
     return self
 
+
 def scalar_definition(self: behav.ScalarDefinition, context):
     return self
+
 
 def assignment(self: behav.Assignment, context):
     self.target = self.target.generate(context)
     self.expr = self.expr.generate(context)
 
-    #if isinstance(self.expr, behav.IntLiteral) and isinstance(self.target, behav.ScalarDefinition):
-#       self.target.scalar.value = self.expr.value
+    # if isinstance(self.expr, behav.IntLiteral) and isinstance(self.target, behav.ScalarDefinition):
+    #       self.target.scalar.value = self.expr.value
 
     return self
+
 
 def conditional(self: behav.Conditional, context):
     self.conds = [x.generate(context) for x in self.conds]
@@ -109,11 +117,13 @@ def conditional(self: behav.Conditional, context):
 
     return self
 
+
 def loop(self: behav.Loop, context):
     self.cond = self.cond.generate(context)
     self.stmts = [x.generate(context) for x in self.stmts]
 
     return self
+
 
 def ternary(self: behav.Ternary, context):
     self.cond = self.cond.generate(context)
@@ -122,35 +132,41 @@ def ternary(self: behav.Ternary, context):
 
     return self
 
+
 def return_(self: behav.Return, context):
     if self.expr is not None:
         self.expr = self.expr.generate(context)
 
     return self
 
+
 def unary_operation(self: behav.UnaryOperation, context):
     self.right = self.right.generate(context)
 
     return self
 
-def named_reference(self: behav.NamedReference, context):
 
+def named_reference(self: behav.NamedReference, context):
     return self
+
 
 def indexed_reference(self: behav.IndexedReference, context):
     self.index = self.index.generate(context)
 
     return self
 
+
 def type_conv(self: behav.TypeConv, context):
     self.expr = self.expr.generate(context)
 
     return self
 
+
 def callable_(self: behav.Callable, context):
     self.args = [stmt.generate(context) for stmt in self.args]
 
     return self
+
 
 def group(self: behav.Group, context):
     self.expr = self.expr.generate(context)
