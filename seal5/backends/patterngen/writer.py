@@ -18,6 +18,7 @@ from typing import Union
 from m2isar.metamodel import arch
 
 from seal5.tools import cdsl2llvm
+from seal5.index import write_index_yaml, File
 from seal5.model import Seal5InstrAttribute
 
 logger = logging.getLogger("patterngen_tablegen_writer")
@@ -32,7 +33,9 @@ def main():
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--splitted", action="store_true", help="Split per set and instruction")
+    parser.add_argument("--formats", action="store_true", help="Also generate instruction formats")
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
+    parser.add_argument("--index", default=None, help="Output index to file")
     parser.add_argument("--ext", type=str, default="td", help="Default file extension (if using --splitted)")
     args = parser.parse_args()
 
@@ -85,12 +88,17 @@ def main():
     }
     # preprocess model
     # print("model", model)
+    artifacts = {}
     if args.splitted:
         # errs = []
+        model_includes = []
         assert out_path.is_dir(), "Expecting output directory when using --splitted"
         for set_name, set_def in model["sets"].items():
+            artifacts[set_name] = []
             metrics["n_sets"] += 1
             ext_settings = set_def.settings
+            set_dir = out_path / set_name
+            includes = []
             for instr_def in set_def.instructions.values():
                 metrics["n_instructions"] += 1
                 input_file = out_path / set_name / f"{instr_def.name}.core_desc"
@@ -111,18 +119,47 @@ def main():
                 if not input_file.is_file():
                     metrics["n_skipped"] += 1
                     continue
-                output_file = out_path / set_name / f"{instr_def.name}.{args.ext}"
+                out_name = f"{instr_def.name}.{args.ext}"
+                out_name_fmt = f"{instr_def.name}Format.{args.ext}"
+                output_file = set_dir / out_name
+                output_file_fmt = set_dir / out_name_fmt
                 install_dir = os.getenv("CDSL2LLVM_DIR", None)
-                ext = ext_settings.feature
-                assert ext is not None
+                ext = None
+                if ext_settings is not None:
+                    ext = ext_settings.feature
+                # TODO: move this fallback somewhere else
+                if ext is None:  # fallback to set_name
+                    ext = set_name.replace("_", "")
                 assert install_dir is not None
                 install_dir = pathlib.Path(install_dir)
                 try:
                     cdsl2llvm.run_pattern_gen(install_dir / "llvm" / "build", input_file, output_file, skip_patterns=False, skip_formats=not args.formats, ext=ext)
                     metrics["n_success"] += 1
+                    file_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}/{out_name}"
+                    file_artifact = File(file_artifact_dest, src_path=output_file)
+                    artifacts[set_name].append(file_artifact)
+                    include_path = f"{set_name}/{out_name}"
+                    includes.append(include_path)
+                    if args.formats:
+                        file_artifact_fmt_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}/{out_name_fmt}"
+                        file_artifact_fmt = File(file_artifact_fmt_dest, src_path=output_file_fmt)
+                        artifacts[set_name].append(file_artifact_fmt)
+                        include_path_fmt = f"{set_name}/{out_name_fmt}"
+                        includes.append(include_path_fmt)
                 except AssertionError:
                     metrics["n_failed"] += 1
                     # errs.append((insn_name, str(ex)))
+            if len(includes) > 0:
+                set_includes_str = "\n".join([f"include \"{inc}\"" for inc in includes])
+                set_includes_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}.td"
+                set_includes_artifact = File(set_includes_artifact_dest, content=set_includes_str)
+                artifacts[set_name].append(set_includes_artifact)
+                model_includes.append(f"{set_name}.td")
+        if len(model_includes) > 0:
+            model_includes_str = "\n".join([f"include \"{inc}\"" for inc in model_includes])
+            model_includes_artifact_dest = "llvm/lib/Target/RISCV/seal5.td"
+            model_includes_artifact = File(model_includes_artifact_dest, content=model_includes_str)
+            artifacts[None].append(model_includes_artifact)
         # if len(errs) > 0:
         #     # print("errs", errs)
         #     for insn_name, err_str in errs:
@@ -141,10 +178,10 @@ def main():
             f.write(",".join(map(str, metrics.values())))
             f.write("\n")
     if args.index:
-        index_data = "TODO"
+        global_artifacts = artifacts.get(None, [])
+        set_artifacts = {key: value for key, value in artifacts.items() if key is not None}
         index_file = args.index
-        with open(index_file, "w") as f:
-            f.write(index_data + "\n")
+        write_index_yaml(index_file, global_artifacts, set_artifacts)
 
 
 if __name__ == "__main__":
