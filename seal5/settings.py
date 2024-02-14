@@ -289,8 +289,11 @@ class PatchSettings(YAMLSettings):
     stage: Optional[Union[PatchStage, int]] = None  # TODO: default to 0? Allow int with union?
     comment: Optional["str"] = None
     file: Optional[Union[Path, str]] = None
+    index: Optional[Union[Path, str]] = None
     # _file: Optional[Union[Path, str]] = field(init=False, repr=False)
     enable: bool = True
+    generated: bool = False
+    applied: bool = False
 
     # @property
     # def file(self) -> Path:
