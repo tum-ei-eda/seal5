@@ -89,6 +89,7 @@ def main():
     # preprocess model
     # print("model", model)
     artifacts = {}
+    artifacts[None] = []  # used for global artifacts
     if args.splitted:
         # errs = []
         model_includes = []
