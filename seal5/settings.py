@@ -130,6 +130,19 @@ DEFAULT_SETTINGS = {
 }
 
 
+def check_supported_types(data: dict):
+    ALLOWED_TYPES = (int, float, str, bool)
+    if isinstance(data, dict):
+        for value in data.values():
+            check_supported_types(value)
+    elif isinstance(data, list):
+        for x in data:
+            check_supported_types(x)
+    else:
+        if data is not None:
+            assert isinstance(data, ALLOWED_TYPES), f"Unsupported type: {type(value)}"
+
+
 class YAMLSettings:
     @classmethod
     def from_dict(cls, data: dict):
@@ -149,6 +162,7 @@ class YAMLSettings:
 
     def to_yaml(self):
         data = asdict(self)
+        check_supported_types(data)
         text = yaml.dump(data)
         return text
 
