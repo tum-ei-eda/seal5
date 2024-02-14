@@ -16,398 +16,413 @@ from .utils import BOOLCONST, RADIX, SHORTHANDS, SIGNEDNESS
 
 logger = logging.getLogger("behav_builder")
 
+
 class BehaviorModelBuilder(CoreDSL2Visitor):
-	"""ANTLR visitor to build an M2-ISA-R behavioral model of a function or instruction
-	of a CoreDSL 2 specification.
-	"""
+    """ANTLR visitor to build an M2-ISA-R behavioral model of a function or instruction
+    of a CoreDSL 2 specification.
+    """
+
+    def __init__(
+        self,
+        constants: "dict[str, arch.Constant]",
+        memories: "dict[str, arch.Memory]",
+        memory_aliases: "dict[str, arch.Memory]",
+        fields: "dict[str, arch.BitFieldDescr]",
+        functions: "dict[str, arch.Function]",
+        warned_fns: "set[str]",
+    ):
+        super().__init__()
+
+        self._constants = constants
+        self._memories = memories
+        self._memory_aliases = memory_aliases
+        self._fields = fields
+        self._scalars = {}
+        self._functions = functions
+        self.warned_fns = warned_fns if warned_fns is not None else set()
+
+    def visitChildren(self, node):
+        """Helper method to return flatter results on tree visits."""
+
+        ret = super().visitChildren(node)
+        if isinstance(ret, list) and len(ret) == 1:
+            return ret[0]
+        return ret
+
+    def aggregateResult(self, aggregate, nextResult):
+        """Aggregate results from multiple children into a list."""
+
+        ret = aggregate
+        if nextResult is not None:
+            if ret is None:
+                ret = [nextResult]
+            else:
+                ret += [nextResult]
+        return ret
 
-	def __init__(self, constants: "dict[str, arch.Constant]", memories: "dict[str, arch.Memory]", memory_aliases: "dict[str, arch.Memory]",
-		fields: "dict[str, arch.BitFieldDescr]", functions: "dict[str, arch.Function]", warned_fns: "set[str]"):
+    def visitProcedure_call(self, ctx: CoreDSL2Parser.Procedure_callContext):
+        """Generate a procedure (method call without return value) call."""
 
-		super().__init__()
+        # extract name and reference to procedure object to be called
+        name = ctx.ref.text
+        ref = self._functions.get(name, None)
 
-		self._constants = constants
-		self._memories = memories
-		self._memory_aliases = memory_aliases
-		self._fields = fields
-		self._scalars = {}
-		self._functions = functions
-		self.warned_fns = warned_fns if warned_fns is not None else set()
+        # error out if method is unknown
+        if ref is None:
+            raise M2NameError(f"procedure {name} is not defined")
 
-	def visitChildren(self, node):
-		"""Helper method to return flatter results on tree visits."""
+        # generate method arguments
+        args = [self.visit(obj) for obj in ctx.args] if ctx.args else []
 
-		ret = super().visitChildren(node)
-		if isinstance(ret, list) and len(ret) == 1:
-			return ret[0]
-		return ret
+        return behav.ProcedureCall(ref, args)
 
-	def aggregateResult(self, aggregate, nextResult):
-		"""Aggregate results from multiple children into a list."""
+    def visitMethod_call(self, ctx: "CoreDSL2Parser.Method_callContext"):
+        """Generate a function (method call with return value) call."""
 
-		ret = aggregate
-		if nextResult is not None:
-			if ret is None:
-				ret = [nextResult]
-			else:
-				ret += [nextResult]
-		return ret
+        # extract name and reference to function object to be called
+        name = ctx.ref.text
+        ref = self._functions.get(name, None)
 
-	def visitProcedure_call(self, ctx: CoreDSL2Parser.Procedure_callContext):
-		"""Generate a procedure (method call without return value) call."""
+        # error out if method is unknown
+        if ref is None:
+            raise M2NameError(f'function "{name}" is not defined')
 
-		# extract name and reference to procedure object to be called
-		name = ctx.ref.text
-		ref = self._functions.get(name, None)
+        if arch.FunctionAttribute.ETISS_TRAP_ENTRY_FN in ref.attributes:
+            raise M2SyntaxError(f'exception entry function "{name}" must be called as procedure')
 
-		# error out if method is unknown
-		if ref is None:
-			raise M2NameError(f"procedure {name} is not defined")
+        # generate method arguments
+        args = [self.visit(obj) for obj in ctx.args] if ctx.args else []
 
-		# generate method arguments
-		args = [self.visit(obj) for obj in ctx.args] if ctx.args else []
+        return behav.FunctionCall(ref, args)
 
-		return behav.ProcedureCall(ref, args)
+    def visitBlock(self, ctx: CoreDSL2Parser.BlockContext):
+        """Generate a block of statements, return a list."""
 
-	def visitMethod_call(self, ctx: "CoreDSL2Parser.Method_callContext"):
-		"""Generate a function (method call with return value) call."""
+        items = [self.visit(obj) for obj in ctx.items]
+        items = list(flatten(items))
+        return behav.Block(items)
 
-		# extract name and reference to function object to be called
-		name = ctx.ref.text
-		ref = self._functions.get(name, None)
+    def visitDeclaration(self, ctx: CoreDSL2Parser.DeclarationContext):
+        """Generate a declaration statement. Can be multiple declarations of
+        the same type at once. Each declaration can have an initial value.
+        """
 
-		# error out if method is unknown
-		if ref is None:
-			raise M2NameError(f"function \"{name}\" is not defined")
+        # extract variable qualifiers, currently unused
+        storage = [self.visit(obj) for obj in ctx.storage]
+        qualifiers = [self.visit(obj) for obj in ctx.qualifiers]
+        attributes = [self.visit(obj) for obj in ctx.attributes]
 
-		if arch.FunctionAttribute.ETISS_TRAP_ENTRY_FN in ref.attributes:
-			raise M2SyntaxError(f"exception entry function \"{name}\" must be called as procedure")
+        type_ = self.visit(ctx.type_)
 
-		# generate method arguments
-		args = [self.visit(obj) for obj in ctx.args] if ctx.args else []
+        decls: "list[CoreDSL2Parser.DeclaratorContext]" = ctx.declarations
 
-		return behav.FunctionCall(ref, args)
+        ret_decls = []
 
-	def visitBlock(self, ctx: CoreDSL2Parser.BlockContext):
-		"""Generate a block of statements, return a list."""
+        # iterate over all contained declarations
+        for decl in decls:
+            name = decl.name.text
 
-		items = [self.visit(obj) for obj in ctx.items]
-		items = list(flatten(items))
-		return behav.Block(items)
+            # instantiate a scalar and its definition
+            s = arch.Scalar(
+                name, None, StaticType.NONE, type_.width, arch.DataType.S if type_.signed else arch.DataType.U
+            )
+            self._scalars[name] = s
+            sd = behav.ScalarDefinition(s)
 
-	def visitDeclaration(self, ctx: CoreDSL2Parser.DeclarationContext):
-		"""Generate a declaration statement. Can be multiple declarations of
-		the same type at once. Each declaration can have an initial value.
-		"""
+            # if initializer is present, generate an assignment to apply
+            # initialization to the scalar
+            if decl.init:
+                init = self.visit(decl.init)
+            else:
+                init = behav.IntLiteral(0)
 
-		# extract variable qualifiers, currently unused
-		storage = [self.visit(obj) for obj in ctx.storage]
-		qualifiers = [self.visit(obj) for obj in ctx.qualifiers]
-		attributes = [self.visit(obj) for obj in ctx.attributes]
+            a = behav.Assignment(sd, init)
+            ret_decls.append(a)
 
-		type_ = self.visit(ctx.type_)
+        return ret_decls
 
-		decls: "list[CoreDSL2Parser.DeclaratorContext]" = ctx.declarations
+    def visitBreak_statement(self, ctx: CoreDSL2Parser.Break_statementContext):
+        return behav.Break()
 
-		ret_decls = []
+    def visitReturn_statement(self, ctx: CoreDSL2Parser.Return_statementContext):
+        """Generate a return statement."""
 
-		# iterate over all contained declarations
-		for decl in decls:
-			name = decl.name.text
+        expr = self.visit(ctx.expr) if ctx.expr else None
+        return behav.Return(expr)
 
-			# instantiate a scalar and its definition
-			s = arch.Scalar(name, None, StaticType.NONE, type_.width, arch.DataType.S if type_.signed else arch.DataType.U)
-			self._scalars[name] = s
-			sd = behav.ScalarDefinition(s)
+    def visitWhile_statement(self, ctx: CoreDSL2Parser.While_statementContext):
+        """Generate a while loop."""
 
-			# if initializer is present, generate an assignment to apply
-			# initialization to the scalar
-			if decl.init:
-				init = self.visit(decl.init)
-			else:
-				init = behav.IntLiteral(0)
+        stmt = self.visit(ctx.stmt) if ctx.stmt else None
+        cond = self.visit(ctx.cond)
 
-			a = behav.Assignment(sd, init)
-			ret_decls.append(a)
+        if not isinstance(stmt, list):
+            stmt = [stmt]
 
-		return ret_decls
+        return behav.Loop(cond, stmt, False)
 
-	def visitBreak_statement(self, ctx: CoreDSL2Parser.Break_statementContext):
-		return behav.Break()
+    def visitDo_statement(self, ctx: CoreDSL2Parser.Do_statementContext):
+        """Generate a do .. while loop."""
 
-	def visitReturn_statement(self, ctx: CoreDSL2Parser.Return_statementContext):
-		"""Generate a return statement."""
+        stmt = self.visit(ctx.stmt) if ctx.stmt else None
+        cond = self.visit(ctx.cond)
 
-		expr = self.visit(ctx.expr) if ctx.expr else None
-		return behav.Return(expr)
+        if not isinstance(stmt, list):
+            stmt = [stmt]
 
-	def visitWhile_statement(self, ctx: CoreDSL2Parser.While_statementContext):
-		"""Generate a while loop."""
+        return behav.Loop(cond, stmt, True)
 
-		stmt = self.visit(ctx.stmt) if ctx.stmt else None
-		cond = self.visit(ctx.cond)
+    def visitFor_statement(self, ctx: CoreDSL2Parser.For_statementContext):
+        """Generate a for loop. Currently hacky, untested and mostly broken."""
 
-		if not isinstance(stmt, list):
-			stmt = [stmt]
+        start_decl, start_expr, end_expr, loop_exprs = self.visit(ctx.cond)
+        stmt = self.visit(ctx.stmt) if ctx.stmt else None
 
-		return behav.Loop(cond, stmt, False)
+        if not isinstance(stmt, list):
+            stmt = [stmt]
 
-	def visitDo_statement(self, ctx: CoreDSL2Parser.Do_statementContext):
-		"""Generate a do .. while loop."""
+        ret = []
 
-		stmt = self.visit(ctx.stmt) if ctx.stmt else None
-		cond = self.visit(ctx.cond)
+        if start_decl is not None:
+            ret.append(start_decl)
+        if start_expr is not None:
+            ret.append(start_expr)
 
-		if not isinstance(stmt, list):
-			stmt = [stmt]
+        if loop_exprs:
+            stmt.extend(loop_exprs)
 
-		return behav.Loop(cond, stmt, True)
+        ret.append(behav.Loop(end_expr, stmt, False))
 
-	def visitFor_statement(self, ctx: CoreDSL2Parser.For_statementContext):
-		"""Generate a for loop. Currently hacky, untested and mostly broken."""
+        return ret
 
-		start_decl, start_expr, end_expr, loop_exprs = self.visit(ctx.cond)
-		stmt = self.visit(ctx.stmt) if ctx.stmt else None
+    def visitFor_condition(self, ctx: CoreDSL2Parser.For_conditionContext):
+        """Generate the condition of a for loop."""
 
-		if not isinstance(stmt, list):
-			stmt = [stmt]
+        start_decl = self.visit(ctx.start_decl) if ctx.start_decl else None
+        start_expr = self.visit(ctx.start_expr) if ctx.start_expr else None
+        end_expr = self.visit(ctx.end_expr) if ctx.end_expr else None
+        loop_exprs = [self.visit(obj) for obj in ctx.loop_exprs] if ctx.loop_exprs else None
 
-		ret = []
+        return start_decl, start_expr, end_expr, loop_exprs
 
-		if start_decl is not None:
-			ret.append(start_decl)
-		if start_expr is not None:
-			ret.append(start_expr)
+    def visitIf_statement(self, ctx: CoreDSL2Parser.If_statementContext):
+        """Generate an if statement. Packs all if, else if and else branches
+        into one object.
+        """
 
-		if loop_exprs:
-			stmt.extend(loop_exprs)
+        conds = [self.visit(x) for x in ctx.cond]
+        stmts = [self.visit(x) for x in ctx.stmt]
 
-		ret.append(behav.Loop(end_expr, stmt, False))
+        stmts = [x if not isinstance(x, list) else None for x in stmts]
 
-		return ret
+        if None in stmts:
+            raise Exception("meep")
 
-	def visitFor_condition(self, ctx: CoreDSL2Parser.For_conditionContext):
-		"""Generate the condition of a for loop."""
+        return behav.Conditional(conds, stmts)
 
-		start_decl = self.visit(ctx.start_decl) if ctx.start_decl else None
-		start_expr = self.visit(ctx.start_expr) if ctx.start_expr else None
-		end_expr = self.visit(ctx.end_expr) if ctx.end_expr else None
-		loop_exprs = [self.visit(obj) for obj in ctx.loop_exprs] if ctx.loop_exprs else None
+    def visitConditional_expression(self, ctx: CoreDSL2Parser.Conditional_expressionContext):
+        """Generate a ternary expression."""
 
-		return start_decl, start_expr, end_expr, loop_exprs
+        cond = self.visit(ctx.cond)
+        then_expr = self.visit(ctx.then_expr)
+        else_expr = self.visit(ctx.else_expr)
 
-	def visitIf_statement(self, ctx: CoreDSL2Parser.If_statementContext):
-		"""Generate an if statement. Packs all if, else if and else branches
-		into one object.
-		"""
+        return behav.Ternary(cond, then_expr, else_expr)
 
-		conds = [self.visit(x) for x in ctx.cond]
-		stmts = [self.visit(x) for x in ctx.stmt]
+    def visitBinary_expression(self, ctx: CoreDSL2Parser.Binary_expressionContext):
+        """Generate a binary expression."""
 
-		stmts = [x if not isinstance(x, list) else None for x in stmts]
+        left = self.visit(ctx.left)
+        op = behav.Operator(ctx.bop.text)
+        right = self.visit(ctx.right)
 
-		if None in stmts:
-			raise Exception("meep")
+        return behav.BinaryOperation(left, op, right)
 
-		return behav.Conditional(conds, stmts)
+    def visitPreinc_expression(self, ctx: CoreDSL2Parser.Preinc_expressionContext):
+        """Generate a pre-increment expression. Not yet supported, throws
+        :exc:`NotImplementedError`."""
 
-	def visitConditional_expression(self, ctx: CoreDSL2Parser.Conditional_expressionContext):
-		"""Generate a ternary expression."""
+        raise NotImplementedError("pre-increment expressions are not supported yet")
 
-		cond = self.visit(ctx.cond)
-		then_expr = self.visit(ctx.then_expr)
-		else_expr = self.visit(ctx.else_expr)
+    def visitPostinc_expression(self, ctx: CoreDSL2Parser.Preinc_expressionContext):
+        """Generate a post-increment expression. Not yet supported, throws
+        :exc:`NotImplementedError`."""
 
-		return behav.Ternary(cond, then_expr, else_expr)
+        raise NotImplementedError("post-increment expressions are not supported yet")
 
-	def visitBinary_expression(self, ctx: CoreDSL2Parser.Binary_expressionContext):
-		"""Generate a binary expression."""
+    def visitPrefix_expression(self, ctx: CoreDSL2Parser.Prefix_expressionContext):
+        """Generate an unary expression."""
 
-		left = self.visit(ctx.left)
-		op =  behav.Operator(ctx.bop.text)
-		right = self.visit(ctx.right)
+        op = behav.Operator(ctx.prefix.text)
+        right = self.visit(ctx.right)
 
-		return behav.BinaryOperation(left, op, right)
+        return behav.UnaryOperation(op, right)
 
-	def visitPreinc_expression(self, ctx: CoreDSL2Parser.Preinc_expressionContext):
-		"""Generate a pre-increment expression. Not yet supported, throws
-		:exc:`NotImplementedError`."""
+    def visitParens_expression(self, ctx: CoreDSL2Parser.Parens_expressionContext):
+        """Generate a parenthesized expression."""
 
-		raise NotImplementedError("pre-increment expressions are not supported yet")
+        expr = self.visit(ctx.expr)
+        return behav.Group(expr)
 
-	def visitPostinc_expression(self, ctx: CoreDSL2Parser.Preinc_expressionContext):
-		"""Generate a post-increment expression. Not yet supported, throws
-		:exc:`NotImplementedError`."""
+    def visitSlice_expression(self, ctx: CoreDSL2Parser.Slice_expressionContext):
+        """Generate a slice expression. Depending on context, this is translated
+        to either an actual :class:`m2isar.metamodel.behav.SliceOperation`or
+        an :class:`m2isar.metamodel.behav.IndexedReference` if a :class:`m2isar.metamodel.arch.Memory
+        object is to be sliced.
+        """
 
-		raise NotImplementedError("post-increment expressions are not supported yet")
+        expr = self.visit(ctx.expr)
 
-	def visitPrefix_expression(self, ctx: CoreDSL2Parser.Prefix_expressionContext):
-		"""Generate an unary expression."""
+        left = self.visit(ctx.left)
+        right = self.visit(ctx.right) if ctx.right else left
 
-		op = behav.Operator(ctx.prefix.text)
-		right = self.visit(ctx.right)
+        if (
+            isinstance(expr, behav.NamedReference)
+            and isinstance(expr.reference, arch.Memory)
+            and (expr.reference.data_range is None or expr.reference.data_range.length > 1)
+        ):
+            return behav.IndexedReference(expr.reference, left, right)
+        else:
+            return behav.SliceOperation(expr, left, right)
 
-		return behav.UnaryOperation(op, right)
+    def visitConcat_expression(self, ctx: CoreDSL2Parser.Concat_expressionContext):
+        """Generate a concatenation expression."""
 
-	def visitParens_expression(self, ctx: CoreDSL2Parser.Parens_expressionContext):
-		"""Generate a parenthesized expression."""
+        left = self.visit(ctx.left)
+        right = self.visit(ctx.right)
 
-		expr = self.visit(ctx.expr)
-		return behav.Group(expr)
+        return behav.ConcatOperation(left, right)
 
-	def visitSlice_expression(self, ctx: CoreDSL2Parser.Slice_expressionContext):
-		"""Generate a slice expression. Depending on context, this is translated
-		to either an actual :class:`m2isar.metamodel.behav.SliceOperation`or
-		an :class:`m2isar.metamodel.behav.IndexedReference` if a :class:`m2isar.metamodel.arch.Memory
-		object is to be sliced.
-		"""
+    def visitAssignment_expression(self, ctx: CoreDSL2Parser.Assignment_expressionContext):
+        """Generate an assignment. If a combined arithmetic-assignment is present,
+        generate an additional binary operation and use it as the RHS.
+        """
 
-		expr = self.visit(ctx.expr)
+        op = ctx.bop.text
+        left = self.visit(ctx.left)
+        right = self.visit(ctx.right)
 
-		left = self.visit(ctx.left)
-		right = self.visit(ctx.right) if ctx.right else left
+        if op != "=":
+            op2 = behav.Operator(op[:-1])
+            right = behav.BinaryOperation(left, op2, right)
 
-		if isinstance(expr, behav.NamedReference) and isinstance(expr.reference, arch.Memory) and (expr.reference.data_range is None or expr.reference.data_range.length > 1):
-			return behav.IndexedReference(expr.reference, left, right)
-		else:
-			return behav.SliceOperation(expr, left, right)
+        return behav.Assignment(left, right)
 
-	def visitConcat_expression(self, ctx: CoreDSL2Parser.Concat_expressionContext):
-		"""Generate a concatenation expression."""
+    def visitReference_expression(self, ctx: CoreDSL2Parser.Reference_expressionContext):
+        """Generate a simple reference."""
 
-		left = self.visit(ctx.left)
-		right = self.visit(ctx.right)
+        name = ctx.ref.text
 
-		return behav.ConcatOperation(left, right)
+        var = (
+            self._scalars.get(name)
+            or self._fields.get(name)
+            or self._constants.get(name)
+            or self._memory_aliases.get(name)
+            or self._memories.get(name)
+            or intrinsics.get(name)
+        )
 
-	def visitAssignment_expression(self, ctx: CoreDSL2Parser.Assignment_expressionContext):
-		"""Generate an assignment. If a combined arithmetic-assignment is present,
-		generate an additional binary operation and use it as the RHS.
-		"""
+        if var is None:
+            raise M2NameError(f'Named reference "{name}" does not exist!')
 
-		op = ctx.bop.text
-		left = self.visit(ctx.left)
-		right = self.visit(ctx.right)
+        return behav.NamedReference(var)
 
-		if op != "=":
-			op2 = behav.Operator(op[:-1])
-			right = behav.BinaryOperation(left, op2, right)
+    def visitInteger_constant(self, ctx: CoreDSL2Parser.Integer_constantContext):
+        """Generate an integer literal."""
 
-		return behav.Assignment(left, right)
+        text: str = ctx.value.text.lower()
 
-	def visitReference_expression(self, ctx: CoreDSL2Parser.Reference_expressionContext):
-		"""Generate a simple reference."""
+        tick_pos = text.find("'")
 
-		name = ctx.ref.text
+        if tick_pos != -1:
+            width = int(text[:tick_pos])
+            radix = text[tick_pos + 1]
+            value = int(text[tick_pos + 2 :], RADIX[radix])
 
-		var = self._scalars.get(name) or \
-			self._fields.get(name) or \
-			self._constants.get(name) or \
-			self._memory_aliases.get(name) or \
-			self._memories.get(name) or \
-			intrinsics.get(name)
+        else:
+            value = int(text, 0)
+            width = value.bit_length()
 
-		if var is None:
-			raise M2NameError(f"Named reference \"{name}\" does not exist!")
+        return behav.IntLiteral(value, width)
 
-		return behav.NamedReference(var)
+    def visitCharacter_constant(self, ctx: CoreDSL2Parser.Character_constantContext):
+        """Generate a character literal. Converts directly to uint8."""
 
-	def visitInteger_constant(self, ctx: CoreDSL2Parser.Integer_constantContext):
-		"""Generate an integer literal."""
+        text: str = ctx.value.text
 
-		text: str = ctx.value.text.lower()
+        value = min(ord(text.replace("'", "")), 255)
 
-		tick_pos = text.find("'")
+        return behav.IntLiteral(value, 8)
 
-		if tick_pos != -1:
-			width = int(text[:tick_pos])
-			radix = text[tick_pos+1]
-			value = int(text[tick_pos+2:], RADIX[radix])
+    def visitBool_constant(self, ctx: CoreDSL2Parser.Bool_constantContext):
+        """Generate a boolean literal. Converts directly to uint1."""
 
-		else:
-			value = int(text, 0)
-			width = value.bit_length()
+        text: str = ctx.value.text
 
-		return behav.IntLiteral(value, width)
+        return behav.IntLiteral(BOOLCONST[text], 1)
 
-	def visitCharacter_constant(self, ctx: CoreDSL2Parser.Character_constantContext):
-		"""Generate a character literal. Converts directly to uint8."""
+    def visitCast_expression(self, ctx: CoreDSL2Parser.Cast_expressionContext):
+        """Generate a type cast."""
 
-		text: str = ctx.value.text
+        expr = self.visit(ctx.right)
+        if ctx.type_:
+            type_ = self.visit(ctx.type_)
+            sign = arch.DataType.S if type_.signed else arch.DataType.U
+            size = type_.width
 
-		value = min(ord(text.replace("'", "")), 255)
+        if ctx.sign:
+            sign = self.visit(ctx.sign)
+            sign = arch.DataType.S if sign else arch.DataType.U
+            size = None
 
-		return behav.IntLiteral(value, 8)
+        return behav.TypeConv(sign, size, expr)
 
-	def visitBool_constant(self, ctx: CoreDSL2Parser.Bool_constantContext):
-		"""Generate a boolean literal. Converts directly to uint1."""
+    def visitType_specifier(self, ctx: CoreDSL2Parser.Type_specifierContext):
+        """Generate a generic type specifier."""
 
-		text: str = ctx.value.text
+        type_ = self.visit(ctx.type_)
+        if ctx.ptr:
+            type_.ptr = ctx.ptr.text
+        return type_
 
-		return behav.IntLiteral(BOOLCONST[text], 1)
+    def visitInteger_type(self, ctx: CoreDSL2Parser.Integer_typeContext):
+        """Generate an integer type specifier."""
 
-	def visitCast_expression(self, ctx: CoreDSL2Parser.Cast_expressionContext):
-		"""Generate a type cast."""
+        signed = True
+        width = None
 
-		expr = self.visit(ctx.right)
-		if ctx.type_:
-			type_ = self.visit(ctx.type_)
-			sign = arch.DataType.S if type_.signed else arch.DataType.U
-			size = type_.width
+        if ctx.signed is not None:
+            signed = self.visit(ctx.signed)
 
-		if ctx.sign:
-			sign = self.visit(ctx.sign)
-			sign = arch.DataType.S if sign else arch.DataType.U
-			size = None
+        if ctx.size is not None:
+            width = self.visit(ctx.size)
 
-		return behav.TypeConv(sign, size, expr)
+        if ctx.shorthand is not None:
+            width = self.visit(ctx.shorthand)
 
-	def visitType_specifier(self, ctx: CoreDSL2Parser.Type_specifierContext):
-		"""Generate a generic type specifier."""
+        if isinstance(width, behav.BaseNode):
+            width = width.generate(None)
+        else:
+            raise M2TypeError("width has wrong type")
 
-		type_ = self.visit(ctx.type_)
-		if ctx.ptr:
-			type_.ptr = ctx.ptr.text
-		return type_
+        return arch.IntegerType(width, signed, None)
 
-	def visitInteger_type(self, ctx: CoreDSL2Parser.Integer_typeContext):
-		"""Generate an integer type specifier."""
+    def visitVoid_type(self, ctx: CoreDSL2Parser.Void_typeContext):
+        """Generate a void type specifier."""
 
-		signed = True
-		width = None
+        return arch.VoidType(None)
 
-		if ctx.signed is not None:
-			signed = self.visit(ctx.signed)
+    def visitBool_type(self, ctx: CoreDSL2Parser.Bool_typeContext):
+        """Generate a bool type specifier. Aliases to unsigned<1>."""
 
-		if ctx.size is not None:
-			width = self.visit(ctx.size)
+        return arch.IntegerType(1, False, None)
 
-		if ctx.shorthand is not None:
-			width = self.visit(ctx.shorthand)
+    def visitInteger_signedness(self, ctx: CoreDSL2Parser.Integer_signednessContext):
+        """Generate integer signedness."""
 
-		if isinstance(width, behav.BaseNode):
-			width = width.generate(None)
-		else:
-			raise M2TypeError("width has wrong type")
+        return SIGNEDNESS[ctx.children[0].symbol.text]
 
-		return arch.IntegerType(width, signed, None)
+    def visitInteger_shorthand(self, ctx: CoreDSL2Parser.Integer_shorthandContext):
+        """Lookup a shorthand type specifier."""
 
-	def visitVoid_type(self, ctx: CoreDSL2Parser.Void_typeContext):
-		"""Generate a void type specifier."""
-
-		return arch.VoidType(None)
-
-	def visitBool_type(self, ctx: CoreDSL2Parser.Bool_typeContext):
-		"""Generate a bool type specifier. Aliases to unsigned<1>."""
-
-		return arch.IntegerType(1, False, None)
-
-	def visitInteger_signedness(self, ctx: CoreDSL2Parser.Integer_signednessContext):
-		"""Generate integer signedness."""
-
-		return SIGNEDNESS[ctx.children[0].symbol.text]
-
-	def visitInteger_shorthand(self, ctx: CoreDSL2Parser.Integer_shorthandContext):
-		"""Lookup a shorthand type specifier."""
-
-		return behav.IntLiteral(SHORTHANDS[ctx.children[0].symbol.text])
+        return behav.IntLiteral(SHORTHANDS[ctx.children[0].symbol.text])
