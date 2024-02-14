@@ -12,11 +12,11 @@ class Artifact:
         self.content: Optional[str] = content
         self.append: bool = append
 
-    def to_dict(self) -> dict:
+    def to_dict(self, content=False) -> dict:
         return {
             key: str(value) if isinstance(value, Path) else value
             for key, value in vars(self).items()
-            if key not in ["content"]
+            if content or key not in ["content"]
         }
 
 
@@ -103,13 +103,13 @@ class File(Artifact):
         return self.path
 
 
-def write_index_yaml(out_path: Path, global_artifacts: List[Artifact], ext_artifacts: Dict[str, List[Artifact]]):
+def write_index_yaml(out_path: Path, global_artifacts: List[Artifact], ext_artifacts: Dict[str, List[Artifact]], content=False):
     extensions_yaml_data = []
     for ext, artifacts_ in ext_artifacts.items():
-        extension_yaml_data = {"name": ext, "artifacts": list(map(lambda a: a.to_dict(), artifacts_))}
+        extension_yaml_data = {"name": ext, "artifacts": list(map(lambda a: a.to_dict(content=content), artifacts_))}
         extensions_yaml_data.append(extension_yaml_data)
     index_yaml_data = {
-        "artifacts": list(map(lambda a: a.to_dict(), global_artifacts)),
+        "artifacts": list(map(lambda a: a.to_dict(content=content), global_artifacts)),
         "extensions": extensions_yaml_data,
     }
     with open(out_path, "w") as f:
