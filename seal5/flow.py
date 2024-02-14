@@ -1243,8 +1243,15 @@ class Seal5Flow:
             prefix = self.settings.git.prefix
             comment = patch.comment
             msg = f"{prefix} {comment}"
+            llvm_dir = self.directory
             inject_patches.generate_patch(
-                file, patch.index, author=self.settings.git.author, mail=self.settings.git.mail, msg=msg
+                patch.index,
+                llvm_dir=llvm_dir,
+                out_file=file,
+                author=self.settings.git.author,
+                mail=self.settings.git.mail,
+                msg=msg,
+                append=True,
             )
 
         else:
