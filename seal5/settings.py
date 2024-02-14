@@ -401,3 +401,7 @@ class Seal5Settings(YAMLSettings):
     groups: Optional[GroupsSettings] = None  # TODO: make list?
     inputs: Optional[List[str]] = None
     riscv: Optional[RISCVSettings] = None
+
+    def reset(self):
+        self.patches = []
+        self.inputs = []
