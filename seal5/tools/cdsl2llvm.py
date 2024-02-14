@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""LLVM utils for seal5."""
+"""PatternGen utils for seal5."""
 from pathlib import Path
 
 from seal5.logging import get_logger
