@@ -346,8 +346,8 @@ class LoggingSettings(YAMLSettings):
 
 @dataclass
 class FilterSetting(YAMLSettings):
-    keep: List[str] = field(default_factory=list)
-    drop: List[str] = field(default_factory=list)
+    keep: List[Union[str, int]] = field(default_factory=list)
+    drop: List[Union[str, int]] = field(default_factory=list)
 
 
 @dataclass
@@ -356,6 +356,8 @@ class FilterSettings(YAMLSettings):
     instructions: Optional[FilterSetting] = None
     aliases: Optional[FilterSetting] = None
     intrinsics: Optional[FilterSetting] = None
+    opcodes: Optional[FilterSetting] = None
+    encoding_sizes: Optional[FilterSetting] = None
     # TODO: functions
 
 

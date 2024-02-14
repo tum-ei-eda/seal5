@@ -44,6 +44,10 @@ def main():
     parser.add_argument("--drop-sets", type=str, default=None)
     parser.add_argument("--keep-instructions", type=str, default=None)
     parser.add_argument("--drop-instructions", type=str, default=None)
+    parser.add_argument("--keep-opcodes", type=str, default=None)
+    parser.add_argument("--drop-opcodes", type=str, default=None)
+    parser.add_argument("--keep-encoding-sizes", type=str, default=None)
+    parser.add_argument("--drop-encoding-sizes", type=str, default=None)
     # TODO: filter builtins/aliases
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument("--output", "-o", type=str, default=None)
@@ -107,6 +111,44 @@ def main():
         drop_instructions = args.drop_instructions.split(",")
     else:
         drop_instructions = []
+
+    def opcodes_helper(x):
+        OPCODE_LOOKUP = {
+            "custom-0": 0b00010,
+            "custom-1": 0b01010,
+            "custom-2": 0b10110,
+            "custom-3": 0b11110,
+        }
+        try:
+            x = int(x, 0)
+        except ValueError:
+            x = OPCODE_LOOKUP.get(x, None)
+            if x is None:
+                raise RuntimeError(f"Opcode lookup by string failed for {x}. Options: {list(OPCODE_LOOKUP.keys())}")
+        assert x >= 0
+        assert x < 2**5
+        return x
+
+    if args.keep_opcodes:
+        keep_opcodes = args.keep_opcodes.split(",")
+        keep_opcodes = list(map(opcodes_helper, keep_opcodes))
+    else:
+        keep_opcodes = []
+    if args.drop_opcodes:
+        drop_opcodes = args.drop_opcodes.split(",")
+        drop_opcodes = list(map(opcodes_helper, drop_opcodes))
+    else:
+        drop_opcodes = []
+    if args.keep_encoding_sizes:
+        keep_encoding_sizes = args.keep_encoding_sizes.split(",")
+        keep_encoding_sizes = list(map(int, keep_encoding_sizes))
+    else:
+        keep_encoding_sizes = []
+    if args.drop_encoding_sizes:
+        drop_encoding_sizes = args.drop_encoding_sizes.split(",")
+        drop_encoding_sizes = list(map(int, drop_encoding_sizes))
+    else:
+        drop_encoding_sizes = []
     # print("keep", keep_instructions)
     # print("drop", drop_instructions)
     # input("456")
@@ -121,6 +163,39 @@ def main():
             return name not in drop
         return True
 
+    def check_encoding_filter(enc, keep, drop, keep2, drop2):
+        opcode = None
+        size = 0
+        for e in reversed(enc):
+            print("e", e, dir(e))
+            if isinstance(e, arch.BitVal):
+                length = e.length
+                if size == 0:
+                    assert length == 7
+                    val = e.value
+                    opcode = val >> 2
+            elif isinstance(e, arch.BitField):
+                length = e.range.length
+            else:
+                assert False
+            size += length
+        if opcode is None:  # not found (not a riscv insn?)
+            return True
+        assert size in [16, 32, 64, 128]
+        if drop2 and keep2:
+            return size not in drop2 and size in keep2
+        elif keep2:
+            return size in keep2
+        elif drop2:
+            return size not in drop2
+        if drop and keep:
+            return opcode not in drop and opcode in keep
+        elif keep:
+            return opcode in keep
+        elif drop:
+            return opcode not in drop
+        return True
+
     model["sets"] = {
         set_name: set_def for set_name, set_def in model["sets"].items() if check_filter(set_name, keep_sets, drop_sets)
     }
@@ -128,7 +203,7 @@ def main():
         set_def.instructions = {
             key: instr_def
             for key, instr_def in set_def.instructions.items()
-            if check_filter(instr_def.name, keep_instructions, drop_instructions)
+            if check_filter(instr_def.name, keep_instructions, drop_instructions) and check_encoding_filter(instr_def.encoding, keep_opcodes, drop_opcodes, keep_encoding_sizes, drop_encoding_sizes)
         }
         # for instr_name, instr_def in set_def.instructions.items():
 

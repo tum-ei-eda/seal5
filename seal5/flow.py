@@ -432,8 +432,8 @@ class Seal5Flow:
 
             def get_filter_args(settings, suffix):
                 ret = []
-                keep = settings.keep
-                drop = settings.drop
+                keep = list(map(str, settings.keep))
+                drop = list(map(str, settings.drop))
                 if keep:
                     ret += [f"--keep-{suffix}", ",".join(keep)]
                 if drop:
@@ -444,10 +444,15 @@ class Seal5Flow:
             filter_instructions = filter_settings.instructions
             filter_aliases = filter_settings.aliases
             filter_intrinsics = filter_settings.intrinsics
+            filter_opcodes = filter_settings.opcodes
+            filter_encoding_sizes = filter_settings.encoding_sizes
+            # TODO: filter_functions
             filter_args.extend(get_filter_args(filter_sets, "sets"))
             filter_args.extend(get_filter_args(filter_instructions, "instructions"))
             filter_args.extend(get_filter_args(filter_aliases, "aliases"))
             filter_args.extend(get_filter_args(filter_intrinsics, "intrinsics"))
+            filter_args.extend(get_filter_args(filter_opcodes, "opcodes"))
+            filter_args.extend(get_filter_args(filter_encoding_sizes, "encoding-sizes"))
             args = [
                 self.models_dir / name,
                 *filter_args,
