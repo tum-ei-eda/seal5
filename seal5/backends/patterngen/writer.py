@@ -133,7 +133,14 @@ def main():
                 assert install_dir is not None
                 install_dir = pathlib.Path(install_dir)
                 try:
-                    cdsl2llvm.run_pattern_gen(install_dir / "llvm" / "build", input_file, output_file, skip_patterns=False, skip_formats=not args.formats, ext=ext)
+                    cdsl2llvm.run_pattern_gen(
+                        install_dir / "llvm" / "build",
+                        input_file,
+                        output_file,
+                        skip_patterns=False,
+                        skip_formats=not args.formats,
+                        ext=ext,
+                    )
                     metrics["n_success"] += 1
                     file_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}/{out_name}"
                     file_artifact = File(file_artifact_dest, src_path=output_file)
@@ -150,13 +157,13 @@ def main():
                     metrics["n_failed"] += 1
                     # errs.append((insn_name, str(ex)))
             if len(includes) > 0:
-                set_includes_str = "\n".join([f"include \"{inc}\"" for inc in includes])
+                set_includes_str = "\n".join([f'include "{inc}"' for inc in includes])
                 set_includes_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}.td"
                 set_includes_artifact = File(set_includes_artifact_dest, content=set_includes_str)
                 artifacts[set_name].append(set_includes_artifact)
                 model_includes.append(f"{set_name}.td")
         if len(model_includes) > 0:
-            model_includes_str = "\n".join([f"include \"{inc}\"" for inc in model_includes])
+            model_includes_str = "\n".join([f'include "{inc}"' for inc in model_includes])
             model_includes_artifact_dest = "llvm/lib/Target/RISCV/seal5.td"
             model_includes_artifact = File(model_includes_artifact_dest, content=model_includes_str)
             artifacts[None].append(model_includes_artifact)

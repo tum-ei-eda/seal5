@@ -183,6 +183,7 @@ def type_conv(self: behav.TypeConv, writer):
     self.expr.generate(writer)
     writer.write(")")
 
+
 def callable_(self: behav.Callable, writer):
     # print("callable_", self, dir(self))
     # traceback.print_stack(file=sys.stdout)

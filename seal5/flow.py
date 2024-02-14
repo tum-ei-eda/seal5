@@ -189,13 +189,32 @@ class Seal5Flow:
         logger.info("Cloning CDSL2LLVM")
         cdsl2llvm_dependency.clone(self.deps_dir / "cdsl2llvm", overwrite=force, depth=1)
         logger.info("Building PatternGen")
-        llvm_config = LLVMConfig(options={"CMAKE_BUILD_TYPE": "Release", "LLVM_BUILD_TOOLS": False, "LLVM_ENABLE_ASSERTIONS": False, "LLVM_OPTIMIZED_TABLEGEN": True, "LLVM_ENABLE_PROJECT": [], "LLVM_TARGETS_TO_BUILD": ["RISCV"]})
+        llvm_config = LLVMConfig(
+            options={
+                "CMAKE_BUILD_TYPE": "Release",
+                "LLVM_BUILD_TOOLS": False,
+                "LLVM_ENABLE_ASSERTIONS": False,
+                "LLVM_OPTIMIZED_TABLEGEN": True,
+                "LLVM_ENABLE_PROJECT": [],
+                "LLVM_TARGETS_TO_BUILD": ["RISCV"],
+            }
+        )
         # llvm_config = LLVMConfig(options={"CMAKE_BUILD_TYPE": "Debug", "LLVM_BUILD_TOOLS": False, "LLVM_ENABLE_ASSERTIONS": False, "LLVM_OPTIMIZED_TABLEGEN": True, "LLVM_ENABLE_PROJECT": [], "LLVM_TARGETS_TO_BUILD": ["RISCV"]})
         cmake_options = llvm_config.options
-        cdsl2llvm.build_pattern_gen(self.deps_dir / "cdsl2llvm", self.deps_dir / "cdsl2llvm" / "llvm" / "build", cmake_options=cmake_options, use_ninja=True)
+        cdsl2llvm.build_pattern_gen(
+            self.deps_dir / "cdsl2llvm",
+            self.deps_dir / "cdsl2llvm" / "llvm" / "build",
+            cmake_options=cmake_options,
+            use_ninja=True,
+        )
         logger.info("Completed build of PatternGen")
         logger.info("Building llc")
-        cdsl2llvm.build_llc(self.deps_dir / "cdsl2llvm", self.deps_dir / "cdsl2llvm" / "llvm" / "build", cmake_options=cmake_options, use_ninja=True)
+        cdsl2llvm.build_llc(
+            self.deps_dir / "cdsl2llvm",
+            self.deps_dir / "cdsl2llvm" / "llvm" / "build",
+            cmake_options=cmake_options,
+            use_ninja=True,
+        )
         logger.info("Completed build of llc")
         # input("qqqqqq")
         logger.info("Completed installation of Seal5 dependencies")
@@ -390,7 +409,6 @@ class Seal5Flow:
                 # "debug",
                 "--yaml",
                 self.settings_file,
-
             ]
             utils.python(
                 "-m",
@@ -683,7 +701,7 @@ class Seal5Flow:
                 # "info",
                 "debug",
                 "--output",
-                self.temp_dir / new_name
+                self.temp_dir / new_name,
             ]
             utils.python(
                 "-m",
@@ -713,7 +731,7 @@ class Seal5Flow:
                 # "info",
                 "debug",
                 "--output",
-                self.temp_dir / new_name
+                self.temp_dir / new_name,
             ]
             if split:
                 (self.temp_dir / new_name).mkdir(exist_ok=True)
@@ -841,7 +859,13 @@ class Seal5Flow:
             # new_name = name.replace(".core_desc_compat", ".td")
             logger.info("Writing LLVM-IR for %s", name)
             try:
-                cdsl2llvm.run_pattern_gen(self.deps_dir / "cdsl2llvm" / "llvm" / "build", input_file, None, skip_patterns=True, skip_formats=True)
+                cdsl2llvm.run_pattern_gen(
+                    self.deps_dir / "cdsl2llvm" / "llvm" / "build",
+                    input_file,
+                    None,
+                    skip_patterns=True,
+                    skip_formats=True,
+                )
             except AssertionError:
                 pass
                 # errs.append((str(input_file), str(ex)))
@@ -866,7 +890,7 @@ class Seal5Flow:
                 # "info",
                 "debug",
                 "--output",
-                self.temp_dir / new_name
+                self.temp_dir / new_name,
             ]
             if split:
                 (self.temp_dir / new_name).mkdir(exist_ok=True)
@@ -904,7 +928,7 @@ class Seal5Flow:
                 # "info",
                 "debug",
                 "--output",
-                self.temp_dir / new_name
+                self.temp_dir / new_name,
             ]
             if split:
                 (self.temp_dir / new_name).mkdir(exist_ok=True)
@@ -1002,7 +1026,9 @@ class Seal5Flow:
                     name = ll_file.name
                     logger.info("Writing gmir for %s", name)
                     try:
-                        cdsl2llvm.convert_ll_to_gmir(self.deps_dir / "cdsl2llvm" / "llvm" / "build", ll_file, output_file)
+                        cdsl2llvm.convert_ll_to_gmir(
+                            self.deps_dir / "cdsl2llvm" / "llvm" / "build", ll_file, output_file
+                        )
                     except AssertionError:
                         pass
                         # errs.append((insn_name, str(ex)))

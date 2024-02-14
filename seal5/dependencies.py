@@ -50,7 +50,9 @@ class GitDependency(Dependency):
             repo.git.pull("origin", self.ref)
             return
         logger.debug("Cloning repository: %s", self.clone_url)
-        repo = git.Repo.clone_from(self.clone_url, dest, recursive=self.recursive, no_checkout=self.ref is not None, depth=depth)
+        repo = git.Repo.clone_from(
+            self.clone_url, dest, recursive=self.recursive, no_checkout=self.ref is not None, depth=depth
+        )
         if self.ref:
             logger.debug("Checking out: %s", self.ref)
             repo.git.checkout(self.ref)

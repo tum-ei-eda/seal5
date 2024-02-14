@@ -22,7 +22,6 @@ logger = logging.getLogger("coredsl2_writer")
 
 
 class CoreDSL2Writer:
-
     # def __init__(self, compat=False):
     def __init__(self, compat=True, version="coredsl2"):
         self.version = version
@@ -233,11 +232,11 @@ class CoreDSL2Writer:
         assembly = instruction.assembly
         if mnemonic and not self.compat:
             self.write("{")
-            self.write(f"\"{mnemonic}\"")
+            self.write(f'"{mnemonic}"')
             self.write(", ")
         if assembly is None:
             assembly = ""
-        self.write(f"\"{assembly}\"")
+        self.write(f'"{assembly}"')
         if mnemonic and not self.compat:
             self.write("}")
         self.write(";", nl=True)
@@ -294,6 +293,7 @@ class CoreDSL2Writer:
         self.write_functions(set_def.functions)
         self.write_instructions(set_def.instructions)
         self.leave_block()
+
     #     for instr_name, instr_def in set_def.instructions.items():
     #         logger.debug("writing instr %s", instr_def.name)
     #         # instr_def.operation.generate(context)
