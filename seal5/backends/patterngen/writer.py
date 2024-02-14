@@ -189,7 +189,7 @@ def main():
         global_artifacts = artifacts.get(None, [])
         set_artifacts = {key: value for key, value in artifacts.items() if key is not None}
         index_file = args.index
-        write_index_yaml(index_file, global_artifacts, set_artifacts)
+        write_index_yaml(index_file, global_artifacts, set_artifacts, content=True)
 
 
 if __name__ == "__main__":
