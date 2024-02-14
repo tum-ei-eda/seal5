@@ -46,7 +46,7 @@ seal5_flow.initialize(
 )
 
 # Optional: clean existing settings/models for fresh run
-# seal5.reset(models=True, settings=True, force=True)
+seal5_flow.reset(settings=True, interactive=False)
 
 # Clone Seal5 dependencies
 # 1. M2-ISA-R (frontend only)

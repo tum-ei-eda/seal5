@@ -1280,9 +1280,16 @@ class Seal5Flow:
 
         logger.info("Completed export of Seal5 artifacts")
 
+    def reset(self, settings: bool = True, verbose: bool = False, interactive: bool = False):
+        logger.info("Cleaning Seal5 state")
+        if interactive:
+            raise NotImplementedError
+        if settings:
+            self.settings.reset()
+        logger.info("Completed clean of Seal5 settings")
+
     def clean(self, verbose: bool = False, interactive: bool = False):
         logger.info("Cleaning Seal5 directories")
-        raise NotImplementedError
         to_clean = [
             self.temp_dir,
             self.gen_dir,
@@ -1295,5 +1302,5 @@ class Seal5Flow:
         ]
         for path in to_clean:
             utils.clean_path(path, interactive=interactive)
-        self.settings.inputs = []
+        # self.reset(verbose=verbose, interactive=interactive)
         logger.info("Completed clean of Seal5 directories")
