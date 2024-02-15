@@ -60,4 +60,4 @@ jobs:
     - name: Run the demo
       run: |
         source .venv/bin/activate
-        python examples.demo.py
+        python examples/demo.py
