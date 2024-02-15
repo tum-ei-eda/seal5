@@ -1,0 +1,5 @@
+[tool.black]
+line-length = 120
+exclude = '''
+seal5/frontends/coredsl2_seal5/parser_gen
+'''
