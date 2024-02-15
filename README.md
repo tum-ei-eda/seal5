@@ -71,7 +71,7 @@ TODO: Not yet implemented...
 
 ## Examples
 
-See ['examples/demo.py'](examples/demo.py) for example of end-to-end flow!
+See [`examples/demo.py`](examples/demo.py) for example of end-to-end flow!
 
 ## Documentation
 
