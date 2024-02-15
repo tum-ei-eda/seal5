@@ -49,6 +49,6 @@ jobs:
           OWNER: "TUM Department of Electrical and Computer Engineering"
           PROJECT: "Seal5"
           YEARS: "2024"
-          URL: "https://github.com/tum-ei-eda/mlonmcu.git"
+          URL: "https://github.com/tum-ei-eda/seal5.git"
           EXTENSIONS: "py c cpp"
           EXCLUDE: ".venv models"
