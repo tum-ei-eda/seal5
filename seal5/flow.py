@@ -280,7 +280,7 @@ class Seal5Flow:
         llvm_config = self.settings.llvm.configs.get(config, None)
         assert llvm_config is not None, f"Invalid llvm config: {config}"
         cmake_options = llvm_config.options
-        llvm.build_llvm(self.directory, self.build_dir / config, cmake_options)
+        llvm.build_llvm(self.directory, self.build_dir / config, cmake_options=cmake_options)
         logger.info("Completed build of Seal5 LLVM")
 
     def convert_models(self, verbose: bool = False, inplace: bool = False):

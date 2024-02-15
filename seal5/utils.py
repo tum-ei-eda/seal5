@@ -139,7 +139,7 @@ def get_cmake_args(cfg: dict):
     return ret
 
 
-def cmake(src, *args, debug: Optional[bool] = None, use_ninja=False, cwd=None, **kwargs):
+def cmake(src, *args, debug: Optional[bool] = None, use_ninja: Optional[bool] = None, cwd=None, **kwargs):
     if cwd is None:
         raise RuntimeError("Please always pass a cwd to cmake()")
     if isinstance(cwd, Path):
