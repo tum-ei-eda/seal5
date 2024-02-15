@@ -972,6 +972,63 @@ class Seal5Flow:
                 else:
                     logger.warning("No patches found!")
 
+    def gen_riscv_features_patch(self, verbose: bool = False, split: bool = True):
+        assert not split, "TODO"
+        input_files = list(self.models_dir.glob("*.seal5model"))
+        assert len(input_files) > 0, "No Seal5 models found!"
+        formats = True
+        gen_metrics_file = True
+        gen_index_file = True
+        for input_file in input_files:
+            name = input_file.name
+            if split:
+                new_name = name.replace(".seal5model", "")
+            else:
+                new_name = name.replace(".seal5model", ".td")
+            logger.info("Writing RISCVFeatures.td patch for %s", name)
+            args = [
+                self.models_dir / name,
+                "--log",
+                # "info",
+                "debug",
+                "--output",
+                self.temp_dir / new_name,
+            ]
+            if split:
+                (self.temp_dir / new_name).mkdir(exist_ok=True)
+                args.append("--splitted")
+            if formats:
+                args.append("--formats")
+            if gen_metrics_file:
+                metrics_file = self.temp_dir / (new_name + "_tblgen_riscv_features_metrics.csv")
+                args.extend(["--metrics", metrics_file])
+            if gen_index_file:
+                index_file = self.temp_dir / (new_name + "_tblgen_riscv_features_index.yml")
+                args.extend(["--index", index_file])
+            utils.python(
+                "-m",
+                "seal5.backends.riscv_features.writer",
+                *args,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
+            if gen_index_file:
+                if index_file.is_file():
+                    patch_name = f"tblgen_riscv_features_{input_file.stem}"
+                    patch_settings = PatchSettings(
+                        name=patch_name,
+                        stage=int(PatchStage.PHASE_1),
+                        comment=f"Generated RISCVFeatures.td patch for {input_file.name}",
+                        index=str(index_file),
+                        generated=True,
+                        target="llvm",
+                    )
+                    self.settings.patches.append(patch_settings)
+                    self.settings.to_yaml_file(self.settings_file)
+                else:
+                    logger.warning("No patches found!")
+
     # def convert_behav_to_tablegen_splitted(self, verbose: bool = False, inplace: bool = True):
     #     assert inplace
     #     # input_files = list(self.models_dir.glob("*.seal5model"))
@@ -1155,8 +1212,8 @@ include "seal5.td"
         self.gen_seal5_td(verbose=verbose)
 
         # # General
-        # if "subtarget_features" not in skip:
-        #     patches.extend(self.gen_subtarget_feature_patches())
+        if "riscv_features" not in skip:
+            self.gen_riscv_features_patch()
         # if "subtarget_tests" not in skip:
         #     patches.extend(self.gen_subtarget_tests_patches())
 

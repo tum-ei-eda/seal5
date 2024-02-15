@@ -138,3 +138,14 @@ diff --git a/llvm/lib/Target/RISCV/RISCVInstrInfo.td b/llvm/lib/Target/RISCV/RIS
 +
 +// RISCVInstrInfo.td - INSERTION_START
 +// RISCVInstrInfo.td - INSERTION_END
+
+diff --git a/llvm/lib/Target/RISCV/RISCVFeatures.td b/llvm/lib/Target/RISCV/RISCVFeatures.td
+--- a/llvm/lib/Target/RISCV/RISCVFeatures.td
++++ b/llvm/lib/Target/RISCV/RISCVFeatures.td
+@@ -894,3 +894,6 @@ def FeatureTaggedGlobals : SubtargetFeature<"tagged-globals",
+     "AllowTaggedGlobals",
+     "true", "Use an instruction sequence for taking the address of a global "
+     "that allows a memory tag in the upper address bits">;
++
+++// RISCVFeatures.td - riscv_features - INSERTION_START
+++// RISCVFeatures.td - riscv_features - INSERTION_END
