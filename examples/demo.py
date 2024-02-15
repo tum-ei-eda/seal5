@@ -100,7 +100,7 @@ seal5_flow.load(cfg_files, verbose=VERBOSE, overwrite=False)
 seal5_flow.patch(verbose=VERBOSE, stages=[PatchStage.PHASE_0])
 
 # Build initial LLVM
-# seal5_flow.build(verbose=VERBOSE, config="release")
+seal5_flow.build(verbose=VERBOSE, config="release")
 
 # Transform inputs
 #   1. Create M2-ISA-R metamodel
