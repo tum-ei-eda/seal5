@@ -1,12 +1,30 @@
 # Seal5
 
+
+[![pypi package](https://badge.fury.io/py/seal5.svg)](https://pypi.org/project/seal5)
+[![readthedocs](https://readthedocs.org/projects/seal5/badge/?version=latest)](https://seal5.readthedocs.io/en/latest/?version=latest)
+![covergae](https://byob.yarr.is/tum-ei-eda/seal5/coverage)
+[![GitHub license](https://img.shields.io/github/license/tum-ei-eda/seal5.svg)](https://github.com/tum-ei-eda/seal5/blob/main/LICENSE)
+
+[![demo workflow](https://github.com/tum-ei-eda/seal5/actions/workflows/demo.yml/badge.svg)](https://github.com/tum-ei-eda/seal5/actions/workflows/demo.yml)
+
 TODO: Summary
 
 ## Prerequisites
 
+To be able to run the examples, make sure to clone the Seal5 repo using the `--recursive` flag. Otherwise run the following command to fetch (and update) the referenced submodules.
+
+```sh
+git submodule update --init --recursive
+```
+
 ### Ubuntu Packages
 
-TODO: cmake, ninja, make,...
+First, a set of APT packages needs to be installed:
+
+```sh
+sudo apt install python3-pip python3-venv cmake make ninja-build
+```
 
 ### Python Requirements
 
@@ -16,9 +34,19 @@ Install all required python packages using the follow8n* command:
 
 `pip install -r requirements.txt`.
 
-TODO: dev requirements
+For development (linting, packaging,...) there are a few more dependencies which can be installed via:
+
+`pip install -r requirements_dev.txt`.
 
 ### Installation
+
+**Warning:** It is highly recommended to install `seal5` into a new virtual environment. Follow these steps to initialize and enter a venv in your seal5 repo directory:
+
+```sh
+# alternative: python3 -m venv venv
+virtualenv -p python3.8 venv
+source venv/bin/activate
+```
 
 #### From PyPI
 
@@ -59,7 +87,7 @@ seal5_flow.build(...)
 seal5_flow.test(...)
 # Combine patches and install LLVM
 seal5_flow.deploy(...)
-# Archive final llvm (optionally inclusing logs, reports,...)
+# Archive final LLVM (optionally inclusing logs, reports,...)
 seal5_flow.export(...)
 # Optional: Cleanup all artifacts
 seal5_flow.cleanup(...)
@@ -75,11 +103,15 @@ See [`examples/demo.py`](examples/demo.py) for example of end-to-end flow!
 
 ## Documentation
 
-TODO: Sphinx Documentation
+TODO: Sphinx Documentation / GitHub Pages
 
 ## Limitations
 
 See [here](./LIMITATIONS.md).
+
+## CI/CD Flow
+
+We added a (manual) CI job to run the `examples/demo.py` script via GitHub actions.
 
 ## Contributions
 
