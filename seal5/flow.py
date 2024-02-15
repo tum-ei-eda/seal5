@@ -188,7 +188,8 @@ class Seal5Flow:
         logger.info("Installing Seal5 dependencies")
         # m2isar_dependency.clone(self.deps_dir / "M2-ISA-R", overwrite=force)
         logger.info("Cloning CDSL2LLVM")
-        cdsl2llvm_dependency.clone(self.deps_dir / "cdsl2llvm", overwrite=force, depth=1)
+        # cdsl2llvm_dependency.clone(self.deps_dir / "cdsl2llvm", overwrite=force, depth=1)
+        cdsl2llvm_dependency.clone(self.deps_dir / "cdsl2llvm", overwrite=force)
         logger.info("Building PatternGen")
         llvm_config = LLVMConfig(
             options={

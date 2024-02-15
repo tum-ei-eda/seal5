@@ -3,7 +3,6 @@
 
 [![pypi package](https://badge.fury.io/py/seal5.svg)](https://pypi.org/project/seal5)
 [![readthedocs](https://readthedocs.org/projects/seal5/badge/?version=latest)](https://seal5.readthedocs.io/en/latest/?version=latest)
-![covergae](https://byob.yarr.is/tum-ei-eda/seal5/coverage)
 [![GitHub license](https://img.shields.io/github/license/tum-ei-eda/seal5.svg)](https://github.com/tum-ei-eda/seal5/blob/main/LICENSE)
 
 [![demo workflow](https://github.com/tum-ei-eda/seal5/actions/workflows/demo.yml/badge.svg)](https://github.com/tum-ei-eda/seal5/actions/workflows/demo.yml)
