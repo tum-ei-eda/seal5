@@ -203,7 +203,10 @@ def main():
         set_def.instructions = {
             key: instr_def
             for key, instr_def in set_def.instructions.items()
-            if check_filter(instr_def.name, keep_instructions, drop_instructions) and check_encoding_filter(instr_def.encoding, keep_opcodes, drop_opcodes, keep_encoding_sizes, drop_encoding_sizes)
+            if check_filter(instr_def.name, keep_instructions, drop_instructions)
+            and check_encoding_filter(
+                instr_def.encoding, keep_opcodes, drop_opcodes, keep_encoding_sizes, drop_encoding_sizes
+            )
         }
         # for instr_name, instr_def in set_def.instructions.items():
 
