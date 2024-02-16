@@ -76,7 +76,12 @@ def clone_llvm_repo(
 
 
 def build_llvm(
-    src: Path, dest: Path, debug: Optional[bool] = None, use_ninja: Optional[bool] = None, verbose: bool = False, cmake_options: dict = {}
+    src: Path,
+    dest: Path,
+    debug: Optional[bool] = None,
+    use_ninja: Optional[bool] = None,
+    verbose: bool = False,
+    cmake_options: dict = {},
 ):
     cmake_args = utils.get_cmake_args(cmake_options)
     dest.mkdir(exist_ok=True)
