@@ -1013,11 +1013,65 @@ class Seal5Flow:
             )
             if gen_index_file:
                 if index_file.is_file():
-                    patch_name = f"tblgen_riscv_features_{input_file.stem}"
+                    patch_name = f"riscv_features_{input_file.stem}"
                     patch_settings = PatchSettings(
                         name=patch_name,
                         stage=int(PatchStage.PHASE_1),
                         comment=f"Generated RISCVFeatures.td patch for {input_file.name}",
+                        index=str(index_file),
+                        generated=True,
+                        target="llvm",
+                    )
+                    self.settings.patches.append(patch_settings)
+                    self.settings.to_yaml_file(self.settings_file)
+                else:
+                    logger.warning("No patches found!")
+
+    def gen_riscv_isa_info_patch(self, verbose: bool = False, split: bool = False):
+        assert not split, "TODO"
+        input_files = list(self.models_dir.glob("*.seal5model"))
+        assert len(input_files) > 0, "No Seal5 models found!"
+        formats = True
+        gen_metrics_file = True
+        gen_index_file = True
+        for input_file in input_files:
+            name = input_file.name
+            new_name = name.replace(".seal5model", "")
+            logger.info("Writing RISCVISAInfo.cpp patch for %s", name)
+            out_dir = self.patches_dir / new_name
+            out_dir.mkdir(exist_ok=True)
+
+            args = [
+                self.models_dir / name,
+                "--log",
+                # "info",
+                "debug",
+                "--output",
+                out_dir / "riscv_isa_info.patch",
+            ]
+            if split:
+                args.append("--splitted")
+            if gen_metrics_file:
+                metrics_file = out_dir / ("riscv_isa_info_metrics.csv")
+                args.extend(["--metrics", metrics_file])
+            if gen_index_file:
+                index_file = out_dir / ("riscv_isa_info_index.yml")
+                args.extend(["--index", index_file])
+            utils.python(
+                "-m",
+                "seal5.backends.riscv_isa_info.writer",
+                *args,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
+            if gen_index_file:
+                if index_file.is_file():
+                    patch_name = f"riscv_isa_info_{input_file.stem}"
+                    patch_settings = PatchSettings(
+                        name=patch_name,
+                        stage=int(PatchStage.PHASE_1),
+                        comment=f"Generated RISCVISAInfo.cpp patch for {input_file.name}",
                         index=str(index_file),
                         generated=True,
                         target="llvm",
@@ -1212,6 +1266,8 @@ include "seal5.td"
         # # General
         if "riscv_features" not in skip:
             self.gen_riscv_features_patch()
+        if "riscv_isa_infos" not in skip:
+            self.gen_riscv_isa_infos_patch()
         # if "subtarget_tests" not in skip:
         #     patches.extend(self.gen_subtarget_tests_patches())
 

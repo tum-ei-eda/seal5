@@ -42,12 +42,22 @@ diff --git a/llvm/lib/Support/RISCVISAInfo.cpp b/llvm/lib/Support/RISCVISAInfo.c
      {"xtheadvdot", RISCVExtensionVersion{1, 0}},
      {"xventanacondops", RISCVExtensionVersion{1, 0}},
 
-+// RISCVISAInfo.cpp - INSERTION_START
-+// RISCVISAInfo.cpp - INSERTION_END
++// RISCVISAInfo.cpp - riscv_isa_info - INSERTION_START
++// RISCVISAInfo.cpp - riscv_isa_info - INSERTION_END
 +
      {"zawrs", RISCVExtensionVersion{1, 0}},
 
      {"zba", RISCVExtensionVersion{1, 0}},
+@@ -162,6 +162,9 @@ static const RISCVSupportedExtension SupportedExperimentalExtensions[] = {
+     {"smaia", RISCVExtensionVersion{1, 0}},
+     {"ssaia", RISCVExtensionVersion{1, 0}},
+
++// RISCVISAInfo.cpp - riscv_isa_info_experimental - INSERTION_START
++// RISCVISAInfo.cpp - riscv_isa_info_experimental - INSERTION_END
++
+     {"zacas", RISCVExtensionVersion{1, 0}},
+
+     {"zfa", RISCVExtensionVersion{0, 2}},
 diff --git a/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp b/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
 --- a/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
 +++ b/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
