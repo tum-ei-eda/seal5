@@ -32,6 +32,8 @@ set_log_level(console_level="DEBUG", file_level="DEBUG")
 EXAMPLES_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
 VERBOSE = False
 # VERBOSE = True
+# FAST = False
+FAST = True
 
 
 seal5_flow = Seal5Flow("/tmp/seal5_llvm_demo", "demo")
@@ -99,8 +101,9 @@ seal5_flow.load(cfg_files, verbose=VERBOSE, overwrite=False)
 # Apply initial patches
 seal5_flow.patch(verbose=VERBOSE, stages=[PatchStage.PHASE_0])
 
-# Build initial LLVM
-seal5_flow.build(verbose=VERBOSE, config="release")
+if not FAST:
+    # Build initial LLVM
+    seal5_flow.build(verbose=VERBOSE, config="release")
 
 # Transform inputs
 #   1. Create M2-ISA-R metamodel
