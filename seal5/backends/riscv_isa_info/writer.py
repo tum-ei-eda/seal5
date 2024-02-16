@@ -32,7 +32,9 @@ def gen_riscv_isa_info_str(name: str, ext_settings: ExtensionsSettings):
     print("ext_settings", ext_settings)
     arch = ext_settings.get_arch(name=name)
     version = ext_settings.get_version()
-    assert isinstance(version, float)
+    if not isinstance(version, str):
+        assert isinstance(version, (int, float))
+        version = str(float(version))
     version_major, version_minor = str(version).split(".", 1)
 
     content_template = Template(MAKO_TEMPLATE)

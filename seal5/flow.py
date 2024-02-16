@@ -1267,7 +1267,7 @@ include "seal5.td"
         if "riscv_features" not in skip:
             self.gen_riscv_features_patch()
         if "riscv_isa_infos" not in skip:
-            self.gen_riscv_isa_infos_patch()
+            self.gen_riscv_isa_info_patch()
         # if "subtarget_tests" not in skip:
         #     patches.extend(self.gen_subtarget_tests_patches())
 

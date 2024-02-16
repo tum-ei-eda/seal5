@@ -324,6 +324,12 @@ class ExtensionsSettings(YAMLSettings):
     instructions: Optional[List[str]] = None
     # patches
 
+    def get_version(self):
+        if self.version:
+            return self.version
+        else:
+            return "1.0"
+
     def get_description(self, name: Optional[str] = None):
         if self.description is None:
             if name:
