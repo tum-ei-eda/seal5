@@ -25,36 +25,26 @@ logger = logging.getLogger("riscv_features")
 
 
 MAKO_TEMPLATE = """
-def Feature${prefix}${feature} : SubtargetFeature<"${arch}", "Has${prefix}${feature}", "true", "'${feature}' (${description})">;
+def Feature${feature} : SubtargetFeature<"${arch}", "Has${feature}", "true", "'${feature}' (${description})">;
 
-def Has${prefix}${feature} : Predicate<"Subtarget->has${prefix}${feature}()">, AssemblerPredicate<(any_of FeatureExt${prefix}${feature}), "'${feature}' (${description})">;
+def Has${feature} : Predicate<"Subtarget->has${feature}()">, AssemblerPredicate<(any_of Feature${feature}), "'${feature}' (${description})">;
 """
 
 
 def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings):
-    # print("ext_settings", ext_settings)
-    prefix = ""
-    feature = ext_settings.feature
-    if feature is None:
-        feature = name
-    assert feature is not None
-    arch = ext_settings.get_arch()
-    experimental = ext_settings.experimental
-    vendor = ext_settings.vendor
-    description = ext_settings.get_description()
+    print("name", name)
+    print("ext_settings", ext_settings)
     requires = ext_settings.requires
+    feature = ext_settings.get_feature(name=name)
+    arch = ext_settings.get_arch(name=name)
+    description = ext_settings.get_description(name=name)
+    predicate = ext_settings.get_predicate(name=name)
+
     if requires:
         raise NotImplementedError
 
-    prefix = "Ext"
-    if vendor:
-        prefix = "Vendor"
-    else:
-        prefix = "StdExt"
-    if experimental:
-        arch = "experimental-" + arch
     content_template = Template(MAKO_TEMPLATE)
-    content_text = content_template.render(prefix=prefix, feature=feature, arch=arch, description=description)
+    content_text = content_template.render(predictae=predicate, feature=feature, arch=arch, description=description)
     # content_text = content_text.rstrip("\n")
     return content_text
 
@@ -141,10 +131,10 @@ def main():
         if len(content) > 0:
             with open(out_path, "w") as f:
                 f.write(content)
-        riscv_features_patch = NamedPatch(
-            "llvm/lib/Target/RISCV/RISCVFeatures.td", key="riscv_features", src_path=out_path
-        )
-        artifacts[None].append(riscv_features_patch)
+            riscv_features_patch = NamedPatch(
+                "llvm/lib/Target/RISCV/RISCVFeatures.td", key="riscv_features", src_path=out_path
+            )
+            artifacts[None].append(riscv_features_patch)
     if args.metrics:
         metrics_file = args.metrics
         with open(metrics_file, "w") as f:

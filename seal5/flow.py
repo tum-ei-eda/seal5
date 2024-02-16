@@ -929,6 +929,7 @@ class Seal5Flow:
             else:
                 new_name = name.replace(".seal5model", ".td")
             logger.info("Writing TableGen patterns for %s", name)
+            # TODO: move to patches dir!
             args = [
                 self.models_dir / name,
                 "--log",
@@ -981,29 +982,26 @@ class Seal5Flow:
         gen_index_file = True
         for input_file in input_files:
             name = input_file.name
-            if split:
-                new_name = name.replace(".seal5model", "")
-            else:
-                new_name = name.replace(".seal5model", ".td")
+            new_name = name.replace(".seal5model", "")
             logger.info("Writing RISCVFeatures.td patch for %s", name)
+            out_dir = self.patches_dir / new_name
+            out_dir.mkdir(exist_ok=True)
+
             args = [
                 self.models_dir / name,
                 "--log",
                 # "info",
                 "debug",
                 "--output",
-                self.temp_dir / new_name,
+                out_dir / "riscv_features.patch",
             ]
             if split:
-                (self.temp_dir / new_name).mkdir(exist_ok=True)
                 args.append("--splitted")
-            if formats:
-                args.append("--formats")
             if gen_metrics_file:
-                metrics_file = self.temp_dir / (new_name + "_tblgen_riscv_features_metrics.csv")
+                metrics_file = out_dir / ("riscv_features_metrics.csv")
                 args.extend(["--metrics", metrics_file])
             if gen_index_file:
-                index_file = self.temp_dir / (new_name + "_tblgen_riscv_features_index.yml")
+                index_file = out_dir / ("riscv_features_index.yml")
                 args.extend(["--index", index_file])
             utils.python(
                 "-m",

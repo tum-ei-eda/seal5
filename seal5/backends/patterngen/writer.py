@@ -127,10 +127,7 @@ def main():
                 install_dir = os.getenv("CDSL2LLVM_DIR", None)
                 ext = None
                 if ext_settings is not None:
-                    ext = ext_settings.feature
-                # TODO: move this fallback somewhere else
-                if ext is None:  # fallback to set_name
-                    ext = set_name.replace("_", "")
+                    ext = ext_settings.get_predicate(name=set_name)
                 assert install_dir is not None
                 install_dir = pathlib.Path(install_dir)
                 try:

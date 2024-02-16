@@ -312,26 +312,61 @@ class TransformSettings(YAMLSettings):
 @dataclass
 class ExtensionsSettings(YAMLSettings):
     feature: Optional[str] = None
+    predicate: Optional[str] = None
     arch: Optional[str] = None
     version: Optional[str] = None
     experimental: Optional[bool] = None
     vendor: Optional[bool] = None
+    std: Optional[bool] = None
     model: Optional[str] = None
     description: Optional[str] = None
     requires: Optional[List[str]] = None
     instructions: Optional[List[str]] = None
     # patches
 
-    @property
-    def get_description(self):
+    def get_description(self, name=None):
         if self.description is None:
-            return "RISC-V Extension"
+            if name:
+                description = name
+            else:
+                description = "RISC-V"
+            description += " Extension"
+            return description
+        else:
+            return self.description
 
-    @property
-    def get_arch(self):
+    def get_arch(self, name=None):
         if self.arch is None:
-            assert self.feature is not None
-            return self.feature.lower()
+            feature = self.get_feature(name=name)
+            assert feature is not None
+            arch = feature.lower()
+            if self.experimental:
+                arch = "experimental-" + arch
+            return arch
+        return self.arch
+
+    def get_feature(self, name=None):
+        if self.feature is None:
+            assert name is not None
+            feature = name.replace("_", "")
+            return feature
+        else:
+            return feature
+
+    def get_predicate(self, name=None):
+        if self.predicate is None:
+            feature = self.get_feature(name=name)
+            assert feature is not None
+            if self.vendor:
+                assert not self.std
+                prefix = "Vendor"
+            elif self.std:
+                prefix = "StdExt"
+            else:
+                prefix = "Ext"
+            return prefix + feature
+        else:
+            return self.predicate
 
 
 @dataclass
