@@ -16,7 +16,7 @@ from typing import Union
 
 from m2isar.metamodel import arch, patch_model
 
-from seal5.settings import Seal5Settings
+from seal5.settings import Seal5Settings, ExtensionsSettings
 
 logger = logging.getLogger("process_settings")
 
@@ -76,8 +76,9 @@ def main():
     for set_name, set_def in model["sets"].items():
         ext_settings = settings.extensions.get(set_name, None)
         if ext_settings is None:
-            # TODO: warn?
-            continue
+            # Fallback!
+            ext_settings = ExtensionsSettings(feature=set_name.replace("_", ""))
+            # TODOL extract other details from attributes
         assert set_def.settings is None
         set_def.settings = ext_settings  # TODO: decide how to do this properly
 
