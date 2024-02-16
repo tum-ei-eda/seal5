@@ -130,7 +130,11 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
             newStart = siteLine + 1
             newLen = content_.count("\n") + 1 + siteLen
             # ensure all existing lines in the match prefixed by a space
-            startMark = startMark.rstrip("\n").replace("\n", "\n ")
+            # if siteLen > 2 and startMark[-1] == "\n":
+            if False:
+                startMark = startMark.rstrip("\n").replace("\n", "\n ")
+            else:
+                startMark = startMark.rstrip("\n").replace("\n", "\n ")
             content = " {0}\n{1}\n {2}".format(startMark, content, endMark)
         else:
             assert is_file

@@ -24,11 +24,9 @@ from seal5.settings import ExtensionsSettings
 logger = logging.getLogger("riscv_features")
 
 
-MAKO_TEMPLATE = """
-def Feature${feature} : SubtargetFeature<"${arch}", "Has${feature}", "true", "'${feature}' (${description})">;
+MAKO_TEMPLATE = """def Feature${predicate} : SubtargetFeature<"${arch}", "Has${predicate}", "true", "'${feature}' (${description})">;
 
-def Has${feature} : Predicate<"Subtarget->has${feature}()">, AssemblerPredicate<(any_of Feature${feature}), "'${feature}' (${description})">;
-"""
+def Has${predicate} : Predicate<"Subtarget->has${predicate}()">, AssemblerPredicate<(any_of Feature${predicate}), "'${feature}' (${description})">;"""
 
 
 def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings):
@@ -44,7 +42,7 @@ def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings):
         raise NotImplementedError
 
     content_template = Template(MAKO_TEMPLATE)
-    content_text = content_template.render(predictae=predicate, feature=feature, arch=arch, description=description)
+    content_text = content_template.render(predicate=predicate, feature=feature, arch=arch, description=description)
     # content_text = content_text.rstrip("\n")
     return content_text
 

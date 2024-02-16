@@ -324,7 +324,7 @@ class ExtensionsSettings(YAMLSettings):
     instructions: Optional[List[str]] = None
     # patches
 
-    def get_description(self, name=None):
+    def get_description(self, name: Optional[str] = None):
         if self.description is None:
             if name:
                 description = name
@@ -335,7 +335,7 @@ class ExtensionsSettings(YAMLSettings):
         else:
             return self.description
 
-    def get_arch(self, name=None):
+    def get_arch(self, name: Optional[str] = None):
         if self.arch is None:
             feature = self.get_feature(name=name)
             assert feature is not None
@@ -345,15 +345,15 @@ class ExtensionsSettings(YAMLSettings):
             return arch
         return self.arch
 
-    def get_feature(self, name=None):
+    def get_feature(self, name: Optional[str] = None):
         if self.feature is None:
             assert name is not None
             feature = name.replace("_", "")
             return feature
         else:
-            return feature
+            return self.feature
 
-    def get_predicate(self, name=None):
+    def get_predicate(self, name: Optional[str] = None, with_has: bool = False):
         if self.predicate is None:
             feature = self.get_feature(name=name)
             assert feature is not None
@@ -364,8 +364,12 @@ class ExtensionsSettings(YAMLSettings):
                 prefix = "StdExt"
             else:
                 prefix = "Ext"
+            if with_has:
+                prefix = "Has" + prefix
             return prefix + feature
         else:
+            if with_has:
+                assert "has" in self.predicate.lower()
             return self.predicate
 
 
@@ -453,5 +457,6 @@ class Seal5Settings(YAMLSettings):
     riscv: Optional[RISCVSettings] = None
 
     def reset(self):
+        self.extensions = {}
         self.patches = []
         self.inputs = []
