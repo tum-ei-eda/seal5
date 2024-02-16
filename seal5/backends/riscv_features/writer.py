@@ -23,18 +23,6 @@ from seal5.settings import ExtensionsSettings
 
 logger = logging.getLogger("riscv_features")
 
-"""
-@dataclass
-class ExtensionsSettings(YAMLSettings):
-    feature: Optional[str] = None
-    arch: Optional[str] = None
-    version: Optional[str] = None
-    experimental: Optional[bool] = None
-    vendor: Optional[bool] = None
-    model: Optional[str] = None
-    instructions: Optional[List[str]] = None
-    # patches
-"""
 
 MAKO_TEMPLATE = """
 def Feature${prefix}${feature} : SubtargetFeature<"${arch}", "Has${prefix}${feature}", "true", "'${feature}' (${description})">;
@@ -44,9 +32,11 @@ def Has${prefix}${feature} : Predicate<"Subtarget->has${prefix}${feature}()">, A
 
 
 def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings):
-    print("ext_settings", ext_settings)
+    # print("ext_settings", ext_settings)
     prefix = ""
     feature = ext_settings.feature
+    if feature is None:
+        feature = name
     assert feature is not None
     arch = ext_settings.get_arch()
     experimental = ext_settings.experimental
@@ -67,7 +57,6 @@ def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings):
     content_text = content_template.render(prefix=prefix, feature=feature, arch=arch, description=description)
     # content_text = content_text.rstrip("\n")
     return content_text
-
 
 
 def main():
@@ -148,9 +137,12 @@ def main():
                 metrics["n_skipped"] += 1
                 continue
             metrics["n_success"] += 1
-            content += gen_riscv_features_str(ext_settings)
+            content += gen_riscv_features_str(set_name, ext_settings)
+        if len(content) > 0:
+            with open(out_path, "w") as f:
+                f.write(content)
         riscv_features_patch = NamedPatch(
-            "llvm/lib/Target/RISCV/RISCVFeatures.td", key="riscv_features", content=content
+            "llvm/lib/Target/RISCV/RISCVFeatures.td", key="riscv_features", src_path=out_path
         )
         artifacts[None].append(riscv_features_patch)
     if args.metrics:
