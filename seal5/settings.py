@@ -317,8 +317,21 @@ class ExtensionsSettings(YAMLSettings):
     experimental: Optional[bool] = None
     vendor: Optional[bool] = None
     model: Optional[str] = None
+    description: Optional[str] = None
+    requires: Optional[List[str]] = None
     instructions: Optional[List[str]] = None
     # patches
+
+    @property
+    def get_description(self):
+        if self.description is None:
+            return "RISC-V Extension"
+
+    @property
+    def get_arch(self):
+        if self.arch is None:
+            assert self.feature is not None
+            return self.feature.lower()
 
 
 @dataclass

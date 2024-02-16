@@ -972,7 +972,7 @@ class Seal5Flow:
                 else:
                     logger.warning("No patches found!")
 
-    def gen_riscv_features_patch(self, verbose: bool = False, split: bool = True):
+    def gen_riscv_features_patch(self, verbose: bool = False, split: bool = False):
         assert not split, "TODO"
         input_files = list(self.models_dir.glob("*.seal5model"))
         assert len(input_files) > 0, "No Seal5 models found!"

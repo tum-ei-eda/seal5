@@ -14,6 +14,8 @@ import pathlib
 import pickle
 from typing import Union
 
+from mako.template import Template
+
 from m2isar.metamodel import arch
 
 from seal5.index import NamedPatch, write_index_yaml
@@ -21,10 +23,51 @@ from seal5.settings import ExtensionsSettings
 
 logger = logging.getLogger("riscv_features")
 
+"""
+@dataclass
+class ExtensionsSettings(YAMLSettings):
+    feature: Optional[str] = None
+    arch: Optional[str] = None
+    version: Optional[str] = None
+    experimental: Optional[bool] = None
+    vendor: Optional[bool] = None
+    model: Optional[str] = None
+    instructions: Optional[List[str]] = None
+    # patches
+"""
 
-def gen_riscv_features_str(ext_settings: ExtensionsSettings):
+MAKO_TEMPLATE = """
+def Feature${prefix}${feature} : SubtargetFeature<"${arch}", "Has${prefix}${feature}", "true", "'${feature}' (${description})">;
+
+def Has${prefix}${feature} : Predicate<"Subtarget->has${prefix}${feature}()">, AssemblerPredicate<(any_of FeatureExt${prefix}${feature}), "'${feature}' (${description})">;
+"""
+
+
+def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings):
     print("ext_settings", ext_settings)
-    raise NotImplementedError
+    prefix = ""
+    feature = ext_settings.feature
+    assert feature is not None
+    arch = ext_settings.get_arch()
+    experimental = ext_settings.experimental
+    vendor = ext_settings.vendor
+    description = ext_settings.get_description()
+    requires = ext_settings.requires
+    if requires:
+        raise NotImplementedError
+
+    prefix = "Ext"
+    if vendor:
+        prefix = "Vendor"
+    else:
+        prefix = "StdExt"
+    if experimental:
+        arch = "experimental-" + arch
+    content_template = Template(MAKO_TEMPLATE)
+    content_text = content_template.render(prefix=prefix, feature=feature, arch=arch, description=description)
+    # content_text = content_text.rstrip("\n")
+    return content_text
+
 
 
 def main():
@@ -97,7 +140,6 @@ def main():
     else:
         content = ""
         # errs = []
-        assert out_path.is_dir(), "Expecting output directory when using --splitted"
         for set_name, set_def in model["sets"].items():
             artifacts[set_name] = []
             metrics["n_sets"] += 1
@@ -107,7 +149,9 @@ def main():
                 continue
             metrics["n_success"] += 1
             content += gen_riscv_features_str(ext_settings)
-        riscv_features_patch = NamedPatch("llvm/lib/Target/RISCV/RISCVFeatures.td", key="riscv_features", content=content)
+        riscv_features_patch = NamedPatch(
+            "llvm/lib/Target/RISCV/RISCVFeatures.td", key="riscv_features", content=content
+        )
         artifacts[None].append(riscv_features_patch)
     if args.metrics:
         metrics_file = args.metrics

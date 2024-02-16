@@ -147,5 +147,5 @@ diff --git a/llvm/lib/Target/RISCV/RISCVFeatures.td b/llvm/lib/Target/RISCV/RISC
      "true", "Use an instruction sequence for taking the address of a global "
      "that allows a memory tag in the upper address bits">;
 +
-++// RISCVFeatures.td - riscv_features - INSERTION_START
-++// RISCVFeatures.td - riscv_features - INSERTION_END
++// RISCVFeatures.td - riscv_features - INSERTION_START
++// RISCVFeatures.td - riscv_features - INSERTION_END

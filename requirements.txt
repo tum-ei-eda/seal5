@@ -5,3 +5,4 @@ pyyaml
 m2isar @ git+https://github.com/PhilippvK/M2-ISA-R.git@seal5
 importlib_resources
 dacite
+mako
