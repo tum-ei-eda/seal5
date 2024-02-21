@@ -435,6 +435,15 @@ class LLVMSettings(YAMLSettings):
     state: Optional[LLVMState] = None
     configs: Optional[Dict[str, LLVMConfig]] = None
 
+@dataclass
+class RISCVLegalizerSetting(YAMLSettings):
+    name: Optional[Union[str, List[str]]] = None
+    types: Optional[Union[str, List[str]]] = None
+    onlyif: Optional[Union[str, List[str]]] = None
+
+@dataclass
+class RISCVLegalizerSettings(YAMLSettings):
+    ops: Optional[List[RISCVLegalizerSetting]] = None
 
 @dataclass
 class RISCVSettings(YAMLSettings):
@@ -446,6 +455,7 @@ class RISCVSettings(YAMLSettings):
     transform_info: Optional[Dict[str, Optional[Union[bool, int]]]] = None
     # options: see ttiimpl_notes.txt
     # TODO: processor/pipeline/mcpu/tune -> ProcessorSettings
+    legalization: Optional[Dict[str, RISCVLegalizerSettings]] = None
 
 
 @dataclass
