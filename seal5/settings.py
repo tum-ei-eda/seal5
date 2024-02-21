@@ -420,9 +420,17 @@ class FilterSettings(YAMLSettings):
 
 
 @dataclass
+class LLVMVersion(YAMLSettings):
+    major: Optional[int] = None
+    minor: Optional[int] = None
+    patch: Optional[int] = None
+    rc: Optional[int] = None
+
+
+@dataclass
 class LLVMState(YAMLSettings):
     base_commit: Optional[str] = None
-    version: Optional[str] = None
+    version: Optional[Union[str, LLVMVersion]] = None
 
 
 @dataclass

@@ -53,6 +53,8 @@ def clone_llvm_repo(
     dest: Path, clone_url: str, ref: Optional[str] = None, refresh: bool = False, label: str = "default"
 ):
     sha = None
+    version_info = {}
+    repo = None
     if dest.is_dir():
         if refresh:
             logger.debug("Refreshing LLVM repository: %s", dest)
@@ -62,17 +64,31 @@ def clone_llvm_repo(
             if ref:
                 repo.git.checkout(ref)
                 repo.git.pull("origin", ref)
-            repo.create_tag(f"seal5-{label}-base", "-f")
-            sha = repo.head.commit.hexsha
     else:
         logger.debug("Cloning LLVM repository: %s", clone_url)
         repo = git.Repo.clone_from(clone_url, dest, no_checkout=ref is not None)
         if ref:
             logger.debug("Checking out branch: %s", ref)
             repo.git.checkout(ref)
-        repo.create_tag(f"seal5-{label}-base", "-f")
-        sha = repo.head.commit.hexsha
-    return sha
+    repo.create_tag(f"seal5-{label}-base", "-f")
+    # git describe --tags --match "llvmorg-[0-9]*.[0-9]*.[0-9]*"
+    describe = repo.git.describe("--tags", "--match", "llvmorg-[0-9]*.[0-9]*.[0-9]*")
+    if describe:
+        splitted = describe.split("-", 3)
+        base = splitted[0]
+        assert base == "llvmorg"
+        version = splitted[1]
+        major, minor, patch = version.split(".")
+        version_info["major"] = int(major)
+        version_info["minor"] = int(minor)
+        version_info["patch"] = int(patch)
+        rest = splitted[2]
+        if "rc" in rest:
+            rc = rest.split("-", 1)[0][2:]
+            version_info["rc"] = int(rc)
+
+    sha = repo.head.commit.hexsha
+    return sha, version_info
 
 
 def build_llvm(

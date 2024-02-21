@@ -27,7 +27,7 @@ import git
 
 from seal5.logging import get_logger, set_log_file, set_log_level
 from seal5.types import Seal5State, PatchStage
-from seal5.settings import Seal5Settings, PatchSettings, DEFAULT_SETTINGS, LLVMConfig
+from seal5.settings import Seal5Settings, PatchSettings, DEFAULT_SETTINGS, LLVMConfig, LLVMVersion
 
 from seal5.dependencies import cdsl2llvm_dependency
 from seal5 import utils
@@ -157,10 +157,10 @@ class Seal5Flow:
             if clone is False and not utils.ask_user("Clone LLVM repository?", default=False, interactive=interactive):
                 logger.error("Target directory does not exist! Aborting...")
                 sys.exit(1)
-            sha = llvm.clone_llvm_repo(self.directory, clone_url, ref=clone_ref, label=self.name)
+            sha, version_info = llvm.clone_llvm_repo(self.directory, clone_url, ref=clone_ref, label=self.name)
         else:
             if force:
-                sha = llvm.clone_llvm_repo(self.directory, clone_url, ref=clone_ref, refresh=True, label=self.name)
+                sha, version_info = llvm.clone_llvm_repo(self.directory, clone_url, ref=clone_ref, refresh=True, label=self.name)
         if self.meta_dir.is_dir():
             if force is False and not utils.ask_user(
                 "Overwrite existing .seal5 diretcory?", default=False, interactive=interactive
@@ -172,6 +172,9 @@ class Seal5Flow:
             self.meta_dir, ["deps", "models", "logs", "build", "install", "temp", "inputs", "gen", "patches"]
         )
         self.settings = Seal5Settings.from_dict(DEFAULT_SETTINGS)
+        if version_info:
+            llvm_version = LLVMVersion(**version_info)
+            self.settings.llvm.state.version = llvm_version
         if sha:
             self.settings.llvm.state.base_commit = sha
         self.settings.to_yaml_file(self.settings_file)
@@ -1255,6 +1258,8 @@ include "seal5.td"
     def generate(self, verbose: bool = False):
         logger.info("Generating Seal5 patches")
         # raise NotImplementedError
+        llvm_version = self.settings.llvm.state.version
+        assert llvm_version is not None
         patches = []
         skip = []  # TODO: User, Global, PerInstr
         # TODO: only: []
@@ -1301,6 +1306,8 @@ include "seal5.td"
 
         # Others
         if "pattern_gen" not in skip:
+            if llvm_version.major < 18:
+                raise RuntimeError("PatternGen needs LLVM version 18 or higher")
             self.convert_behav_to_llvmir_splitted(verbose=verbose)  # TODO: add split arg
             self.convert_llvmir_to_gmir_splitted(verbose=verbose)  # TODO: add split arg
             self.convert_behav_to_tablegen(verbose=verbose, split=True)
