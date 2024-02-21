@@ -51,12 +51,6 @@ seal5_flow.initialize(
 # Optional: clean existing settings/models for fresh run
 seal5_flow.reset(settings=True, interactive=False)
 
-# Clone Seal5 dependencies
-# 1. M2-ISA-R (frontend only)
-# 2. CDSL2LLVM (later)
-# TODO: refresh refs
-seal5_flow.setup(force=True, verbose=VERBOSE)
-
 # Load CoreDSL inputs
 cdsl_files = [
     # XCOREV
@@ -101,18 +95,44 @@ cfg_files = [
 ]
 seal5_flow.load(cfg_files, verbose=VERBOSE, overwrite=False)
 
+# Clone & install Seal5 dependencies
+# 1. CDSL2LLVM (add PHASE_0 patches)
+seal5_flow.setup(force=True, verbose=VERBOSE)
+
 # Apply initial patches
 seal5_flow.patch(verbose=VERBOSE, stages=[PatchStage.PHASE_0])
 
 if not FAST:
     # Build initial LLVM
     seal5_flow.build(verbose=VERBOSE, config="release")
+else:
+    pass
+    # Build PatternGen & llc
+    # seal5_flow.build(verbose=VERBOSE, config="release", target="pattern-gen")
+    # seal5_flow.build(verbose=VERBOSE, config="release", target="llc")
 
 # Transform inputs
 #   1. Create M2-ISA-R metamodel
 #   2. Convert to Seal5 metamodel (including aliases, builtins,...)
 #   3. Analyse/optimize instructions
 seal5_flow.transform(verbose=VERBOSE)
+
+# Generate patches (except Patterns)
+seal5_flow.generate(verbose=VERBOSE, skip=["pattern_gen"])
+
+# Apply next patches
+seal5_flow.patch(verbose=VERBOSE, stages=[PatchStage.PHASE_1, PatchStage.PHASE_2])
+
+if not FAST:
+    # Build patch LLVM
+    seal5_flow.build(verbose=VERBOSE, config="release")
+else:
+    # Rebuilt PatternGen & llc
+    seal5_flow.build(verbose=VERBOSE, config="release", target="pattern-gen")
+    seal5_flow.build(verbose=VERBOSE, config="release", target="llc")
+
+# Generate remaining patches
+seal5_flow.generate(verbose=VERBOSE, only=["pattern_gen"])
 
 # Generate patches
 seal5_flow.generate(verbose=VERBOSE)

@@ -147,7 +147,8 @@ def main():
                 install_dir = pathlib.Path(install_dir)
                 try:
                     cdsl2llvm.run_pattern_gen(
-                        install_dir / "llvm" / "build",
+                        # install_dir / "llvm" / "build",
+                        install_dir,
                         input_file,
                         output_file,
                         skip_patterns=False,

@@ -127,6 +127,11 @@ DEFAULT_SETTINGS = {
     "groups": {
         "all": "*",
     },
+    "tools": {
+        "pattern_gen": {
+            "integrated": True,
+        },
+    },
 }
 
 
@@ -467,6 +472,15 @@ class RISCVSettings(YAMLSettings):
 
 
 @dataclass
+class PatternGenSettings(YAMLSettings):
+    integrated: Optional[bool] = None
+
+
+@dataclass
+class ToolsSettings(YAMLSettings):
+    pattern_gen: Optional[PatternGenSettings] = None
+
+@dataclass
 class Seal5Settings(YAMLSettings):
     logging: Optional[LoggingSettings] = None
     filter: Optional[FilterSettings] = None
@@ -479,6 +493,7 @@ class Seal5Settings(YAMLSettings):
     groups: Optional[GroupsSettings] = None  # TODO: make list?
     inputs: Optional[List[str]] = None
     riscv: Optional[RISCVSettings] = None
+    tools: Optional[ToolsSettings] = None
 
     def reset(self):
         self.extensions = {}

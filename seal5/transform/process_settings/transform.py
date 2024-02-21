@@ -73,6 +73,9 @@ def main():
             else:
                 assert False
 
+    assert "settings" not in model
+    model["settings"] = settings
+
     for set_name, set_def in model["sets"].items():
         ext_settings = settings.extensions.get(set_name, None)
         if ext_settings is None:

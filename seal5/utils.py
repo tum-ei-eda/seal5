@@ -154,13 +154,15 @@ def cmake(src, *args, debug: Optional[bool] = None, use_ninja: Optional[bool] = 
     return exec_getout(*cmd, cwd=cwd, **kwargs)
 
 
-def make(*args, threads=multiprocessing.cpu_count(), use_ninja=False, cwd=None, verbose=False, **kwargs):
+def make(*args, target=None, threads=multiprocessing.cpu_count(), use_ninja=False, cwd=None, verbose=False, **kwargs):
     if cwd is None:
         raise RuntimeError("Please always pass a cwd to make()")
     if isinstance(cwd, Path):
         cwd = str(cwd.resolve())
     # TODO: make sure that ninja is installed?
     extraArgs = []
+    if target:
+        extraArgs.append(target)
     tool = "ninja" if use_ninja else "make"
     extraArgs.append("-j" + str(threads))
     cmd = [tool] + extraArgs + list(args)

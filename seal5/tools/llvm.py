@@ -94,6 +94,7 @@ def clone_llvm_repo(
 def build_llvm(
     src: Path,
     dest: Path,
+    target: str = "all",
     debug: Optional[bool] = None,
     use_ninja: Optional[bool] = None,
     verbose: bool = False,
@@ -110,7 +111,7 @@ def build_llvm(
         print_func=logger.info if verbose else logger.debug,
         live=True,
     )
-    utils.make(cwd=dest, print_func=logger.info if verbose else logger.debug, live=True)
+    utils.make(target=target, cwd=dest, print_func=logger.info if verbose else logger.debug, live=True)
 
 
 def test_llvm(base: Path, build_dir: Path, test_paths: List[str] = [], verbose: bool = False):

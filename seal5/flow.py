@@ -189,38 +189,46 @@ class Seal5Flow:
         verbose: bool = False,
     ):
         logger.info("Installing Seal5 dependencies")
-        # m2isar_dependency.clone(self.deps_dir / "M2-ISA-R", overwrite=force)
         logger.info("Cloning CDSL2LLVM")
         # cdsl2llvm_dependency.clone(self.deps_dir / "cdsl2llvm", overwrite=force, depth=1)
         cdsl2llvm_dependency.clone(self.deps_dir / "cdsl2llvm", overwrite=force)
-        logger.info("Building PatternGen")
-        llvm_config = LLVMConfig(
-            options={
-                "CMAKE_BUILD_TYPE": "Release",
-                "LLVM_BUILD_TOOLS": False,
-                "LLVM_ENABLE_ASSERTIONS": False,
-                "LLVM_OPTIMIZED_TABLEGEN": True,
-                "LLVM_ENABLE_PROJECT": [],
-                "LLVM_TARGETS_TO_BUILD": ["RISCV"],
-            }
-        )
-        # llvm_config = LLVMConfig(options={"CMAKE_BUILD_TYPE": "Debug", "LLVM_BUILD_TOOLS": False, "LLVM_ENABLE_ASSERTIONS": False, "LLVM_OPTIMIZED_TABLEGEN": True, "LLVM_ENABLE_PROJECT": [], "LLVM_TARGETS_TO_BUILD": ["RISCV"]})
-        cmake_options = llvm_config.options
-        cdsl2llvm.build_pattern_gen(
-            self.deps_dir / "cdsl2llvm",
-            self.deps_dir / "cdsl2llvm" / "llvm" / "build",
-            cmake_options=cmake_options,
-            use_ninja=True,
-        )
-        logger.info("Completed build of PatternGen")
-        logger.info("Building llc")
-        cdsl2llvm.build_llc(
-            self.deps_dir / "cdsl2llvm",
-            self.deps_dir / "cdsl2llvm" / "llvm" / "build",
-            cmake_options=cmake_options,
-            use_ninja=True,
-        )
-        logger.info("Completed build of llc")
+        integrated_pattern_gen = self.settings.tools.pattern_gen.integrated
+        if integrated_pattern_gen:
+            logger.info("Adding PatternGen to target LLVM")
+            patch_settings = cdsl2llvm.get_pattern_gen_patches(
+                self.deps_dir / "cdsl2llvm",
+                self.temp_dir,
+            )
+            self.settings.patches.append(patch_settings)
+        else:
+            logger.info("Building PatternGen")
+            llvm_config = LLVMConfig(
+                options={
+                    "CMAKE_BUILD_TYPE": "Release",
+                    "LLVM_BUILD_TOOLS": False,
+                    "LLVM_ENABLE_ASSERTIONS": False,
+                    "LLVM_OPTIMIZED_TABLEGEN": True,
+                    "LLVM_ENABLE_PROJECT": [],
+                    "LLVM_TARGETS_TO_BUILD": ["RISCV"],
+                }
+            )
+            # llvm_config = LLVMConfig(options={"CMAKE_BUILD_TYPE": "Debug", "LLVM_BUILD_TOOLS": False, "LLVM_ENABLE_ASSERTIONS": False, "LLVM_OPTIMIZED_TABLEGEN": True, "LLVM_ENABLE_PROJECT": [], "LLVM_TARGETS_TO_BUILD": ["RISCV"]})
+            cmake_options = llvm_config.options
+            cdsl2llvm.build_pattern_gen(
+                self.deps_dir / "cdsl2llvm",
+                self.deps_dir / "cdsl2llvm" / "llvm" / "build",
+                cmake_options=cmake_options,
+                use_ninja=True,
+            )
+            logger.info("Completed build of PatternGen")
+            logger.info("Building llc")
+            cdsl2llvm.build_llc(
+                self.deps_dir / "cdsl2llvm",
+                self.deps_dir / "cdsl2llvm" / "llvm" / "build",
+                cmake_options=cmake_options,
+                use_ninja=True,
+            )
+            logger.info("Completed build of llc")
         # input("qqqqqq")
         logger.info("Completed installation of Seal5 dependencies")
 
@@ -232,7 +240,14 @@ class Seal5Flow:
     def prepare_environment(self):
         env = os.environ.copy()
         # env["PYTHONPATH"] = str(self.deps_dir / "M2-ISA-R")
-        env["CDSL2LLVM_DIR"] = str(self.deps_dir / "cdsl2llvm")
+        cdsl2llvm_build_dir = None
+        integrated_pattern_gen = self.settings.tools.pattern_gen.integrated
+        if integrated_pattern_gen:
+            config = "release"  # TODO: fetch default config
+            cdsl2llvm_build_dir = str(self.build_dir / config)
+        else:
+            cdsl2llvm_build_dir = str(self.deps_dir / "cdsl2llvm" / "llvm" / "build")
+        env["CDSL2LLVM_DIR"] = cdsl2llvm_build_dir
         return env
 
     def parse_coredsl(self, file, out_dir, verbose: bool = False):
@@ -278,12 +293,12 @@ class Seal5Flow:
         # TODO: only allow single instr set for now and track inputs in settings
         logger.info("Completed load of Seal5 inputs")
 
-    def build(self, config="release", verbose: bool = False):
+    def build(self, config="release", target="all", verbose: bool = False):
         logger.info("Building Seal5 LLVM")
         llvm_config = self.settings.llvm.configs.get(config, None)
         assert llvm_config is not None, f"Invalid llvm config: {config}"
         cmake_options = llvm_config.options
-        llvm.build_llvm(self.directory, self.build_dir / config, cmake_options=cmake_options)
+        llvm.build_llvm(self.directory, self.build_dir / config, cmake_options=cmake_options, target=target)
         logger.info("Completed build of Seal5 LLVM")
 
     def convert_models(self, verbose: bool = False, inplace: bool = False):
@@ -965,7 +980,7 @@ class Seal5Flow:
                     patch_name = f"tblgen_patterns_{input_file.stem}"
                     patch_settings = PatchSettings(
                         name=patch_name,
-                        stage=int(PatchStage.PHASE_2),
+                        stage=int(PatchStage.PHASE_4),
                         comment=f"CDSL2LLVM Generated Tablegen Patterns for {input_file.name}",
                         index=str(index_file),
                         generated=True,
@@ -1019,7 +1034,7 @@ class Seal5Flow:
                     patch_name = f"riscv_features_{input_file.stem}"
                     patch_settings = PatchSettings(
                         name=patch_name,
-                        stage=int(PatchStage.PHASE_1),
+                        stage=int(PatchStage.PHASE_2),
                         comment=f"Generated RISCVFeatures.td patch for {input_file.name}",
                         index=str(index_file),
                         generated=True,
@@ -1083,6 +1098,58 @@ class Seal5Flow:
                     self.settings.to_yaml_file(self.settings_file)
                 else:
                     logger.warning("No patches found!")
+
+    def gen_riscv_gisel_legalizer_patch(self, verbose: bool = False):
+        input_files = list(self.models_dir.glob("*.seal5model"))
+        assert len(input_files) > 0, "No Seal5 models found!"
+        gen_metrics_file = False  # TODO
+        gen_index_file = True
+        for input_file in input_files:
+            name = input_file.name
+            new_name = name.replace(".seal5model", "")
+            logger.info("Writing RISCVLegalizerInfo.cpp patch")
+            out_dir = self.patches_dir / new_name
+            out_dir.mkdir(exist_ok=True)
+
+            args = [
+                self.models_dir / name,
+                "--log",
+                # "info",
+                "debug",
+                "--output",
+                out_dir / "riscv_gisel_legalizer.patch",
+            ]
+            if gen_metrics_file:
+                metrics_file = out_dir / ("riscv_gisel_legalizer_metrics.csv")
+                args.extend(["--metrics", metrics_file])
+            if gen_index_file:
+                index_file = out_dir / ("riscv_gisel_legalizer_index.yml")
+                args.extend(["--index", index_file])
+            utils.python(
+                "-m",
+                "seal5.backends.riscv_gisel_legalizer.writer",
+                *args,
+                env=self.prepare_environment(),
+                print_func=logger.info if verbose else logger.debug,
+                live=True,
+            )
+            if gen_index_file:
+                if index_file.is_file():
+                    patch_name = f"riscv_gisel_legalizer"
+                    patch_settings = PatchSettings(
+                        name=patch_name,
+                        stage=int(PatchStage.PHASE_1),
+                        comment=f"Generated RISCVLegalizerInfo.cpp patch",
+                        index=str(index_file),
+                        generated=True,
+                        target="llvm",
+                    )
+                    self.settings.patches.append(patch_settings)
+                    self.settings.to_yaml_file(self.settings_file)
+                else:
+                    logger.warning("No patches found!")
+            break  # skip after first one
+            # TODO: introduce global (model-independed) settings file
 
     # def convert_behav_to_tablegen_splitted(self, verbose: bool = False, inplace: bool = True):
     #     assert inplace
@@ -1255,24 +1322,25 @@ include "seal5.td"
 
         logger.info("Completed tranformation of Seal5 models")
 
-    def generate(self, verbose: bool = False):
+    def generate(self, verbose: bool = False, skip: Optional[List[str]] = None, only: Optional[List[str]] = None):
         logger.info("Generating Seal5 patches")
         # raise NotImplementedError
         llvm_version = self.settings.llvm.state.version
         assert llvm_version is not None
         patches = []
-        skip = []  # TODO: User, Global, PerInstr
-        # TODO: only: []
+        # TODO: User, Global, PerInstr
+        skip = skip if skip is not None else []
+        only = only if only is not None else []
 
         # Prerequisites
         self.write_cdsl(verbose=verbose, split=True, compat=True)
         self.gen_seal5_td(verbose=verbose)
 
         # # General
-        if "riscv_features" not in skip:
-            self.gen_riscv_features_patch()
-        if "riscv_isa_infos" not in skip:
-            self.gen_riscv_isa_info_patch()
+        if ("riscv_features" in only or len(only) == 0) and "riscv_features" not in skip:
+            self.gen_riscv_features_patch(verbose=verbose)
+        if ("riscv_isa_infos" in only or len(only) == 0) and "riscv_isa_infos" not in skip:
+            self.gen_riscv_isa_info_patch(verbose=verbose)
         # if "subtarget_tests" not in skip:
         #     patches.extend(self.gen_subtarget_tests_patches())
 
@@ -1293,8 +1361,8 @@ include "seal5.td"
         # # Codegen Level
         # if "selection_dag_legalizer" not in skip:
         #     patches.extend(self.gen_selection_dag_legalizer_patches())
-        # if "globalisel_legalizer" not in skip:
-        #     patches.extend(self.gen_globalisel_legalizer_patches())
+        if "riscv_gisel_legalizer" not in skip:
+            self.gen_riscv_gisel_legalizer_patch(verbose=verbose)
         # if "scalar_costs" not in skip:
         #     patches.extend(self.gen_scalar_costs_patches())
         # if "simd_costs" not in skip:
@@ -1305,7 +1373,7 @@ include "seal5.td"
         #     patches.extend(self.gen_codegen_tests_patches())
 
         # Others
-        if "pattern_gen" not in skip:
+        if ("pattern_gen" in only or len(only) == 0) and "pattern_gen" not in skip:
             if llvm_version.major < 18:
                 raise RuntimeError("PatternGen needs LLVM version 18 or higher")
             self.convert_behav_to_llvmir_splitted(verbose=verbose)  # TODO: add split arg
