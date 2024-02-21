@@ -1,0 +1,211 @@
+diff --git a/clang/include/clang/Basic/BuiltinsRISCV.def b/clang/include/clang/Basic/BuiltinsRISCV.def
+--- a/clang/include/clang/Basic/BuiltinsRISCV.def
++++ b/clang/include/clang/Basic/BuiltinsRISCV.def
+@@ -89,5 +89,8 @@ TARGET_BUILTIN(__builtin_riscv_sm3p1, "UiUi", "nc", "zksh")
+ TARGET_BUILTIN(__builtin_riscv_ntl_load, "v.", "t", "zihintntl")
+ TARGET_BUILTIN(__builtin_riscv_ntl_store, "v.", "t", "zihintntl")
+
++// BuiltinsRISCV.def - builtins_riscv - INSERTION_START
++// BuiltinsRISCV.def - builtins_riscv - INSERTION_END
++
+ #undef BUILTIN
+ #undef TARGET_BUILTIN
+diff --git a/clang/lib/CodeGen/CGBuiltin.cpp b/clang/lib/CodeGen/CGBuiltin.cpp
+--- a/clang/lib/CodeGen/CGBuiltin.cpp
++++ b/clang/lib/CodeGen/CGBuiltin.cpp
+@@ -21243,6 +21243,9 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
+     ID = Intrinsic::riscv_sha256sum1;
+     break;
+
++// CGBuiltin.cpp - cg_builtin - INSERTION_START
++// CGBuiltin.cpp - cg_builtin - INSERTION_END
++
+   // Zksed
+   case RISCV::BI__builtin_riscv_sm4ks:
+     ID = Intrinsic::riscv_sm4ks;
+diff --git a/llvm/include/llvm/IR/IntrinsicsRISCV.td b/llvm/include/llvm/IR/IntrinsicsRISCV.td
+--- a/llvm/include/llvm/IR/IntrinsicsRISCV.td
++++ b/llvm/include/llvm/IR/IntrinsicsRISCV.td
+@@ -1882,6 +1882,9 @@ let TargetPrefix = "riscv" in {
+   // Zvksh
+   def int_riscv_vsm3c    : RISCVBinaryAAXUnMaskedZvk<IsVI=1>;
+   def int_riscv_vsm3me   : RISCVBinaryAAXUnMasked;
++
++// IntrinsicsRISCV.td - intrinsics_riscv - INSERTION_START
++// IntrinsicsRISCV.td - intrinsics_riscv - INSERTION_END
+ } // TargetPrefix = "riscv"
+
+ // Vendor extensions
+diff --git a/llvm/include/llvm/InitializePasses.h b/llvm/include/llvm/InitializePasses.h
+--- a/llvm/include/llvm/InitializePasses.h
++++ b/llvm/include/llvm/InitializePasses.h
+@@ -313,6 +313,8 @@ void initializeWasmEHPreparePass(PassRegistry&);
+ void initializeWinEHPreparePass(PassRegistry&);
+ void initializeWriteBitcodePassPass(PassRegistry&);
+ void initializeXRayInstrumentationPass(PassRegistry&);
++// InitializePasses.h - initialize_passes_decl - INSERTION_START
++// InitializePasses.h - initialize_passes_decl - INSERTION_END
+
+ } // end namespace llvm
+
+diff --git a/llvm/lib/CodeGen/GlobalISel/CMakeLists.txt b/llvm/lib/CodeGen/GlobalISel/CMakeLists.txt
+--- a/llvm/lib/CodeGen/GlobalISel/CMakeLists.txt
++++ b/llvm/lib/CodeGen/GlobalISel/CMakeLists.txt
+@@ -24,6 +24,8 @@ add_llvm_component_library(LLVMGlobalISel
+   MachineIRBuilder.cpp
+   RegBankSelect.cpp
+   Utils.cpp
++// CMakeLists.txt - gisel_cmake_srcs - INSERTION_START
++// CMakeLists.txt - gisel_cmake_srcs - INSERTION_END
+
+   ADDITIONAL_HEADER_DIRS
+   ${LLVM_MAIN_INCLUDE_DIR}/llvm/CodeGen/GlobalISel
+diff --git a/llvm/lib/CodeGen/GlobalISel/GlobalISel.cpp b/llvm/lib/CodeGen/GlobalISel/GlobalISel.cpp
+--- a/llvm/lib/CodeGen/GlobalISel/GlobalISel.cpp
++++ b/llvm/lib/CodeGen/GlobalISel/GlobalISel.cpp
+@@ -21,4 +21,6 @@ void llvm::initializeGlobalISel(PassRegistry &Registry) {
+   initializeLocalizerPass(Registry);
+   initializeRegBankSelectPass(Registry);
+   initializeInstructionSelectPass(Registry);
++  // GlobalIsel.cpp - gisel_init - INSERTION_START
++  // GlobalIsel.cpp - gisel_init - INSERTION_END
+ }
+diff --git a/llvm/lib/Support/RISCVISAInfo.cpp b/llvm/lib/Support/RISCVISAInfo.cpp
+--- a/llvm/lib/Support/RISCVISAInfo.cpp
++++ b/llvm/lib/Support/RISCVISAInfo.cpp
+@@ -89,6 +89,9 @@ static const RISCVSupportedExtension SupportedExtensions[] = {
+     {"xtheadvdot", {1, 0}},
+     {"xventanacondops", {1, 0}},
+
++// RISCVISAInfo.cpp - riscv_isa_info - INSERTION_START
++// RISCVISAInfo.cpp - riscv_isa_info - INSERTION_END
++
+     {"za128rs", {1, 0}},
+     {"za64rs", {1, 0}},
+     {"zawrs", {1, 0}},
+@@ -192,6 +195,8 @@ static const RISCVSupportedExtension SupportedExtensions[] = {
+
+ // NOTE: This table should be sorted alphabetically by extension name.
+ static const RISCVSupportedExtension SupportedExperimentalExtensions[] = {
++// RISCVISAInfo.cpp - riscv_isa_info_experimental - INSERTION_START
++// RISCVISAInfo.cpp - riscv_isa_info_experimental - INSERTION_END
+     {"zacas", {1, 0}},
+
+     {"zcmop", {0, 2}},
+diff --git a/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp b/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
+--- a/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
++++ b/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
+@@ -696,6 +696,8 @@ public:
+   bool isUImm7() const { return IsUImm<7>(); }
+   bool isUImm8() const { return IsUImm<8>(); }
+   bool isUImm20() const { return IsUImm<20>(); }
++  // RISCVAsmParser.cpp - riscv_operands - INSERTION_START
++  // RISCVAsmParser.cpp - riscv_operands - INSERTION_END
+
+   bool isUImm8GE32() const {
+     int64_t Imm;
+diff --git a/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp b/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
+--- a/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
++++ b/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
+@@ -75,6 +75,9 @@ RISCVLegalizerInfo::RISCVLegalizerInfo(const RISCVSubtarget &ST)
+
+   using namespace TargetOpcode;
+
++// RISCVLegalizerInfo.cpp - riscv_legalizer_info - INSERTION_START
++// RISCVLegalizerInfo.cpp - riscv_legalizer_info - INSERTION_END
++
+   auto AllVecTys = {nxv1s8,   nxv2s8,  nxv4s8,  nxv8s8,  nxv16s8, nxv32s8,
+                     nxv64s8,  nxv1s16, nxv2s16, nxv4s16, nxv8s16, nxv16s16,
+                     nxv32s16, nxv1s32, nxv2s32, nxv4s32, nxv8s32, nxv16s32,
+diff --git a/llvm/lib/Target/RISCV/MCTargetDesc/RISCVBaseInfo.h b/llvm/lib/Target/RISCV/MCTargetDesc/RISCVBaseInfo.h
+--- a/llvm/lib/Target/RISCV/MCTargetDesc/RISCVBaseInfo.h
++++ b/llvm/lib/Target/RISCV/MCTargetDesc/RISCVBaseInfo.h
+@@ -309,6 +309,8 @@ enum OperandType : unsigned {
+   OPERAND_CLUI_IMM,
+   OPERAND_VTYPEI10,
+   OPERAND_VTYPEI11,
++  // RISCVBaseInfo.h - riscv_operands - INSERTION_START
++  // RISCVBaseInfo.h - riscv_operands - INSERTION_END
+   OPERAND_RVKRNUM,
+   OPERAND_RVKRNUM_0_7,
+   OPERAND_RVKRNUM_1_10,
+diff --git a/llvm/lib/Target/RISCV/RISCV.td b/llvm/lib/Target/RISCV/RISCV.td
+--- a/llvm/lib/Target/RISCV/RISCV.td
++++ b/llvm/lib/Target/RISCV/RISCV.td
+@@ -74,3 +74,6 @@ def RISCV : Target {
+   let AssemblyWriters = [RISCVAsmWriter];
+   let AllowRegisterRenaming = 1;
+ }
++
++// RISCV.td - riscv_td_includes - INSERTION_START
++// RISCV.td - riscv_td_includes - INSERTION_END
+diff --git a/llvm/lib/Target/RISCV/RISCVFeatures.td b/llvm/lib/Target/RISCV/RISCVFeatures.td
+--- a/llvm/lib/Target/RISCV/RISCVFeatures.td
++++ b/llvm/lib/Target/RISCV/RISCVFeatures.td
+@@ -771,6 +771,9 @@ def HasStdExtSvinval : Predicate<"Subtarget->hasStdExtSvinval()">,
+                        AssemblerPredicate<(all_of FeatureStdExtSvinval),
+                            "'Svinval' (Fine-Grained Address-Translation Cache Invalidation)">;
+
++// RISCVFeatures.td - riscv_features - INSERTION_START
++// RISCVFeatures.td - riscv_features - INSERTION_END
++
+ def FeatureStdExtSvnapot
+     : SubtargetFeature<"svnapot", "HasStdExtSvnapot", "true",
+                        "'Svnapot' (NAPOT Translation Contiguity)">;
+diff --git a/llvm/lib/Target/RISCV/RISCVISelLowering.cpp b/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
+--- a/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
++++ b/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
+@@ -640,6 +640,9 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
+
+   setBooleanContents(ZeroOrOneBooleanContent);
+
++// RISCVISelLowering.cpp - legal_ops - INSERTION_START
++// RISCVISelLowering.cpp - legal_ops - INSERTION_END
++
+   if (Subtarget.hasVInstructions()) {
+     setBooleanVectorContents(ZeroOrOneBooleanContent);
+
+diff --git a/llvm/lib/Target/RISCV/RISCVInstrInfo.td b/llvm/lib/Target/RISCV/RISCVInstrInfo.td
+--- a/llvm/lib/Target/RISCV/RISCVInstrInfo.td
++++ b/llvm/lib/Target/RISCV/RISCVInstrInfo.td
+@@ -309,6 +309,9 @@ def simm21_lsb0_jal : Operand<OtherVT> {
+   let OperandType = "OPERAND_PCREL";
+ }
+
++// RISCVInstrInfo.td - field_types - INSERTION_START
++// RISCVInstrInfo.td - field_types - INSERTION_END
++
+ def BareSymbol : AsmOperandClass {
+   let Name = "BareSymbol";
+   let RenderMethod = "addImmOperands";
+@@ -394,6 +397,8 @@ def uimm6gt32 : ImmLeaf<XLenVT, [{
+ def FrameAddrRegImm : ComplexPattern<iPTR, 2, "SelectFrameAddrRegImm",
+                                      [frameindex, or, add]>;
+ def AddrRegImm : ComplexPattern<iPTR, 2, "SelectAddrRegImm">;
++// RISCVInstrInfo.td - complex_patterns - INSERTION_START
++// RISCVInstrInfo.td - complex_patterns - INSERTION_END
+
+ // Return the negation of an immediate value.
+ def NegImm : SDNodeXForm<imm, [{
+@@ -2180,6 +2185,9 @@ include "RISCVInstrInfoXTHead.td"
+ include "RISCVInstrInfoXSf.td"
+ include "RISCVInstrInfoXCV.td"
+
++// RISCVInstrInfo.td - riscv_instr_info_includes - INSERTION_START
++// RISCVInstrInfo.td - riscv_instr_info_includes - INSERTION_END
++
+ //===----------------------------------------------------------------------===//
+ // Global ISel
+ //===----------------------------------------------------------------------===//
+diff --git a/llvm/lib/Target/RISCV/RISCVRegisterInfo.td b/llvm/lib/Target/RISCV/RISCVRegisterInfo.td
+--- a/llvm/lib/Target/RISCV/RISCVRegisterInfo.td
++++ b/llvm/lib/Target/RISCV/RISCVRegisterInfo.td
+@@ -605,5 +605,8 @@ foreach m = LMULList in {
+ def FFLAGS : RISCVReg<0, "fflags">;
+ def FRM    : RISCVReg<0, "frm">;
+
++// RISCVRegisterInfo.td - riscv_register_info - INSERTION_START
++// RISCVRegisterInfo.td - riscv_register_info - INSERTION_END
++
+ // Shadow Stack register
+ def SSP    : RISCVReg<0, "ssp">;
