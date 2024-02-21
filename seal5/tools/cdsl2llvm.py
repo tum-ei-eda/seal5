@@ -83,7 +83,7 @@ def run_pattern_gen(
         attrs = ["+m", "+fast-unaligned-access"]
         if ext:
             ext_ = ext.lower()
-            ext_ = ext_.replace("std", "").replace("vendor", "")
+            ext_ = ext_.replace("std", "").replace("vendor", "").replace("ext", "")
             attrs.append(f"+{ext_}")
         mattr = ",".join(attrs)
 
