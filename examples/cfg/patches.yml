@@ -15,7 +15,9 @@ patches:
     # file: gitlab_ci.patch
     # file: llvm/gitlab_ci.patch
     # file: /absolute/path/to/gitlab_ci.patch
-  - name: insert_markers_llvm17
+  # - name: insert_markers_llvm17
+  - name: insert_markers_llvm18
+  # TODO:  automatially select patch depending on llvm version
   # generated patch (TODO: implement)
   # - name: ???
   #   target: llvm

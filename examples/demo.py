@@ -42,7 +42,8 @@ seal5_flow = Seal5Flow("/tmp/seal5_llvm_demo", "demo")
 seal5_flow.initialize(
     clone=True,
     clone_url="https://github.com/llvm/llvm-project.git",
-    clone_ref="llvmorg-17.0.6",
+    # clone_ref="llvmorg-17.0.6",
+    clone_ref="llvmorg-18.1.0-rc3",
     force=True,
     verbose=VERBOSE,
 )
