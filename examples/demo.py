@@ -66,6 +66,7 @@ cdsl_files = [
     EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMem.core_desc",
     EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVBranchImmediate.core_desc",
     # RVP (will not work)
+    EXAMPLES_DIR / "cdsl" / "RV32P.core_desc",
     # EXAMPLES_DIR / "cdsl" / "RVP.core_desc",
     # S4E (untested) -> undefined XLEN
     # EXAMPLES_DIR / "cdsl" / "rv_s4e" / "s4e-mac.core_desc",
