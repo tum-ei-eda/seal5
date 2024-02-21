@@ -90,9 +90,20 @@ def main():
     # print("model", model)
     artifacts = {}
     artifacts[None] = []  # used for global artifacts
+    settings = model.get("settings", None)
     if args.splitted:
         # errs = []
         model_includes = []
+        default_mattr = "+m,+fast-unaligned-access"
+        if settings:
+            riscv_settings = settings.riscv
+            if riscv_settings:
+                features = riscv_settings.features
+                if features is None:
+                    pass
+                else:
+                    default_mattr = ",".join([f"+{f}" for f in features])
+
         assert out_path.is_dir(), "Expecting output directory when using --splitted"
         for set_name, set_def in model["sets"].items():
             artifacts[set_name] = []
@@ -125,9 +136,13 @@ def main():
                 output_file = set_dir / out_name
                 output_file_fmt = set_dir / out_name_fmt
                 install_dir = os.getenv("CDSL2LLVM_DIR", None)
-                ext = None
+                predicate = None
+                mattr = default_mattr
                 if ext_settings is not None:
-                    ext = ext_settings.get_predicate(name=set_name)
+                    predicate = ext_settings.get_predicate(name=set_name)
+                    arch_ = ext_settings.get_arch(name=set_name)
+                    mattr = ",".join([*mattr.split(","), f"+{arch_}"])
+
                 assert install_dir is not None
                 install_dir = pathlib.Path(install_dir)
                 try:
@@ -137,7 +152,9 @@ def main():
                         output_file,
                         skip_patterns=False,
                         skip_formats=not args.formats,
-                        ext=ext,
+                        ext=predicate,
+                        mattr=mattr,
+
                     )
                     if output_file.is_file():
                         metrics["n_success"] += 1
