@@ -67,8 +67,8 @@ diff --git a/llvm/lib/CodeGen/GlobalISel/GlobalISel.cpp b/llvm/lib/CodeGen/Globa
    initializeLocalizerPass(Registry);
    initializeRegBankSelectPass(Registry);
    initializeInstructionSelectPass(Registry);
-+  // GlobalIsel.cpp - gisel_init - INSERTION_START
-+  // GlobalIsel.cpp - gisel_init - INSERTION_END
++  // GlobalISel.cpp - gisel_init - INSERTION_START
++  // GlobalISel.cpp - gisel_init - INSERTION_END
  }
 diff --git a/llvm/lib/Support/RISCVISAInfo.cpp b/llvm/lib/Support/RISCVISAInfo.cpp
 --- a/llvm/lib/Support/RISCVISAInfo.cpp
