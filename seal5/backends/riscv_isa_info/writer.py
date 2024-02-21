@@ -19,17 +19,18 @@ from mako.template import Template
 from m2isar.metamodel import arch
 
 from seal5.index import NamedPatch, write_index_yaml
-from seal5.settings import ExtensionsSettings
+from seal5.settings import ExtensionsSettings, LLVMVersion
 
 logger = logging.getLogger("riscv_isa_info")
 
 
 MAKO_TEMPLATE = "    {\"${arch}\", RISCVExtensionVersion{${version_major}, ${version_minor}}},"
+MAKO_TEMPLATE_LLVM18 = "    {\"${arch}\", {${version_major}, ${version_minor}}},"
 
 
-def gen_riscv_isa_info_str(name: str, ext_settings: ExtensionsSettings):
-    print("name", name)
-    print("ext_settings", ext_settings)
+def gen_riscv_isa_info_str(name: str, ext_settings: ExtensionsSettings, llvm_version: LLVMVersion):
+    # print("name", name)
+    # print("ext_settings", ext_settings)
     arch = ext_settings.get_arch(name=name)
     version = ext_settings.get_version()
     if not isinstance(version, str):
@@ -37,7 +38,9 @@ def gen_riscv_isa_info_str(name: str, ext_settings: ExtensionsSettings):
         version = str(float(version))
     version_major, version_minor = str(version).split(".", 1)
 
-    content_template = Template(MAKO_TEMPLATE)
+    llvm_major = llvm_version.major
+    template = MAKO_TEMPLATE_LLVM18 if llvm_major >= 18 else MAKO_TEMPLATE
+    content_template = Template(template)
     content_text = content_template.render(arch=arch, version_major=version_major, version_minor=version_minor)
     # content_text = content_text.rstrip("\n")
     return content_text
@@ -113,6 +116,14 @@ def main():
     else:
         content = ""
         # errs = []
+        settings = model.get("settings", None)
+        llvm_version = None
+        if settings:
+            llvm_settings = settings.llvm
+            if llvm_settings:
+                llvm_state = llvm_settings.state
+                if llvm_state:
+                    llvm_version = llvm_state.version
         for set_name, set_def in model["sets"].items():
             artifacts[set_name] = []
             metrics["n_sets"] += 1
@@ -121,7 +132,7 @@ def main():
                 metrics["n_skipped"] += 1
                 continue
             metrics["n_success"] += 1
-            content += gen_riscv_isa_info_str(set_name, ext_settings)
+            content += gen_riscv_isa_info_str(set_name, ext_settings=ext_settings, llvm_version=llvm_version)
         if len(content) > 0:
             with open(out_path, "w") as f:
                 f.write(content)
