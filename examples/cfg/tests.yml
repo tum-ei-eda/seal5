@@ -1,0 +1,5 @@
+---
+test:
+  paths: []
+  # - MC/RISCV
+  #   - CodeGen/RISCV
