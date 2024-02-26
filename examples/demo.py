@@ -74,6 +74,12 @@ cdsl_files = [
 ]
 seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
+# Load test inputs
+test_files = [
+    EXAMPLES_DIR / "tests" / "xcorev" / "cv_abs.test.c",
+]
+seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
+
 # Load YAML inputs
 cfg_files = [
     # XCOREV
@@ -91,6 +97,7 @@ cfg_files = [
     EXAMPLES_DIR / "cfg" / "filter.yml",
     EXAMPLES_DIR / "cfg" / "patches.yml",
     EXAMPLES_DIR / "cfg" / "riscv.yml",
+    EXAMPLES_DIR / "cfg" / "tests.yml",
     EXAMPLES_DIR / "cfg" / "git.yml",
 ]
 seal5_flow.load(cfg_files, verbose=VERBOSE, overwrite=False)
