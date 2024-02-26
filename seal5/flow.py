@@ -330,12 +330,13 @@ class Seal5Flow:
         logger.info("Completed installation of Seal5 dependencies")
 
     def load_cfg(self, file: Path, overwrite: bool = False):
+        assert file.is_file(), f"File does not exist: {file}"
         new_settings: Seal5Settings = Seal5Settings.from_yaml_file(file)
         self.settings.merge(new_settings, overwrite=overwrite)
         self.settings.to_yaml_file(self.settings_file)
 
     def load_test(self, file: Path, overwrite: bool = True):
-        assert file.is_file(), "TODO"
+        assert file.is_file(), f"File does not exist: {file}"
         filename: str = file.name
         dest = self.tests_dir / filename
         if dest.is_file() and not overwrite:
@@ -374,7 +375,7 @@ class Seal5Flow:
         )
 
     def load_cdsl(self, file: Path, verbose: bool = False, overwrite: bool = False):
-        assert file.is_file(), "TODO"
+        assert file.is_file(), f"File does not exist: {file}"
         filename: str = file.name
         dest = self.inputs_dir / filename
         if dest.is_file() and not overwrite:
