@@ -397,7 +397,7 @@ class Seal5Flow:
                 self.load_cfg(file, overwrite=overwrite)
             elif ext.lower() in [".core_desc"]:
                 self.load_cdsl(file, verbose=verbose, overwrite=overwrite)
-            elif ext.lower() in [".ll", ".c", ".cpp", ".mir", ".gmir"]:
+            elif ext.lower() in [".ll", ".c", ".cc", ".cpp", ".s", ".mir", ".gmir"]:
                 self.load_test(file, overwrite=overwrite)
             else:
                 raise RuntimeError(f"Unsupported input type: {ext}")
