@@ -1587,12 +1587,13 @@ include "seal5.td"
                 self.apply_patch(patch, force=force)
         logger.info("Completed application of Seal5 patches")
 
-    def test(self, debug: bool = False, verbose: bool = False, ignore_error: bool = False):
+    def test(self, debug: bool = False, verbose: bool = False, ignore_error: bool = False, config: Optional[str] = None):
         logger.info("Testing Seal5 LLVM")
-        name = "debug" if debug else "release"
+        if config is None:
+            config = "debug" if debug else "release"
         test_paths = self.settings.test.paths
         failing_tests = llvm.test_llvm(
-            self.directory / "llvm" / "test", self.build_dir / name, test_paths, verbose=verbose
+            self.directory / "llvm" / "test", self.build_dir / config, test_paths, verbose=verbose
         )
         if len(failing_tests) > 0:
             logger.error("%d tests failed: %s", len(failing_tests), ", ".join(failing_tests))

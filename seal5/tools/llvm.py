@@ -18,6 +18,7 @@
 #
 """LLVM utils for seal5."""
 import re
+import os
 from pathlib import Path
 from typing import List, Optional
 
@@ -115,6 +116,9 @@ def build_llvm(
 
 
 def test_llvm(base: Path, build_dir: Path, test_paths: List[str] = [], verbose: bool = False):
+    env = os.eviron.copy()
+    old_path = env["PATH"]
+    env["PATH"] = f"{build_dir}/bin:{old_path}"
     lit_exe = build_dir / "bin" / "llvm-lit"
     failing_tests = []
     for test_path in test_paths:
@@ -127,6 +131,7 @@ def test_llvm(base: Path, build_dir: Path, test_paths: List[str] = [], verbose: 
             base / test_path,
             print_func=logger.info if verbose else logger.debug,
             live=True,
+            env=env,
             handle_exit=handler,
         )
         failing = re.compile(r"FAIL: LLVM :: (.*) \(").findall(out)
