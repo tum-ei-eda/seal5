@@ -34,6 +34,7 @@ from seal5 import utils
 from seal5.tools import llvm, cdsl2llvm, inject_patches
 from seal5.resources.resources import get_patches, get_test_cfg
 from seal5.index import File, NamedPatch, write_index_yaml
+from seal5.passes import Seal5Pass, PassType, PassScope, filter_passes
 
 logger = get_logger()
 
@@ -86,6 +87,7 @@ class Seal5Flow:
         self.directory: Path = handle_directory(directory)
         self.name: str = name
         self.state: Seal5State = Seal5State.UNKNOWN
+        self.passes: List[Seal5Pass] = []  # TODO: implement PassManager
         self.check()
         self.settings: Seal5Settings = None
         if self.settings_file.is_file():
@@ -97,6 +99,89 @@ class Seal5Flow:
                 set_log_level(
                     console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level
                 )
+        self.reset_passes()
+        self.create_passes()
+
+    def reset_passes(self):
+        self.passes = []
+
+    def add_pass(self, pass_: Seal5Pass):
+        pass_names = [p.name for p in self.passes]
+        assert pass_.name not in pass_names, f"Duplicate pass name: {pass_.name}"
+        self.passes.append(pass_)
+
+    def add_passes(self, pass_list: List[Seal5Pass]):
+        for pass_ in pass_list:
+            self.add_pass(pass_)
+
+    def create_passes(self):
+        # Transforms
+        TRANSFORM_PASS_MAP = [
+            # TODO: Global -> Model
+            ("convert_models", self.convert_models, {}),
+            ("filter_models", self.filter_model, {}),
+            ("drop_unused", self.drop_unused, {}),
+            ("eliminate_rd_cmp_zero", self.eliminate_rd_cmp_zero, {}),
+            ("eliminate_mod_rfs", self.eliminate_mod_rfs, {}),
+            ("drop_unused2", self.drop_unused, {}),
+            ("optimize_model", self.optimize_model, {}),
+            ("infer_types", self.infer_types, {}),
+            ("simplify_trivial_slices", self.simplify_trivial_slices, {}),
+            ("explicit_truncations", self.explicit_truncations, {}),
+            ("process_settings", self.process_settings, {}),
+            ("write_yaml", self.write_yaml, {}),
+            ("detect_behavior_constraints", self.detect_behavior_constraints, {}),
+            ("collect_register_operands", self.collect_register_operands, {}),
+            ("collect_immediate_operands", self.collect_immediate_operands, {}),
+            ("collect_operand_types", self.collect_operand_types, {}),
+            ("detect_side_effects", self.detect_side_effects, {}),
+            ("detect_inouts", self.detect_inouts, {}),
+            ("detect_registers", self.detect_registers, {}),
+            ("write_cdsl_full", self.write_cdsl, {"split": False, "compat": False})
+            # TODO: determine static constraints (xlen,...) -> subtargetvmap
+            # detect memory adressing modes
+            # self.detect_adressing_modes(verbose)  # TODO
+            # detect legal GMIR ops (and map to selectiondag?)
+            # self.detect_legal_ops(verbose=verbose)  # TODO
+            # extract costs/heuristics
+            # self.extract_costs_and_heuristics(verbose)  # TODO
+        ]
+        for pass_name, pass_handler, pass_options in TRANSFORM_PASS_MAP:
+            self.add_pass(Seal5Pass(pass_name, PassType.TRANSFORM, PassScope.MODEL, pass_handler, options=pass_options))
+
+        # Generates
+        GENERATE_PASS_MAP = [
+            ("seal5_td", self.gen_seal5_td, {}),
+            ("riscv_features", self.gen_riscv_features_patch, {}),
+            ("riscv_isa_infos", self.gen_riscv_isa_info_patch, {}),
+            # subtarget_tests
+            # register_types
+            # operand_types
+            # instruction_formats
+            # instruction_infos
+            # disassembler
+            # mc_tests
+            # selection_dag_legalizer
+            # scalar_costs
+            # simd_costs
+            # isel_patterns
+            # codegen_test
+            ("riscv_gisel_legalizer", self.gen_riscv_gisel_legalizer_patch, {}),
+            # TODO: nested pass lists?
+            ("pattern_gen", self.pattern_gen_pass, {}),
+        ]
+        for pass_name, pass_handler, pass_options in GENERATE_PASS_MAP:
+            self.add_pass(Seal5Pass(pass_name, PassType.GENERATE, PassScope.MODEL, pass_handler, options=pass_options))
+
+    def pattern_gen_pass(self, verbose: bool = False):
+        llvm_version = self.settings.llvm.state.version
+        assert llvm_version is not None
+        if llvm_version.major < 18:
+            raise RuntimeError("PatternGen needs LLVM version 18 or higher")
+        self.write_cdsl(verbose=verbose, split=True, compat=True)  # TODO: split internally
+        self.convert_behav_to_llvmir_splitted(verbose=verbose)  # TODO: add split arg
+        self.convert_llvmir_to_gmir_splitted(verbose=verbose)  # TODO: add split arg
+        self.convert_behav_to_tablegen(verbose=verbose, split=True)
 
     @property
     def meta_dir(self):
@@ -1314,113 +1399,38 @@ include "seal5.td"
         )
         self.add_patch(patch_settings)
 
-    def transform(self, verbose: bool = False):
+    def transform(self, verbose: bool = False, skip: Optional[List[str]] = None, only: Optional[List[str]] = None):
         logger.info("Tranforming Seal5 models")
-        inplace = True
-        if not inplace:
-            raise NotImplementedError()
-        # TODO: flow.models: Seal5ModelWrapper -> transform(verbose: bool = False, *kwargs)
-        # first convert M2-ISA-R MetaModel to Seal5 Metamodel
-        self.convert_models(verbose=verbose)
-        # filter model
-        self.filter_model(verbose=verbose)
-        # add aliases to model
-        # self.add_aliases(verbose=verbose)
-        # add intrinsics
-        # self.add_intrinsics(verbose=verbose)
-        # drop unused constants
-        self.drop_unused(verbose=verbose)
-        self.eliminate_rd_cmp_zero(verbose=verbose)
-        self.eliminate_mod_rfs(verbose=verbose)
-        self.drop_unused(verbose=verbose)
-        # optimize Seal5 Metamodel
-        self.optimize_model(verbose=verbose)
-        self.infer_types(verbose=verbose)
-        self.simplify_trivial_slices(verbose=verbose)
-        self.explicit_truncations(verbose=verbose)
-        self.process_settings(verbose=verbose)
-        self.write_yaml(verbose=verbose)
-        # determine dyn constraints (eliminate raise)
-        self.detect_behavior_constraints(verbose=verbose)
-        # determine operand types
-        self.collect_register_operands(verbose=verbose)
-        self.collect_immediate_operands(verbose=verbose)
-        self.collect_operand_types(verbose=verbose)
-        # detect side effects
-        self.detect_side_effects(verbose=verbose)
-        # detect ins/outs
-        self.detect_inouts(verbose=verbose)
-        # detect registers
-        self.detect_registers(verbose=verbose)
-        # TODO: determine static constraints (xlen,...) -> subtargetvmap
-        # detect memory adressing modes
-        # self.detect_adressing_modes(verbose)  # TODO
-        # detect legal GMIR ops (and map to selectiondag?)
-        # self.detect_legal_ops(verbose=verbose)  # TODO
-        # extract costs/heuristics
-        # self.extract_costs_and_heuristics(verbose)  # TODO
-        self.write_cdsl(verbose=verbose, split=False, compat=False)
+        # inplace = True
+        # if not inplace:
+        #     raise NotImplementedError()
+        skip = skip if skip is not None else []
+        only = only if only is not None else []
+
+        transform_passes = filter_passes(self.passes, pass_type=PassType.TRANSFORM)
+        for pass_ in transform_passes:
+            assert pass_.is_pending, f"Pass {pass_.name} is not pending"
+            if not ((pass_.name in only or len(only) == 0) and (pass_.name not in skip or len(skip) == 0)):
+                pass_.skip()
+                continue
+            pass_.run(verbose=verbose)
 
         logger.info("Completed tranformation of Seal5 models")
 
     def generate(self, verbose: bool = False, skip: Optional[List[str]] = None, only: Optional[List[str]] = None):
         logger.info("Generating Seal5 patches")
-        # raise NotImplementedError
-        llvm_version = self.settings.llvm.state.version
-        assert llvm_version is not None
-        patches = []
+        generate_passes = filter_passes(self.passes, pass_type=PassType.GENERATE)
         # TODO: User, Global, PerInstr
         skip = skip if skip is not None else []
         only = only if only is not None else []
-
-        # Prerequisites
-        if ("seal5_td" in only or len(only) == 0) and ("seal5_td" not in skip or len(skip) == 0):
-            self.gen_seal5_td(verbose=verbose)
-
-        # # General
-        if ("riscv_features" in only or len(only) == 0) and ("riscv_features" not in skip or len(skip) == 0):
-            self.gen_riscv_features_patch(verbose=verbose)
-        if ("riscv_isa_infos" in only or len(only) == 0) and ("riscv_isa_infos" not in skip or len(skip) == 0):
-            self.gen_riscv_isa_info_patch(verbose=verbose)
-        # if "subtarget_tests" not in skip:
-        #     patches.extend(self.gen_subtarget_tests_patches())
-
-        # # MC Level
-        # if "register_types" not in skip:
-        #     patches.extend(self.gen_register_types_patches())
-        # if "operand_types" not in skip:
-        #     patches.extend(self.gen_operand_types_patches())
-        # if "instruction_formats" not in skip:
-        #     patches.extend(self.gen_instruction_format_patches())
-        # if "instruction_infos" not in skip:
-        #     patches.extend(self.gen_instruction_infos_patches())
-        # if "disassembler" not in skip:
-        #     patches.extend(self.gen_disassembler_patches())
-        # if "mc_tests" not in skip:
-        #     patches.extend(self.gen_mc_tests_patches())
-
-        # # Codegen Level
-        # if "selection_dag_legalizer" not in skip:
-        #     patches.extend(self.gen_selection_dag_legalizer_patches())
-        if ("riscv_gisel_legalizer" in only or len(only) == 0) and ("riscv_gisel_legalizer" not in skip or len(skip) == 0):
-            self.gen_riscv_gisel_legalizer_patch(verbose=verbose)
-        # if "scalar_costs" not in skip:
-        #     patches.extend(self.gen_scalar_costs_patches())
-        # if "simd_costs" not in skip:
-        #     patches.extend(self.gen_simd_costs_patches())
-        # if "isel_patterns" not in skip:
-        #     patches.extend(self.gen_isel_patterns_patches())
-        # if "codegen_test" not in skip:
-        #     patches.extend(self.gen_codegen_tests_patches())
-
-        # Others
-        if ("pattern_gen" in only or len(only) == 0) and ("pattern_gen" not in skip or len(skip) == 0):
-            self.write_cdsl(verbose=verbose, split=True, compat=True)
-            if llvm_version.major < 18:
-                raise RuntimeError("PatternGen needs LLVM version 18 or higher")
-            self.convert_behav_to_llvmir_splitted(verbose=verbose)  # TODO: add split arg
-            self.convert_llvmir_to_gmir_splitted(verbose=verbose)  # TODO: add split arg
-            self.convert_behav_to_tablegen(verbose=verbose, split=True)
+        # print("skip", skip)
+        # print("only", only)
+        for pass_ in generate_passes:
+            assert pass_.is_pending, f"Pass {pass_.name} is not pending"
+            if not ((pass_.name in only or len(only) == 0) and (pass_.name not in skip or len(skip) == 0)):
+                pass_.skip()
+                continue
+            pass_.run(verbose=verbose)
 
         logger.info("Completed generation of Seal5 patches")
 

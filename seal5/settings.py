@@ -500,3 +500,4 @@ class Seal5Settings(YAMLSettings):
         self.extensions = {}
         self.patches = []
         self.inputs = []
+        # TODO: clear user provided tests!
