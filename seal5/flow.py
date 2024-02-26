@@ -1106,7 +1106,7 @@ class Seal5Flow:
         assert not split, "TODO"
         input_files = list(self.models_dir.glob("*.seal5model"))
         assert len(input_files) > 0, "No Seal5 models found!"
-        formats = True
+        # formats = True
         gen_metrics_file = True
         gen_index_file = True
         for input_file in input_files:
@@ -1160,7 +1160,7 @@ class Seal5Flow:
         assert not split, "TODO"
         input_files = list(self.models_dir.glob("*.seal5model"))
         assert len(input_files) > 0, "No Seal5 models found!"
-        formats = True
+        # formats = True
         gen_metrics_file = True
         gen_index_file = True
         for input_file in input_files:
@@ -1246,11 +1246,11 @@ class Seal5Flow:
             )
             if gen_index_file:
                 if index_file.is_file():
-                    patch_name = f"riscv_gisel_legalizer"
+                    patch_name = "riscv_gisel_legalizer"
                     patch_settings = PatchSettings(
                         name=patch_name,
                         stage=int(PatchStage.PHASE_1),
-                        comment=f"Generated RISCVLegalizerInfo.cpp patch",
+                        comment="Generated RISCVLegalizerInfo.cpp patch",
                         index=str(index_file),
                         generated=True,
                         target="llvm",
