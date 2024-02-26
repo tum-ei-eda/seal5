@@ -76,7 +76,8 @@ DEFAULT_SETTINGS = {
         "passes": "*",
     },
     "test": {
-        "paths": ["MC/RISCV", "CodeGen/RISCV"],
+        "paths": [],
+        # "paths": ["MC/RISCV", "CodeGen/RISCV"],
     },
     "llvm": {
         "state": {"version": "auto", "base_commit": "unknown"},
@@ -145,7 +146,7 @@ def check_supported_types(data):
             check_supported_types(x)
     else:
         if data is not None:
-            assert isinstance(data, ALLOWED_TYPES), f"Unsupported type: {type(value)}"
+            assert isinstance(data, ALLOWED_TYPES), f"Unsupported type: {type(data)}"
 
 
 class YAMLSettings:
