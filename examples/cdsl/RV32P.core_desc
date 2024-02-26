@@ -457,31 +457,91 @@ InstructionSet RV32Zpn extends RV32I {
         }
         // SUB16
         // TODO (SUNPKD8xy)
-        SUNPKD8 {
-            encoding: 7'b1010110 :: code[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1110111;
+        // SUNPKD8 {
+        //     encoding: 7'b1010110 :: code[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1110111;
+        //     assembly:"{name(rs1)}, {name(rd)}";
+        //     behavior: {
+        //         if(rd != 0) {
+        //             unsigned<32> rs1_val = X[rs1];
+        //             // TODO: move to helper function
+        //             if(code == 5'b01000) {  // SUNPKD810
+        //                 signed<8> rs1_val_hi = rs1_val[15:8];
+        //                 signed<8> rs1_val_lo = rs1_val[7:0];
+        //             } else if (code == 5'b01001) {  // SUNPKD820
+        //                 signed<8> rs1_val_hi = rs1_val[23:16];
+        //                 signed<8> rs1_val_lo = rs1_val[7:0];
+        //             } else if (code == 5'b01010) {  // SUNPKD830
+        //                 signed<8> rs1_val_hi = rs1_val[31:24];
+        //                 signed<8> rs1_val_lo = rs1_val[7:0];
+        //             } else if (code == 5'b01011) {  // SUNPKD831
+        //                 signed<8> rs1_val_hi = rs1_val[31:24];
+        //                 signed<8> rs1_val_lo = rs1_val[15:8];
+        //             } else if (code == 5'b10011) {  // SUNPKD832
+        //                 signed<8> rs1_val_hi = rs1_val[31:24];
+        //                 signed<8> rs1_val_lo = rs1_val[23:16];
+        //             } else {
+        //                 raise(0, 2);  // Invalid instruction?
+        //             }
+        //             X[rd] = (signed<16>)rs1_val_hi :: (unsigned<16>)(signed<16>)rs1_val_lo;
+        //         }
+        //     }
+        // }
+        SUNPKD810 {
+            encoding: 7'b1010110 :: 5'b01000 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1110111;
             assembly:"{name(rs1)}, {name(rd)}";
             behavior: {
                 if(rd != 0) {
                     unsigned<32> rs1_val = X[rs1];
-                    // TODO: move to helper function
-                    if(code == 5'b01000) {  // SUNPKD810
-                        signed<8> rs1_val_hi = rs1_val[15:8];
-                        signed<8> rs1_val_lo = rs1_val[7:0];
-                    } else if (code == 5'b01001) {  // SUNPKD820
-                        signed<8> rs1_val_hi = rs1_val[23:16];
-                        signed<8> rs1_val_lo = rs1_val[7:0];
-                    } else if (code == 5'b01010) {  // SUNPKD830
-                        signed<8> rs1_val_hi = rs1_val[31:24];
-                        signed<8> rs1_val_lo = rs1_val[7:0];
-                    } else if (code == 5'b01011) {  // SUNPKD831
-                        signed<8> rs1_val_hi = rs1_val[31:24];
-                        signed<8> rs1_val_lo = rs1_val[15:8];
-                    } else if (code == 5'b10011) {  // SUNPKD832
-                        signed<8> rs1_val_hi = rs1_val[31:24];
-                        signed<8> rs1_val_lo = rs1_val[23:16];
-                    } else {
-                        raise(0, 2);  // Invalid instruction?
-                    }
+                    signed<8> rs1_val_hi = rs1_val[15:8];
+                    signed<8> rs1_val_lo = rs1_val[7:0];
+                    X[rd] = (signed<16>)rs1_val_hi :: (unsigned<16>)(signed<16>)rs1_val_lo;
+                }
+            }
+        }
+        SUNPKD820 {
+            encoding: 7'b1010110 :: 5'b01001 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<32> rs1_val = X[rs1];
+                    signed<8> rs1_val_hi = rs1_val[23:16];
+                    signed<8> rs1_val_lo = rs1_val[7:0];
+                    X[rd] = (signed<16>)rs1_val_hi :: (unsigned<16>)(signed<16>)rs1_val_lo;
+                }
+            }
+        }
+        SUNPKD830 {
+            encoding: 7'b1010110 :: 5'b01010 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<32> rs1_val = X[rs1];
+                    signed<8> rs1_val_hi = rs1_val[31:24];
+                    signed<8> rs1_val_lo = rs1_val[7:0];
+                    X[rd] = (signed<16>)rs1_val_hi :: (unsigned<16>)(signed<16>)rs1_val_lo;
+                }
+            }
+        }
+        SUNPKD831 {
+            encoding: 7'b1010110 :: 5'b01011 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<32> rs1_val = X[rs1];
+                    signed<8> rs1_val_hi = rs1_val[31:24];
+                    signed<8> rs1_val_lo = rs1_val[15:8];
+                    X[rd] = (signed<16>)rs1_val_hi :: (unsigned<16>)(signed<16>)rs1_val_lo;
+                }
+            }
+        }
+        SUNPKD832 {
+            encoding: 7'b1010110 :: 5'b10011 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<32> rs1_val = X[rs1];
+                    signed<8> rs1_val_hi = rs1_val[31:24];
+                    signed<8> rs1_val_lo = rs1_val[23:16];
                     X[rd] = (signed<16>)rs1_val_hi :: (unsigned<16>)(signed<16>)rs1_val_lo;
                 }
             }
