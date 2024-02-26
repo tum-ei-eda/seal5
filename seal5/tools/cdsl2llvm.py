@@ -127,6 +127,8 @@ def run_pattern_gen(
     skip_verify=True,
     debug=False,
 ):
+    if not isinstance(build_dir, Path):
+        build_dir = Path(build_dir)
     pattern_gen_args = [src]
 
     if dest:
@@ -248,6 +250,9 @@ def convert_ll_to_gmir(
     verbose: bool = False,
 ):
     llc_args = [src, "-mtriple=riscv32-unknown-elf", "-stop-after=irtranslator", "-global-isel", "-O3"]
+
+    if not isinstance(build_dir, Path):
+        build_dir = Path(build_dir)
 
     assert dest is not None
     llc_args.extend(["-o", str(dest)])
