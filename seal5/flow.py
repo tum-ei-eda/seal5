@@ -32,7 +32,7 @@ from seal5.settings import Seal5Settings, PatchSettings, DEFAULT_SETTINGS, LLVMC
 from seal5.dependencies import cdsl2llvm_dependency
 from seal5 import utils
 from seal5.tools import llvm, cdsl2llvm, inject_patches
-from seal5.resources.resources import get_patches
+from seal5.resources.resources import get_patches, get_test_cfg
 from seal5.index import File, NamedPatch, write_index_yaml
 
 logger = get_logger()
@@ -72,6 +72,13 @@ def create_seal5_directories(path: Path, directories: list):
         raise RuntimeError(f"Not a diretory: {path}")
     for directory in directories:
         (path / directory).mkdir(parents=True, exist_ok=True)
+
+
+def add_test_cfg(tests_dir: Path):
+    dest = tests_dir / "lit.cfg.py"
+    logger.debug("Creating test cfg %s", dest)
+    src = get_test_cfg()
+    utils.copy(src, dest)
 
 
 class Seal5Flow:
@@ -132,6 +139,10 @@ class Seal5Flow:
         return self.meta_dir / "gen"
 
     @property
+    def tests_dir(self):
+        return self.meta_dir / "tests"
+
+    @property
     def patches_dir(self):  # TODO: maybe merge with gen_dir
         return self.meta_dir / "patches"
 
@@ -169,8 +180,9 @@ class Seal5Flow:
                 sys.exit(1)
         self.meta_dir.mkdir(exist_ok=True)
         create_seal5_directories(
-            self.meta_dir, ["deps", "models", "logs", "build", "install", "temp", "inputs", "gen", "patches"]
+            self.meta_dir, ["deps", "models", "logs", "build", "install", "temp", "inputs", "gen", "patches", "tests"]
         )
+        add_test_cfg(self.tests_dir)
         self.settings = Seal5Settings.from_dict(DEFAULT_SETTINGS)
         if version_info:
             llvm_version = LLVMVersion(**version_info)
@@ -199,7 +211,7 @@ class Seal5Flow:
                 self.deps_dir / "cdsl2llvm",
                 self.temp_dir,
             )
-            self.settings.patches.append(patch_settings)
+            self.add_patch(patch_settings)
         else:
             logger.info("Building PatternGen")
             llvm_config = LLVMConfig(
@@ -236,6 +248,17 @@ class Seal5Flow:
         new_settings: Seal5Settings = Seal5Settings.from_yaml_file(file)
         self.settings.merge(new_settings, overwrite=overwrite)
         self.settings.to_yaml_file(self.settings_file)
+
+    def load_test(self, file: Path, overwrite: bool = True):
+        assert file.is_file(), "TODO"
+        filename: str = file.name
+        dest = self.tests_dir / filename
+        if dest.is_file() and not overwrite:
+            raise RuntimeError(f"File {filename} already loaded!")
+        utils.copy(file, dest)
+        if str(dest) not in self.settings.test.paths:
+            self.settings.test.paths.append(str(dest))
+            self.settings.to_yaml_file(self.settings_file)
 
     def prepare_environment(self):
         env = os.environ.copy()
@@ -288,6 +311,8 @@ class Seal5Flow:
                 self.load_cfg(file, overwrite=overwrite)
             elif ext.lower() in [".core_desc"]:
                 self.load_cdsl(file, verbose=verbose, overwrite=overwrite)
+            elif ext.lower() in [".ll", ".c", ".cpp", ".mir", ".gmir"]:
+                self.load_test(file, overwrite=overwrite)
             else:
                 raise RuntimeError(f"Unsupported input type: {ext}")
         # TODO: only allow single instr set for now and track inputs in settings
