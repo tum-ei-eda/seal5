@@ -1359,6 +1359,7 @@ include "seal5.td"
         # self.detect_legal_ops(verbose=verbose)  # TODO
         # extract costs/heuristics
         # self.extract_costs_and_heuristics(verbose)  # TODO
+        self.write_cdsl(verbose=verbose, split=False, compat=False)
 
         logger.info("Completed tranformation of Seal5 models")
 
@@ -1373,13 +1374,13 @@ include "seal5.td"
         only = only if only is not None else []
 
         # Prerequisites
-        self.write_cdsl(verbose=verbose, split=True, compat=True)
-        self.gen_seal5_td(verbose=verbose)
+        if ("seal5_td" in only or len(only) == 0) and ("seal5_td" not in skip or len(skip) == 0):
+            self.gen_seal5_td(verbose=verbose)
 
         # # General
-        if ("riscv_features" in only or len(only) == 0) and "riscv_features" not in skip:
+        if ("riscv_features" in only or len(only) == 0) and ("riscv_features" not in skip or len(skip) == 0):
             self.gen_riscv_features_patch(verbose=verbose)
-        if ("riscv_isa_infos" in only or len(only) == 0) and "riscv_isa_infos" not in skip:
+        if ("riscv_isa_infos" in only or len(only) == 0) and ("riscv_isa_infos" not in skip or len(skip) == 0):
             self.gen_riscv_isa_info_patch(verbose=verbose)
         # if "subtarget_tests" not in skip:
         #     patches.extend(self.gen_subtarget_tests_patches())
@@ -1401,7 +1402,7 @@ include "seal5.td"
         # # Codegen Level
         # if "selection_dag_legalizer" not in skip:
         #     patches.extend(self.gen_selection_dag_legalizer_patches())
-        if "riscv_gisel_legalizer" not in skip:
+        if ("riscv_gisel_legalizer" in only or len(only) == 0) and ("riscv_gisel_legalizer" not in skip or len(skip) == 0):
             self.gen_riscv_gisel_legalizer_patch(verbose=verbose)
         # if "scalar_costs" not in skip:
         #     patches.extend(self.gen_scalar_costs_patches())
@@ -1413,7 +1414,8 @@ include "seal5.td"
         #     patches.extend(self.gen_codegen_tests_patches())
 
         # Others
-        if ("pattern_gen" in only or len(only) == 0) and "pattern_gen" not in skip:
+        if ("pattern_gen" in only or len(only) == 0) and ("pattern_gen" not in skip or len(skip) == 0):
+            self.write_cdsl(verbose=verbose, split=True, compat=True)
             if llvm_version.major < 18:
                 raise RuntimeError("PatternGen needs LLVM version 18 or higher")
             self.convert_behav_to_llvmir_splitted(verbose=verbose)  # TODO: add split arg
