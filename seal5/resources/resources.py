@@ -43,3 +43,9 @@ def get_patches(patch_name: Optional[str] = None, target: Optional[str] = None, 
         assert allow_empty, "No patches found!"
 
     return ret
+
+
+def get_test_cfg():
+    ret = importlib_resources.files("seal5.resources").joinpath("lit.cfg.py")
+    assert ret.is_file(), f"Test cfg not found: {ret}"
+    return ret
