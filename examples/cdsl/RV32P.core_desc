@@ -739,11 +739,16 @@ InstructionSet RV32Zpsfoperand extends RV32I {
             encoding: 7'b1111000 :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1110111;
             assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
             behavior: {
-                unsigned<33> rs1_val = X[rs1];
-                unsigned<33> rs2_val = X[rs2];
+                unsigned<32> rs1_val = X[rs1];
+                unsigned<32> rs2_val = X[rs2];
                 unsigned<64> product = rs1_val * rs2_val;
-                X[rd[4:1]*2+1] = product[63:32];
-                X[rd[4:1]*2] = product[31:0];
+                // X[rd[4:1]*2+1] = product[63:32];
+                // X[rd[4:1]*2] = product[31:0];
+                // X[rd[4:1] :: 1'b1 : rd[4:1] :: 1'b0] = product;
+                // X[odd(rd):even(rd)] = product;
+                // X[rd[4:1]*2+1:rd[4:1]*2] = product;
+                if (rd % 2) raise(0, 2);  // alternative: rd & 1
+                X[rd+1:rd] = product;
             }
         }
         // MULSR64
@@ -760,15 +765,17 @@ InstructionSet RV32Zpsfoperand extends RV32I {
             encoding: 7'b1100000 :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1110111;
             assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
             behavior: {
-                signed<64> rs1_val_hi = X[rs1[4:1]*2+1];  // ???
-                unsigned<32> rs1_val_lo = X[rs1[4:1]*2];
-                signed<64> rs1_val = rs1_val_hi :: rs1_val_lo;
-                signed<64> rs2_val_hi = X[rs2[4:1]*2+1];  // ???
-                unsigned<32> rs2_val_lo = X[rs2[4:1]*2];
-                signed<64> rs2_val = rs2_val_hi :: rs2_val_lo;
-                signed<64> sum = rs1_val + rs2_val;
-                X[rd[4:1]*2+1] = sum[63:32];
-                X[rd[4:1]*2] = sum[31:0];
+                // signed<64> rs1_val_hi = X[rs1[4:1]*2+1];  // ???
+                // unsigned<32> rs1_val_lo = X[rs1[4:1]*2];
+                // signed<64> rs1_val = rs1_val_hi :: rs1_val_lo;
+                // signed<64> rs2_val_hi = X[rs2[4:1]*2+1];  // ???
+                // unsigned<32> rs2_val_lo = X[rs2[4:1]*2];
+                // signed<64> rs2_val = rs2_val_hi :: rs2_val_lo;
+                // signed<64> sum = rs1_val + rs2_val;
+                // X[rd[4:1]*2+1] = sum[63:32];
+                // X[rd[4:1]*2] = sum[31:0];
+                if (rd % 2) raise(0, 2);  // alternative: rd & 1
+                X[rd+1:rd] = X[rs1+1:rs1] + X[rs2+1:rs2];
             }
         }
         // TODO
