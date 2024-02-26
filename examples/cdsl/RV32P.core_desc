@@ -684,6 +684,9 @@ InstructionSet RV32Zbpo extends RV32I {
 }
 
 InstructionSet RV32Zpsfoperand extends RV32I {
+    // architectural_state {
+    //     // register unsigned<64> &P[16] = X[31:0] [[ty=u32]] [[class=GPR32Pair]];
+    // }
     instructions {
         // SMAL
         // RADD64
