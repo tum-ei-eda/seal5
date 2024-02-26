@@ -1011,7 +1011,7 @@ class Seal5Flow:
                         generated=True,
                         target="llvm",
                     )
-                    self.settings.patches.append(patch_settings)
+                    self.add_patch(patch_settings)
                     self.settings.to_yaml_file(self.settings_file)
                 else:
                     logger.warning("No patches found!")
@@ -1065,7 +1065,7 @@ class Seal5Flow:
                         generated=True,
                         target="llvm",
                     )
-                    self.settings.patches.append(patch_settings)
+                    self.add_patch(patch_settings)
                     self.settings.to_yaml_file(self.settings_file)
                 else:
                     logger.warning("No patches found!")
@@ -1119,7 +1119,7 @@ class Seal5Flow:
                         generated=True,
                         target="llvm",
                     )
-                    self.settings.patches.append(patch_settings)
+                    self.add_patch(patch_settings)
                     self.settings.to_yaml_file(self.settings_file)
                 else:
                     logger.warning("No patches found!")
@@ -1169,7 +1169,7 @@ class Seal5Flow:
                         generated=True,
                         target="llvm",
                     )
-                    self.settings.patches.append(patch_settings)
+                    self.add_patch(patch_settings)
                     self.settings.to_yaml_file(self.settings_file)
                 else:
                     logger.warning("No patches found!")
@@ -1264,6 +1264,12 @@ class Seal5Flow:
                 print("Err:", insn_name, err_str)
                 input("!")
 
+    def add_patch(self, patch_settings: PatchSettings):
+        for ps in self.settings.patches:
+            if ps.name == patch_settings.name:
+                raise RuntimeError(f"Duplicate patch '{ps.name}'. Either clean patches or rename patch.")
+        self.settings.patches.append(patch_settings)
+
     def gen_seal5_td(self, verbose: bool = False):
         patch_name = "seal5_td"
         dest = "llvm/lib/Target/RISCV/seal5.td"
@@ -1297,7 +1303,7 @@ include "seal5.td"
             generated=True,
             target="llvm",
         )
-        self.settings.patches.append(patch_settings)
+        self.add_patch(patch_settings)
 
     def transform(self, verbose: bool = False):
         logger.info("Tranforming Seal5 models")
