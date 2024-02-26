@@ -141,8 +141,6 @@ else:
 # Generate remaining patches
 seal5_flow.generate(verbose=VERBOSE, only=["pattern_gen"])
 
-# Generate patches
-seal5_flow.generate(verbose=VERBOSE)
 
 # Apply patches
 seal5_flow.patch(verbose=VERBOSE)
