@@ -1252,8 +1252,17 @@ class Seal5Flow:
                     name = ll_file.name
                     logger.info("Writing gmir for %s", name)
                     try:
+                        # TODO: move to backends
+                        cdsl2llvm_build_dir = None
+                        integrated_pattern_gen = self.settings.tools.pattern_gen.integrated
+                        if integrated_pattern_gen:
+                            config = "release"  # TODO: fetch default config
+                            cdsl2llvm_build_dir = str(self.build_dir / config)
+                        else:
+                            cdsl2llvm_build_dir = str(self.deps_dir / "cdsl2llvm" / "llvm" / "build")
                         cdsl2llvm.convert_ll_to_gmir(
-                            self.deps_dir / "cdsl2llvm" / "llvm" / "build", ll_file, output_file
+                            # self.deps_dir / "cdsl2llvm" / "llvm" / "build", ll_file, output_file
+                            cdsl2llvm_build_dir, ll_file, output_file
                         )
                     except AssertionError:
                         pass
