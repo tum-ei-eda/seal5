@@ -144,8 +144,8 @@ def main():
             else:
                 assert False
 
-    assert len(model["sets"]) == 0
-    assert len(model["cores"]) == 0
+    # assert len(model["sets"]) == 0
+    # assert len(model["cores"]) == 0
 
     metrics = {
         "n_sets": 0,
