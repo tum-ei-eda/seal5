@@ -33,6 +33,10 @@ class Seal5Pass:
         self.order: int = order  # not supported yet
         self.options: Optional[dict] = options
 
+    @property
+    def is_pending(self):
+        return self.status in [PassStatus.CREATED]
+
     def skip(self):
         self.status = PassStatus.SKIPPED
 

@@ -1410,10 +1410,10 @@ include "seal5.td"
 
         transform_passes = filter_passes(self.passes, pass_type=PassType.TRANSFORM)
         for pass_ in transform_passes:
-            assert pass_.is_pending, f"Pass {pass_.name} is not pending"
             if not ((pass_.name in only or len(only) == 0) and (pass_.name not in skip or len(skip) == 0)):
                 pass_.skip()
                 continue
+            assert pass_.is_pending, f"Pass {pass_.name} is not pending"
             pass_.run(verbose=verbose)
 
         logger.info("Completed tranformation of Seal5 models")
@@ -1427,10 +1427,10 @@ include "seal5.td"
         # print("skip", skip)
         # print("only", only)
         for pass_ in generate_passes:
-            assert pass_.is_pending, f"Pass {pass_.name} is not pending"
             if not ((pass_.name in only or len(only) == 0) and (pass_.name not in skip or len(skip) == 0)):
                 pass_.skip()
                 continue
+            assert pass_.is_pending, f"Pass {pass_.name} is not pending"
             pass_.run(verbose=verbose)
 
         logger.info("Completed generation of Seal5 patches")
