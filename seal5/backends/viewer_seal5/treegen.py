@@ -8,9 +8,9 @@
 
 """Generate a ttk.Treeview representation of a M2-ISA-R model structure."""
 
-import tkinter as tk
+# import tkinter as tk
 
-from ...metamodel import arch, behav
+from ...metamodel import behav
 from .utils import TreeGenContext
 
 # pylint: disable=unused-argument

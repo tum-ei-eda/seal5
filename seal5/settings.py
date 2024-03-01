@@ -468,7 +468,8 @@ class RISCVSettings(YAMLSettings):
     features: Optional[List[str]] = None
     # Used for  baseline extensions, tune and legalizer + pattern gen
     # default: zicsr,m,(32/64bit),fast-unaligned-access
-    # others: zmmul,a,f,d,zfh,zfinx,zdinx,c,zba,zbb,zbc,zbs,zca,zcb,zcd,zcmp,zce,e,no-optimized-zero-stride-load,no-default-unroll,...
+    # others: zmmul,a,f,d,zfh,zfinx,zdinx,c,zba,zbb,zbc,zbs,zca,zcb,zcd
+    #   zcmp,zce,e,no-optimized-zero-stride-load,no-default-unroll,...
     transform_info: Optional[Dict[str, Optional[Union[bool, int]]]] = None
     # options: see ttiimpl_notes.txt
     # TODO: processor/pipeline/mcpu/tune -> ProcessorSettings

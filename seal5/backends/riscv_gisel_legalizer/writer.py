@@ -17,7 +17,7 @@ from typing import Union
 from m2isar.metamodel import arch
 
 from seal5.index import NamedPatch, write_index_yaml
-from seal5.settings import ExtensionsSettings, RISCVLegalizerSettings
+from seal5.settings import RISCVLegalizerSettings
 
 logger = logging.getLogger("riscv_gisel_legalizer")
 

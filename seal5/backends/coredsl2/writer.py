@@ -16,7 +16,7 @@ import pickle
 from typing import Union
 
 from . import visitor
-from m2isar.metamodel import arch, patch_model, behav
+from m2isar.metamodel import arch, patch_model
 
 logger = logging.getLogger("coredsl2_writer")
 

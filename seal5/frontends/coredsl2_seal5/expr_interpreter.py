@@ -8,7 +8,6 @@
 
 """Very crude expression evaluation functions for use during model generation."""
 
-from m2isar import M2ValueError
 from m2isar.metamodel import arch, behav
 
 

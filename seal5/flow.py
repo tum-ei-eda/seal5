@@ -311,7 +311,6 @@ class Seal5Flow:
                     "LLVM_TARGETS_TO_BUILD": ["RISCV"],
                 }
             )
-            # llvm_config = LLVMConfig(options={"CMAKE_BUILD_TYPE": "Debug", "LLVM_BUILD_TOOLS": False, "LLVM_ENABLE_ASSERTIONS": False, "LLVM_OPTIMIZED_TABLEGEN": True, "LLVM_ENABLE_PROJECT": [], "LLVM_TARGETS_TO_BUILD": ["RISCV"]})
             cmake_options = llvm_config.options
             cdsl2llvm.build_pattern_gen(
                 self.deps_dir / "cdsl2llvm",
@@ -1300,7 +1299,9 @@ class Seal5Flow:
     #                 if ext is None:  # fallback to set_name
     #                     ext = set_name.replace("_", "")
     #                 try:
-    #                     cdsl2llvm.run_pattern_gen(self.deps_dir / "cdsl2llvm" / "llvm" / "build", input_file, output_file, skip_patterns=False, skip_formats=False, ext=ext)
+    #                     cdsl2llvm.run_pattern_gen(self.deps_dir / "cdsl2llvm" / "llvm" / "build",
+    # input_file, output_file,
+    # skip_patterns=False, skip_formats=False, ext=ext)
     #                 except AssertionError:
     #                     pass
     #                     # errs.append((insn_name, str(ex)))

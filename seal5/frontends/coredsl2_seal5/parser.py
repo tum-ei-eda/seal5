@@ -31,7 +31,7 @@ def main():
 
     args = parser.parse_args()
 
-    app_dir = pathlib.Path(__file__).parent.resolve()
+    # app_dir = pathlib.Path(__file__).parent.resolve()
 
     logging.basicConfig(level=getattr(logging, args.log.upper()))
     logger = logging.getLogger("parser")
@@ -68,7 +68,7 @@ def main():
 
     temp_save = {}
     # models: "dict[str, arch.CoreDef]" = {}
-    models: "dict[str arch.InstructionSet]" = {}
+    models: "dict[str, arch.InstructionSet]" = {}
 
     patch_model(expr_interpreter)
 
@@ -81,7 +81,7 @@ def main():
                 s = [s]
             print("s", s)
         except M2Error as e:
-            logger.critical("Error building architecture model of core %s: %s", core_name, e)
+            logger.critical("Error building architecture model of core", e)
 
         for orig, overwritten in arch_builder._overwritten_instrs:
             logger.warning(
@@ -150,7 +150,9 @@ def main():
                         op = behav_builder.visit(attr_op)
                         ops.append(op)
                     except M2Error as e:
-                        logger.critical('error processing attribute "%s" of memory "%s": %s', attr_name, fn_def.name, e)
+                        logger.critical(
+                            'error processing attribute "%s" of memory "%s": %s', attr_name, mem_def.name, e
+                        )
                         sys.exit(1)
 
                 mem_def.attributes[attr_name] = ops

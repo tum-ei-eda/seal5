@@ -2,17 +2,9 @@
 
 # Configuration file for the 'lit' test runner.
 
-import os
-import sys
-import re
-import platform
-import subprocess
-
 import lit.util
 import lit.formats
 from lit.llvm import llvm_config
-from lit.llvm.subst import FindTool
-from lit.llvm.subst import ToolSubst
 
 # name: The name of this test suite.
 config.name = "LLVM"

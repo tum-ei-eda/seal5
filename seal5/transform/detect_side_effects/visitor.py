@@ -8,7 +8,6 @@
 
 """TODO"""
 
-from m2isar import flatten
 from m2isar.metamodel import arch, behav
 
 # pylint: disable=unused-argument

@@ -14,7 +14,7 @@ import pathlib
 import pickle
 from typing import Union
 
-from m2isar.metamodel import arch, patch_model
+from m2isar.metamodel import arch
 
 from seal5.settings import Seal5Settings, ExtensionsSettings
 
