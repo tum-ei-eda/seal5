@@ -350,7 +350,7 @@ InstructionSet RV32Zpn extends RV32I {
                 if(rd != 0) {
                     unsigned<32> rs1_val = X[rs1];
                     unsigned<32> rs2_val = X[rs2];
-                    unsigned<16> rd_val0 = rs1_val[15:0] > rs2_val[15:0] ? rs1_val[7:0] : rs2_val[15:0];
+                    unsigned<16> rd_val0 = rs1_val[15:0] > rs2_val[15:0] ? rs1_val[15:0] : rs2_val[15:0];
                     unsigned<16> rd_val1 = rs1_val[31:16] > rs2_val[31:16] ? rs1_val[31:16] : rs2_val[31:16];
                     unsigned<32> rd_val = rd_val1 :: rd_val0;
                     X[rd] = rd_val;
