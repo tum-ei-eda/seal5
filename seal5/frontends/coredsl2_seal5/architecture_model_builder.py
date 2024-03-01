@@ -292,7 +292,7 @@ class ArchitectureModelBuilder(CoreDSL2Visitor):
 
         # extract storage type, qualifiers and attributes
         storage = [self.visit(obj) for obj in ctx.storage]
-        ctx.qualifiers = [self.visit(obj) for obj in ctx.qualifiers]
+        # qualifiers = [self.visit(obj) for obj in ctx.qualifiers]
         attributes = dict([self.visit(obj) for obj in ctx.attributes])
 
         # extract data type
