@@ -155,7 +155,6 @@ def main():
                         skip_formats=not args.formats,
                         ext=predicate,
                         mattr=mattr,
-
                     )
                     if output_file.is_file():
                         metrics["n_success"] += 1

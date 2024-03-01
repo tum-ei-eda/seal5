@@ -449,15 +449,18 @@ class LLVMSettings(YAMLSettings):
     state: Optional[LLVMState] = None
     configs: Optional[Dict[str, LLVMConfig]] = None
 
+
 @dataclass
 class RISCVLegalizerSetting(YAMLSettings):
     name: Optional[Union[str, List[str]]] = None
     types: Optional[Union[str, List[str]]] = None
     onlyif: Optional[Union[str, List[str]]] = None
 
+
 @dataclass
 class RISCVLegalizerSettings(YAMLSettings):
     ops: Optional[List[RISCVLegalizerSetting]] = None
+
 
 @dataclass
 class RISCVSettings(YAMLSettings):
@@ -480,6 +483,7 @@ class PatternGenSettings(YAMLSettings):
 @dataclass
 class ToolsSettings(YAMLSettings):
     pattern_gen: Optional[PatternGenSettings] = None
+
 
 @dataclass
 class Seal5Settings(YAMLSettings):

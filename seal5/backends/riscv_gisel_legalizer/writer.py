@@ -23,6 +23,7 @@ logger = logging.getLogger("riscv_gisel_legalizer")
 
 # if (ST.hasVendorXCvsimd()) {
 
+
 def type_helper(ty):
     print("type_helper", ty)
     ty_ = ty.replace("seal5_", "")
@@ -41,7 +42,6 @@ def type_helper(ty):
         return f"const LLT {ty} = LLT::fixed_vector({n}, LLT::scalar({sz}));"
     else:
         raise RuntimeError(f"Unsupported: {ty}")
-
 
 
 def gen_riscv_gisel_legalizer_str(legalizer_settings: RISCVLegalizerSettings):
@@ -167,7 +167,9 @@ def main():
                     with open(out_path, "w") as f:
                         f.write(content)
                     riscv_gisel_legalizer_patch = NamedPatch(
-                        "llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp", key="riscv_legalizer_info", src_path=out_path
+                        "llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp",
+                        key="riscv_legalizer_info",
+                        src_path=out_path,
                     )
                     artifacts[None].append(riscv_gisel_legalizer_patch)
     if args.metrics:

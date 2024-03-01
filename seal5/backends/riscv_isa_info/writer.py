@@ -24,8 +24,8 @@ from seal5.settings import ExtensionsSettings, LLVMVersion
 logger = logging.getLogger("riscv_isa_info")
 
 
-MAKO_TEMPLATE = "    {\"${arch}\", RISCVExtensionVersion{${version_major}, ${version_minor}}},"
-MAKO_TEMPLATE_LLVM18 = "    {\"${arch}\", {${version_major}, ${version_minor}}},"
+MAKO_TEMPLATE = '    {"${arch}", RISCVExtensionVersion{${version_major}, ${version_minor}}},'
+MAKO_TEMPLATE_LLVM18 = '    {"${arch}", {${version_major}, ${version_minor}}},'
 
 
 def gen_riscv_isa_info_str(name: str, ext_settings: ExtensionsSettings, llvm_version: LLVMVersion):
@@ -140,9 +140,7 @@ def main():
                 key = "riscv_isa_info_experimental"
             else:
                 key = "riscv_isa_info"
-            riscv_isa_info_patch = NamedPatch(
-                "llvm/lib/Support/RISCVISAInfo.cpp", key=key, src_path=out_path
-            )
+            riscv_isa_info_patch = NamedPatch("llvm/lib/Support/RISCVISAInfo.cpp", key=key, src_path=out_path)
             artifacts[None].append(riscv_isa_info_patch)
     if args.metrics:
         metrics_file = args.metrics

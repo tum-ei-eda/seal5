@@ -116,7 +116,7 @@ def build_llvm(
 
 
 def test_llvm(base: Path, build_dir: Path, test_paths: List[str] = [], verbose: bool = False):
-    env = os.eviron.copy()
+    env = os.environ.copy()
     old_path = env["PATH"]
     env["PATH"] = f"{build_dir}/bin:{old_path}"
     lit_exe = build_dir / "bin" / "llvm-lit"

@@ -23,7 +23,6 @@ class PassScope(Enum):
 
 
 class Seal5Pass:
-
     def __init__(self, name, pass_type, pass_scope, handler, order=-1, options=None):
         self.name: str = name
         self.pass_type: PassType = pass_type
@@ -35,7 +34,7 @@ class Seal5Pass:
 
     @property
     def is_pending(self):
-        return self.status in [PassStatus.CREATED]
+        return self.status in [PassStatus.CREATED, PassStatus.SKIPPED]
 
     def skip(self):
         self.status = PassStatus.SKIPPED
@@ -53,7 +52,12 @@ class Seal5Pass:
             raise e
 
 
-def filter_passes(passes: List[Seal5Pass], pass_name: Optional[str] = None, pass_type: Optional[PassType] = None, pass_scope: Optional[PassScope] = None):
+def filter_passes(
+    passes: List[Seal5Pass],
+    pass_name: Optional[str] = None,
+    pass_type: Optional[PassType] = None,
+    pass_scope: Optional[PassScope] = None,
+):
     # TODO: support regex patters in name
     ret = []
     for pass_ in passes:

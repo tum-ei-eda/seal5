@@ -47,7 +47,9 @@ def build_pattern_gen(
 
 
 def get_pattern_gen_patches(
-    src: Path, temp_dir: Path, verbose: bool = False,
+    src: Path,
+    temp_dir: Path,
+    verbose: bool = False,
 ):
     # TODO: copy!
     artifacts = []

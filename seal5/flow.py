@@ -256,7 +256,9 @@ class Seal5Flow:
             sha, version_info = llvm.clone_llvm_repo(self.directory, clone_url, ref=clone_ref, label=self.name)
         else:
             if force:
-                sha, version_info = llvm.clone_llvm_repo(self.directory, clone_url, ref=clone_ref, refresh=True, label=self.name)
+                sha, version_info = llvm.clone_llvm_repo(
+                    self.directory, clone_url, ref=clone_ref, refresh=True, label=self.name
+                )
         if self.meta_dir.is_dir():
             if force is False and not utils.ask_user(
                 "Overwrite existing .seal5 diretcory?", default=False, interactive=interactive
@@ -405,12 +407,12 @@ class Seal5Flow:
         logger.info("Completed load of Seal5 inputs")
 
     def build(self, config="release", target="all", verbose: bool = False):
-        logger.info("Building Seal5 LLVM")
+        logger.info("Building Seal5 LLVM (%s)", target)
         llvm_config = self.settings.llvm.configs.get(config, None)
         assert llvm_config is not None, f"Invalid llvm config: {config}"
         cmake_options = llvm_config.options
         llvm.build_llvm(self.directory, self.build_dir / config, cmake_options=cmake_options, target=target)
-        logger.info("Completed build of Seal5 LLVM")
+        logger.info("Completed build of Seal5 LLVM (%s)", target)
 
     def convert_models(self, verbose: bool = False, inplace: bool = False):
         assert not inplace
@@ -1348,7 +1350,9 @@ class Seal5Flow:
                             cdsl2llvm_build_dir = str(self.deps_dir / "cdsl2llvm" / "llvm" / "build")
                         cdsl2llvm.convert_ll_to_gmir(
                             # self.deps_dir / "cdsl2llvm" / "llvm" / "build", ll_file, output_file
-                            cdsl2llvm_build_dir, ll_file, output_file
+                            cdsl2llvm_build_dir,
+                            ll_file,
+                            output_file,
                         )
                     except AssertionError:
                         pass
@@ -1587,7 +1591,9 @@ include "seal5.td"
                 self.apply_patch(patch, force=force)
         logger.info("Completed application of Seal5 patches")
 
-    def test(self, debug: bool = False, verbose: bool = False, ignore_error: bool = False, config: Optional[str] = None):
+    def test(
+        self, debug: bool = False, verbose: bool = False, ignore_error: bool = False, config: Optional[str] = None
+    ):
         logger.info("Testing Seal5 LLVM")
         if config is None:
             config = "debug" if debug else "release"

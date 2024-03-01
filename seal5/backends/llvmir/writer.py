@@ -121,7 +121,7 @@ def main():
                         input_file,
                         output_file,
                         skip_patterns=True,
-                        skip_formats=True
+                        skip_formats=True,
                     )
                     metrics["n_success"] += 1
                 except AssertionError:

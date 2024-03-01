@@ -211,7 +211,7 @@ def main():
         if drop2 and keep2:
             ret = size not in drop2 and size in keep2
         elif keep2:
-            ret =  size in keep2
+            ret = size in keep2
         elif drop2:
             ret = size not in drop2
         if not ret:
