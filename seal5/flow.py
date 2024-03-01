@@ -1577,7 +1577,7 @@ include "seal5.td"
     def patch(self, verbose: bool = False, stages: List[PatchStage] = None, force: bool = False):
         logger.info("Applying Seal5 patches")
         if stages is None:
-            stages = list(map(PatchStage, range(PatchStage.PHASE_4)))
+            stages = list(map(PatchStage, range(PatchStage.PHASE_5 + 1)))
         assert len(stages) > 0
         patches_per_stage = self.collect_patches()
         for stage in stages:
