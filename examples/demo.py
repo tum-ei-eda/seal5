@@ -34,6 +34,8 @@ VERBOSE = False
 # VERBOSE = True
 # FAST = False
 FAST = True
+SKIP_PATTERNS = False
+# SKIP_PATTERNS = True
 
 
 seal5_flow = Seal5Flow("/tmp/seal5_llvm_demo", "demo")
@@ -117,11 +119,6 @@ seal5_flow.patch(verbose=VERBOSE, stages=[PatchStage.PHASE_0])
 if not FAST:
     # Build initial LLVM
     seal5_flow.build(verbose=VERBOSE, config="release")
-else:
-    pass
-    # Build PatternGen & llc
-    # seal5_flow.build(verbose=VERBOSE, config="release", target="pattern-gen")
-    # seal5_flow.build(verbose=VERBOSE, config="release", target="llc")
 
 # Transform inputs
 #   1. Create M2-ISA-R metamodel
@@ -136,19 +133,18 @@ seal5_flow.generate(verbose=VERBOSE, skip=["pattern_gen"])
 seal5_flow.patch(verbose=VERBOSE, stages=[PatchStage.PHASE_1, PatchStage.PHASE_2])
 
 if not FAST:
-    # Build patch LLVM
+    # Build patched LLVM
     seal5_flow.build(verbose=VERBOSE, config="release")
-else:
-    # Rebuilt PatternGen & llc
+if not SKIP_PATTERNS:
+    # Build PatternGen & llc
     seal5_flow.build(verbose=VERBOSE, config="release", target="pattern-gen")
     seal5_flow.build(verbose=VERBOSE, config="release", target="llc")
 
-# Generate remaining patches
-seal5_flow.generate(verbose=VERBOSE, only=["pattern_gen"])
+    # Generate remaining patches
+    seal5_flow.generate(verbose=VERBOSE, only=["pattern_gen"])
 
-
-# Apply patches
-seal5_flow.patch(verbose=VERBOSE)
+    # Apply patches
+    seal5_flow.patch(verbose=VERBOSE)
 
 # Build patched LLVM
 seal5_flow.build(verbose=VERBOSE, config="release")
