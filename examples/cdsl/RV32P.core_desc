@@ -686,6 +686,7 @@ InstructionSet RV32Zbpo extends RV32I {
 InstructionSet RV32Zpsfoperand extends RV32I {
     // architectural_state {
     //     // register unsigned<64> &P[16] = X[31:0] [[ty=u32]] [[class=GPR32Pair]];
+    //     // Not allowed in CoreDSL2 (needs arbitrary packed/unpacked casts)
     // }
     instructions {
         // SMAL
@@ -748,6 +749,8 @@ InstructionSet RV32Zpsfoperand extends RV32I {
                 // X[odd(rd):even(rd)] = product;
                 // X[rd[4:1]*2+1:rd[4:1]*2] = product;
                 if (rd % 2) raise(0, 2);  // alternative: rd & 1
+                if (rs1 % 2) raise(0, 2);  // alternative: rs1 & 1
+                if (rs2 % 2) raise(0, 2);  // alternative: rs2 & 1
                 X[rd+1:rd] = product;
             }
         }
