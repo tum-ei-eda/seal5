@@ -48,11 +48,12 @@ class PassResult:
 
 
 class Seal5Pass:
-    def __init__(self, name, pass_type, pass_scope, handler, order=-1, options=None):
+    def __init__(self, name, pass_type, pass_scope, handler, fmt=PassFormat.NONE, order=-1, options=None):
         self.name: str = name
         self.pass_type: PassType = pass_type
         self.pass_scope: PassScope = pass_scope
         self.handler: Callable = handler
+        self.fmt: PassFormat = fmt
         self.status = PassStatus.CREATED
         self.order: int = order  # not supported yet
         self.options: Optional[dict] = options
