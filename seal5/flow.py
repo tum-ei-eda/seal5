@@ -101,6 +101,28 @@ class Seal5Flow:
                 )
         self.reset_passes()
         self.create_passes()
+        # self.init_global_model()
+
+    # def init_global_model(self, name: str = "Seal5"):
+    #     dest = self.inputs_dir / f"{name}.seal5model"
+    #     args = [
+    #         "-",
+    #         "-o",
+    #         dest,
+    #     ]
+    #     utils.python(
+    #         "-m",
+    #         "seal5.frontends.dummy.writer",
+    #         *args,
+    #         env=self.prepare_environment(),
+    #         print_func=logger.info if verbose else logger.debug,
+    #         live=True,
+    #     )
+
+    #     self.update_global_model(name=name)
+
+    # def update_global_model(self, name: str = "Seal5"):
+    #     self.process_settings(name)
 
     def reset_passes(self):
         self.passes = []
