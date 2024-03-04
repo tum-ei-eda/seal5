@@ -36,9 +36,14 @@ VERBOSE = False
 FAST = True
 SKIP_PATTERNS = False
 # SKIP_PATTERNS = True
+INTERACTIVE = False
 
 
 seal5_flow = Seal5Flow("/tmp/seal5_llvm_demo", "demo")
+
+# Optional: clean existing settings/models for fresh run
+seal5_flow.reset(settings=True, interactive=False)
+seal5_flow.clean(temp=True, patches=True, models=True, inputs=True, interactive=INTERACTIVE)
 
 # Clone LLVM and init seal5 metadata directory
 seal5_flow.initialize(
@@ -50,14 +55,11 @@ seal5_flow.initialize(
     verbose=VERBOSE,
 )
 
-# Optional: clean existing settings/models for fresh run
-seal5_flow.reset(settings=True, interactive=False)
-
 # Load CoreDSL inputs
 cdsl_files = [
     # XCOREV
     # EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMac.core_desc",
-    # EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVAlu.core_desc",
+    EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVAlu.core_desc",
     # EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVBitmanip.core_desc",
     # EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVSimd.core_desc",
     # EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMem.core_desc",
@@ -72,7 +74,7 @@ cdsl_files = [
     # GENERATED (untested)
     EXAMPLES_DIR / "cdsl" / "rv_gen" / "test.core_desc",
     # OTHERS (untested)
-    # EXAMPLES_DIR / "cdsl" / "Example.core_desc",
+    EXAMPLES_DIR / "cdsl" / "Example.core_desc",
 ]
 seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
@@ -91,7 +93,7 @@ seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 cfg_files = [
     # XCOREV
     # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVMac.yml",
-    # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVAlu.yml",
+    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVAlu.yml",
     # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVBitmanip.yml",
     # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVSimd.yml",
     # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVMem.yml",
@@ -159,4 +161,4 @@ seal5_flow.deploy(verbose=VERBOSE)
 seal5_flow.export("/tmp/seal5_llvm_demo.tar.gz", verbose=VERBOSE)
 
 # Optional: cleanup temorary files, build dirs,...
-# seal5.cleanup(temp=True, build=True, deps=True, force=True)
+# seal5.clean(temp=True, build=True, deps=True, interactive=INTERACTIVE)
