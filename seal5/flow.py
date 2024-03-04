@@ -189,7 +189,7 @@ class Seal5Flow:
             # simd_costs
             # isel_patterns
             # codegen_test
-            #### ("riscv_gisel_legalizer", self.gen_riscv_gisel_legalizer_patch, {}),
+            ("riscv_gisel_legalizer", self.gen_riscv_gisel_legalizer_patch, {}),
             # TODO: nested pass lists?
             ("pattern_gen", self.pattern_gen_pass, {}),
         ]
