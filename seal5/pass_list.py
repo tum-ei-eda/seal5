@@ -769,6 +769,8 @@ def convert_behav_to_tablegen(
     env: Optional[dict] = None,
     verbose: bool = False,
     split: bool = True,
+    formats: bool = True,
+    patterns: bool = True,
     **kwargs,
 ):
     assert split, "TODO"
@@ -797,6 +799,8 @@ def convert_behav_to_tablegen(
         args.append("--splitted")
     if formats:
         args.append("--formats")
+    if patterns:
+        args.append("--patterns")
     if gen_metrics_file:
         metrics_file = settings.temp_dir / (new_name + "_tblgen_patterns_metrics.csv")
         args.extend(["--metrics", metrics_file])
@@ -1185,8 +1189,8 @@ def pattern_gen_pass(
         ("write_cdsl_compat", write_cdsl, {"split": split, "compat": True}),
         ("behav_to_llvmir", convert_behav_to_llvmir, {"split": split}),
         ("llvmir_to_gmir", convert_llvmir_to_gmir, {"split": split}),
-        ("write_fmt", generate_formats, {"split": split}),
-        ("behav_to_pat", convert_behav_to_pat, {"split": split}),
+        ("write_fmt", convert_behav_to_tablegen, {"split": split, "formats": True, "patterns": False}),
+        ("behav_to_pat", convert_behav_to_tablegen, {"split": split, "formats": False, "patterns": True}),
     ]
     pass_list = []
     for pass_name, pass_handler, pass_options in PATTERN_GEN_PASSES:

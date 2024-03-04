@@ -34,6 +34,7 @@ def main():
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--splitted", action="store_true", help="Split per set and instruction")
     parser.add_argument("--formats", action="store_true", help="Also generate instruction formats")
+    parser.add_argument("--patterns", action="store_true", help="Also generate instruction patterns")
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
     parser.add_argument("--index", default=None, help="Output index to file")
     parser.add_argument("--ext", type=str, default="td", help="Default file extension (if using --splitted)")
@@ -131,10 +132,12 @@ def main():
                 if not input_file.is_file():
                     metrics["n_skipped"] += 1
                     continue
-                out_name = f"{instr_def.name}.{args.ext}"
-                out_name_fmt = f"{instr_def.name}InstrFormat.{args.ext}"
-                output_file = set_dir / out_name
-                output_file_fmt = set_dir / out_name_fmt
+                if args.patterns:
+                    out_name = f"{instr_def.name}.{args.ext}"
+                    output_file = set_dir / out_name
+                if args.formats:
+                    out_name_fmt = f"{instr_def.name}InstrFormat.{args.ext}"
+                    output_file_fmt = set_dir / out_name_fmt
                 install_dir = os.getenv("CDSL2LLVM_DIR", None)
                 predicate = None
                 mattr = default_mattr
@@ -151,7 +154,7 @@ def main():
                         install_dir,
                         input_file,
                         output_file,
-                        skip_patterns=False,
+                        skip_patterns=not args.patterns,
                         skip_formats=not args.formats,
                         ext=predicate,
                         mattr=mattr,
@@ -164,11 +167,12 @@ def main():
                             artifacts[set_name].append(file_artifact_fmt)
                             include_path_fmt = f"{set_name}/{out_name_fmt}"
                             includes.append(include_path_fmt)
-                        file_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}/{out_name}"
-                        file_artifact = File(file_artifact_dest, src_path=output_file)
-                        artifacts[set_name].append(file_artifact)
-                        include_path = f"{set_name}/{out_name}"
-                        includes.append(include_path)
+                        if args.patterns:
+                            file_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}/{out_name}"
+                            file_artifact = File(file_artifact_dest, src_path=output_file)
+                            artifacts[set_name].append(file_artifact)
+                            include_path = f"{set_name}/{out_name}"
+                            includes.append(include_path)
                     else:
                         metrics["n_failed"] += 1
                 except AssertionError:
