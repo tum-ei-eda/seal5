@@ -178,8 +178,8 @@ class Seal5Flow:
                 pass_scope = PassScope.MODEL
             self.add_pass(Seal5Pass(pass_name, PassType.GENERATE, pass_scope, pass_handler, options=pass_options))
 
-    def pattern_gen_pass(self, verbose: bool = False, split: bool = True, **kwargs):
-        llvm_version = self.settings.llvm.state.version
+    def pattern_gen_pass(self, model_name: str, verbose: bool = False, split: bool = True, **kwargs):
+        llvm_version = self.settings.nllvm.state.version
         assert llvm_version is not None
         if llvm_version.major < 18:
             raise RuntimeError("PatternGen needs LLVM version 18 or higher")
