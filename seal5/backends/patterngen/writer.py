@@ -132,9 +132,9 @@ def main():
                 if not input_file.is_file():
                     metrics["n_skipped"] += 1
                     continue
-                if args.patterns:
-                    out_name = f"{instr_def.name}.{args.ext}"
-                    output_file = set_dir / out_name
+                # if args.patterns:
+                out_name = f"{instr_def.name}.{args.ext}"
+                output_file = set_dir / out_name
                 if args.formats:
                     out_name_fmt = f"{instr_def.name}InstrFormat.{args.ext}"
                     output_file_fmt = set_dir / out_name_fmt
