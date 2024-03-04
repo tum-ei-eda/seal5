@@ -1,5 +1,5 @@
 import time
-from enum import Enum, auto
+from enum import Enum, IntFlag, auto
 from dataclasses import dataclass
 from typing import Callable, Optional, List
 from concurrent.futures import ThreadPoolExecutor
@@ -7,6 +7,17 @@ from concurrent.futures import ThreadPoolExecutor
 from seal5.logging import get_logger
 
 logger = get_logger()
+
+
+class PassFormat(IntFlag):
+    NONE = auto()
+    CDSL = auto()
+    YAML = auto()
+    M2ISAR = auto()
+    SEAL5 = auto()
+    LLVMIR = auto()
+    GMIR = auto()
+    SRC = auto()
 
 
 class PassType(Enum):
