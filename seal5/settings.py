@@ -229,7 +229,9 @@ class YAMLSettings:
                         elif isinstance(v1, list):
                             if overwrite:
                                 v2.clear()
-                            v2.extend(v1)
+                            # duplicates are dropped here
+                            new = [x for x in v1 if x not in v2]
+                            v2.extend(new)
                         else:
                             assert isinstance(
                                 v2, (int, float, str, bool, Path)
