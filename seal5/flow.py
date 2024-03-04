@@ -585,7 +585,7 @@ class Seal5Flow:
             config = "debug" if debug else "release"
         test_paths = self.settings.test.paths
         failing_tests = llvm.test_llvm(
-            self.directory / "llvm" / "test", self.build_dir / config, test_paths, verbose=verbose
+            self.directory / "llvm" / "test", self.settings.build_dir / config, test_paths, verbose=verbose
         )
         if len(failing_tests) > 0:
             logger.error("%d tests failed: %s", len(failing_tests), ", ".join(failing_tests))
@@ -604,12 +604,12 @@ class Seal5Flow:
         suffix = dest.suffix
         if suffix != ".gz":
             raise NotImplementedError("Only .tar.gz export is supported!")
-        artifacts = [self.inputs_dir, self.gen_dir, self.models_dir, self.logs_dir, self.settings_file]
+        artifacts = [self.settings.inputs_dir, self.settings.gen_dir, self.settings.models_dir, self.settings.logs_dir, self.settings.settings_file]
         with tarfile.open(dest, mode="w:gz") as archive:
             for artifact in artifacts:
                 name = str(artifact)
-                assert str(self.meta_dir) in name
-                name = name.replace(f"{self.meta_dir}/", "")
+                assert str(self.settings.meta_dir) in name
+                name = name.replace(f"{self.settings.meta_dir}/", "")
                 if artifact.is_file():
                     archive.add(artifact, arcname=name)
                 elif artifact.is_dir():
@@ -625,18 +625,27 @@ class Seal5Flow:
             self.settings.reset()
         logger.info("Completed clean of Seal5 settings")
 
-    def clean(self, verbose: bool = False, interactive: bool = False):
+    def clean(self, temp: bool = False, patches: bool = False, models: bool = False, inputs: bool = False, logs: bool = False, install: bool = False, build: bool = False, deps: bool = False, verbose: bool = False, interactive: bool = False):
         logger.info("Cleaning Seal5 directories")
-        to_clean = [
-            self.temp_dir,
-            self.gen_dir,
-            self.models_dir,
-            self.inputs_dir,
-            self.logs_dir,
-            self.install_dir,
-            self.build_dir,
-            self.deps_dir,
-        ]
+        to_clean = []
+        if temp:
+            to_clean.append(self.settings.temp_dir)
+        if patches:
+            to_clean.append(self.settings.patches_dir)
+        if models:
+            to_clean.append(self.settings.models_dir)
+        if inputs:
+            to_clean.append(self.settings.inputs_dir)
+        if logs:
+            to_clean.append(self.settings.logs_dir)
+        if install:
+            to_clean.append(self.settings.install_dir)
+        if build:
+            to_clean.append(self.settings.build_dir)
+        if deps:
+            to_clean.append(self.settings.deps_dir)
+        # if gen:
+        #     to_clean.append(self.settings.gen_dir)
         for path in to_clean:
             utils.clean_path(path, interactive=interactive)
         # self.reset(verbose=verbose, interactive=interactive)

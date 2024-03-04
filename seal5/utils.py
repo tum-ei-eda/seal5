@@ -175,7 +175,21 @@ def python(*args, **kwargs):
 
 
 def clean_path(path: Path, interactive: bool = False):
-    raise NotImplementedError
+    if interactive:
+        answer = input(f"Remove '{path}' [Y|n]")
+        if len(answer) == 0:
+            answer = "Y"
+        if answer.lower() in ["j", "y"]:
+            allow = True
+        else:
+            allow = False
+    else:
+        allow = True
+    if not path.is_dir():
+        # TODO: warning
+        return
+    if allow:
+        shutil.rmtree(path)
 
 
 def merge_dicts(a: dict, b: dict, path=[]):
