@@ -34,7 +34,7 @@ from seal5 import utils
 from seal5.tools import llvm, cdsl2llvm, inject_patches
 from seal5.resources.resources import get_patches, get_test_cfg
 from seal5.index import File, NamedPatch, write_index_yaml
-from seal5.passes import Seal5Pass, PassType, PassScope, filter_passes
+from seal5.passes import Seal5Pass, PassType, PassScope, PassManager, PassResult, filter_passes
 
 logger = get_logger()
 
@@ -147,7 +147,8 @@ class Seal5Flow:
             # self.extract_costs_and_heuristics(verbose)  # TODO
         ]
         for pass_name, pass_handler, pass_options in TRANSFORM_PASS_MAP:
-            self.add_pass(Seal5Pass(pass_name, PassType.TRANSFORM, PassScope.MODEL, pass_handler, options=pass_options))
+            pass_scope = PassScope.MODEL
+            self.add_pass(Seal5Pass(pass_name, PassType.TRANSFORM, pass_scope, pass_handler, options=pass_options))
 
         # Generates
         GENERATE_PASS_MAP = [
@@ -166,22 +167,40 @@ class Seal5Flow:
             # simd_costs
             # isel_patterns
             # codegen_test
-            ("riscv_gisel_legalizer", self.gen_riscv_gisel_legalizer_patch, {}),
+            #### ("riscv_gisel_legalizer", self.gen_riscv_gisel_legalizer_patch, {}),
             # TODO: nested pass lists?
             ("pattern_gen", self.pattern_gen_pass, {}),
         ]
         for pass_name, pass_handler, pass_options in GENERATE_PASS_MAP:
-            self.add_pass(Seal5Pass(pass_name, PassType.GENERATE, PassScope.MODEL, pass_handler, options=pass_options))
+            if pass_name in ["seal5_td", "riscv_gisel_legalizer"]:
+                pass_scope = PassScope.GLOBAL
+            else:
+                pass_scope = PassScope.MODEL
+            self.add_pass(Seal5Pass(pass_name, PassType.GENERATE, pass_scope, pass_handler, options=pass_options))
 
-    def pattern_gen_pass(self, verbose: bool = False):
+    def pattern_gen_pass(self, verbose: bool = False, split: bool = True, **kwargs):
         llvm_version = self.settings.llvm.state.version
         assert llvm_version is not None
         if llvm_version.major < 18:
             raise RuntimeError("PatternGen needs LLVM version 18 or higher")
-        self.write_cdsl(verbose=verbose, split=True, compat=True)  # TODO: split internally
-        self.convert_behav_to_llvmir_splitted(verbose=verbose)  # TODO: add split arg
-        self.convert_llvmir_to_gmir_splitted(verbose=verbose)  # TODO: add split arg
-        self.convert_behav_to_tablegen(verbose=verbose, split=True)
+        PATTERN_GEN_PASSES = [
+            ("write_cdsl_compat", self.write_cdsl, {"split": split, "compat": True}),
+            ("behav_to_llvmir", self.convert_behav_to_llvmir, {"split": split}),
+            ("llvmir_to_gmir", self.convert_llvmir_to_gmir, {"split": split}),
+            ("write_fmt", self.generate_formats, {"split": split}),
+            ("behav_to_pat", self.convert_behav_to_pat, {"split": split}),
+        ]
+        pass_list = []
+        for pass_name, pass_handler, pass_options in PATTERN_GEN_PASSES:
+            pass_list.append(
+                Seal5Pass(pass_name, PassType.GENERATE, PassScope.MODEL, pass_handler, options=pass_options)
+            )
+        # TODO: get parent pass context automatically
+        parent = kwargs.get("parent", None)
+        assert parent is not None
+        with PassManager("pattern_gen_passes", pass_list, parent=parent) as pm:
+            result = pm.run(verbose=verbose)
+        return result
 
     @property
     def meta_dir(self):
@@ -388,6 +407,10 @@ class Seal5Flow:
         dest = self.models_dir
         self.parse_coredsl(file, dest, verbose=verbose)
         self.settings.to_yaml_file(self.settings_file)
+
+    @property
+    def model_names(self):
+        return [Path(path).stem for path in self.settings.inputs]
 
     def load(self, files: List[Path], verbose: bool = False, overwrite: bool = False):
         logger.info("Loading Seal5 inputs")
@@ -1410,16 +1433,16 @@ include "seal5.td"
         # inplace = True
         # if not inplace:
         #     raise NotImplementedError()
-        skip = skip if skip is not None else []
-        only = only if only is not None else []
 
+        input_models = self.model_names
         transform_passes = filter_passes(self.passes, pass_type=PassType.TRANSFORM)
-        for pass_ in transform_passes:
-            if not ((pass_.name in only or len(only) == 0) and (pass_.name not in skip or len(skip) == 0)):
-                pass_.skip()
-                continue
-            assert pass_.is_pending, f"Pass {pass_.name} is not pending"
-            pass_.run(verbose=verbose)
+        with PassManager("transform_passes", transform_passes, skip=skip, only=only) as pm:
+            result = pm.run(input_models, verbose=verbose)
+            if result:
+                metrics = result.metrics
+                if metrics:
+                    self.settings.metrics.append({pm.name: metrics})
+                    self.settings.to_yaml_file(self.settings_file)
 
         logger.info("Completed tranformation of Seal5 models")
 
@@ -1427,16 +1450,14 @@ include "seal5.td"
         logger.info("Generating Seal5 patches")
         generate_passes = filter_passes(self.passes, pass_type=PassType.GENERATE)
         # TODO: User, Global, PerInstr
-        skip = skip if skip is not None else []
-        only = only if only is not None else []
-        # print("skip", skip)
-        # print("only", only)
-        for pass_ in generate_passes:
-            if not ((pass_.name in only or len(only) == 0) and (pass_.name not in skip or len(skip) == 0)):
-                pass_.skip()
-                continue
-            assert pass_.is_pending, f"Pass {pass_.name} is not pending"
-            pass_.run(verbose=verbose)
+        input_models = self.model_names
+        with PassManager("generate_passes", generate_passes, skip=skip, only=only) as pm:
+            result = pm.run(input_models, verbose=verbose)
+            if result:
+                metrics = result.metrics
+                if metrics:
+                    self.settings.metrics.append({pm.name: metrics})
+                    self.settings.to_yaml_file(self.settings_file)
 
         logger.info("Completed generation of Seal5 patches")
 
