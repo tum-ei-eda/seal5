@@ -72,8 +72,15 @@ DEFAULT_SETTINGS = {
             "drop": [],
         },
     },
-    "transform": {
-        "passes": "*",
+    # "transform": {
+    #     "passes": "*",
+    # },
+    "passes": {
+        "defaults": {
+            "skip": [],
+            "only": [],
+        },
+        "per_model": {},
     },
     "test": {
         "paths": [],
@@ -310,9 +317,20 @@ class PatchSettings(YAMLSettings):
     #     self._file = value
 
 
+# @dataclass
+# class TransformSettings(YAMLSettings):
+#     pass
+
 @dataclass
-class TransformSettings(YAMLSettings):
-    pass
+class PassesSetting(YAMLSettings):
+    skip: Optional[List[str]] = None
+    only: Optional[List[str]] = None
+
+
+@dataclass
+class PassesSettings(YAMLSettings):
+    defaults: Optional[PassesSetting] = None
+    per_model: Optional[Dict[str, PassesSetting]] = None
 
 
 @dataclass
@@ -494,7 +512,8 @@ class Seal5Settings(YAMLSettings):
     llvm: Optional[LLVMSettings] = None
     git: Optional[GitSettings] = None
     patches: Optional[List[PatchSettings]] = None
-    transform: Optional[TransformSettings] = None  # TODO: make list?
+    # transform: Optional[TransformSettings] = None  # TODO: make list?
+    passes: Optional[PassesSettings] = None  # TODO: make list?
     test: Optional[TestSettings] = None
     extensions: Optional[Dict[str, ExtensionsSettings]] = None
     groups: Optional[GroupsSettings] = None  # TODO: make list?

@@ -7,3 +7,7 @@ extensions:
     experimental: false
     vendor: true
     # patches: []
+passes:
+  per_model:
+    XCoreVMac:
+      skip: [riscv_features, riscv_isa_info, pattern_gen]

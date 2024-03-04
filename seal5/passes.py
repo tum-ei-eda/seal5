@@ -47,6 +47,18 @@ class PassResult:
     metrics: Optional[dict] = None
     outputs: Optional[List[Path]] = None
 
+def check_filter(name, skip, only):
+    print("check_filter", name, skip, only)
+    if skip is None:
+        skip = []
+    if only is None:
+        only = []
+    if not (
+        (name in only or len(only) == 0)
+        and (name not in skip or len(skip) == 0)
+    ):
+        return True
+    return False
 
 class Seal5Pass:
     def __init__(self, name, pass_type, pass_scope, handler, fmt=PassFormat.NONE, order=-1, options=None):
@@ -85,10 +97,20 @@ class Seal5Pass:
             else:
                 parallel = 1
             if self.pass_scope == PassScope.MODEL:
+                assert settings is not None
+                passes_settings = settings.passes
+                assert passes_settings is not None
+                assert passes_settings.per_model is not None
+
                 with ThreadPoolExecutor(max_workers=parallel) as executor:
                     futures = []
                     for input_model in inputs:
-                        future = executor.submit(self.handler, input_model, **kwargs_)
+                        overrides = passes_settings.per_model.get(input_model, None)
+                        if overrides:
+                            if check_filter(self.name, overrides.skip, overrides.only):
+                                logger.info("Skipped pass %s for model %s", self.name, input_model)
+                                continue
+                        future = executor.submit(self.handler, input_model, settings=settings, **kwargs_)
                         futures.append(future)
                     results = []
                     for i, future in enumerate(futures):
@@ -130,8 +152,8 @@ class PassManager:
     ):
         self.name = name
         self.pass_list = pass_list
-        self.skip = skip if skip is not None else []
-        self.only = only if only is not None else []
+        self.skip = skip if skip is not None else (parent.skip if parent else [])
+        self.only = only if only is not None else (parent.only if parent else [])
         self.parallel = parallel
         self.metrics: dict = {}
         self.open: bool = False
@@ -161,11 +183,16 @@ class PassManager:
         assert self.open, "PassManager needs context"
         start = time.time()
         self.metrics["passes"] = []
+        # passes_settings = settings.passes
+        # assert passes_settings is not None
+        # assert passes_settings.per_model is not None
+
         for pass_ in self.pass_list:
-            if not (
-                (pass_.name in self.only or len(self.only) == 0)
-                and (pass_.name not in self.skip or len(self.skip) == 0)
-            ):
+            # input_models_ = []
+            # for model_name in input_models:
+            #    overrides = passes_settings.per_model.get(model_name, None)
+            #    if overrides:
+            if check_filter(pass_.name, self.skip, self.only):
                 pass_.skip()
                 continue
             assert pass_.is_pending, f"Pass {pass_.name} is not pending"

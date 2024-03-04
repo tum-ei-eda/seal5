@@ -385,6 +385,15 @@ class Seal5Flow:
 
     def transform(self, verbose: bool = False, skip: Optional[List[str]] = None, only: Optional[List[str]] = None):
         logger.info("Tranforming Seal5 models")
+        passes_settings = self.settings.passes
+        assert passes_settings is not None
+        assert passes_settings.defaults is not None
+        default_skip = passes_settings.defaults.skip
+        if skip is None and default_skip:
+            skip = default_skip
+        default_only = passes_settings.defaults.only
+        if only is None and default_only:
+            only = default_only
         # inplace = True
         # if not inplace:
         #     raise NotImplementedError()
