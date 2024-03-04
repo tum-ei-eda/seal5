@@ -1,4 +1,5 @@
 import time
+from pathlib import Path
 from enum import Enum, IntFlag, auto
 from dataclasses import dataclass
 from typing import Callable, Optional, List
@@ -43,6 +44,7 @@ class PassScope(Enum):
 @dataclass
 class PassResult:
     metrics: Optional[dict] = None
+    outputs: Optional[List[Path]] = None
 
 
 class Seal5Pass:
