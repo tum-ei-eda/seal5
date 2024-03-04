@@ -89,12 +89,11 @@ class Seal5Flow:
         self.state: Seal5State = Seal5State.UNKNOWN
         self.passes: List[Seal5Pass] = []  # TODO: implement PassManager
         self.check()
-        self.settings: Seal5Settings = None
-        if self.settings_file.is_file():
-            self.settings = Seal5Settings.from_yaml_file(self.settings_file)
-        if self.logs_dir.is_dir():
-            pass
-            set_log_file(self.log_file_path)
+        self.settings: Seal5Settings(directory=self.directory)
+        if self.settings.settings_file.is_file():
+            self.settings = Seal5Settings.from_yaml_file(self.settings.settings_file)
+        if self.settings.logs_dir.is_dir():
+            set_log_file(self.settings.log_file_path)
             if self.settings:
                 set_log_level(
                     console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level
@@ -225,58 +224,6 @@ class Seal5Flow:
             result = pm.run(verbose=verbose)
         return result
 
-    @property
-    def meta_dir(self):
-        return self.directory / ".seal5"
-
-    @property
-    def settings_file(self):
-        return self.meta_dir / "settings.yml"
-
-    @property
-    def deps_dir(self):
-        return self.meta_dir / "deps"
-
-    @property
-    def build_dir(self):
-        return self.meta_dir / "build"
-
-    @property
-    def install_dir(self):
-        return self.meta_dir / "install"
-
-    @property
-    def logs_dir(self):
-        return self.meta_dir / "logs"
-
-    @property
-    def models_dir(self):
-        return self.meta_dir / "models"
-
-    @property
-    def inputs_dir(self):
-        return self.meta_dir / "inputs"
-
-    @property
-    def temp_dir(self):
-        return self.meta_dir / "temp"
-
-    @property
-    def gen_dir(self):
-        return self.meta_dir / "gen"
-
-    @property
-    def tests_dir(self):
-        return self.meta_dir / "tests"
-
-    @property
-    def patches_dir(self):  # TODO: maybe merge with gen_dir
-        return self.meta_dir / "patches"
-
-    @property
-    def log_file_path(self):
-        return self.logs_dir / "seal5.log"
-
     def check(self):
         pass
 
@@ -301,25 +248,25 @@ class Seal5Flow:
                 sha, version_info = llvm.clone_llvm_repo(
                     self.directory, clone_url, ref=clone_ref, refresh=True, label=self.name
                 )
-        if self.meta_dir.is_dir():
+        if self.settings.meta_dir.is_dir():
             if force is False and not utils.ask_user(
                 "Overwrite existing .seal5 diretcory?", default=False, interactive=interactive
             ):
-                logger.error(f"Directory {self.meta_dir} already exists! Aborting...")
+                logger.error(f"Directory {self.settings.meta_dir} already exists! Aborting...")
                 sys.exit(1)
-        self.meta_dir.mkdir(exist_ok=True)
+        self.settings.meta_dir.mkdir(exist_ok=True)
         create_seal5_directories(
-            self.meta_dir, ["deps", "models", "logs", "build", "install", "temp", "inputs", "gen", "patches", "tests"]
+            self.settings.meta_dir, ["deps", "models", "logs", "build", "install", "temp", "inputs", "gen", "patches", "tests"]
         )
-        add_test_cfg(self.tests_dir)
+        add_test_cfg(self.settings.tests_dir)
         self.settings = Seal5Settings.from_dict(DEFAULT_SETTINGS)
         if version_info:
             llvm_version = LLVMVersion(**version_info)
             self.settings.llvm.state.version = llvm_version
         if sha:
             self.settings.llvm.state.base_commit = sha
-        self.settings.to_yaml_file(self.settings_file)
-        set_log_file(self.log_file_path)
+        self.settings.to_yaml_file(self.settings.settings_file)
+        set_log_file(self.settings.log_file_path)
         set_log_level(console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level)
         logger.info("Completed initialization of Seal5")
 
@@ -331,14 +278,14 @@ class Seal5Flow:
     ):
         logger.info("Installing Seal5 dependencies")
         logger.info("Cloning CDSL2LLVM")
-        # cdsl2llvm_dependency.clone(self.deps_dir / "cdsl2llvm", overwrite=force, depth=1)
-        cdsl2llvm_dependency.clone(self.deps_dir / "cdsl2llvm", overwrite=force)
+        # cdsl2llvm_dependency.clone(self.settings.deps_dir / "cdsl2llvm", overwrite=force, depth=1)
+        cdsl2llvm_dependency.clone(self.settings.deps_dir / "cdsl2llvm", overwrite=force)
         integrated_pattern_gen = self.settings.tools.pattern_gen.integrated
         if integrated_pattern_gen:
             logger.info("Adding PatternGen to target LLVM")
             patch_settings = cdsl2llvm.get_pattern_gen_patches(
-                self.deps_dir / "cdsl2llvm",
-                self.temp_dir,
+                self.settings.deps_dir / "cdsl2llvm",
+                self.settings.temp_dir,
             )
             self.add_patch(patch_settings)
         else:
@@ -355,16 +302,16 @@ class Seal5Flow:
             )
             cmake_options = llvm_config.options
             cdsl2llvm.build_pattern_gen(
-                self.deps_dir / "cdsl2llvm",
-                self.deps_dir / "cdsl2llvm" / "llvm" / "build",
+                self.settings.deps_dir / "cdsl2llvm",
+                self.settings.deps_dir / "cdsl2llvm" / "llvm" / "build",
                 cmake_options=cmake_options,
                 use_ninja=True,
             )
             logger.info("Completed build of PatternGen")
             logger.info("Building llc")
             cdsl2llvm.build_llc(
-                self.deps_dir / "cdsl2llvm",
-                self.deps_dir / "cdsl2llvm" / "llvm" / "build",
+                self.settings.deps_dir / "cdsl2llvm",
+                self.settings.deps_dir / "cdsl2llvm" / "llvm" / "build",
                 cmake_options=cmake_options,
                 use_ninja=True,
             )
@@ -376,12 +323,12 @@ class Seal5Flow:
         assert file.is_file(), f"File does not exist: {file}"
         new_settings: Seal5Settings = Seal5Settings.from_yaml_file(file)
         self.settings.merge(new_settings, overwrite=overwrite)
-        self.settings.to_yaml_file(self.settings_file)
+        self.settings.to_yaml_file(self.settings.settings_file)
 
     def load_test(self, file: Path, overwrite: bool = True):
         assert file.is_file(), f"File does not exist: {file}"
         filename: str = file.name
-        dest = self.tests_dir / filename
+        dest = self.settings.tests_dir / filename
         if dest.is_file() and not overwrite:
             raise RuntimeError(f"File {filename} already loaded!")
         utils.copy(file, dest)
@@ -391,14 +338,14 @@ class Seal5Flow:
 
     def prepare_environment(self):
         env = os.environ.copy()
-        # env["PYTHONPATH"] = str(self.deps_dir / "M2-ISA-R")
+        # env["PYTHONPATH"] = str(self.settings.deps_dir / "M2-ISA-R")
         cdsl2llvm_build_dir = None
         integrated_pattern_gen = self.settings.tools.pattern_gen.integrated
         if integrated_pattern_gen:
             config = "release"  # TODO: fetch default config
-            cdsl2llvm_build_dir = str(self.build_dir / config)
+            cdsl2llvm_build_dir = str(self.settings.build_dir / config)
         else:
-            cdsl2llvm_build_dir = str(self.deps_dir / "cdsl2llvm" / "llvm" / "build")
+            cdsl2llvm_build_dir = str(self.settings.deps_dir / "cdsl2llvm" / "llvm" / "build")
         env["CDSL2LLVM_DIR"] = cdsl2llvm_build_dir
         return env
 
@@ -420,16 +367,16 @@ class Seal5Flow:
     def load_cdsl(self, file: Path, verbose: bool = False, overwrite: bool = False):
         assert file.is_file(), f"File does not exist: {file}"
         filename: str = file.name
-        dest = self.inputs_dir / filename
+        dest = self.settings.inputs_dir / filename
         if dest.is_file() and not overwrite:
             raise RuntimeError(f"File {filename} already loaded!")
         # Add file to inputs directory and settings
         utils.copy(file, dest)
         self.settings.inputs.append(filename)
         # Parse CoreDSL file with M2-ISA-R (TODO: Standalone)
-        dest = self.models_dir
+        dest = self.settings.models_dir
         self.parse_coredsl(file, dest, verbose=verbose)
-        self.settings.to_yaml_file(self.settings_file)
+        self.settings.to_yaml_file(self.settings.settings_file)
 
     @property
     def model_names(self):
@@ -456,12 +403,12 @@ class Seal5Flow:
         llvm_config = self.settings.llvm.configs.get(config, None)
         assert llvm_config is not None, f"Invalid llvm config: {config}"
         cmake_options = llvm_config.options
-        llvm.build_llvm(self.directory, self.build_dir / config, cmake_options=cmake_options, target=target)
+        llvm.build_llvm(self.settings.directory, self.settings.build_dir / config, cmake_options=cmake_options, target=target)
         logger.info("Completed build of Seal5 LLVM (%s)", target)
 
     def convert_models(self, input_model: str, settings: Optional[Seal5Settings] = None, env: Optional[dict] = None, verbose: bool = False, inplace: bool = False, **kwargs):
         assert not inplace
-        input_file = self.models_dir / f"{input_model}.m2isarmodel"
+        input_file = self.settings.models_dir / f"{input_model}.m2isarmodel"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         base = input_file.stem
@@ -469,9 +416,9 @@ class Seal5Flow:
         new_name = f"{base}.seal5model"
         logger.info("Converting %s -> %s", name, new_name)
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "-o",
-            self.models_dir / new_name,
+            self.settings.models_dir / new_name,
             "--log",
             "info",
             # "debug",
@@ -488,12 +435,12 @@ class Seal5Flow:
 
     def optimize_model(self, input_model, settings: Optional[Seal5Settings] = None, env: Optional[dict] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         logger.info("Optimizing %s", name)
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "--log",
             "info",
             # "debug",
@@ -509,12 +456,12 @@ class Seal5Flow:
 
     def infer_types(self, input_model: str, settings: Optional[Seal5Settings] = None, env: Optional[dict] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         logger.info("Infering types for %s", name)
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "--log",
             "info",
             # "debug",
@@ -530,12 +477,12 @@ class Seal5Flow:
 
     def simplify_trivial_slices(self, input_model: str, settings: Optional[Seal5Settings] = None, env: Optional[dict] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         logger.info("Simplifying trivial slices for %s", name)
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "--log",
             "info",
             # "debug",
@@ -551,12 +498,12 @@ class Seal5Flow:
 
     def explicit_truncations(self, input_model: str, settings: Optional[Seal5Settings] = None, env: Optional[dict] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         logger.info("Adding excplicit truncations for %s", name)
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "--log",
             "info",
             # "debug",
@@ -572,17 +519,17 @@ class Seal5Flow:
 
     def process_settings(self, input_model: str, settings: Optional[Seal5Settings] = None, env: Optional[dict] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         logger.info("Processing settings for %s", name)
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "--log",
             "info",
             # "debug",
             "--yaml",
-            self.settings_file,
+            self.settings.settings_file,
         ]
         utils.python(
             "-m",
@@ -595,7 +542,7 @@ class Seal5Flow:
 
     def filter_model(self, input_model: str, settings: Optional[Seal5Settings] = None, env: Optional[dict] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         logger.info("Filtering %s", name)
@@ -626,7 +573,7 @@ class Seal5Flow:
         filter_args.extend(get_filter_args(filter_opcodes, "opcodes"))
         filter_args.extend(get_filter_args(filter_encoding_sizes, "encoding-sizes"))
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             *filter_args,
             "--log",
             # "info",
@@ -643,12 +590,12 @@ class Seal5Flow:
 
     def drop_unused(self, input_model: str, settings: Optional[Seal5Settings] = None, env: Optional[dict] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         logger.info("Dropping unused for %s", name)
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "--log",
             # "info",
             "debug",
@@ -664,12 +611,12 @@ class Seal5Flow:
 
     def detect_registers(self, input_model: str, settings: Optional[Seal5Settings] = None, env: Optional[dict] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         logger.info("Detecting registers for %s", name)
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "--log",
             "info",
             # "debug",
@@ -685,12 +632,12 @@ class Seal5Flow:
 
     def detect_behavior_constraints(self, input_model: str, settings: Optional[Seal5Settings] = None, env: Optional[dict] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         logger.info("Collecting constraints for %s", name)
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "--log",
             # "info",
             "debug",
@@ -706,12 +653,12 @@ class Seal5Flow:
 
     def detect_side_effects(self, input_model: str, settings: Optional[Seal5Settings] = None, env: Optional[dict] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         logger.info("Detecting side effects for %s", name)
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "--log",
             # "info",
             "debug",
@@ -727,12 +674,12 @@ class Seal5Flow:
 
     def detect_inouts(self, input_model: str, settings: Optional[Seal5Settings] = None, env: Optional[dict] = None, verbose: bool = False, inplace: bool = True, **kargs):
         assert inplace
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         logger.info("Detecting inouts for %s", name)
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "--log",
             # "info",
             "debug",
@@ -750,12 +697,12 @@ class Seal5Flow:
         assert inplace
         # print("input_file", input_file)
         # input(">")
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         logger.info("Collecting operand types for %s", name)
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "--log",
             # "info",
             "debug",
@@ -773,12 +720,12 @@ class Seal5Flow:
 
     def collect_register_operands(self, input_model: str, settings: Optional[Seal5Settings] = None, env: Optional[dict] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         logger.info("Collecting register operands for %s", name)
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "--log",
             # "info",
             "debug",
@@ -794,12 +741,12 @@ class Seal5Flow:
 
     def collect_immediate_operands(self, input_model: str, settings: Optional[Seal5Settings] = None, env: Optional[dict] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         logger.info("Collecting immediate operands for %s", name)
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "--log",
             # "info",
             "debug",
@@ -815,12 +762,12 @@ class Seal5Flow:
 
     def eliminate_rd_cmp_zero(self, input_model: str, settings: Optional[Seal5Settings] = None, env: Optional[dict] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         logger.info("Eliminating rd == 0 for %s", name)
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "--log",
             # "info",
             "debug",
@@ -836,12 +783,12 @@ class Seal5Flow:
 
     def eliminate_mod_rfs(self, input_model: str, settings: Optional[Seal5Settings] = None, env: Optional[dict] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         logger.info("Eliminating op MOD RFS for %s", name)
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "--log",
             # "info",
             "debug",
@@ -857,18 +804,18 @@ class Seal5Flow:
 
     def write_yaml(self, input_model: str, settings: Optional[Seal5Settings] = None, env: Optional[dict] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         new_name = name.replace(".seal5model", ".yml")
         logger.info("Writing YAML for %s", name)
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "--log",
             # "info",
             "debug",
             "--output",
-            self.temp_dir / new_name,
+            self.settings.temp_dir / new_name,
         ]
         utils.python(
             "-m",
@@ -878,8 +825,8 @@ class Seal5Flow:
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
-        # print(self.temp_dir / new_name)
-        self.load_cfg(self.temp_dir / new_name, overwrite=False)
+        # print(self.settings.temp_dir / new_name)
+        self.load_cfg(self.settings.temp_dir / new_name, overwrite=False)
 
     def write_cdsl(
         self,
@@ -893,7 +840,7 @@ class Seal5Flow:
         **kargs,
     ):
         assert inplace
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         if split:
@@ -902,15 +849,15 @@ class Seal5Flow:
             new_name = name.replace(".seal5model", ".core_desc")
         logger.info("Writing CDSL for %s", name)
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "--log",
             # "info",
             "debug",
             "--output",
-            self.temp_dir / new_name,
+            self.settings.temp_dir / new_name,
         ]
         if split:
-            (self.temp_dir / new_name).mkdir(exist_ok=True)
+            (self.settings.temp_dir / new_name).mkdir(exist_ok=True)
             args.append("--splitted")
         if compat:
             args.append("--compat")
@@ -923,12 +870,12 @@ class Seal5Flow:
             live=True,
         )
         # args_compat = [
-        #     self.models_dir / name,
+        #     self.settings.models_dir / name,
         #     "--log",
         #     # "info",
         #     "debug",
         #     "--output",
-        #     self.temp_dir / f"{new_name}_compat",
+        #     self.settings.temp_dir / f"{new_name}_compat",
         #     "--compat",
         # ]
         # if split:
@@ -944,7 +891,7 @@ class Seal5Flow:
 
     # def write_cdsl_splitted(self, verbose: bool = False, inplace: bool = True):
     #     assert inplace
-    #     # input_files = list(self.models_dir.glob("*.seal5model"))
+    #     # input_files = list(self.settings.models_dir.glob("*.seal5model"))
     #     # assert len(input_files) > 0, "No Seal5 models found!"
     #     # for input_file in input_files:
     #     #     name = input_file.name
@@ -962,11 +909,11 @@ class Seal5Flow:
     #             # TODO: populate model in yaml backend!
     #             if sub is None:  # Fallback
     #                 sub = set_name
-    #             input_file = self.models_dir / f"{sub}.seal5model"
+    #             input_file = self.settings.models_dir / f"{sub}.seal5model"
     #             assert input_file.is_file(), f"File not found: {input_file}"
     #             assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
     #             # insn_names = self.collect_instr_names()
-    #             (self.temp_dir / sub / set_name).mkdir(exist_ok=True, parents=True)
+    #             (self.settings.temp_dir / sub / set_name).mkdir(exist_ok=True, parents=True)
     #             for insn_name in insn_names:
     #                 logger.info("Writing Metamodel for %s/%s/%s", sub, set_name, insn_name)
     #                 args = [
@@ -977,7 +924,7 @@ class Seal5Flow:
     #                     "debug",
     #                     # "info",
     #                     "--output",
-    #                     self.temp_dir / sub / set_name / f"{insn_name}.seal5model",
+    #                     self.settings.temp_dir / sub / set_name / f"{insn_name}.seal5model",
     #                 ]
     #                 utils.python(
     #                     "-m",
@@ -989,12 +936,12 @@ class Seal5Flow:
     #                 )
     #                 logger.info("Writing CDSL for %s/%s", sub, insn_name)
     #                 args = [
-    #                     self.temp_dir / sub / set_name / f"{insn_name}.seal5model",
+    #                     self.settings.temp_dir / sub / set_name / f"{insn_name}.seal5model",
     #                     "--log",
     #                     "debug",
     #                     # "info",
     #                     "--output",
-    #                     self.temp_dir / sub / set_name / f"{insn_name}.core_desc"
+    #                     self.settings.temp_dir / sub / set_name / f"{insn_name}.core_desc"
     #                 ]
     #                 utils.python(
     #                     "-m",
@@ -1005,12 +952,12 @@ class Seal5Flow:
     #                     live=True,
     #                 )
     #                 args_compat = [
-    #                     self.temp_dir / sub / set_name / f"{insn_name}.seal5model",
+    #                     self.settings.temp_dir / sub / set_name / f"{insn_name}.seal5model",
     #                     "--log",
     #                     # "info",
     #                     "debug",
     #                     "--output",
-    #                     self.temp_dir / sub / set_name / f"{insn_name}.core_desc_compat",
+    #                     self.settings.temp_dir / sub / set_name / f"{insn_name}.core_desc_compat",
     #                     "--compat",
     #                 ]
     #                 utils.python(
@@ -1025,7 +972,7 @@ class Seal5Flow:
     def convert_behav_to_llvmir(self, input_model: str, settings: Optional[Seal5Settings] = None, env: Optional[dict] = None, verbose: bool = False, split: bool = True, **kwargs):
         assert split, "TODO"
         gen_metrics_file = True
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         if split:
@@ -1034,19 +981,19 @@ class Seal5Flow:
             new_name = name.replace(".seal5model", ".ll")
         logger.info("Writing LLVM-IR for %s", name)
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "--log",
             # "info",
             "debug",
             "--output",
-            self.temp_dir / new_name,
+            self.settings.temp_dir / new_name,
         ]
         if split:
-            (self.temp_dir / new_name).mkdir(exist_ok=True)
+            (self.settings.temp_dir / new_name).mkdir(exist_ok=True)
             args.append("--splitted")
         if gen_metrics_file:
             # TODO: move to .seal5/metrics
-            metrics_file = self.temp_dir / (new_name + "_llvmir_metrics.csv")
+            metrics_file = self.settings.temp_dir / (new_name + "_llvmir_metrics.csv")
             args.extend(["--metrics", metrics_file])
         utils.python(
             "-m",
@@ -1062,7 +1009,7 @@ class Seal5Flow:
         formats = True
         gen_metrics_file = True
         gen_index_file = True
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         if split:
@@ -1072,23 +1019,23 @@ class Seal5Flow:
         logger.info("Writing TableGen patterns for %s", name)
         # TODO: move to patches dir!
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "--log",
             # "info",
             "debug",
             "--output",
-            self.temp_dir / new_name,
+            self.settings.temp_dir / new_name,
         ]
         if split:
-            (self.temp_dir / new_name).mkdir(exist_ok=True)
+            (self.settings.temp_dir / new_name).mkdir(exist_ok=True)
             args.append("--splitted")
         if formats:
             args.append("--formats")
         if gen_metrics_file:
-            metrics_file = self.temp_dir / (new_name + "_tblgen_patterns_metrics.csv")
+            metrics_file = self.settings.temp_dir / (new_name + "_tblgen_patterns_metrics.csv")
             args.extend(["--metrics", metrics_file])
         if gen_index_file:
-            index_file = self.temp_dir / (new_name + "_tblgen_patterns_index.yml")
+            index_file = self.settings.temp_dir / (new_name + "_tblgen_patterns_index.yml")
             args.extend(["--index", index_file])
         utils.python(
             "-m",
@@ -1110,7 +1057,7 @@ class Seal5Flow:
                     target="llvm",
                 )
                 self.add_patch(patch_settings)
-                settings.to_yaml_file(self.settings_file)
+                settings.to_yaml_file(self.settings.settings_file)
             else:
                 logger.warning("No patches found!")
 
@@ -1119,16 +1066,16 @@ class Seal5Flow:
         # formats = True
         gen_metrics_file = True
         gen_index_file = True
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         new_name = name.replace(".seal5model", "")
         logger.info("Writing RISCVFeatures.td patch for %s", name)
-        out_dir = self.patches_dir / new_name
+        out_dir = self.settings.patches_dir / new_name
         out_dir.mkdir(exist_ok=True)
 
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "--log",
             # "info",
             "debug",
@@ -1163,7 +1110,7 @@ class Seal5Flow:
                     target="llvm",
                 )
                 self.add_patch(patch_settings)
-                settings.to_yaml_file(self.settings_file)
+                settings.to_yaml_file(self.settings.settings_file)
             else:
                 logger.warning("No patches found!")
 
@@ -1172,16 +1119,16 @@ class Seal5Flow:
         # formats = True
         gen_metrics_file = True
         gen_index_file = True
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         new_name = name.replace(".seal5model", "")
         logger.info("Writing RISCVISAInfo.cpp patch for %s", name)
-        out_dir = self.patches_dir / new_name
+        out_dir = self.settings.patches_dir / new_name
         out_dir.mkdir(exist_ok=True)
 
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "--log",
             # "info",
             "debug",
@@ -1216,7 +1163,7 @@ class Seal5Flow:
                     target="llvm",
                 )
                 self.add_patch(patch_settings)
-                settings.to_yaml_file(self.settings_file)
+                settings.to_yaml_file(self.settings.settings_file)
             else:
                 logger.warning("No patches found!")
 
@@ -1225,16 +1172,16 @@ class Seal5Flow:
         gen_index_file = True
         assert input_model == "Seal5"
         # self.update_global_model(input_model)
-        input_file = self.models_dir / f"{input_model}.seal5model"
+        input_file = self.settings.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         new_name = name.replace(".seal5model", "")
         logger.info("Writing RISCVLegalizerInfo.cpp patch")
-        out_dir = self.patches_dir / new_name
+        out_dir = self.settings.patches_dir / new_name
         out_dir.mkdir(exist_ok=True)
 
         args = [
-            self.models_dir / name,
+            self.settings.models_dir / name,
             "--log",
             # "info",
             "debug",
@@ -1267,14 +1214,14 @@ class Seal5Flow:
                     target="llvm",
                 )
                 self.add_patch(patch_settings)
-                settings.to_yaml_file(self.settings_file)
+                settings.to_yaml_file(self.settings.settings_file)
             else:
                 logger.warning("No patches found!")
         # TODO: introduce global (model-independed) settings file
 
     # def convert_behav_to_tablegen_splitted(self, verbose: bool = False, inplace: bool = True):
     #     assert inplace
-    #     # input_files = list(self.models_dir.glob("*.seal5model"))
+    #     # input_files = list(self.settings.models_dir.glob("*.seal5model"))
     #     # assert len(input_files) > 0, "No Seal5 models found!"
     #     errs = []
     #     # for input_file in input_files:
@@ -1294,12 +1241,12 @@ class Seal5Flow:
     #             if sub is None:  # Fallbacke
     #                 sub = set_name
     #             for insn_name in insn_names:
-    #                 ll_file = self.temp_dir / sub / set_name / f"{insn_name}.ll"
+    #                 ll_file = self.settings.temp_dir / sub / set_name / f"{insn_name}.ll"
     #                 if not ll_file.is_file():
     #                     logger.warning("Skipping %s due to errors.", insn_name)
     #                     continue
-    #                 # input_file = self.temp_dir / sub / set_name / f"{insn_name}.core_desc_compat"
-    #                 input_file = self.temp_dir / sub / set_name / f"{insn_name}.core_desc"
+    #                 # input_file = self.settings.temp_dir / sub / set_name / f"{insn_name}.core_desc_compat"
+    #                 input_file = self.settings.temp_dir / sub / set_name / f"{insn_name}.core_desc"
     #                 assert input_file.is_file(), f"File not found: {input_file}"
     #                 output_file = input_file.parent / (input_file.stem + ".td")
     #                 name = input_file.name
@@ -1308,7 +1255,7 @@ class Seal5Flow:
     #                 if ext is None:  # fallback to set_name
     #                     ext = set_name.replace("_", "")
     #                 try:
-    #                     cdsl2llvm.run_pattern_gen(self.deps_dir / "cdsl2llvm" / "llvm" / "build",
+    #                     cdsl2llvm.run_pattern_gen(self.settings.deps_dir / "cdsl2llvm" / "llvm" / "build",
     # input_file, output_file,
     # skip_patterns=False, skip_formats=False, ext=ext)
     #                 except AssertionError:
@@ -1325,7 +1272,7 @@ class Seal5Flow:
     ):
         assert inplace
         assert split
-        # input_files = list(self.models_dir.glob("*.seal5model"))
+        # input_files = list(self.settings.models_dir.glob("*.seal5model"))
         # assert len(input_files) > 0, "No Seal5 models found!"
         errs = []
         # for input_file in input_files:
@@ -1347,7 +1294,7 @@ class Seal5Flow:
                 if sub is None:  # Fallbacke
                     sub = set_name
                 for insn_name in insn_names:
-                    ll_file = self.temp_dir / sub / set_name / f"{insn_name}.ll"
+                    ll_file = self.settings.temp_dir / sub / set_name / f"{insn_name}.ll"
                     if not ll_file.is_file():
                         logger.warning("Skipping %s due to errors.", insn_name)
                         continue
@@ -1360,11 +1307,11 @@ class Seal5Flow:
                         integrated_pattern_gen = settings.tools.pattern_gen.integrated
                         if integrated_pattern_gen:
                             config = "release"  # TODO: fetch default config
-                            cdsl2llvm_build_dir = str(self.build_dir / config)
+                            cdsl2llvm_build_dir = str(self.settings.build_dir / config)
                         else:
-                            cdsl2llvm_build_dir = str(self.deps_dir / "cdsl2llvm" / "llvm" / "build")
+                            cdsl2llvm_build_dir = str(self.settings.deps_dir / "cdsl2llvm" / "llvm" / "build")
                         cdsl2llvm.convert_ll_to_gmir(
-                            # self.deps_dir / "cdsl2llvm" / "llvm" / "build", ll_file, output_file
+                            # self.settings.deps_dir / "cdsl2llvm" / "llvm" / "build", ll_file, output_file
                             cdsl2llvm_build_dir,
                             ll_file,
                             output_file,
@@ -1408,7 +1355,7 @@ include "seal5.td"
         )
         artifacts = [file_artifact, patch_artifact]
 
-        index_file = self.temp_dir / "seal5_td_index.yml"
+        index_file = self.settings.temp_dir / "seal5_td_index.yml"
         write_index_yaml(index_file, artifacts, {}, content=True)
         patch_settings = PatchSettings(
             name=patch_name,
@@ -1426,7 +1373,7 @@ include "seal5.td"
         # if not inplace:
         #     raise NotImplementedError()
 
-        input_models = self.model_names
+        input_models = self.settings.model_names
         transform_passes = filter_passes(self.passes, pass_type=PassType.TRANSFORM)
         with PassManager("transform_passes", transform_passes, skip=skip, only=only) as pm:
             result = pm.run(input_models, verbose=verbose)
