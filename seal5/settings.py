@@ -510,6 +510,12 @@ class Seal5Settings(YAMLSettings):
         self.metrics = []
         # TODO: clear user provided tests!
 
+    def add_patch(self, patch_settings: PatchSettings):
+        for ps in self.patches:
+            if ps.name == patch_settings.name:
+                raise RuntimeError(f"Duplicate patch '{ps.name}'. Either clean patches or rename patch.")
+        self.patches.append(patch_settings)
+
     @property
     def meta_dir(self):
         return Path(self.directory) / ".seal5"

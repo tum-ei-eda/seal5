@@ -1,0 +1,1198 @@
+from typing import Optional
+
+from seal5 import utils
+from seal5.tools import cdsl2llvm
+from seal5.logging import get_logger
+from seal5.index import File, NamedPatch, write_index_yaml
+from seal5.passes import Seal5Pass, PassType, PassScope, PassManager, PassResult
+from seal5.types import PatchStage
+from seal5.settings import Seal5Settings, PatchSettings
+
+logger = get_logger()
+
+
+def convert_models(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = False,
+    **kwargs,
+):
+    assert not inplace
+    input_file = settings.models_dir / f"{input_model}.m2isarmodel"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    base = input_file.stem
+    metrics = {"foo": "bar"}
+    new_name = f"{base}.seal5model"
+    logger.info("Converting %s -> %s", name, new_name)
+    args = [
+        settings.models_dir / name,
+        "-o",
+        settings.models_dir / new_name,
+        "--log",
+        "info",
+        # "debug",
+    ]
+    utils.python(
+        "-m",
+        "seal5.transform.converter",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+    return PassResult(metrics=metrics)
+
+
+def optimize_model(
+    input_model,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    **kwargs,
+):
+    assert inplace
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Optimizing %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        "info",
+        # "debug",
+    ]
+    utils.python(
+        "-m",
+        "seal5.transform.optimize_instructions.optimizer",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+
+
+def infer_types(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    **kwargs,
+):
+    assert inplace
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Infering types for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        "info",
+        # "debug",
+    ]
+    utils.python(
+        "-m",
+        "seal5.transform.infer_types.transform",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+
+
+def simplify_trivial_slices(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    **kwargs,
+):
+    assert inplace
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Simplifying trivial slices for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        "info",
+        # "debug",
+    ]
+    utils.python(
+        "-m",
+        "seal5.transform.simplify_trivial_slices.transform",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+
+
+def explicit_truncations(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    **kwargs,
+):
+    assert inplace
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Adding excplicit truncations for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        "info",
+        # "debug",
+    ]
+    utils.python(
+        "-m",
+        "seal5.transform.explicit_truncations.transform",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+
+
+def process_settings(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    **kwargs,
+):
+    assert inplace
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Processing settings for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        "info",
+        # "debug",
+        "--yaml",
+        settings.settings_file,
+    ]
+    utils.python(
+        "-m",
+        "seal5.transform.process_settings.transform",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+
+
+def filter_model(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    **kwargs,
+):
+    assert inplace
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Filtering %s", name)
+    filter_settings = settings.filter
+    filter_args = []
+
+    def get_filter_args(settings, suffix):
+        ret = []
+        keep = list(map(str, settings.keep))
+        drop = list(map(str, settings.drop))
+        if keep:
+            ret += [f"--keep-{suffix}", ",".join(keep)]
+        if drop:
+            ret += [f"--drop-{suffix}", ",".join(drop)]
+        return ret
+
+    filter_sets = filter_settings.sets
+    filter_instructions = filter_settings.instructions
+    filter_aliases = filter_settings.aliases
+    filter_intrinsics = filter_settings.intrinsics
+    filter_opcodes = filter_settings.opcodes
+    filter_encoding_sizes = filter_settings.encoding_sizes
+    # TODO: filter_functions
+    filter_args.extend(get_filter_args(filter_sets, "sets"))
+    filter_args.extend(get_filter_args(filter_instructions, "instructions"))
+    filter_args.extend(get_filter_args(filter_aliases, "aliases"))
+    filter_args.extend(get_filter_args(filter_intrinsics, "intrinsics"))
+    filter_args.extend(get_filter_args(filter_opcodes, "opcodes"))
+    filter_args.extend(get_filter_args(filter_encoding_sizes, "encoding-sizes"))
+    args = [
+        settings.models_dir / name,
+        *filter_args,
+        "--log",
+        # "info",
+        "debug",
+    ]
+    utils.python(
+        "-m",
+        "seal5.transform.filter_model.filter",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+
+
+def drop_unused(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    **kwargs,
+):
+    assert inplace
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Dropping unused for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        # "info",
+        "debug",
+    ]
+    utils.python(
+        "-m",
+        "seal5.transform.drop_unused.optimizer",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+
+
+def detect_registers(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    **kwargs,
+):
+    assert inplace
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Detecting registers for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        "info",
+        # "debug",
+    ]
+    utils.python(
+        "-m",
+        "seal5.transform.detect_registers",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+
+
+def detect_behavior_constraints(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    **kwargs,
+):
+    assert inplace
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Collecting constraints for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        # "info",
+        "debug",
+    ]
+    utils.python(
+        "-m",
+        "seal5.transform.collect_raises.collect",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+
+
+def detect_side_effects(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    **kwargs,
+):
+    assert inplace
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Detecting side effects for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        # "info",
+        "debug",
+    ]
+    utils.python(
+        "-m",
+        "seal5.transform.detect_side_effects.collect",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+
+
+def detect_inouts(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    **kargs,
+):
+    assert inplace
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Detecting inouts for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        # "info",
+        "debug",
+    ]
+    utils.python(
+        "-m",
+        "seal5.transform.detect_inouts.collect",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+
+
+def collect_operand_types(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    **kwargs,
+):
+    assert inplace
+    # print("input_file", input_file)
+    # input(">")
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Collecting operand types for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        # "info",
+        "debug",
+        "--skip-failing",
+    ]
+    utils.python(
+        "-m",
+        "seal5.transform.collect_operand_types.collect",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+    # input("<")
+
+
+def collect_register_operands(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    **kwargs,
+):
+    assert inplace
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Collecting register operands for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        # "info",
+        "debug",
+    ]
+    utils.python(
+        "-m",
+        "seal5.transform.collect_register_operands.collect",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+
+
+def collect_immediate_operands(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    **kwargs,
+):
+    assert inplace
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Collecting immediate operands for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        # "info",
+        "debug",
+    ]
+    utils.python(
+        "-m",
+        "seal5.transform.collect_immediate_operands.collect",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+
+
+def eliminate_rd_cmp_zero(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    **kwargs,
+):
+    assert inplace
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Eliminating rd == 0 for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        # "info",
+        "debug",
+    ]
+    utils.python(
+        "-m",
+        "seal5.transform.eliminate_rd_cmp_zero.transform",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+
+
+def eliminate_mod_rfs(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    **kwargs,
+):
+    assert inplace
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Eliminating op MOD RFS for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        # "info",
+        "debug",
+    ]
+    utils.python(
+        "-m",
+        "seal5.transform.eliminate_mod_rfs.transform",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+
+
+def write_yaml(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    **kwargs,
+):
+    assert inplace
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    new_name = name.replace(".seal5model", ".yml")
+    logger.info("Writing YAML for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        # "info",
+        "debug",
+        "--output",
+        settings.temp_dir / new_name,
+    ]
+    utils.python(
+        "-m",
+        "seal5.backends.yaml.writer",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+    # print(settings.temp_dir / new_name)
+    new_settings: Seal5Settings = Seal5Settings.from_yaml_file(settings.temp_dir / new_name)
+    settings.merge(new_settings, overwrite=False)
+
+
+def write_cdsl(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    split: bool = False,
+    compat: bool = False,
+    **kargs,
+):
+    assert inplace
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    if split:
+        new_name = name.replace(".seal5model", "")
+    else:
+        new_name = name.replace(".seal5model", ".core_desc")
+    logger.info("Writing CDSL for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        # "info",
+        "debug",
+        "--output",
+        settings.temp_dir / new_name,
+    ]
+    if split:
+        (settings.temp_dir / new_name).mkdir(exist_ok=True)
+        args.append("--splitted")
+    if compat:
+        args.append("--compat")
+    utils.python(
+        "-m",
+        "seal5.backends.coredsl2.writer",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+    # args_compat = [
+    #     settings.models_dir / name,
+    #     "--log",
+    #     # "info",
+    #     "debug",
+    #     "--output",
+    #     settings.temp_dir / f"{new_name}_compat",
+    #     "--compat",
+    # ]
+    # if split:
+    #     args.append("--splitted")
+    # utils.python(
+    #     "-m",
+    #     "seal5.backends.coredsl2.writer",
+    #     *args_compat,
+    #     env=env,
+    #     print_func=logger.info if verbose else logger.debug,
+    #     live=True,
+    # )
+
+
+# def write_cdsl_splitted(inplace: bool = True):
+#     assert inplace
+#     # input_files = list(settings.models_dir.glob("*.seal5model"))
+#     # assert len(input_files) > 0, "No Seal5 models found!"
+#     # for input_file in input_files:
+#     #     name = input_file.name
+#     #     sub = name.replace(".seal5model", "")
+#     for _ in [None]:
+#         set_names = list(settings.extensions.keys())
+#         # print("set_names", set_names)
+#         assert len(set_names) > 0, "No sets found"
+#         for set_name in set_names:
+#             insn_names = settings.extensions[set_name].instructions
+#             if insn_names is None:
+#                 logger.warning("Skipping empty set %s", set_name)
+#                 continue
+#             sub = settings.extensions[set_name].model
+#             # TODO: populate model in yaml backend!
+#             if sub is None:  # Fallback
+#                 sub = set_name
+#             input_file = settings.models_dir / f"{sub}.seal5model"
+#             assert input_file.is_file(), f"File not found: {input_file}"
+#             assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
+#             # insn_names = collect_instr_names()
+#             (settings.temp_dir / sub / set_name).mkdir(exist_ok=True, parents=True)
+#             for insn_name in insn_names:
+#                 logger.info("Writing Metamodel for %s/%s/%s", sub, set_name, insn_name)
+#                 args = [
+#                     input_file,
+#                     "--keep-instructions",
+#                     insn_name,
+#                     "--log",
+#                     "debug",
+#                     # "info",
+#                     "--output",
+#                     settings.temp_dir / sub / set_name / f"{insn_name}.seal5model",
+#                 ]
+#                 utils.python(
+#                     "-m",
+#                     "seal5.transform.filter_model.filter",
+#                     *args,
+#                     env=env,
+#                     print_func=logger.info if verbose else logger.debug,
+#                     live=True,
+#                 )
+#                 logger.info("Writing CDSL for %s/%s", sub, insn_name)
+#                 args = [
+#                     settings.temp_dir / sub / set_name / f"{insn_name}.seal5model",
+#                     "--log",
+#                     "debug",
+#                     # "info",
+#                     "--output",
+#                     settings.temp_dir / sub / set_name / f"{insn_name}.core_desc"
+#                 ]
+#                 utils.python(
+#                     "-m",
+#                     "seal5.backends.coredsl2.writer",
+#                     *args,
+#                     env=env,
+#                     print_func=logger.info if verbose else logger.debug,
+#                     live=True,
+#                 )
+#                 args_compat = [
+#                     settings.temp_dir / sub / set_name / f"{insn_name}.seal5model",
+#                     "--log",
+#                     # "info",
+#                     "debug",
+#                     "--output",
+#                     settings.temp_dir / sub / set_name / f"{insn_name}.core_desc_compat",
+#                     "--compat",
+#                 ]
+#                 utils.python(
+#                     "-m",
+#                     "seal5.backends.coredsl2.writer",
+#                     *args_compat,
+#                     env=env,
+#                     print_func=logger.info if verbose else logger.debug,
+#                     live=True,
+#                 )
+
+
+def convert_behav_to_llvmir(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    split: bool = True,
+    **kwargs,
+):
+    assert split, "TODO"
+    gen_metrics_file = True
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    if split:
+        new_name = name.replace(".seal5model", "")
+    else:
+        new_name = name.replace(".seal5model", ".ll")
+    logger.info("Writing LLVM-IR for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        # "info",
+        "debug",
+        "--output",
+        settings.temp_dir / new_name,
+    ]
+    if split:
+        (settings.temp_dir / new_name).mkdir(exist_ok=True)
+        args.append("--splitted")
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (new_name + "_llvmir_metrics.csv")
+        args.extend(["--metrics", metrics_file])
+    utils.python(
+        "-m",
+        "seal5.backends.llvmir.writer",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+
+
+def convert_behav_to_tablegen(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    split: bool = True,
+    **kwargs,
+):
+    assert split, "TODO"
+    formats = True
+    gen_metrics_file = True
+    gen_index_file = True
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    if split:
+        new_name = name.replace(".seal5model", "")
+    else:
+        new_name = name.replace(".seal5model", ".td")
+    logger.info("Writing TableGen patterns for %s", name)
+    # TODO: move to patches dir!
+    args = [
+        settings.models_dir / name,
+        "--log",
+        # "info",
+        "debug",
+        "--output",
+        settings.temp_dir / new_name,
+    ]
+    if split:
+        (settings.temp_dir / new_name).mkdir(exist_ok=True)
+        args.append("--splitted")
+    if formats:
+        args.append("--formats")
+    if gen_metrics_file:
+        metrics_file = settings.temp_dir / (new_name + "_tblgen_patterns_metrics.csv")
+        args.extend(["--metrics", metrics_file])
+    if gen_index_file:
+        index_file = settings.temp_dir / (new_name + "_tblgen_patterns_index.yml")
+        args.extend(["--index", index_file])
+    utils.python(
+        "-m",
+        "seal5.backends.patterngen.writer",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+    if gen_index_file:
+        if index_file.is_file():
+            patch_name = f"tblgen_patterns_{input_file.stem}"
+            patch_settings = PatchSettings(
+                name=patch_name,
+                stage=int(PatchStage.PHASE_4),
+                comment=f"CDSL2LLVM Generated Tablegen Patterns for {input_file.name}",
+                index=str(index_file),
+                generated=True,
+                target="llvm",
+            )
+            settings.add_patch(patch_settings)
+            settings.to_yaml_file(settings.settings_file)
+        else:
+            logger.warning("No patches found!")
+
+
+def gen_riscv_features_patch(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    split: bool = False,
+    **kwargs,
+):
+    assert not split, "TODO"
+    # formats = True
+    gen_metrics_file = True
+    gen_index_file = True
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    new_name = name.replace(".seal5model", "")
+    logger.info("Writing RISCVFeatures.td patch for %s", name)
+    out_dir = settings.patches_dir / new_name
+    out_dir.mkdir(exist_ok=True)
+
+    args = [
+        settings.models_dir / name,
+        "--log",
+        # "info",
+        "debug",
+        "--output",
+        out_dir / "riscv_features.patch",
+    ]
+    if split:
+        args.append("--splitted")
+    if gen_metrics_file:
+        metrics_file = out_dir / ("riscv_features_metrics.csv")
+        args.extend(["--metrics", metrics_file])
+    if gen_index_file:
+        index_file = out_dir / ("riscv_features_index.yml")
+        args.extend(["--index", index_file])
+    utils.python(
+        "-m",
+        "seal5.backends.riscv_features.writer",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+    if gen_index_file:
+        if index_file.is_file():
+            patch_name = f"riscv_features_{input_file.stem}"
+            patch_settings = PatchSettings(
+                name=patch_name,
+                stage=int(PatchStage.PHASE_2),
+                comment=f"Generated RISCVFeatures.td patch for {input_file.name}",
+                index=str(index_file),
+                generated=True,
+                target="llvm",
+            )
+            settings.add_patch(patch_settings)
+            settings.to_yaml_file(settings.settings_file)
+        else:
+            logger.warning("No patches found!")
+
+
+def gen_riscv_isa_info_patch(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    split: bool = False,
+    **kwargs,
+):
+    assert not split, "TODO"
+    # formats = True
+    gen_metrics_file = True
+    gen_index_file = True
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    new_name = name.replace(".seal5model", "")
+    logger.info("Writing RISCVISAInfo.cpp patch for %s", name)
+    out_dir = settings.patches_dir / new_name
+    out_dir.mkdir(exist_ok=True)
+
+    args = [
+        settings.models_dir / name,
+        "--log",
+        # "info",
+        "debug",
+        "--output",
+        out_dir / "riscv_isa_info.patch",
+    ]
+    if split:
+        args.append("--splitted")
+    if gen_metrics_file:
+        metrics_file = out_dir / ("riscv_isa_info_metrics.csv")
+        args.extend(["--metrics", metrics_file])
+    if gen_index_file:
+        index_file = out_dir / ("riscv_isa_info_index.yml")
+        args.extend(["--index", index_file])
+    utils.python(
+        "-m",
+        "seal5.backends.riscv_isa_info.writer",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+    if gen_index_file:
+        if index_file.is_file():
+            patch_name = f"riscv_isa_info_{input_file.stem}"
+            patch_settings = PatchSettings(
+                name=patch_name,
+                stage=int(PatchStage.PHASE_1),
+                comment=f"Generated RISCVISAInfo.cpp patch for {input_file.name}",
+                index=str(index_file),
+                generated=True,
+                target="llvm",
+            )
+            settings.add_patch(patch_settings)
+            settings.to_yaml_file(settings.settings_file)
+        else:
+            logger.warning("No patches found!")
+
+
+def gen_riscv_gisel_legalizer_patch(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    **kwargs,
+):
+    gen_metrics_file = False  # TODO
+    gen_index_file = True
+    assert input_model == "Seal5"
+    # self.update_global_model(input_model)
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    new_name = name.replace(".seal5model", "")
+    logger.info("Writing RISCVLegalizerInfo.cpp patch")
+    out_dir = settings.patches_dir / new_name
+    out_dir.mkdir(exist_ok=True)
+
+    args = [
+        settings.models_dir / name,
+        "--log",
+        # "info",
+        "debug",
+        "--output",
+        out_dir / "riscv_gisel_legalizer.patch",
+    ]
+    if gen_metrics_file:
+        metrics_file = out_dir / ("riscv_gisel_legalizer_metrics.csv")
+        args.extend(["--metrics", metrics_file])
+    if gen_index_file:
+        index_file = out_dir / ("riscv_gisel_legalizer_index.yml")
+        args.extend(["--index", index_file])
+    utils.python(
+        "-m",
+        "seal5.backends.riscv_gisel_legalizer.writer",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+    if gen_index_file:
+        if index_file.is_file():
+            patch_name = "riscv_gisel_legalizer"
+            patch_settings = PatchSettings(
+                name=patch_name,
+                stage=int(PatchStage.PHASE_1),
+                comment="Generated RISCVLegalizerInfo.cpp patch",
+                index=str(index_file),
+                generated=True,
+                target="llvm",
+            )
+            settings.add_patch(patch_settings)
+            settings.to_yaml_file(settings.settings_file)
+        else:
+            logger.warning("No patches found!")
+    # TODO: introduce global (model-independed) settings file
+
+
+# def convert_behav_to_tablegen_splitted(inplace: bool = True):
+#     assert inplace
+#     # input_files = list(settings.models_dir.glob("*.seal5model"))
+#     # assert len(input_files) > 0, "No Seal5 models found!"
+#     errs = []
+#     # for input_file in input_files:
+#     #     name = input_file.name
+#     #     sub = name.replace(".seal5model", "")
+#     for _ in [None]:
+#         set_names = list(settings.extensions.keys())
+#         assert len(set_names) > 0, "No sets found"
+#         for set_name in set_names:
+#             insn_names = settings.extensions[set_name].instructions
+#             if insn_names is None:
+#                 logger.warning("Skipping empty set %s", set_name)
+#                 continue
+#             assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
+#             sub = settings.extensions[set_name].model
+#             # TODO: populate model in yaml backend!
+#             if sub is None:  # Fallbacke
+#                 sub = set_name
+#             for insn_name in insn_names:
+#                 ll_file = settings.temp_dir / sub / set_name / f"{insn_name}.ll"
+#                 if not ll_file.is_file():
+#                     logger.warning("Skipping %s due to errors.", insn_name)
+#                     continue
+#                 # input_file = settings.temp_dir / sub / set_name / f"{insn_name}.core_desc_compat"
+#                 input_file = settings.temp_dir / sub / set_name / f"{insn_name}.core_desc"
+#                 assert input_file.is_file(), f"File not found: {input_file}"
+#                 output_file = input_file.parent / (input_file.stem + ".td")
+#                 name = input_file.name
+#                 logger.info("Writing TableGen for %s", name)
+#                 ext = settings.extensions[set_name].feature
+#                 if ext is None:  # fallback to set_name
+#                     ext = set_name.replace("_", "")
+#                 try:
+#                     cdsl2llvm.run_pattern_gen(settings.deps_dir / "cdsl2llvm" / "llvm" / "build",
+# input_file, output_file,
+# skip_patterns=False, skip_formats=False, ext=ext)
+#                 except AssertionError:
+#                     pass
+#                     # errs.append((insn_name, str(ex)))
+#     if len(errs) > 0:
+#         # print("errs", errs)
+#         for insn_name, err_str in errs:
+#             print("Err:", insn_name, err_str)
+#             input("!")
+
+
+def convert_llvmir_to_gmir(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    split: bool = True,
+    inplace: bool = True,
+    **kwargs,
+):
+    assert inplace
+    assert split
+    # input_files = list(settings.models_dir.glob("*.seal5model"))
+    # assert len(input_files) > 0, "No Seal5 models found!"
+    errs = []
+    # for input_file in input_files:
+    #     name = input_file.name
+    #     sub = name.replace(".seal5model", "")
+    for _ in [None]:
+        set_names = list(settings.extensions.keys())
+        assert len(set_names) > 0, "No sets found"
+        for set_name in set_names:
+            insn_names = settings.extensions[set_name].instructions
+            if insn_names is None:
+                logger.warning("Skipping empty set %s", set_name)
+                continue
+            assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
+            sub = settings.extensions[set_name].model
+            if sub != input_model:
+                continue
+            # TODO: populate model in yaml backend!
+            if sub is None:  # Fallbacke
+                sub = set_name
+            for insn_name in insn_names:
+                ll_file = settings.temp_dir / sub / set_name / f"{insn_name}.ll"
+                if not ll_file.is_file():
+                    logger.warning("Skipping %s due to errors.", insn_name)
+                    continue
+                output_file = ll_file.parent / (ll_file.stem + ".gmir")
+                name = ll_file.name
+                logger.info("Writing gmir for %s", name)
+                try:
+                    # TODO: move to backends
+                    cdsl2llvm_build_dir = None
+                    integrated_pattern_gen = settings.tools.pattern_gen.integrated
+                    if integrated_pattern_gen:
+                        config = "release"  # TODO: fetch default config
+                        cdsl2llvm_build_dir = str(settings.build_dir / config)
+                    else:
+                        cdsl2llvm_build_dir = str(settings.deps_dir / "cdsl2llvm" / "llvm" / "build")
+                    cdsl2llvm.convert_ll_to_gmir(
+                        # settings.deps_dir / "cdsl2llvm" / "llvm" / "build", ll_file, output_file
+                        cdsl2llvm_build_dir,
+                        ll_file,
+                        output_file,
+                    )
+                except AssertionError:
+                    pass
+                    # errs.append((insn_name, str(ex)))
+    if len(errs) > 0:
+        # print("errs", errs)
+        for insn_name, err_str in errs:
+            print("Err:", insn_name, err_str)
+            input("!")
+
+
+def gen_seal5_td(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    **kwargs,
+):
+    assert input_model == "Seal5"
+    patch_name = "seal5_td"
+    dest = "llvm/lib/Target/RISCV/seal5.td"
+    dest2 = "llvm/lib/Target/RISCV/RISCV.td"
+    content = """
+// Includes
+// seal5.td - seal5_td_includes - INSERTION_START
+// seal5.td - seal5_td_includes - INSERTION_END
+"""
+    content2 = """
+include "seal5.td"
+"""
+
+    file_artifact = File(
+        dest,
+        content=content,
+    )
+    patch_artifact = NamedPatch(
+        dest2,
+        key="riscv_td_includes",
+        content=content2,
+    )
+    artifacts = [file_artifact, patch_artifact]
+
+    index_file = settings.temp_dir / "seal5_td_index.yml"
+    write_index_yaml(index_file, artifacts, {}, content=True)
+    patch_settings = PatchSettings(
+        name=patch_name,
+        stage=int(PatchStage.PHASE_1),
+        comment="Add seal5.td to llvm/lib/Target/RISCV",
+        index=str(index_file),
+        generated=True,
+        target="llvm",
+    )
+    settings.add_patch(patch_settings)
+
+
+def pattern_gen_pass(
+    model_name: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    split: bool = True,
+    **kwargs,
+):
+    assert settings is not None, "Pass needs settings."
+    llvm_version = settings.llvm.state.version
+    assert llvm_version is not None
+    if llvm_version.major < 18:
+        raise RuntimeError("PatternGen needs LLVM version 18 or higher")
+    PATTERN_GEN_PASSES = [
+        ("write_cdsl_compat", write_cdsl, {"split": split, "compat": True}),
+        ("behav_to_llvmir", convert_behav_to_llvmir, {"split": split}),
+        ("llvmir_to_gmir", convert_llvmir_to_gmir, {"split": split}),
+        ("write_fmt", generate_formats, {"split": split}),
+        ("behav_to_pat", convert_behav_to_pat, {"split": split}),
+    ]
+    pass_list = []
+    for pass_name, pass_handler, pass_options in PATTERN_GEN_PASSES:
+        pass_list.append(Seal5Pass(pass_name, PassType.GENERATE, PassScope.MODEL, pass_handler, options=pass_options))
+    # TODO: get parent pass context automatically
+    parent = kwargs.get("parent", None)
+    assert parent is not None
+    with PassManager("pattern_gen_passes", pass_list, parent=parent) as pm:
+        result = pm.run(verbose=verbose)
+    return result
