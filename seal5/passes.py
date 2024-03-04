@@ -82,7 +82,7 @@ class Seal5Pass:
     def skip(self):
         self.status = PassStatus.SKIPPED
 
-    def run(self, inputs: List[str], *args, **kwargs):
+    def run(self, inputs: List[str], *args, settings: Optional[Seal5Settings] = None, **kwargs):
         logger.debug("Running pass: %s", self)
         self.status = PassStatus.RUNNING
         self.metrics["models"] = []
@@ -124,7 +124,7 @@ class Seal5Pass:
                     # TODO: check results (metrics?)
             elif self.pass_scope == PassScope.GLOBAL:
                 input_model = None
-                result = self.handler(input_model, **kwargs_)
+                result = self.handler(input_model, settings=settings, **kwargs_)
                 if result:
                     metrics = result.metrics
                     if metrics:
