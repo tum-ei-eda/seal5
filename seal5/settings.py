@@ -500,9 +500,11 @@ class Seal5Settings(YAMLSettings):
     inputs: Optional[List[str]] = None
     riscv: Optional[RISCVSettings] = None
     tools: Optional[ToolsSettings] = None
+    metrics: list = field(default_factory=list)
 
     def reset(self):
         self.extensions = {}
         self.patches = []
         self.inputs = []
+        self.metrics = []
         # TODO: clear user provided tests!
