@@ -11,13 +11,9 @@
 import argparse
 import logging
 import pathlib
-import pickle
-from typing import Union
-
-from m2isar.metamodel import arch
 
 from seal5.index import NamedPatch, write_index_yaml
-from seal5.settings import RISCVLegalizerSettings
+from seal5.settings import RISCVLegalizerSettings, Seal5Settings
 
 logger = logging.getLogger("riscv_gisel_legalizer")
 
@@ -102,60 +98,42 @@ def main():
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
     parser.add_argument("--index", default=None, help="Output index to file")
     parser.add_argument("--ext", type=str, default="td", help="Default file extension (if using --splitted)")
+    parser.add_argument("--yaml", type=str, default=None)
     args = parser.parse_args()
 
     # initialize logging
     logging.basicConfig(level=getattr(logging, args.log.upper()))
 
     # resolve model paths
-    top_level = pathlib.Path(args.top_level)
+    # top_level = pathlib.Path(args.top_level)
     # abs_top_level = top_level.resolve()
 
-    is_seal5_model = False
-    # print("top_level", top_level)
-    # print("suffix", top_level.suffix)
-    if top_level.suffix == ".seal5model":
-        is_seal5_model = True
-    if args.output is None:
-        assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
-        raise NotImplementedError
+    # is_seal5_model = False
+    # # print("top_level", top_level)
+    # # print("suffix", top_level.suffix)
+    # if top_level.suffix == ".seal5model":
+    #     is_seal5_model = True
+    # if args.output is None:
+    #     assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
+    #     raise NotImplementedError
 
-        # out_path = top_level.parent / (top_level.stem + ".core_desc")
-    else:
-        out_path = pathlib.Path(args.output)
+    #     # out_path = top_level.parent / (top_level.stem + ".core_desc")
+    # else:
+    assert args.output is not None
+    out_path = pathlib.Path(args.output)
 
-    logger.info("loading models")
-    if not is_seal5_model:
-        raise NotImplementedError
+    assert args.yaml is not None
+    assert pathlib.Path(args.yaml).is_file()
+    settings = Seal5Settings.from_yaml_file(args.yaml)
+
+    # logger.info("loading models")
+    # if not is_seal5_model:
+    #     raise NotImplementedError
 
     # load models
-    with open(top_level, "rb") as f:
-        # models: "dict[str, arch.CoreDef]" = pickle.load(f)
-        if is_seal5_model:
-            model: "dict[str, Union[arch.InstructionSet, ...]]" = pickle.load(f)
-            model["cores"] = {}
-        else:  # TODO: core vs. set!
-            temp: "dict[str, Union[arch.InstructionSet, arch.CoreDef]]" = pickle.load(f)
-            assert len(temp) > 0, "Empty model!"
-            if isinstance(list(temp.values())[0], arch.CoreDef):
-                model = {"cores": temp, "sets": {}}
-            elif isinstance(list(temp.values())[0], arch.InstructionSet):
-                model = {"sets": temp, "cores": {}}
-            else:
-                assert False
 
-    # assert len(model["sets"]) == 0
-    # assert len(model["cores"]) == 0
-
-    metrics = {
-        "n_sets": 0,
-        "n_skipped": 0,
-        "n_failed": 0,
-        "n_success": 0,
-    }
     artifacts = {}
     artifacts[None] = []  # used for global artifacts
-    settings = model.get("settings", None)
     if settings:
         riscv_settings = settings.riscv
         if riscv_settings:
@@ -174,12 +152,12 @@ def main():
                     artifacts[None].append(riscv_gisel_legalizer_patch)
     if args.metrics:
         raise NotImplementedError
-        metrics_file = args.metrics
-        with open(metrics_file, "w") as f:
-            f.write(",".join(metrics.keys()))
-            f.write("\n")
-            f.write(",".join(map(str, metrics.values())))
-            f.write("\n")
+        # metrics_file = args.metrics
+        # with open(metrics_file, "w") as f:
+        #     f.write(",".join(metrics.keys()))
+        #     f.write("\n")
+        #     f.write(",".join(map(str, metrics.values())))
+        #     f.write("\n")
     if args.index:
         if sum(map(lambda x: len(x), artifacts.values())) > 0:
             global_artifacts = artifacts.get(None, [])

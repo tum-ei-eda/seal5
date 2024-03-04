@@ -35,6 +35,7 @@ from seal5.tools import llvm, cdsl2llvm, inject_patches
 from seal5.resources.resources import get_patches, get_test_cfg
 from seal5.index import File, NamedPatch, write_index_yaml
 from seal5.passes import Seal5Pass, PassType, PassScope, PassManager, PassResult, filter_passes
+import seal5.pass_list as passes
 
 logger = get_logger()
 
@@ -89,7 +90,9 @@ class Seal5Flow:
         self.state: Seal5State = Seal5State.UNKNOWN
         self.passes: List[Seal5Pass] = []  # TODO: implement PassManager
         self.check()
-        self.settings: Seal5Settings(directory=self.directory)
+        self.settings = Seal5Settings.from_dict(DEFAULT_SETTINGS)
+        # self.settings: Seal5Settings = Seal5Settings(directory=self.directory)
+        self.settings.directory = str(self.directory)
         if self.settings.settings_file.is_file():
             self.settings = Seal5Settings.from_yaml_file(self.settings.settings_file)
         if self.settings.logs_dir.is_dir():
@@ -139,26 +142,26 @@ class Seal5Flow:
         # Transforms
         TRANSFORM_PASS_MAP = [
             # TODO: Global -> Model
-            ("convert_models", self.convert_models, {}),
-            ("filter_models", self.filter_model, {}),
-            ("drop_unused", self.drop_unused, {}),
-            ("eliminate_rd_cmp_zero", self.eliminate_rd_cmp_zero, {}),
-            ("eliminate_mod_rfs", self.eliminate_mod_rfs, {}),
-            ("drop_unused2", self.drop_unused, {}),
-            ("optimize_model", self.optimize_model, {}),
-            ("infer_types", self.infer_types, {}),
-            ("simplify_trivial_slices", self.simplify_trivial_slices, {}),
-            ("explicit_truncations", self.explicit_truncations, {}),
-            ("process_settings", self.process_settings, {}),
-            ("write_yaml", self.write_yaml, {}),
-            ("detect_behavior_constraints", self.detect_behavior_constraints, {}),
-            ("collect_register_operands", self.collect_register_operands, {}),
-            ("collect_immediate_operands", self.collect_immediate_operands, {}),
-            ("collect_operand_types", self.collect_operand_types, {}),
-            ("detect_side_effects", self.detect_side_effects, {}),
-            ("detect_inouts", self.detect_inouts, {}),
-            ("detect_registers", self.detect_registers, {}),
-            ("write_cdsl_full", self.write_cdsl, {"split": False, "compat": False})
+            ("convert_models", passes.convert_models, {}),
+            ("filter_models", passes.filter_model, {}),
+            ("drop_unused", passes.drop_unused, {}),
+            ("eliminate_rd_cmp_zero", passes.eliminate_rd_cmp_zero, {}),
+            ("eliminate_mod_rfs", passes.eliminate_mod_rfs, {}),
+            ("drop_unused2", passes.drop_unused, {}),
+            ("optimize_model", passes.optimize_model, {}),
+            ("infer_types", passes.infer_types, {}),
+            ("simplify_trivial_slices", passes.simplify_trivial_slices, {}),
+            ("explicit_truncations", passes.explicit_truncations, {}),
+            ("process_settings", passes.process_settings, {}),
+            ("write_yaml", passes.write_yaml, {}),
+            ("detect_behavior_constraints", passes.detect_behavior_constraints, {}),
+            ("collect_register_operands", passes.collect_register_operands, {}),
+            ("collect_immediate_operands", passes.collect_immediate_operands, {}),
+            ("collect_operand_types", passes.collect_operand_types, {}),
+            ("detect_side_effects", passes.detect_side_effects, {}),
+            ("detect_inouts", passes.detect_inouts, {}),
+            ("detect_registers", passes.detect_registers, {}),
+            ("write_cdsl_full", passes.write_cdsl, {"split": False, "compat": False})
             # TODO: determine static constraints (xlen,...) -> subtargetvmap
             # detect memory adressing modes
             # self.detect_adressing_modes(verbose)  # TODO
@@ -166,6 +169,7 @@ class Seal5Flow:
             # self.detect_legal_ops(verbose=verbose)  # TODO
             # extract costs/heuristics
             # self.extract_costs_and_heuristics(verbose)  # TODO
+            # ("split_models", passes.split_models, {"by_set": False, "by_instr": False}),
         ]
         for pass_name, pass_handler, pass_options in TRANSFORM_PASS_MAP:
             pass_scope = PassScope.MODEL
@@ -173,9 +177,9 @@ class Seal5Flow:
 
         # Generates
         GENERATE_PASS_MAP = [
-            ("seal5_td", self.gen_seal5_td, {}),
-            ("riscv_features", self.gen_riscv_features_patch, {}),
-            ("riscv_isa_infos", self.gen_riscv_isa_info_patch, {}),
+            ("seal5_td", passes.gen_seal5_td, {}),
+            ("riscv_features", passes.gen_riscv_features_patch, {}),
+            ("riscv_isa_infos", passes.gen_riscv_isa_info_patch, {}),
             # subtarget_tests
             # register_types
             # operand_types
@@ -188,9 +192,9 @@ class Seal5Flow:
             # simd_costs
             # isel_patterns
             # codegen_test
-            ("riscv_gisel_legalizer", self.gen_riscv_gisel_legalizer_patch, {}),
+            ("riscv_gisel_legalizer", passes.gen_riscv_gisel_legalizer_patch, {}),
             # TODO: nested pass lists?
-            ("pattern_gen", self.pattern_gen_pass, {}),
+            ("pattern_gen", passes.pattern_gen_pass, {}),
         ]
         for pass_name, pass_handler, pass_options in GENERATE_PASS_MAP:
             if pass_name in ["seal5_td", "riscv_gisel_legalizer"]:
@@ -198,7 +202,6 @@ class Seal5Flow:
             else:
                 pass_scope = PassScope.MODEL
             self.add_pass(Seal5Pass(pass_name, PassType.GENERATE, pass_scope, pass_handler, options=pass_options))
-
 
     def check(self):
         pass
@@ -232,16 +235,16 @@ class Seal5Flow:
                 sys.exit(1)
         self.settings.meta_dir.mkdir(exist_ok=True)
         create_seal5_directories(
-            self.settings.meta_dir, ["deps", "models", "logs", "build", "install", "temp", "inputs", "gen", "patches", "tests"]
+            self.settings.meta_dir,
+            ["deps", "models", "logs", "build", "install", "temp", "inputs", "gen", "patches", "tests"],
         )
         add_test_cfg(self.settings.tests_dir)
-        self.settings = Seal5Settings.from_dict(DEFAULT_SETTINGS)
         if version_info:
             llvm_version = LLVMVersion(**version_info)
             self.settings.llvm.state.version = llvm_version
         if sha:
             self.settings.llvm.state.base_commit = sha
-        self.settings.to_yaml_file(self.settings.settings_file)
+        self.settings.save()
         set_log_file(self.settings.log_file_path)
         set_log_level(console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level)
         logger.info("Completed initialization of Seal5")
@@ -263,7 +266,7 @@ class Seal5Flow:
                 self.settings.deps_dir / "cdsl2llvm",
                 self.settings.temp_dir,
             )
-            self.add_patch(patch_settings)
+            self.settings.add_patch(patch_settings)
         else:
             logger.info("Building PatternGen")
             llvm_config = LLVMConfig(
@@ -299,7 +302,7 @@ class Seal5Flow:
         assert file.is_file(), f"File does not exist: {file}"
         new_settings: Seal5Settings = Seal5Settings.from_yaml_file(file)
         self.settings.merge(new_settings, overwrite=overwrite)
-        self.settings.to_yaml_file(self.settings.settings_file)
+        self.settings.save()
 
     def load_test(self, file: Path, overwrite: bool = True):
         assert file.is_file(), f"File does not exist: {file}"
@@ -310,7 +313,7 @@ class Seal5Flow:
         utils.copy(file, dest)
         if str(dest) not in self.settings.test.paths:
             self.settings.test.paths.append(str(dest))
-            self.settings.to_yaml_file(self.settings_file)
+            self.settings.save()
 
     def prepare_environment(self):
         env = os.environ.copy()
@@ -352,11 +355,7 @@ class Seal5Flow:
         # Parse CoreDSL file with M2-ISA-R (TODO: Standalone)
         dest = self.settings.models_dir
         self.parse_coredsl(file, dest, verbose=verbose)
-        self.settings.to_yaml_file(self.settings.settings_file)
-
-    @property
-    def model_names(self):
-        return [Path(path).stem for path in self.settings.inputs]
+        self.settings.save()
 
     def load(self, files: List[Path], verbose: bool = False, overwrite: bool = False):
         logger.info("Loading Seal5 inputs")
@@ -379,7 +378,9 @@ class Seal5Flow:
         llvm_config = self.settings.llvm.configs.get(config, None)
         assert llvm_config is not None, f"Invalid llvm config: {config}"
         cmake_options = llvm_config.options
-        llvm.build_llvm(self.settings.directory, self.settings.build_dir / config, cmake_options=cmake_options, target=target)
+        llvm.build_llvm(
+            Path(self.settings.directory), self.settings.build_dir / config, cmake_options=cmake_options, target=target
+        )
         logger.info("Completed build of Seal5 LLVM (%s)", target)
 
     def transform(self, verbose: bool = False, skip: Optional[List[str]] = None, only: Optional[List[str]] = None):
@@ -391,12 +392,12 @@ class Seal5Flow:
         input_models = self.settings.model_names
         transform_passes = filter_passes(self.passes, pass_type=PassType.TRANSFORM)
         with PassManager("transform_passes", transform_passes, skip=skip, only=only) as pm:
-            result = pm.run(input_models, verbose=verbose)
+            result = pm.run(input_models, settings=self.settings, env=self.prepare_environment(), verbose=verbose)
             if result:
                 metrics = result.metrics
                 if metrics:
                     self.settings.metrics.append({pm.name: metrics})
-                    self.settings.to_yaml_file(self.settings_file)
+                    self.settings.save()
 
         logger.info("Completed tranformation of Seal5 models")
 
@@ -404,14 +405,14 @@ class Seal5Flow:
         logger.info("Generating Seal5 patches")
         generate_passes = filter_passes(self.passes, pass_type=PassType.GENERATE)
         # TODO: User, Global, PerInstr
-        input_models = self.model_names
+        input_models = self.settings.model_names
         with PassManager("generate_passes", generate_passes, skip=skip, only=only) as pm:
-            result = pm.run(input_models, verbose=verbose)
+            result = pm.run(input_models, settings=self.settings, env=self.prepare_environment(), verbose=verbose)
             if result:
                 metrics = result.metrics
                 if metrics:
                     self.settings.metrics.append({pm.name: metrics})
-                    self.settings.to_yaml_file(self.settings_file)
+                    self.settings.save()
 
         logger.info("Completed generation of Seal5 patches")
 
@@ -437,7 +438,7 @@ class Seal5Flow:
                     name = patch_settings.name
                     target = patch_settings.target
                     key = (target, name)
-                    dest = self.patches_dir / target
+                    dest = self.settings.patches_dir / target
                     patch_settings.to_yaml_file(dest / f"{name}.yml")
                     # assert key not in temp
                     if key in temp:
@@ -466,7 +467,7 @@ class Seal5Flow:
                     temp[key] = patch_settings
                 if patch_file:
                     logger.debug("Copying custom patch_file %s", patch_file)
-                    dest = self.patches_dir / target
+                    dest = self.settings.patches_dir / target
                     dest.mkdir(exist_ok=True)
                     # print("dest", dest)
                     utils.copy(patch_file, dest / f"{name}.patch")
@@ -488,7 +489,7 @@ class Seal5Flow:
         ret = path
         if ret.is_file():
             return path.resolve()
-        ret = self.patches_dir / path
+        ret = self.settings.patches_dir / path
         if ret.is_file():
             return ret.resolve()
         raise RuntimeError(f"Patch file {path} not found!")
@@ -503,7 +504,7 @@ class Seal5Flow:
             return
         if patch.index:
             # use inject_extensions_script
-            file = self.patches_dir / target / f"{name}.patch"
+            file = self.settings.patches_dir / target / f"{name}.patch"
             # assert not file.is_file(), f"Patch already exists: {file}"
             prefix = self.settings.git.prefix
             comment = patch.comment
@@ -547,7 +548,7 @@ class Seal5Flow:
         repo.git.add(A=True)
         repo.index.commit(msg, author=actor)
         patch.applied = True
-        self.settings.to_yaml_file(self.settings_file)
+        self.settings.save()
         # TODO: commit
 
     def patch(self, verbose: bool = False, stages: List[PatchStage] = None, force: bool = False):

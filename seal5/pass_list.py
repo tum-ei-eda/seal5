@@ -959,18 +959,19 @@ def gen_riscv_gisel_legalizer_patch(
 ):
     gen_metrics_file = False  # TODO
     gen_index_file = True
-    assert input_model == "Seal5"
-    # self.update_global_model(input_model)
-    input_file = settings.models_dir / f"{input_model}.seal5model"
-    assert input_file.is_file(), f"File not found: {input_file}"
-    name = input_file.name
-    new_name = name.replace(".seal5model", "")
+    assert input_model is None
+    # input_file = settings.models_dir / f"{input_model}.seal5model"
+    # assert input_file.is_file(), f"File not found: {input_file}"
+    # name = input_file.name
+    # new_name = name.replace(".seal5model", "")
     logger.info("Writing RISCVLegalizerInfo.cpp patch")
-    out_dir = settings.patches_dir / new_name
+    out_dir = settings.patches_dir / "Seal5"
     out_dir.mkdir(exist_ok=True)
 
     args = [
-        settings.models_dir / name,
+        "none",
+        "--yaml",
+        settings.settings_file,
         "--log",
         # "info",
         "debug",
@@ -1130,7 +1131,7 @@ def gen_seal5_td(
     verbose: bool = False,
     **kwargs,
 ):
-    assert input_model == "Seal5"
+    assert input_model is None
     patch_name = "seal5_td"
     dest = "llvm/lib/Target/RISCV/seal5.td"
     dest2 = "llvm/lib/Target/RISCV/RISCV.td"

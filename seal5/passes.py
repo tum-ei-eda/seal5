@@ -6,6 +6,7 @@ from typing import Callable, Optional, List
 from concurrent.futures import ThreadPoolExecutor
 
 from seal5.logging import get_logger
+from seal5.settings import Seal5Settings
 
 logger = get_logger()
 
@@ -100,7 +101,7 @@ class Seal5Pass:
                         results.append(result)
                     # TODO: check results (metrics?)
             elif self.pass_scope == PassScope.GLOBAL:
-                input_model = "Seal5"
+                input_model = None
                 result = self.handler(input_model, **kwargs_)
                 if result:
                     metrics = result.metrics
@@ -150,7 +151,13 @@ class PassManager:
         logger.debug("Done.")
         # return False
 
-    def run(self, input_models: List[str], verbose: bool = False):
+    def run(
+        self,
+        input_models: List[str],
+        settings: Optional[Seal5Settings] = None,
+        env: Optional[dict] = None,
+        verbose: bool = False,
+    ):
         assert self.open, "PassManager needs context"
         start = time.time()
         self.metrics["passes"] = []
@@ -162,7 +169,7 @@ class PassManager:
                 pass_.skip()
                 continue
             assert pass_.is_pending, f"Pass {pass_.name} is not pending"
-            result = pass_.run(input_models, verbose=verbose, parent=self)
+            result = pass_.run(input_models, settings=settings, env=env, verbose=verbose, parent=self)
             if result:
                 metrics = result.metrics
                 if metrics:
