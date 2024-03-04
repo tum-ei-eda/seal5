@@ -178,8 +178,9 @@ class Seal5Flow:
                 pass_scope = PassScope.MODEL
             self.add_pass(Seal5Pass(pass_name, PassType.GENERATE, pass_scope, pass_handler, options=pass_options))
 
-    def pattern_gen_pass(self, model_name: str, verbose: bool = False, split: bool = True, **kwargs):
-        llvm_version = self.settings.nllvm.state.version
+    def pattern_gen_pass(self, model_name: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, split: bool = True, **kwargs):
+        assert settings is not None, "Pass needs settings."
+        llvm_version = settings.llvm.state.version
         assert llvm_version is not None
         if llvm_version.major < 18:
             raise RuntimeError("PatternGen needs LLVM version 18 or higher")
@@ -436,7 +437,7 @@ class Seal5Flow:
         llvm.build_llvm(self.directory, self.build_dir / config, cmake_options=cmake_options, target=target)
         logger.info("Completed build of Seal5 LLVM (%s)", target)
 
-    def convert_models(self, input_model: str, verbose: bool = False, inplace: bool = False, **kwargs):
+    def convert_models(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, inplace: bool = False, **kwargs):
         assert not inplace
         input_file = self.models_dir / f"{input_model}.m2isarmodel"
         assert input_file.is_file(), f"File not found: {input_file}"
@@ -463,7 +464,7 @@ class Seal5Flow:
         )
         return PassResult(metrics=metrics)
 
-    def optimize_model(self, input_model, verbose: bool = False, inplace: bool = True, **kwargs):
+    def optimize_model(self, input_model, settings: Optional[Seal5Settings] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
         input_file = self.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
@@ -484,7 +485,7 @@ class Seal5Flow:
             live=True,
         )
 
-    def infer_types(self, input_model: str, verbose: bool = False, inplace: bool = True, **kwargs):
+    def infer_types(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
         input_file = self.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
@@ -505,7 +506,7 @@ class Seal5Flow:
             live=True,
         )
 
-    def simplify_trivial_slices(self, input_model: str, verbose: bool = False, inplace: bool = True, **kwargs):
+    def simplify_trivial_slices(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
         input_file = self.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
@@ -526,7 +527,7 @@ class Seal5Flow:
             live=True,
         )
 
-    def explicit_truncations(self, input_model: str, verbose: bool = False, inplace: bool = True, **kwargs):
+    def explicit_truncations(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
         input_file = self.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
@@ -547,7 +548,7 @@ class Seal5Flow:
             live=True,
         )
 
-    def process_settings(self, input_model: str, verbose: bool = False, inplace: bool = True, **kwargs):
+    def process_settings(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
         input_file = self.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
@@ -570,13 +571,13 @@ class Seal5Flow:
             live=True,
         )
 
-    def filter_model(self, input_model: str, verbose: bool = False, inplace: bool = True, **kwargs):
+    def filter_model(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
         input_file = self.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
         logger.info("Filtering %s", name)
-        filter_settings = self.settings.filter
+        filter_settings = settings.filter
         filter_args = []
 
         def get_filter_args(settings, suffix):
@@ -618,7 +619,7 @@ class Seal5Flow:
             live=True,
         )
 
-    def drop_unused(self, input_model: str, verbose: bool = False, inplace: bool = True, **kwargs):
+    def drop_unused(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
         input_file = self.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
@@ -639,7 +640,7 @@ class Seal5Flow:
             live=True,
         )
 
-    def detect_registers(self, input_model: str, verbose: bool = False, inplace: bool = True, **kwargs):
+    def detect_registers(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
         input_file = self.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
@@ -660,7 +661,7 @@ class Seal5Flow:
             live=True,
         )
 
-    def detect_behavior_constraints(self, input_model: str, verbose: bool = False, inplace: bool = True, **kwargs):
+    def detect_behavior_constraints(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
         input_file = self.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
@@ -681,7 +682,7 @@ class Seal5Flow:
             live=True,
         )
 
-    def detect_side_effects(self, input_model: str, verbose: bool = False, inplace: bool = True, **kwargs):
+    def detect_side_effects(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
         input_file = self.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
@@ -702,7 +703,7 @@ class Seal5Flow:
             live=True,
         )
 
-    def detect_inouts(self, input_model: str, verbose: bool = False, inplace: bool = True, **kargs):
+    def detect_inouts(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, inplace: bool = True, **kargs):
         assert inplace
         input_file = self.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
@@ -723,7 +724,7 @@ class Seal5Flow:
             live=True,
         )
 
-    def collect_operand_types(self, input_model: str, verbose: bool = False, inplace: bool = True, **kwargs):
+    def collect_operand_types(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
         # print("input_file", input_file)
         # input(">")
@@ -748,7 +749,7 @@ class Seal5Flow:
         )
         # input("<")
 
-    def collect_register_operands(self, input_model: str, verbose: bool = False, inplace: bool = True, **kwargs):
+    def collect_register_operands(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
         input_file = self.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
@@ -769,7 +770,7 @@ class Seal5Flow:
             live=True,
         )
 
-    def collect_immediate_operands(self, input_model: str, verbose: bool = False, inplace: bool = True, **kwargs):
+    def collect_immediate_operands(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
         input_file = self.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
@@ -790,7 +791,7 @@ class Seal5Flow:
             live=True,
         )
 
-    def eliminate_rd_cmp_zero(self, input_model: str, verbose: bool = False, inplace: bool = True, **kwargs):
+    def eliminate_rd_cmp_zero(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
         input_file = self.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
@@ -811,7 +812,7 @@ class Seal5Flow:
             live=True,
         )
 
-    def eliminate_mod_rfs(self, input_model: str, verbose: bool = False, inplace: bool = True, **kwargs):
+    def eliminate_mod_rfs(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
         input_file = self.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
@@ -832,7 +833,7 @@ class Seal5Flow:
             live=True,
         )
 
-    def write_yaml(self, input_model: str, verbose: bool = False, inplace: bool = True, **kwargs):
+    def write_yaml(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, inplace: bool = True, **kwargs):
         assert inplace
         input_file = self.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
@@ -855,12 +856,13 @@ class Seal5Flow:
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
-        print(self.temp_dir / new_name)
+        # print(self.temp_dir / new_name)
         self.load_cfg(self.temp_dir / new_name, overwrite=False)
 
     def write_cdsl(
         self,
         input_model: str,
+        settings: Optional[Seal5Settings] = None,
         verbose: bool = False,
         inplace: bool = True,
         split: bool = False,
@@ -997,7 +999,7 @@ class Seal5Flow:
     #                     live=True,
     #                 )
 
-    def convert_behav_to_llvmir(self, input_model: str, verbose: bool = False, split: bool = True, **kwargs):
+    def convert_behav_to_llvmir(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, split: bool = True, **kwargs):
         assert split, "TODO"
         gen_metrics_file = True
         input_file = self.models_dir / f"{input_model}.seal5model"
@@ -1032,7 +1034,7 @@ class Seal5Flow:
             live=True,
         )
 
-    def convert_behav_to_tablegen(self, input_model: str, verbose: bool = False, split: bool = True, **kwargs):
+    def convert_behav_to_tablegen(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, split: bool = True, **kwargs):
         assert split, "TODO"
         formats = True
         gen_metrics_file = True
@@ -1085,11 +1087,11 @@ class Seal5Flow:
                     target="llvm",
                 )
                 self.add_patch(patch_settings)
-                self.settings.to_yaml_file(self.settings_file)
+                settings.to_yaml_file(self.settings_file)
             else:
                 logger.warning("No patches found!")
 
-    def gen_riscv_features_patch(self, input_model: str, verbose: bool = False, split: bool = False, **kwargs):
+    def gen_riscv_features_patch(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, split: bool = False, **kwargs):
         assert not split, "TODO"
         # formats = True
         gen_metrics_file = True
@@ -1138,11 +1140,11 @@ class Seal5Flow:
                     target="llvm",
                 )
                 self.add_patch(patch_settings)
-                self.settings.to_yaml_file(self.settings_file)
+                settings.to_yaml_file(self.settings_file)
             else:
                 logger.warning("No patches found!")
 
-    def gen_riscv_isa_info_patch(self, input_model: str, verbose: bool = False, split: bool = False, **kwargs):
+    def gen_riscv_isa_info_patch(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, split: bool = False, **kwargs):
         assert not split, "TODO"
         # formats = True
         gen_metrics_file = True
@@ -1191,15 +1193,15 @@ class Seal5Flow:
                     target="llvm",
                 )
                 self.add_patch(patch_settings)
-                self.settings.to_yaml_file(self.settings_file)
+                settings.to_yaml_file(self.settings_file)
             else:
                 logger.warning("No patches found!")
 
-    def gen_riscv_gisel_legalizer_patch(self, input_model: str, verbose: bool = False, **kwargs):
+    def gen_riscv_gisel_legalizer_patch(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, **kwargs):
         gen_metrics_file = False  # TODO
         gen_index_file = True
         assert input_model == "Seal5"
-        self.update_global_model(input_model)
+        # self.update_global_model(input_model)
         input_file = self.models_dir / f"{input_model}.seal5model"
         assert input_file.is_file(), f"File not found: {input_file}"
         name = input_file.name
@@ -1242,7 +1244,7 @@ class Seal5Flow:
                     target="llvm",
                 )
                 self.add_patch(patch_settings)
-                self.settings.to_yaml_file(self.settings_file)
+                settings.to_yaml_file(self.settings_file)
             else:
                 logger.warning("No patches found!")
         # TODO: introduce global (model-independed) settings file
@@ -1296,7 +1298,7 @@ class Seal5Flow:
     #             input("!")
 
     def convert_llvmir_to_gmir(
-        self, input_model: str, verbose: bool = False, split: bool = True, inplace: bool = True, **kwargs
+        self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, split: bool = True, inplace: bool = True, **kwargs
     ):
         assert inplace
         assert split
@@ -1307,15 +1309,15 @@ class Seal5Flow:
         #     name = input_file.name
         #     sub = name.replace(".seal5model", "")
         for _ in [None]:
-            set_names = list(self.settings.extensions.keys())
+            set_names = list(settings.extensions.keys())
             assert len(set_names) > 0, "No sets found"
             for set_name in set_names:
-                insn_names = self.settings.extensions[set_name].instructions
+                insn_names = settings.extensions[set_name].instructions
                 if insn_names is None:
                     logger.warning("Skipping empty set %s", set_name)
                     continue
                 assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
-                sub = self.settings.extensions[set_name].model
+                sub = settings.extensions[set_name].model
                 if sub != input_model:
                     continue
                 # TODO: populate model in yaml backend!
@@ -1332,7 +1334,7 @@ class Seal5Flow:
                     try:
                         # TODO: move to backends
                         cdsl2llvm_build_dir = None
-                        integrated_pattern_gen = self.settings.tools.pattern_gen.integrated
+                        integrated_pattern_gen = settings.tools.pattern_gen.integrated
                         if integrated_pattern_gen:
                             config = "release"  # TODO: fetch default config
                             cdsl2llvm_build_dir = str(self.build_dir / config)
@@ -1359,7 +1361,7 @@ class Seal5Flow:
                 raise RuntimeError(f"Duplicate patch '{ps.name}'. Either clean patches or rename patch.")
         self.settings.patches.append(patch_settings)
 
-    def gen_seal5_td(self, input_model: str, verbose: bool = False, **kwargs):
+    def gen_seal5_td(self, input_model: str, settings: Optional[Seal5Settings] = None, verbose: bool = False, **kwargs):
         assert input_model == "Seal5"
         patch_name = "seal5_td"
         dest = "llvm/lib/Target/RISCV/seal5.td"
