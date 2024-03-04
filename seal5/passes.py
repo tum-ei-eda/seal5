@@ -1,4 +1,5 @@
 import time
+import multiprocessing
 from pathlib import Path
 from enum import Enum, IntFlag, auto
 from dataclasses import dataclass
@@ -9,6 +10,10 @@ from seal5.logging import get_logger
 from seal5.settings import Seal5Settings
 
 logger = get_logger()
+
+
+# NUM_THREADS = multiprocessing.cpu_count()
+NUM_THREADS = 1
 
 
 class PassFormat(IntFlag):
@@ -148,13 +153,14 @@ class PassManager:
         pass_list: List[Seal5Pass],
         skip: Optional[List[str]] = None,
         only: Optional[List[str]] = None,
-        parallel: int = 2,
+        parent: Optional["PassManager"] = None,
+        parallel: Optional[int] = None,
     ):
         self.name = name
         self.pass_list = pass_list
         self.skip = skip if skip is not None else (parent.skip if parent else [])
         self.only = only if only is not None else (parent.only if parent else [])
-        self.parallel = parallel
+        self.parallel = parallel if parallel is not None else (parent.parallel if parent else NUM_THREADS)
         self.metrics: dict = {}
         self.open: bool = False
 
