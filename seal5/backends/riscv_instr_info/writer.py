@@ -188,7 +188,9 @@ def gen_riscv_instr_info_str(instr):
             sz = int(ty[1:])
             pre = f"{ty}imm{sz}"
 
-        if Seal5OperandAttribute.OUT in op.attributes and Seal5OperandAttribute.IN in op.attributes:
+        if Seal5OperandAttribute.INOUT in op.attributes or (
+            Seal5OperandAttribute.OUT in op.attributes and Seal5OperandAttribute.IN in op.attributes
+        ):
             op_str2 = f"{pre}:${op_name}_wb"
             writes.append(op_str2)
             op_str = f"{pre}:${op_name}"
