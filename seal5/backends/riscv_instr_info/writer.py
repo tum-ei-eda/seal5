@@ -198,12 +198,20 @@ def gen_riscv_instr_info_str(instr):
     attrs = {}
     if Seal5InstrAttribute.HAS_SIDE_EFFECTS in attributes:
         attrs["hasSideEffects"] = 1
+    else:
+        attrs["hasSideEffects"] = 0
     if Seal5InstrAttribute.MAY_LOAD in attributes:
         attrs["mayLoad"] = 1
+    else:
+        attrs["mayLoad"] = 0
     if Seal5InstrAttribute.MAY_STORE in attributes:
         attrs["mayStore"] = 1
+    else:
+        attrs["mayStore"] = 0
     if Seal5InstrAttribute.IS_TERMINATOR in attributes:
         attrs["isTerminator"] = 1
+    else:
+        attrs["isTerminator"] = 0
     constraints = instr.constraints
     if len(constraints) > 0:
         raise NotImplementedError
@@ -300,7 +308,7 @@ def main():
                 if len(content) > 0:
                     assert pred is not None
                     predicate_str = f"Predicates = [{pred}, IsRV32]"
-                    content = f"let {predicate_str} in{{\n{content}\n}}"
+                    content = f"let {predicate_str} in {{\n{content}\n}}"
                     with open(output_file, "w") as f:
                         f.write(content)
                     instr_info_patch = File(

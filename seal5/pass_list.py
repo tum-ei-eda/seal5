@@ -1009,7 +1009,7 @@ def gen_riscv_instr_info_patch(
             patch_name = f"riscv_instr_info_{input_file.stem}"
             patch_settings = PatchSettings(
                 name=patch_name,
-                stage=int(PatchStage.PHASE_1),
+                stage=int(PatchStage.PHASE_2),
                 comment=f"Generated RISCVInstrInfo.td patch for {input_file.name}",
                 index=str(index_file),
                 generated=True,
