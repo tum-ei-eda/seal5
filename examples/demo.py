@@ -58,7 +58,7 @@ seal5_flow.initialize(
 # Load CoreDSL inputs
 cdsl_files = [
     # XCOREV
-    # EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMac.core_desc",
+    EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMac.core_desc",
     EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVAlu.core_desc",
     # EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVBitmanip.core_desc",
     # EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVSimd.core_desc",
@@ -92,7 +92,7 @@ seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 # Load YAML inputs
 cfg_files = [
     # XCOREV
-    # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVMac.yml",
+    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVMac.yml",
     EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVAlu.yml",
     # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVBitmanip.yml",
     # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVSimd.yml",
