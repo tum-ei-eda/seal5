@@ -33,8 +33,7 @@ from seal5.dependencies import cdsl2llvm_dependency
 from seal5 import utils
 from seal5.tools import llvm, cdsl2llvm, inject_patches
 from seal5.resources.resources import get_patches, get_test_cfg
-from seal5.index import File, NamedPatch, write_index_yaml
-from seal5.passes import Seal5Pass, PassType, PassScope, PassManager, PassResult, filter_passes
+from seal5.passes import Seal5Pass, PassType, PassScope, PassManager, filter_passes
 import seal5.pass_list as passes
 
 logger = get_logger()
