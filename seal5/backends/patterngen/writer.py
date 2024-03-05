@@ -94,7 +94,7 @@ def main():
     settings = model.get("settings", None)
     if args.splitted:
         # errs = []
-        model_includes = []
+        # model_includes = []
         default_mattr = "+m,+fast-unaligned-access"
         if settings:
             riscv_settings = settings.riscv
@@ -181,7 +181,8 @@ def main():
             if len(includes) > 0:
                 set_includes_str = "\n".join([f'include "seal5/{inc}"' for inc in includes])
                 set_includes_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}.td"
-                key = f"{set_name}_set_td_includes"
+                set_name_lower = set_name.lower()
+                key = f"{set_name_lower}_set_td_includes"
                 set_includes_artifact = NamedPatch(set_includes_artifact_dest, key=key, content=set_includes_str)
                 artifacts[set_name].append(set_includes_artifact)
                 # model_includes.append(f"{set_name}.td")

@@ -1,3 +1,4 @@
+import os
 import time
 import multiprocessing
 from pathlib import Path
@@ -12,8 +13,7 @@ from seal5.settings import Seal5Settings
 logger = get_logger()
 
 
-# NUM_THREADS = multiprocessing.cpu_count()
-NUM_THREADS = 1
+NUM_THREADS = int(os.environ.get("SEAL5_NUM_THREADS", multiprocessing.cpu_count()))
 
 
 class PassFormat(IntFlag):
