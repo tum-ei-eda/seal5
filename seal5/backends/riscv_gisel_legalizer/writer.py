@@ -46,6 +46,8 @@ def gen_riscv_gisel_legalizer_str(legalizer_settings: RISCVLegalizerSettings):
     used_types = []
     types_lines = []
     settings_lines = []
+    if ops is None:
+        return ""
     for op in ops:
         print("op", op)
         names = op.name
@@ -142,14 +144,15 @@ def main():
                 gisel_settings = legalization_settings.get("gisel", None)
                 if gisel_settings:
                     content = gen_riscv_gisel_legalizer_str(gisel_settings)
-                    with open(out_path, "w") as f:
-                        f.write(content)
-                    riscv_gisel_legalizer_patch = NamedPatch(
-                        "llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp",
-                        key="riscv_legalizer_info",
-                        src_path=out_path,
-                    )
-                    artifacts[None].append(riscv_gisel_legalizer_patch)
+                    if len(content) > 0:
+                        with open(out_path, "w") as f:
+                            f.write(content)
+                        riscv_gisel_legalizer_patch = NamedPatch(
+                            "llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp",
+                            key="riscv_legalizer_info",
+                            src_path=out_path,
+                        )
+                        artifacts[None].append(riscv_gisel_legalizer_patch)
     if args.metrics:
         raise NotImplementedError
         # metrics_file = args.metrics
