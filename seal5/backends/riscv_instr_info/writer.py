@@ -20,6 +20,7 @@ from mako.template import Template
 from m2isar.metamodel import arch
 
 from seal5.index import NamedPatch, File, write_index_yaml
+
 # from seal5.settings import ExtensionsSettings
 from seal5.model import Seal5OperandAttribute, Seal5InstrAttribute
 
@@ -31,6 +32,7 @@ logger = logging.getLogger("riscv_instr_info")
 # MAKO_TEMPLATE = """def Feature${predicate} : SubtargetFeature<"${arch}", "Has${predicate}", "true", "'${feature}' (${description})">;
 #
 # def Has${predicate} : Predicate<"Subtarget->has${predicate}()">, AssemblerPredicate<(any_of Feature${predicate}), "'${feature}' (${description})">;"""
+
 
 class Operand:
     def __init__(self, name, lower, upper):
@@ -108,22 +110,53 @@ def process_encoding(enc):
     return operands.values(), fields
 
 
-def write_riscv_instruction_info(name, real_name, asm_str, ins_str, outs_str, enc, fields, operands, details_str, attrs={}, constraints=[], formats=False):
-
+def write_riscv_instruction_info(
+    name,
+    real_name,
+    asm_str,
+    ins_str,
+    outs_str,
+    enc,
+    fields,
+    operands,
+    details_str,
+    attrs={},
+    constraints=[],
+    formats=False,
+):
     if formats:
-        instr_template = Template(filename=str(template_dir/'instr_tablegen2.mako'))
+        instr_template = Template(filename=str(template_dir / "instr_tablegen2.mako"))
     else:
-        instr_template = Template(filename=str(template_dir/'instr_tablegen.mako'))
+        instr_template = Template(filename=str(template_dir / "instr_tablegen.mako"))
 
     operands, fields = process_encoding(enc)
 
     attrs = {key: int(value) if isinstance(value, bool) else value for key, value in attrs.items()}
     constraints_str = ", ".join(constraints)
 
-    out_str = instr_template.render(name=name, real_name=real_name, xlen=32, asm_str=asm_str, ins_str=ins_str, outs_str=outs_str, sched_str=str([]), operands=operands, fields=fields, attrs=attrs, constraints_str=constraints_str)
+    out_str = instr_template.render(
+        name=name,
+        real_name=real_name,
+        xlen=32,
+        asm_str=asm_str,
+        ins_str=ins_str,
+        outs_str=outs_str,
+        sched_str=str([]),
+        operands=operands,
+        fields=fields,
+        attrs=attrs,
+        constraints_str=constraints_str,
+    )
 
     if len(details_str) > 0:
-        out_str = details_str + " in {\n" + "\n".join([("  " + line) if len(line) > 0 else line for line in out_str.split("\n")]) + "\n} // " + details_str + "\n"
+        out_str = (
+            details_str
+            + " in {\n"
+            + "\n".join([("  " + line) if len(line) > 0 else line for line in out_str.split("\n")])
+            + "\n} // "
+            + details_str
+            + "\n"
+        )
 
     logger.info("writing TableGen for instruction %s", name)
 
@@ -172,7 +205,11 @@ def gen_riscv_instr_info_str(instr):
     print("attributes", attributes)
     real_name = instr.mnemonic
     asm_str = instr.assembly
-    asm_str = re.sub(r'{([a-zA-Z0-9]+)}', r'$\g<1>', re.sub(r'{([a-zA-Z0-9]+):[#0-9a-zA-Z\.]+}', r'{\g<1>}', re.sub(r'name\(([a-zA-Z0-9]+)\)', r'\g<1>', asm_str)))
+    asm_str = re.sub(
+        r"{([a-zA-Z0-9]+)}",
+        r"$\g<1>",
+        re.sub(r"{([a-zA-Z0-9]+):[#0-9a-zA-Z\.]+}", r"{\g<1>}", re.sub(r"name\(([a-zA-Z0-9]+)\)", r"\g<1>", asm_str)),
+    )
     print("asm_str_orig", asm_str)
     asm_order = re.compile(r"(\$[a-zA-Z0-9]+)").findall(asm_str)
     print("asm_order", asm_order)
@@ -216,7 +253,20 @@ def gen_riscv_instr_info_str(instr):
     if len(constraints) > 0:
         raise NotImplementedError
     formats = True
-    tablegen_str = write_riscv_instruction_info(name, real_name, asm_str, ins_str, outs_str, encoding, fields, operands, details_str, attrs=attrs, constraints=constraints, formats=formats)
+    tablegen_str = write_riscv_instruction_info(
+        name,
+        real_name,
+        asm_str,
+        ins_str,
+        outs_str,
+        encoding,
+        fields,
+        operands,
+        details_str,
+        attrs=attrs,
+        constraints=constraints,
+        formats=formats,
+    )
     return tablegen_str
 
 
@@ -312,15 +362,18 @@ def main():
                     with open(output_file, "w") as f:
                         f.write(content)
                     instr_info_patch = File(
-                        f"llvm/lib/Target/RISCV/seal5/{set_name}/{output_file.name}", src_path=output_file,
+                        f"llvm/lib/Target/RISCV/seal5/{set_name}/{output_file.name}",
+                        src_path=output_file,
                     )
                     artifacts[set_name].append(instr_info_patch)
                     inc = f"seal5/{set_name}/{output_file.name}"
                     includes.append(inc)
 
-            includes_str = "\n".join([f"include \"{inc}\"" for inc in includes])
+            includes_str = "\n".join([f'include "{inc}"' for inc in includes])
             set_td_includes_patch = NamedPatch(
-                f"llvm/lib/Target/RISCV/seal5/{set_name}.td", key=f"{set_name_lower}_set_td_includes", content=includes_str,
+                f"llvm/lib/Target/RISCV/seal5/{set_name}.td",
+                key=f"{set_name_lower}_set_td_includes",
+                content=includes_str,
             )
             artifacts[set_name].append(set_td_includes_patch)
     else:

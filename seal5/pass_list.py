@@ -1311,7 +1311,7 @@ def gen_set_td(
             content=content,
         )
         artifacts.append(file_artifact)
-    content2 = f"// {input_model}\n" + "\n".join([f"include \"{inc}\"" for inc in includes]) + "\n"
+    content2 = f"// {input_model}\n" + "\n".join([f'include "{inc}"' for inc in includes]) + "\n"
     patch_artifact = NamedPatch(
         dest2,
         key="seal5_td_includes",

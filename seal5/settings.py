@@ -324,6 +324,7 @@ class PatchSettings(YAMLSettings):
 # class TransformSettings(YAMLSettings):
 #     pass
 
+
 @dataclass
 class PassesSetting(YAMLSettings):
     skip: Optional[List[str]] = None

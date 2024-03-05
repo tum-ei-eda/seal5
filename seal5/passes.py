@@ -52,18 +52,17 @@ class PassResult:
     metrics: Optional[dict] = None
     outputs: Optional[List[Path]] = None
 
+
 def check_filter(name, skip, only):
     print("check_filter", name, skip, only)
     if skip is None:
         skip = []
     if only is None:
         only = []
-    if not (
-        (name in only or len(only) == 0)
-        and (name not in skip or len(skip) == 0)
-    ):
+    if not ((name in only or len(only) == 0) and (name not in skip or len(skip) == 0)):
         return True
     return False
+
 
 class Seal5Pass:
     def __init__(self, name, pass_type, pass_scope, handler, fmt=PassFormat.NONE, order=-1, options=None):

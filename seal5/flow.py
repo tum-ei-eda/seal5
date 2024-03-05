@@ -608,7 +608,13 @@ class Seal5Flow:
         suffix = dest.suffix
         if suffix != ".gz":
             raise NotImplementedError("Only .tar.gz export is supported!")
-        artifacts = [self.settings.inputs_dir, self.settings.gen_dir, self.settings.models_dir, self.settings.logs_dir, self.settings.settings_file]
+        artifacts = [
+            self.settings.inputs_dir,
+            self.settings.gen_dir,
+            self.settings.models_dir,
+            self.settings.logs_dir,
+            self.settings.settings_file,
+        ]
         with tarfile.open(dest, mode="w:gz") as archive:
             for artifact in artifacts:
                 name = str(artifact)
@@ -629,7 +635,19 @@ class Seal5Flow:
             self.settings.reset()
         logger.info("Completed clean of Seal5 settings")
 
-    def clean(self, temp: bool = False, patches: bool = False, models: bool = False, inputs: bool = False, logs: bool = False, install: bool = False, build: bool = False, deps: bool = False, verbose: bool = False, interactive: bool = False):
+    def clean(
+        self,
+        temp: bool = False,
+        patches: bool = False,
+        models: bool = False,
+        inputs: bool = False,
+        logs: bool = False,
+        install: bool = False,
+        build: bool = False,
+        deps: bool = False,
+        verbose: bool = False,
+        interactive: bool = False,
+    ):
         logger.info("Cleaning Seal5 directories")
         to_clean = []
         if temp:
