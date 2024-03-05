@@ -14,7 +14,7 @@ import pathlib
 import pickle
 from typing import Union
 
-from m2isar.metamodel import arch, patch_model
+from m2isar.metamodel import arch
 
 from seal5.settings import Seal5Settings, ExtensionsSettings
 
@@ -72,6 +72,9 @@ def main():
                 model = {"sets": temp, "cores": {}}
             else:
                 assert False
+
+    assert "settings" not in model
+    model["settings"] = settings
 
     for set_name, set_def in model["sets"].items():
         ext_settings = settings.extensions.get(set_name, None)

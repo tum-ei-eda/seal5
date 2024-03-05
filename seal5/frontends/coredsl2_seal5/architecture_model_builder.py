@@ -247,12 +247,12 @@ class ArchitectureModelBuilder(CoreDSL2Visitor):
         # type is required, name and array size optional
         type_ = self.visit(ctx.type_)
         name = None
-        size = None
+        # size = None
         if ctx.decl:
             if ctx.decl.name:
                 name = ctx.decl.name.text
             if ctx.decl.size:
-                size = [self.visit(obj) for obj in ctx.decl.size]
+                ctx.decl.size = [self.visit(obj) for obj in ctx.decl.size]
 
         p = arch.FnParam(name, type_._width, arch.DataType.S if type_.signed else arch.DataType.U)
         return p
@@ -292,7 +292,7 @@ class ArchitectureModelBuilder(CoreDSL2Visitor):
 
         # extract storage type, qualifiers and attributes
         storage = [self.visit(obj) for obj in ctx.storage]
-        qualifiers = [self.visit(obj) for obj in ctx.qualifiers]
+        # qualifiers = [self.visit(obj) for obj in ctx.qualifiers]
         attributes = dict([self.visit(obj) for obj in ctx.attributes])
 
         # extract data type

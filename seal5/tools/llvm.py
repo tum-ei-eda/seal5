@@ -18,6 +18,7 @@
 #
 """LLVM utils for seal5."""
 import re
+import os
 from pathlib import Path
 from typing import List, Optional
 
@@ -53,6 +54,8 @@ def clone_llvm_repo(
     dest: Path, clone_url: str, ref: Optional[str] = None, refresh: bool = False, label: str = "default"
 ):
     sha = None
+    version_info = {}
+    repo = None
     if dest.is_dir():
         if refresh:
             logger.debug("Refreshing LLVM repository: %s", dest)
@@ -62,22 +65,37 @@ def clone_llvm_repo(
             if ref:
                 repo.git.checkout(ref)
                 repo.git.pull("origin", ref)
-            repo.create_tag(f"seal5-{label}-base", "-f")
-            sha = repo.head.commit.hexsha
     else:
         logger.debug("Cloning LLVM repository: %s", clone_url)
         repo = git.Repo.clone_from(clone_url, dest, no_checkout=ref is not None)
         if ref:
             logger.debug("Checking out branch: %s", ref)
             repo.git.checkout(ref)
-        repo.create_tag(f"seal5-{label}-base", "-f")
-        sha = repo.head.commit.hexsha
-    return sha
+    repo.create_tag(f"seal5-{label}-base", "-f")
+    # git describe --tags --match "llvmorg-[0-9]*.[0-9]*.[0-9]*"
+    describe = repo.git.describe("--tags", "--match", "llvmorg-[0-9]*.[0-9]*.[0-9]*")
+    if describe:
+        splitted = describe.split("-", 3)
+        base = splitted[0]
+        assert base == "llvmorg"
+        version = splitted[1]
+        major, minor, patch = version.split(".")
+        version_info["major"] = int(major)
+        version_info["minor"] = int(minor)
+        version_info["patch"] = int(patch)
+        rest = splitted[2]
+        if "rc" in rest:
+            rc = rest.split("-", 1)[0][2:]
+            version_info["rc"] = int(rc)
+
+    sha = repo.head.commit.hexsha
+    return sha, version_info
 
 
 def build_llvm(
     src: Path,
     dest: Path,
+    target: str = "all",
     debug: Optional[bool] = None,
     use_ninja: Optional[bool] = None,
     verbose: bool = False,
@@ -94,10 +112,13 @@ def build_llvm(
         print_func=logger.info if verbose else logger.debug,
         live=True,
     )
-    utils.make(cwd=dest, print_func=logger.info if verbose else logger.debug, live=True)
+    utils.make(target=target, cwd=dest, print_func=logger.info if verbose else logger.debug, live=True)
 
 
 def test_llvm(base: Path, build_dir: Path, test_paths: List[str] = [], verbose: bool = False):
+    env = os.environ.copy()
+    old_path = env["PATH"]
+    env["PATH"] = f"{build_dir}/bin:{old_path}"
     lit_exe = build_dir / "bin" / "llvm-lit"
     failing_tests = []
     for test_path in test_paths:
@@ -110,6 +131,7 @@ def test_llvm(base: Path, build_dir: Path, test_paths: List[str] = [], verbose: 
             base / test_path,
             print_func=logger.info if verbose else logger.debug,
             live=True,
+            env=env,
             handle_exit=handler,
         )
         failing = re.compile(r"FAIL: LLVM :: (.*) \(").findall(out)

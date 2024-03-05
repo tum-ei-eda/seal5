@@ -20,12 +20,11 @@ simplifications are done:
   type directly to the :class:`IntLiteral` and discard the type conversion
 """
 import logging
-
-logger = logging.getLogger(__name__)
-
 from copy import copy
 
 from m2isar.metamodel import arch, behav
+
+logger = logging.getLogger(__name__)
 
 # pylint: disable=unused-argument
 
@@ -151,12 +150,12 @@ def slice_operation(self: behav.SliceOperation, context):
     if not isinstance(self.left, behav.IntLiteral):
         logger.warning("Can not infer type of non-static slice operation. Skipping...")
         return self
-    l = self.left.value
+    lval = self.left.value
     if not isinstance(self.right, behav.IntLiteral):
         logger.warning("Can not infer type of non-static slice operation. Skipping...")
         return self
-    r = self.right.value
-    width = l - r + 1 if l > r else r - l + 1
+    rval = self.right.value
+    width = lval - rval + 1 if lval > rval else rval - lval + 1
     ty_ = copy(ty)
     ty_._width = width
     self.inferred_type = ty_

@@ -34,6 +34,7 @@ def main():
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--splitted", action="store_true", help="Split per set and instruction")
     parser.add_argument("--formats", action="store_true", help="Also generate instruction formats")
+    parser.add_argument("--patterns", action="store_true", help="Also generate instruction patterns")
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
     parser.add_argument("--index", default=None, help="Output index to file")
     parser.add_argument("--ext", type=str, default="td", help="Default file extension (if using --splitted)")
@@ -90,9 +91,20 @@ def main():
     # print("model", model)
     artifacts = {}
     artifacts[None] = []  # used for global artifacts
+    settings = model.get("settings", None)
     if args.splitted:
         # errs = []
-        model_includes = []
+        # model_includes = []
+        default_mattr = "+m,+fast-unaligned-access"
+        if settings:
+            riscv_settings = settings.riscv
+            if riscv_settings:
+                features = riscv_settings.features
+                if features is None:
+                    pass
+                else:
+                    default_mattr = ",".join([f"+{f}" for f in features])
+
         assert out_path.is_dir(), "Expecting output directory when using --splitted"
         for set_name, set_def in model["sets"].items():
             artifacts[set_name] = []
@@ -120,24 +132,32 @@ def main():
                 if not input_file.is_file():
                     metrics["n_skipped"] += 1
                     continue
+                # if args.patterns:
                 out_name = f"{instr_def.name}.{args.ext}"
-                out_name_fmt = f"{instr_def.name}InstrFormat.{args.ext}"
                 output_file = set_dir / out_name
-                output_file_fmt = set_dir / out_name_fmt
+                if args.formats:
+                    out_name_fmt = f"{instr_def.name}InstrFormat.{args.ext}"
+                    output_file_fmt = set_dir / out_name_fmt
                 install_dir = os.getenv("CDSL2LLVM_DIR", None)
-                ext = None
+                predicate = None
+                mattr = default_mattr
                 if ext_settings is not None:
-                    ext = ext_settings.get_predicate(name=set_name)
+                    predicate = ext_settings.get_predicate(name=set_name)
+                    arch_ = ext_settings.get_arch(name=set_name)
+                    mattr = ",".join([*mattr.split(","), f"+{arch_}"])
+
                 assert install_dir is not None
                 install_dir = pathlib.Path(install_dir)
                 try:
                     cdsl2llvm.run_pattern_gen(
-                        install_dir / "llvm" / "build",
+                        # install_dir / "llvm" / "build",
+                        install_dir,
                         input_file,
                         output_file,
-                        skip_patterns=False,
+                        skip_patterns=not args.patterns,
                         skip_formats=not args.formats,
-                        ext=ext,
+                        ext=predicate,
+                        mattr=mattr,
                     )
                     if output_file.is_file():
                         metrics["n_success"] += 1
@@ -147,11 +167,12 @@ def main():
                             artifacts[set_name].append(file_artifact_fmt)
                             include_path_fmt = f"{set_name}/{out_name_fmt}"
                             includes.append(include_path_fmt)
-                        file_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}/{out_name}"
-                        file_artifact = File(file_artifact_dest, src_path=output_file)
-                        artifacts[set_name].append(file_artifact)
-                        include_path = f"{set_name}/{out_name}"
-                        includes.append(include_path)
+                        if args.patterns:
+                            file_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}/{out_name}"
+                            file_artifact = File(file_artifact_dest, src_path=output_file)
+                            artifacts[set_name].append(file_artifact)
+                            include_path = f"{set_name}/{out_name}"
+                            includes.append(include_path)
                     else:
                         metrics["n_failed"] += 1
                 except AssertionError:
@@ -160,15 +181,17 @@ def main():
             if len(includes) > 0:
                 set_includes_str = "\n".join([f'include "seal5/{inc}"' for inc in includes])
                 set_includes_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}.td"
-                set_includes_artifact = File(set_includes_artifact_dest, content=set_includes_str)
+                set_name_lower = set_name.lower()
+                key = f"{set_name_lower}_set_td_includes"
+                set_includes_artifact = NamedPatch(set_includes_artifact_dest, key=key, content=set_includes_str)
                 artifacts[set_name].append(set_includes_artifact)
-                model_includes.append(f"{set_name}.td")
-        if len(model_includes) > 0:
-            model_includes_str = "\n".join([f'include "seal5/{inc}"' for inc in model_includes])
-            model_includes_artifact_dest = "llvm/lib/Target/RISCV/seal5.td"
-            key = "seal5_td_includes"
-            model_includes_artifact = NamedPatch(model_includes_artifact_dest, key, content=model_includes_str)
-            artifacts[None].append(model_includes_artifact)
+                # model_includes.append(f"{set_name}.td")
+        # if len(model_includes) > 0:
+        #     model_includes_str = "\n".join([f'include "seal5/{inc}"' for inc in model_includes])
+        #     model_includes_artifact_dest = "llvm/lib/Target/RISCV/seal5.td"
+        #     key = "seal5_td_includes"
+        #     model_includes_artifact = NamedPatch(model_includes_artifact_dest, key, content=model_includes_str)
+        #     artifacts[None].append(model_includes_artifact)
         # if len(errs) > 0:
         #     # print("errs", errs)
         #     for insn_name, err_str in errs:

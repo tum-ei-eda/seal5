@@ -32,3 +32,4 @@ class PatchStage(IntEnum):
     PHASE_2 = 2
     PHASE_3 = 3
     PHASE_4 = 4
+    PHASE_5 = 5

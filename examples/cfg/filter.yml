@@ -2,11 +2,13 @@
 filter:
   sets:
     # keep: [XCoreVAlu]
-    drop: [RISCVBase, RISCVEncoding, Zicsr, Zifencei, RVSMode, RVDebug, RV32I, RVNMode, XCoreVSimd]
+    # drop: [RISCVBase, RISCVEncoding, Zicsr, Zifencei, RVSMode, RVDebug, RV32I, RVNMode, XCoreVSimd]
+    drop: [RISCVBase, RISCVEncoding, Zicsr, Zifencei, RVSMode, RVDebug, RV32I, RVNMode]
+    # drop: [RISCVBase, RISCVEncoding, Zicsr, Zifencei, RVSMode, RVDebug, RV32I, RVNMode, RV32Zpsfoperand]
   instructions:
     # keep: [CV_ABS, CV_ADD_B]
-    drop: [CV_CLIPU, CV_CLIPR, CV_CLIPUR]
+    drop: [CV_CLIPU, CV_CLIPR, CV_CLIPUR, CV_SLET, CV_SLETU]
   opcodes:
-    keep: [custom-0, custom-1, custom-2 ,custom-3, 0b00000]
+    keep: [custom-0, custom-1, custom-2 ,custom-3, 0b00000, OP-P, OP]
   encoding_sizes:
     keep: [32]

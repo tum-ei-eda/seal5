@@ -1,9 +1,16 @@
 ---
 extensions:
   XCoreVAlu:
-    feature: XCVAlu
+    feature: XCValu
     arch: xcvalu
     version: "1.0"
     experimental: false
     vendor: true
     # patches: []
+passes:
+  per_model:
+    XCoreVAlu:
+      skip: [riscv_features, riscv_isa_info, riscv_instr_formats, riscv_instr_info, behav_to_pat]
+      override:
+        behav_to_pat:
+          patterns: false

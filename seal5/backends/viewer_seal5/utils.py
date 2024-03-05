@@ -9,21 +9,11 @@
 """Utility stuff for M2-ISA-R viewer"""
 
 from typing import TYPE_CHECKING
-from anytree import Node, RenderTree
+from anytree import Node
 
 if TYPE_CHECKING:
     import tkinter as tk
     from tkinter import ttk
-
-
-class TreeGenContext:
-    """Data keeping class for recursive TreeView generation"""
-
-    def push(self, new_id):
-        self.parent_stack.append(new_id)
-
-    def pop(self):
-        return self.parent_stack.pop()
 
 
 class TreeGenContext:

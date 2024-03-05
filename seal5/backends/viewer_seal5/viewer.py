@@ -20,7 +20,6 @@ from anytree import Node, RenderTree
 from m2isar.backends.viewer_seal5.utils import TkTreeGenContext, TextTreeGenContext
 
 from ...metamodel import arch, patch_model
-from ...metamodel.utils.expr_preprocessor import process_attributes, process_functions, process_instructions
 from . import treegen
 
 logger = logging.getLogger("viewer")
@@ -105,7 +104,8 @@ def main():
         if args.text:
             set_node = Node("Set", parent=sets_node, value=set_name)
             # add constants to tree
-            consts_node = Node("Constants", parent=set_node)
+            # consts_node = Node("Constants", parent=set_node)
+            # TODO
         else:
             set_id = tree.insert("", tk.END, text=set_name)
 
@@ -304,7 +304,7 @@ def main():
 
     if args.text:
         print("============================")
-        text = ""
+        # text = ""
         for pre, fill, node in RenderTree(root):
             suffix = ""
             if hasattr(node, "value"):

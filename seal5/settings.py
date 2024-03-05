@@ -72,11 +72,20 @@ DEFAULT_SETTINGS = {
             "drop": [],
         },
     },
-    "transform": {
-        "passes": "*",
+    # "transform": {
+    #     "passes": "*",
+    # },
+    "passes": {
+        "defaults": {
+            "skip": [],
+            "only": [],
+            "overrides": {},
+        },
+        "per_model": {},
     },
     "test": {
-        "paths": ["MC/RISCV", "CodeGen/RISCV"],
+        "paths": [],
+        # "paths": ["MC/RISCV", "CodeGen/RISCV"],
     },
     "llvm": {
         "state": {"version": "auto", "base_commit": "unknown"},
@@ -127,6 +136,11 @@ DEFAULT_SETTINGS = {
     "groups": {
         "all": "*",
     },
+    "tools": {
+        "pattern_gen": {
+            "integrated": True,
+        },
+    },
 }
 
 
@@ -140,7 +154,7 @@ def check_supported_types(data):
             check_supported_types(x)
     else:
         if data is not None:
-            assert isinstance(data, ALLOWED_TYPES), f"Unsupported type: {type(value)}"
+            assert isinstance(data, ALLOWED_TYPES), f"Unsupported type: {type(data)}"
 
 
 class YAMLSettings:
@@ -216,7 +230,9 @@ class YAMLSettings:
                         elif isinstance(v1, list):
                             if overwrite:
                                 v2.clear()
-                            v2.extend(v1)
+                            # duplicates are dropped here
+                            new = [x for x in v1 if x not in v2]
+                            v2.extend(new)
                         else:
                             assert isinstance(
                                 v2, (int, float, str, bool, Path)
@@ -304,9 +320,22 @@ class PatchSettings(YAMLSettings):
     #     self._file = value
 
 
+# @dataclass
+# class TransformSettings(YAMLSettings):
+#     pass
+
+
 @dataclass
-class TransformSettings(YAMLSettings):
-    pass
+class PassesSetting(YAMLSettings):
+    skip: Optional[List[str]] = None
+    only: Optional[List[str]] = None
+    overrides: Optional[dict] = None
+
+
+@dataclass
+class PassesSettings(YAMLSettings):
+    defaults: Optional[PassesSetting] = None
+    per_model: Optional[Dict[str, PassesSetting]] = None
 
 
 @dataclass
@@ -420,9 +449,17 @@ class FilterSettings(YAMLSettings):
 
 
 @dataclass
+class LLVMVersion(YAMLSettings):
+    major: Optional[int] = None
+    minor: Optional[int] = None
+    patch: Optional[int] = None
+    rc: Optional[int] = None
+
+
+@dataclass
 class LLVMState(YAMLSettings):
     base_commit: Optional[str] = None
-    version: Optional[str] = None
+    version: Optional[Union[str, LLVMVersion]] = None
 
 
 @dataclass
@@ -437,32 +474,129 @@ class LLVMSettings(YAMLSettings):
 
 
 @dataclass
+class RISCVLegalizerSetting(YAMLSettings):
+    name: Optional[Union[str, List[str]]] = None
+    types: Optional[Union[str, List[str]]] = None
+    onlyif: Optional[Union[str, List[str]]] = None
+
+
+@dataclass
+class RISCVLegalizerSettings(YAMLSettings):
+    ops: Optional[List[RISCVLegalizerSetting]] = None
+
+
+@dataclass
 class RISCVSettings(YAMLSettings):
     xlen: Optional[int] = None
     features: Optional[List[str]] = None
     # Used for  baseline extensions, tune and legalizer + pattern gen
     # default: zicsr,m,(32/64bit),fast-unaligned-access
-    # others: zmmul,a,f,d,zfh,zfinx,zdinx,c,zba,zbb,zbc,zbs,zca,zcb,zcd,zcmp,zce,e,no-optimized-zero-stride-load,no-default-unroll,...
+    # others: zmmul,a,f,d,zfh,zfinx,zdinx,c,zba,zbb,zbc,zbs,zca,zcb,zcd
+    #   zcmp,zce,e,no-optimized-zero-stride-load,no-default-unroll,...
     transform_info: Optional[Dict[str, Optional[Union[bool, int]]]] = None
     # options: see ttiimpl_notes.txt
     # TODO: processor/pipeline/mcpu/tune -> ProcessorSettings
+    legalization: Optional[Dict[str, RISCVLegalizerSettings]] = None
+
+
+@dataclass
+class PatternGenSettings(YAMLSettings):
+    integrated: Optional[bool] = None
+
+
+@dataclass
+class ToolsSettings(YAMLSettings):
+    pattern_gen: Optional[PatternGenSettings] = None
 
 
 @dataclass
 class Seal5Settings(YAMLSettings):
+    directory: Optional[str] = None
     logging: Optional[LoggingSettings] = None
     filter: Optional[FilterSettings] = None
     llvm: Optional[LLVMSettings] = None
     git: Optional[GitSettings] = None
     patches: Optional[List[PatchSettings]] = None
-    transform: Optional[TransformSettings] = None  # TODO: make list?
+    # transform: Optional[TransformSettings] = None  # TODO: make list?
+    passes: Optional[PassesSettings] = None  # TODO: make list?
     test: Optional[TestSettings] = None
     extensions: Optional[Dict[str, ExtensionsSettings]] = None
     groups: Optional[GroupsSettings] = None  # TODO: make list?
     inputs: Optional[List[str]] = None
     riscv: Optional[RISCVSettings] = None
+    tools: Optional[ToolsSettings] = None
+    metrics: list = field(default_factory=list)
 
     def reset(self):
         self.extensions = {}
         self.patches = []
         self.inputs = []
+        self.metrics = []
+        # TODO: clear user provided tests!
+
+    def save(self, dest: Optional[Path] = None):
+        if dest is None:
+            dest = self.settings_file
+        self.to_yaml_file(dest)
+
+    def add_patch(self, patch_settings: PatchSettings):
+        for ps in self.patches:
+            if ps.name == patch_settings.name:
+                raise RuntimeError(f"Duplicate patch '{ps.name}'. Either clean patches or rename patch.")
+        self.patches.append(patch_settings)
+
+    @property
+    def model_names(self):
+        return [Path(path).stem for path in self.inputs]
+
+    @property
+    def meta_dir(self):
+        return Path(self.directory) / ".seal5"
+
+    @property
+    def settings_file(self):
+        return self.meta_dir / "settings.yml"
+
+    @property
+    def deps_dir(self):
+        return self.meta_dir / "deps"
+
+    @property
+    def build_dir(self):
+        return self.meta_dir / "build"
+
+    @property
+    def install_dir(self):
+        return self.meta_dir / "install"
+
+    @property
+    def logs_dir(self):
+        return self.meta_dir / "logs"
+
+    @property
+    def models_dir(self):
+        return self.meta_dir / "models"
+
+    @property
+    def inputs_dir(self):
+        return self.meta_dir / "inputs"
+
+    @property
+    def temp_dir(self):
+        return self.meta_dir / "temp"
+
+    @property
+    def gen_dir(self):
+        return self.meta_dir / "gen"
+
+    @property
+    def tests_dir(self):
+        return self.meta_dir / "tests"
+
+    @property
+    def patches_dir(self):  # TODO: maybe merge with gen_dir
+        return self.meta_dir / "patches"
+
+    @property
+    def log_file_path(self):
+        return self.logs_dir / "seal5.log"

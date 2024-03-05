@@ -20,6 +20,9 @@
 from pathlib import Path
 
 from seal5.logging import get_logger
+from seal5.settings import PatchSettings
+from seal5.types import PatchStage
+from seal5.index import File, Directory, NamedPatch, write_index_yaml
 from seal5 import utils
 
 logger = get_logger()
@@ -41,6 +44,61 @@ def build_pattern_gen(
     utils.make(
         "pattern-gen", cwd=dest, print_func=logger.info if verbose else logger.debug, live=True, use_ninja=use_ninja
     )
+
+
+def get_pattern_gen_patches(
+    src: Path,
+    temp_dir: Path,
+    verbose: bool = False,
+):
+    # TODO: copy!
+    artifacts = []
+    directory_artifact = Directory(
+        "llvm/tools/pattern-gen",
+        src_path=f"{src}/llvm/tools/pattern-gen",
+    )
+    artifacts.append(directory_artifact)
+    file_artifact = File(
+        "llvm/include/llvm/CodeGen/GlobalISel/PatternGen.h",
+        src_path=f"{src}/llvm/include/llvm/CodeGen/GlobalISel/PatternGen.h",
+    )
+    artifacts.append(file_artifact)
+    file_artifact = File(
+        "llvm/lib/CodeGen/GlobalISel/PatternGen.cpp",
+        src_path=f"{src}/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp",
+    )
+    artifacts.append(file_artifact)
+    patch_artifact = NamedPatch(
+        "llvm/include/llvm/InitializePasses.h",
+        key="initialize_passes_decl",
+        content="void initializePatternGenPass(PassRegistry&);",
+    )
+    artifacts.append(patch_artifact)
+    patch_artifact = NamedPatch(
+        "llvm/lib/CodeGen/GlobalISel/CMakeLists.txt",
+        key="gisel_cmake_srcs",
+        content="  PatternGen.cpp",
+    )
+    artifacts.append(patch_artifact)
+    patch_artifact = NamedPatch(
+        "llvm/lib/CodeGen/GlobalISel/GlobalISel.cpp",
+        key="gisel_init",
+        content="  initializePatternGenPass(Registry);",
+    )
+    artifacts.append(patch_artifact)
+
+    index_file = temp_dir / "pattern_gen_support_index.yml"
+    write_index_yaml(index_file, artifacts, {}, content=True)
+    patch_settings = PatchSettings(
+        name="pattern_gen_support",
+        stage=int(PatchStage.PHASE_2),
+        comment="Integrate PatternGen in Seal5 LLVM",
+        index=str(index_file),
+        generated=True,
+        target="llvm",
+    )
+
+    return patch_settings
 
 
 def build_llc(
@@ -71,6 +129,8 @@ def run_pattern_gen(
     skip_verify=True,
     debug=False,
 ):
+    if not isinstance(build_dir, Path):
+        build_dir = Path(build_dir)
     pattern_gen_args = [src]
 
     if dest:
@@ -83,7 +143,7 @@ def run_pattern_gen(
         attrs = ["+m", "+fast-unaligned-access"]
         if ext:
             ext_ = ext.lower()
-            ext_ = ext_.replace("std", "").replace("vendor", "")
+            ext_ = ext_.replace("std", "").replace("vendor", "").replace("ext", "")
             attrs.append(f"+{ext_}")
         mattr = ",".join(attrs)
 
@@ -192,6 +252,9 @@ def convert_ll_to_gmir(
     verbose: bool = False,
 ):
     llc_args = [src, "-mtriple=riscv32-unknown-elf", "-stop-after=irtranslator", "-global-isel", "-O3"]
+
+    if not isinstance(build_dir, Path):
+        build_dir = Path(build_dir)
 
     assert dest is not None
     llc_args.extend(["-o", str(dest)])

@@ -104,6 +104,7 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
         content_ = artifact.get("content", None)
         assert dest_path is not None
         is_file = False
+        is_dir = False
         is_patch = False
         # TODO: do not depend on dest_path
         if key:  # NamedPatch
@@ -112,15 +113,47 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
             raise NotImplementedError
         elif line is not None:
             raise NotImplementedError
-        else:  # File
-            is_file = True
+        else:  # File/Dir
+            if content_ is None:
+                if Path(src_path).is_file():
+                    is_file = True
+                elif Path(src_path).is_dir():
+                    is_dir = True
+                else:
+                    raise RuntimeError(f"File not found: {src_path}")
+            else:
+                is_file = True
         if content_:
             assert isinstance(content_, str)
         else:
-            assert src_path is not None
-            assert Path(src_path).is_file(), f"File not found: {src_path}"
-            with open(src_path, "r") as f:
-                content_ = f.read()
+            if is_patch or is_file:
+                with open(src_path, "r") as f:
+                    content_ = f.read()
+            elif is_dir:
+                files = Path(src_path).rglob("*")
+                base = dest_path
+                # print("base", base)
+                # print("files", files)
+                fragments = []
+                for file in files:
+                    if file.is_dir():
+                        continue
+                    # print("file", file)
+                    dest_path_ = str(Path(base) / (str(file).replace(f"{src_path}/", "")))
+                    # print("dest_path_", dest_path_)
+                    src_path_ = file
+                    file_artifact = {
+                        "dest_path": str(dest_path_),
+                        "src_path": str(src_path_),
+                    }
+                    fragment = generate_patch_fragment(file_artifact)
+                    fragments.append(fragment)
+                # print("fragments", fragments)
+                # input("AAA")
+                return "".join(fragments)
+                # raise NotImplementedError
+            else:
+                assert False
         content = "+" + content_.replace("\n", "\n+")
         if is_patch:
             # Updating existing file

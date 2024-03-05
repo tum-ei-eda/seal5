@@ -108,9 +108,9 @@ class BehaviorModelBuilder(CoreDSL2Visitor):
         """
 
         # extract variable qualifiers, currently unused
-        storage = [self.visit(obj) for obj in ctx.storage]
-        qualifiers = [self.visit(obj) for obj in ctx.qualifiers]
-        attributes = [self.visit(obj) for obj in ctx.attributes]
+        # storage = [self.visit(obj) for obj in ctx.storage]
+        # qualifiers = [self.visit(obj) for obj in ctx.qualifiers]
+        # attributes = [self.visit(obj) for obj in ctx.attributes]
 
         type_ = self.visit(ctx.type_)
 

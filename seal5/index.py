@@ -98,9 +98,14 @@ class File(Artifact):
     ):
         super().__init__(dest_path, src_path=src_path, content=content, append=append)
 
-    @property
-    def out_path(self):
-        return self.path
+
+class Directory(Artifact):
+    def __init__(
+        self, dest_path: Path, src_path: Optional[Path] = None, content: Optional[Path] = None, append: bool = False
+    ):
+        assert content is None
+        assert not append
+        super().__init__(dest_path, src_path=src_path, content=content, append=append)
 
 
 def write_index_yaml(

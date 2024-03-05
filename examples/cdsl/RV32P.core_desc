@@ -1,0 +1,808 @@
+// import "RISCVBase.core_desc"
+import "rv_base/RV32I.core_desc"
+
+InstructionSet RV32Zpn extends RV32I {
+    // architectural_state {
+    //     // unsigned<32> VXSAT_ADDR__ = 0x009;
+    //     // unsigned<32>& VXSAT_CSR__ = CSR[VXSAT_ADDR__];
+    // }
+    instructions {
+        // This instruction adds the 8-bit integer elements in Rs1 with the 8-bit integer elements in Rs2,
+        // and then writes the 8-bit element results to Rd.
+        // Rd.B[x] = Rs1.B[x] + Rs2.B[x];
+        ADD8 {
+            encoding: 7'b0100100 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<32> rs1_val = X[rs1];
+                    unsigned<32> rs2_val = X[rs2];
+                    unsigned<8> rd_val0 = rs1_val[7:0] + rs2_val[7:0];
+                    unsigned<8> rd_val1 = rs1_val[15:8] + rs2_val[15:8];
+                    unsigned<8> rd_val2 = rs1_val[23:16] + rs2_val[23:16];
+                    unsigned<8> rd_val3 = rs1_val[31:24] + rs2_val[31:24];
+                    unsigned<32> rd_val = rd_val3 :: rd_val2 :: rd_val1 :: rd_val0;
+                    X[rd] = rd_val;
+                }
+            }
+        }
+        // This instruction adds the 16-bit integer elements in Rs1 with the 16-bit integer elements in Rs2,
+        // and then writes the 16-bit element results to Rd.
+        // Rd.H[x] = Rs1.H[x] + Rs2.H[x];
+        ADD16 {
+            encoding: 7'b0100000 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<32> rs1_val = X[rs1];
+                    unsigned<32> rs2_val = X[rs2];
+                    unsigned<16> rd_val0 = rs1_val[15:0] + rs2_val[15:0];
+                    unsigned<16> rd_val1 = rs1_val[31:16] + rs2_val[31:16];
+                    unsigned<32> rd_val = rd_val1 :: rd_val0;
+                    X[rd] = rd_val;
+                }
+            }
+        }
+        // AVE
+        // BITREV
+        // BITREVI
+        // BPICK
+        // CLROV
+        // CLRS8
+        // CLRS16
+        // CLRS32
+        // CLZ8
+        // CLZ16
+        // CMPEQ8
+        // CMPEQ16
+        // CRAS16
+        // CRSA16
+        // INSB
+        // KABS8
+        // KABS16
+        // KABSW
+        // KADD8
+        // KADD16
+        // KADDH
+        // KADDW
+        // KCRAS16
+        // KCRSA16
+        // KDMBB
+        // KDMBT
+        // KDMTT
+        // KDMABB
+        // KDMABT
+        // KDMATT
+        // KHM8
+        // KHMX8
+        // KHM16
+        // KHMX16
+        // KHMBB
+        // KHMBT
+        // KHMTT
+        // KMABB
+        // KMABT
+        // KMATT
+        // TODO
+        // mula32[x] = Rs1.W[x].H[1] s* Rs2.W[x].H[1]; // KMADA
+        // mulb32[x] = Rs1.W[x].H[0] s* Rs2.W[x].H[0]; //
+        // res34[x] = SE34(Rd.W[x]) + SE34(mula32[x]) + SE34(mulb32[x]);
+        // if (res34[x] s> (2^31)-1) {
+        //   res34[x] = (2^31)-1;
+        //   OV = 1;
+        // } else if (res34[x] s< -2^31) {
+        //   res34[x] = -2^31;
+        //   OV = 1;
+        // }
+        // Rd.W[x] = res34[x].W[0];
+        // for RV32: x=0
+        // for RV64: x=1..0
+        // KMADA {
+        //     encoding: 7'b0100100 :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1110111;
+        //     assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
+        //     behavior: {
+        //         if(rd != 0) {
+        //             unsigned<32> rs1_val = X[rs1];
+        //             unsigned<32> rs2_val = X[rs2];
+        //             signed<32> rd_val = X[rd];
+        //             signed<16> rs1_val_lo = rs1_val[15:0];
+        //             signed<16> rs1_val_hi = rs1_val[31:16];
+        //             signed<16> rs2_val_lo = rs2_val[15:0];
+        //             signed<16> rs2_val_hi = rs2_val[31:16];
+        //             signed<32> mula32 = rs1_val_hi * rs2_val_hi;
+        //             signed<32> mulb32 = rs1_val_lo * rs2_val_lo;
+        //             // signed<34> res34 = (signed<34>)rd_val + (signed<34>)mula32 + (signed<34>)mulb32;  // does not work on etiss
+        //             signed<64> res34 = (signed<64>)rd_val + (signed<64>)mula32 + (signed<64>)mulb32;
+        //             if (res34 >= (signed<64>)(1 << 32)) {  // broken?
+        //             // if (res34 >= (signed<64>)0 && res34 >= (1 << 32)) {
+        //                 res34 = (1 << 32) - 1;
+        //                 VXSAT_CSR__ = VXSAT_CSR__ | 1'b1;  // set OV bit
+        //             // } else if (res34 < -(1 << 32)) {  // broken?
+        //             // } else if (res34 < 0 && (unsigned<64>)(-res34) > (1 << 32)) {
+        //             } else if (res34 < -(1 << 32)) {
+        //                 res34 = -(1 << 32);
+        //                 VXSAT_CSR = VXSAT_CSR__ | 1'b1;  // set OV bit
+        //             }
+        //             X[rd] = res34[31:0];
+        //         }
+        //     }
+        // }
+        // TODO
+        // mula32[x] = Rs1.W[x].H[1] s* Rs2.W[x].H[0]; // KMAXDA
+        // mulb32[x] = Rs1.W[x].H[0] s* Rs2.W[x].H[1]; //
+        // res34[x] = SE34(Rd.W[x]) + SE34(mula32[x]) + SE34(mulb32[x]);
+        // if (res34[x] s> (2^31)-1) {
+        //   res34[x] = (2^31)-1;
+        //   OV = 1;
+        // } else if (res34[x] s< -2^31) {
+        //   res34[x] = -2^31;
+        //   OV = 1;
+        // }
+        // Rd.W[x] = res34[x].W[0];
+        // for RV32: x=0
+        // for RV64: x=1..0
+        // KMAXDA {
+        //     encoding: 7'b0100101 :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1110111;
+        //     assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
+        //     behavior: {
+        //         if(rd != 0) {
+        //             unsigned<32> rs1_val = X[rs1];
+        //             unsigned<32> rs2_val = X[rs2];
+        //             signed<32> rd_val = X[rd];
+        //             signed<16> rs1_val_lo = rs1_val[15:0];
+        //             signed<16> rs1_val_hi = rs1_val[31:16];
+        //             signed<16> rs2_val_lo = rs2_val[15:0];
+        //             signed<16> rs2_val_hi = rs2_val[31:16];
+        //             signed<32> mula32 = rs1_val_hi * rs2_val_lo;
+        //             signed<32> mulb32 = rs1_val_lo * rs2_val_hi;
+        //             // signed<34> res34 = (signed<34>)rd_val + (signed<34>)mula32 + (signed<34>)mulb32; // does not work on etiss
+        //             signed<64> res34 = (signed<64>)rd_val + (signed<64>)mula32 + (signed<64>)mulb32;
+        //             if (res34 >= (signed<64>)(1 << 32)) {
+        //                 res34 = (1 << 32) - 1;
+        //                 VXSAT_CSR__ = VXSAT_CSR__ | 1'b1;  // set OV bit
+        //             } else if (res34 < -(1 << 32)) {
+        //                 res34 = -(1 << 32);
+        //                 VXSAT_CSR__ = VXSAT_CSR__ | 1'b1;  // set OV bit
+        //             }
+        //             X[rd] = res34[31:0];
+        //         }
+        //     }
+        // }
+
+        // KMADS
+        // KMADRS
+        // KMAXDS
+        // KMDA
+        // KMXDA
+        // KMMAC
+        // KMMAC.u
+        // KMMAWB
+        // KMMAWB.u
+        // KMMAWB2
+        // KMMAWB2.u
+        // KMMAWT
+        // KMMAWT.u
+        // KMMAWT2
+        // KMMAWT2.u
+        // KMMSB
+        // KMMSB.u
+        // KMMWB2
+        // KMMWB2.u
+        // KMMWT2
+        // KMMWT2.u
+        // KMSDA
+        // KMSXDA
+        // KSLLW
+        // KSLLIW
+        // KSLL8
+        // KSLLI8
+        // KSLL16
+        // KSLLI16
+        // KSLRA8
+        // KSLRA8.u
+        // KSLRA16
+        // KSLRA16.u
+        // KSLRAW
+        // KSLRAW.U
+        // KSTAS16
+        // KSTSA16
+        // KSUB8
+        // KSUB16
+        // KSUBH
+        // KSUBW
+        // KWMMUL
+        // KWMMUL.u
+        // TODO
+        // Mresult = Rs1 * Rs2;
+        // Rd = Rd + Mresult.W[0];  // overflow ignored
+        MADDR32 {
+            encoding: 7'b1100010 :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    signed<32> rs1_val = X[rs1];
+                    signed<32> rs2_val = X[rs2];
+                    signed<64> temp = rs1_val * rs2_val;
+                    signed<32> rd_val = X[rd] + temp[31:0];
+                    X[rd] = rd_val;
+                }
+            }
+        }
+        // MAXW
+        // MINW
+        // MSUBR32
+        // PBSAD
+        // PBSADA
+        // PKBB16
+        // PKBT16
+        // PKTT16
+        // PKTB16
+        // RADD8
+        // RADD16
+        // RADDW
+        // RCRAS16
+        // RCRSA16
+        // RDOV
+        // RSTAS16
+        // RSTSA16
+        // RSUB8
+        // RSUB16
+        // RSUBW
+        // SCLIP8
+        // SCLIP16
+        // SCLIP32
+        // This instruction compares the 8-bit signed integer elements in Rs1 with the 8-bit signed integer elements in Rs2
+        // to see if the one in Rs1 is less than or equal to the one in Rs2.
+        // If it is true, the result is 0xFF; otherwise, the result is 0x0. The element comparison results are written to Rd
+        // Rd.B[x] = (Rs1.B[x] <= Rs2.B[x]) ? 0xff : 0x0;
+        SCMPLE8 {
+            encoding: 7'b0001111 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<32> rs1_val = X[rs1];
+                    unsigned<32> rs2_val = X[rs2];
+                    unsigned<8> rd_val0 = rs1_val[7:0] <= rs2_val[7:0] ? 0xff : 0x00;
+                    unsigned<8> rd_val1 = rs1_val[15:8] <= rs2_val[15:8] ? 0xff : 0x00;
+                    unsigned<8> rd_val2 = rs1_val[23:16] <= rs2_val[23:16] ? 0xff : 0x00;
+                    unsigned<8> rd_val3 = rs1_val[31:24] <= rs2_val[31:24] ? 0xff : 0x00;
+                    unsigned<32> rd_val = rd_val3 :: rd_val2 :: rd_val1 :: rd_val0;
+                    X[rd] = rd_val;
+                }
+            }
+        }
+        // SCMPLE16
+        // SCMPLT8
+        // SCMPLT16
+        // The 8-bit elements in Rs1 are left-shifted logically. And the results are written to Rd.
+        // The shifted out bits are filled with zero and the shift amount is specified by the low-order 3-bits of the value in the Rs2 register.
+        // Rd.B[x] = Rs1.B[x] << Rs2[2:0];
+        SLL8 {
+            encoding: 7'b0101110 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<32> rs1_val = X[rs1];
+                    unsigned<32> rs2_val = X[rs2];
+                    unsigned<8> rd_val0 = rs1_val[7:0] << rs2_val[2:0];
+                    unsigned<8> rd_val1 = rs1_val[15:8] << rs2_val[10:8];
+                    unsigned<8> rd_val2 = rs1_val[23:16] << rs2_val[18:16];
+                    unsigned<8> rd_val3 = rs1_val[31:24] << rs2_val[26:24];
+                    unsigned<32> rd_val = rd_val3 :: rd_val2 :: rd_val1 :: rd_val0;
+                    X[rd] = rd_val;
+                }
+            }
+        }
+        // SLLI8
+        // SLL16
+        // SLLI16
+        // This instruction multiplies the four signed 8-bit elements of 32-bit chunks of Rs1
+        // with the four signed 8-bit elements of 32-bit chunks of Rs2 and then adds the four results together
+        // with the signed content of the corresponding 32-bit chunks of Rd.
+        // The final results are written back to the corresponding 32-bit chunks in Rd.
+        // res[x] = Rd.W[x] + (Rs1.W[x].B[3] s* Rs2.W[x].B[3]) + (Rs1.W[x].B[2] s* Rs2.W[x].B[2])
+        //          + (Rs1.W[x].B[1] s* Rs2.W[x].B[1]) + (Rs1.W[x].B[0] s* Rs2.W[x].B[0]);
+        // Rd.W[x] = res[x];
+        SMAQA {
+            encoding: 7'b1100100 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<32> rs1_val = X[rs1];
+                    unsigned<32> rs2_val = X[rs2];
+                    signed<32> rd_val = X[rd];
+                    signed<32> tmp_val0 = (signed<8>)rs1_val[7:0] * (signed<8>)rs2_val[7:0] + (signed<8>)rd_val[7:0];
+                    signed<32> tmp_val1 = (signed<8>)rs1_val[15:8] * (signed<8>)rs2_val[15:8] + (signed<8>)rd_val[15:8];
+                    signed<32> tmp_val2 = (signed<8>)rs1_val[23:16] * (signed<8>)rs2_val[23:16] + (signed<8>)rd_val[23:16];
+                    signed<32> tmp_val3 = (signed<8>)rs1_val[31:24] * (signed<8>)rs2_val[31:24] + (signed<8>)rd_val[31:24];
+                    rd_val = rd_val + tmp_val3 + tmp_val2 + tmp_val1 + tmp_val0;
+                    X[rd] = rd_val;
+                }
+            }
+        }
+        // SMAQA.SU
+        // This instruction compares the 8-bit signed integer elements in Rs1 with the 8-bit signed integer elements in Rs2
+        // and selects the numbers that is greater than the other one. The selected results are written to Rd.
+        // Rd.B[x] = (Rs1.B[x] > Rs2.B[x]) ? Rs1.B[x] : Rs2.B[x];
+        SMAX8 {
+            encoding: 7'b1000101 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<32> rs1_val = X[rs1];
+                    unsigned<32> rs2_val = X[rs2];
+                    unsigned<8> rd_val0 = rs1_val[7:0] > rs2_val[7:0] ? rs1_val[7:0] : rs2_val[7:0];
+                    unsigned<8> rd_val1 = rs1_val[15:8] > rs2_val[15:8] ? rs1_val[15:8] : rs2_val[15:8];
+                    unsigned<8> rd_val2 = rs1_val[23:16] > rs2_val[23:16] ? rs1_val[23:16] : rs2_val[23:16];
+                    unsigned<8> rd_val3 = rs1_val[31:24] > rs2_val[31:24] ? rs1_val[31:24] : rs2_val[31:24];
+                    unsigned<32> rd_val = rd_val3 :: rd_val2 :: rd_val1 :: rd_val0;
+                    X[rd] = rd_val;
+                }
+            }
+        }
+        // This instruction compares the 16-bit signed integer elements in Rs1 with the 16-bit signed integer elements in Rs2
+        // and selects the numbers that is greater than the other one. The selected results are written to Rd.
+        // Rd.H[x] = (Rs1.H[x] > Rs2.H[x]) ? Rs1.H[x] : Rs2.H[x];
+        SMAX16 {
+            encoding: 7'b1000001 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<32> rs1_val = X[rs1];
+                    unsigned<32> rs2_val = X[rs2];
+                    unsigned<16> rd_val0 = rs1_val[15:0] > rs2_val[15:0] ? rs1_val[15:0] : rs2_val[15:0];
+                    unsigned<16> rd_val1 = rs1_val[31:16] > rs2_val[31:16] ? rs1_val[31:16] : rs2_val[31:16];
+                    unsigned<32> rd_val = rd_val1 :: rd_val0;
+                    X[rd] = rd_val;
+                }
+            }
+        }
+        // SMBB16
+        // SMBT16
+        // SMTT16
+        // SMDS
+        // SMDRS
+        // SMXDS
+        // This instruction compares the 8-bit signed integer elements in Rs1 with the 8-bit signed integer elements in Rs2
+        // and selects the numbers that is less than the other one. The selected results are written to Rd.
+        // Rd.B[x] = (Rs1.B[x] < Rs2.B[x]) ? Rs1.B[x] : Rs2.B[x];
+        SMIN8 {
+            encoding: 7'b1000100 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<32> rs1_val = X[rs1];
+                    unsigned<32> rs2_val = X[rs2];
+                    unsigned<8> rd_val0 = rs1_val[7:0] < rs2_val[7:0] ? rs1_val[7:0] : rs2_val[7:0];
+                    unsigned<8> rd_val1 = rs1_val[15:8] < rs2_val[15:8] ? rs1_val[15:8] : rs2_val[15:8];
+                    unsigned<8> rd_val2 = rs1_val[23:16] < rs2_val[23:16] ? rs1_val[23:16] : rs2_val[23:16];
+                    unsigned<8> rd_val3 = rs1_val[31:24] < rs2_val[31:24] ? rs1_val[31:24] : rs2_val[31:24];
+                    unsigned<32> rd_val = rd_val3 :: rd_val2 :: rd_val1 :: rd_val0;
+                    X[rd] = rd_val;
+                }
+            }
+        }
+        // SMIN16
+        // SMMUL
+        // SMMUL.u
+        // SMMWB
+        // SMMWB.u
+        // SMMWT
+        // SMMWT.u
+        // SRA.U
+        // SRAI.U
+        // SRA8
+        // SRA8.u
+        // SRAI8
+        // SRAI8.u
+        // SRA16
+        // SRA16.u
+        // SRAI16
+        // SRAI16.u
+        // SRL8
+        // SRL8.u
+        // SRLI8
+        // SRLI8.u
+        // SRL16
+        // SRL16.u
+        // SRLI16
+        // SRLI16.u
+        // STAS16
+        // STSA16
+        // This instruction subtracts the 8-bit integer elements in Rs2 from the 8-bit integer elements in Rs1,
+        // and then writes the result to Rd.
+        // Rd.B[x] = Rs1.B[x] - Rs2.B[x];
+        SUB8 {
+            encoding: 7'b0100101 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<32> rs1_val = X[rs1];
+                    unsigned<32> rs2_val = X[rs2];
+                    signed<8> rd_val0 = (signed<8>)rs1_val[7:0] - (signed<8>)rs2_val[7:0];
+                    signed<8> rd_val1 = (signed<8>)rs1_val[15:8] - (signed<8>)rs2_val[15:8];
+                    signed<8> rd_val2 = (signed<8>)rs1_val[23:16] - (signed<8>)rs2_val[23:16];
+                    signed<8> rd_val3 = (signed<8>)rs1_val[31:24] - (signed<8>)rs2_val[31:24];
+                    X[rd] = rd_val3 :: rd_val2 :: rd_val1 :: rd_val0;
+                }
+            }
+        }
+        SUB8QQQ {
+            encoding: 7'b0100101 :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<32> rs1_val = X[rs1];
+                    unsigned<32> rs2_val = X[rs2];
+                    X[rd][7:0] = (signed<8>)rs1_val[7:0] - (signed<8>)rs2_val[7:0];
+                    X[rd][15:8] = (signed<8>)rs1_val[15:8] - (signed<8>)rs2_val[15:8];
+                    X[rd][23:16] = (signed<8>)rs1_val[23:16] - (signed<8>)rs2_val[23:16];
+                    X[rd][31:24] = (signed<8>)rs1_val[31:24] - (signed<8>)rs2_val[31:24];
+                }
+            }
+        }
+        SUB8WWW {
+            encoding: 7'b0100101 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<32> rs1_val = X[rs1];
+                    unsigned<32> rs2_val = X[rs2];
+                    X[rd][7:0] = (signed<8>)X[rs1][7:0] - (signed<8>)X[rs2][7:0];
+                    X[rd][15:8] = (signed<8>)X[rs1][15:8] - (signed<8>)X[rs2][15:8];
+                    X[rd][23:16] = (signed<8>)X[rs1][23:16] - (signed<8>)X[rs2][23:16];
+                    X[rd][31:24] = (signed<8>)X[rs1][31:24] - (signed<8>)X[rs2][31:24];
+                }
+            }
+        }
+        // SUB16
+        // TODO (SUNPKD8xy)
+        // SUNPKD8 {
+        //     encoding: 7'b1010110 :: code[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1110111;
+        //     assembly:"{name(rs1)}, {name(rd)}";
+        //     behavior: {
+        //         if(rd != 0) {
+        //             unsigned<32> rs1_val = X[rs1];
+        //             // TODO: move to helper function
+        //             if(code == 5'b01000) {  // SUNPKD810
+        //                 signed<8> rs1_val_hi = rs1_val[15:8];
+        //                 signed<8> rs1_val_lo = rs1_val[7:0];
+        //             } else if (code == 5'b01001) {  // SUNPKD820
+        //                 signed<8> rs1_val_hi = rs1_val[23:16];
+        //                 signed<8> rs1_val_lo = rs1_val[7:0];
+        //             } else if (code == 5'b01010) {  // SUNPKD830
+        //                 signed<8> rs1_val_hi = rs1_val[31:24];
+        //                 signed<8> rs1_val_lo = rs1_val[7:0];
+        //             } else if (code == 5'b01011) {  // SUNPKD831
+        //                 signed<8> rs1_val_hi = rs1_val[31:24];
+        //                 signed<8> rs1_val_lo = rs1_val[15:8];
+        //             } else if (code == 5'b10011) {  // SUNPKD832
+        //                 signed<8> rs1_val_hi = rs1_val[31:24];
+        //                 signed<8> rs1_val_lo = rs1_val[23:16];
+        //             } else {
+        //                 raise(0, 2);  // Invalid instruction?
+        //             }
+        //             X[rd] = (signed<16>)rs1_val_hi :: (unsigned<16>)(signed<16>)rs1_val_lo;
+        //         }
+        //     }
+        // }
+        SUNPKD810 {
+            encoding: 7'b1010110 :: 5'b01000 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<32> rs1_val = X[rs1];
+                    signed<8> rs1_val_hi = rs1_val[15:8];
+                    signed<8> rs1_val_lo = rs1_val[7:0];
+                    X[rd] = (signed<16>)rs1_val_hi :: (unsigned<16>)(signed<16>)rs1_val_lo;
+                }
+            }
+        }
+        SUNPKD820 {
+            encoding: 7'b1010110 :: 5'b01001 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<32> rs1_val = X[rs1];
+                    signed<8> rs1_val_hi = rs1_val[23:16];
+                    signed<8> rs1_val_lo = rs1_val[7:0];
+                    X[rd] = (signed<16>)rs1_val_hi :: (unsigned<16>)(signed<16>)rs1_val_lo;
+                }
+            }
+        }
+        SUNPKD830 {
+            encoding: 7'b1010110 :: 5'b01010 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<32> rs1_val = X[rs1];
+                    signed<8> rs1_val_hi = rs1_val[31:24];
+                    signed<8> rs1_val_lo = rs1_val[7:0];
+                    X[rd] = (signed<16>)rs1_val_hi :: (unsigned<16>)(signed<16>)rs1_val_lo;
+                }
+            }
+        }
+        SUNPKD831 {
+            encoding: 7'b1010110 :: 5'b01011 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<32> rs1_val = X[rs1];
+                    signed<8> rs1_val_hi = rs1_val[31:24];
+                    signed<8> rs1_val_lo = rs1_val[15:8];
+                    X[rd] = (signed<16>)rs1_val_hi :: (unsigned<16>)(signed<16>)rs1_val_lo;
+                }
+            }
+        }
+        SUNPKD832 {
+            encoding: 7'b1010110 :: 5'b10011 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<32> rs1_val = X[rs1];
+                    signed<8> rs1_val_hi = rs1_val[31:24];
+                    signed<8> rs1_val_lo = rs1_val[23:16];
+                    X[rd] = (signed<16>)rs1_val_hi :: (unsigned<16>)(signed<16>)rs1_val_lo;
+                }
+            }
+        }
+        // SWAP8
+        // SWAP16
+        // UCLIP8
+        // UCLIP16
+        // UCLIP32
+        // UCMPLE8
+        // UCMPLE16
+        // UCMPLT8
+        // UCMPLT16
+        // UKADD8
+        // UKADD16
+        // UKADDH
+        // UKADDW
+        // UKCRAS16
+        // UKCRSA16
+        // UKSTAS16
+        // UKSTSA16
+        // UKSUB8
+        // UKSUB16
+        // UKSUBH
+        // UKSUBW
+        // UMAQA
+        // UMAX8
+        // UMAX16
+        // UMIN8
+        // UMIN16
+        // UMUL16
+        // UMULX16
+        // URADD8
+        // URADD16
+        // URADDW
+        // URCRAS16
+        // URCRSA16
+        // URSTAS16
+        // URSTSA16
+        // URSUB8
+        // URSUB16
+        // URSUBW
+        // WEXT
+        // ZUNPKD810
+        // ZUNPKD820
+        // ZUNPKD830
+        // ZUNPKD831
+        // ZUNPKD832
+        // TODO
+        // Mresult = ZE33(Rs1) u* ZE33(Rs2);
+        // R[Rd(4,1).1(0)][31:0] = Mresult[63:32];
+        // R[Rd(4,1).0(0)][31:0] = Mresult[31:0];
+    }
+}
+
+
+InstructionSet RV32Zbpo extends RV32I {
+    instructions {
+        PACK {
+            encoding: 7'b0000100 :: rs2[4:0] :: rs1[4:0] :: 3'b100 :: rd[4:0] :: 7'b0110011;
+            assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<XLEN> rs1_val = X[rs1];
+                    unsigned<XLEN> rs2_val = X[rs2];
+                    unsigned<(XLEN/2)> rd_val_lo = rs1_val[(XLEN/2)-1:0];
+                    unsigned<(XLEN/2)> rd_val_hi = rs2_val[(XLEN/2)-1:0];
+                    unsigned<XLEN> rd_val = rd_val_hi :: rd_val_lo;
+                    X[rd] = rd_val;
+                }
+            }
+        }
+        // TODO
+        PACKU {
+            encoding: 7'b0100100 :: rs2[4:0] :: rs1[4:0] :: 3'b100 :: rd[4:0] :: 7'b0110011;
+            assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<XLEN> rs1_val = X[rs1];
+                    unsigned<XLEN> rs2_val = X[rs2];
+                    unsigned<(XLEN/2)> rd_val_lo = rs1_val[XLEN-1:XLEN/2];
+                    unsigned<(XLEN/2)> rd_val_hi = rs2_val[XLEN-1:XLEN/2];
+                    unsigned<XLEN> rd_val = rd_val_hi :: rd_val_lo;
+                    X[rd] = rd_val;
+                }
+            }
+        }
+        // TODO
+        MIN {
+            encoding: 7'b0000101 :: rs2[4:0] :: rs1[4:0] :: 3'b100 :: rd[4:0] :: 7'b0110011;
+            assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    signed<32> rs1_val = X[rs1];
+                    signed<32> rs2_val = X[rs2];
+                    signed<32> rd_val = rs1_val < rs2_val ? rs1_val : rs2_val;
+                    X[rd] = rd_val;
+                }
+            }
+        }
+        MAX {
+            encoding: 7'b0000101 :: rs2[4:0] :: rs1[4:0] :: 3'b110 :: rd[4:0] :: 7'b0110011;
+            assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
+            behavior: {
+                if(rd != 0) {
+                    signed<32> rs1_val = X[rs1];
+                    signed<32> rs2_val = X[rs2];
+                    signed<32> rd_val = rs1_val >= rs2_val ? rs1_val : rs2_val;
+                    X[rd] = rd_val;
+                }
+            }
+        }
+        // REV8.H
+        // CMIX
+        // REV
+        // TODO (MAX)
+        CLZ {
+            encoding: 7'b0110000 :: 5'b00000 :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b0010011;
+            assembly:"{name(rd)}, {name(rs1)}";
+            behavior: {
+                if(rd != 0) {
+                    unsigned<32> rs1_val = X[rs1];
+                    unsigned<32> count = 0;
+                    unsigned int i = 32;
+                    while (i > 0) {
+                        i = i - 1;
+                        if (rs1_val[i] == 1'b0) {
+                            count = count + 1;
+                        } else {
+                            i = 0;  // TODO: break;
+                        }
+                    }
+                    X[rd] = count;
+                }
+            }
+        }
+        // FSR
+        // FSRI
+    }
+}
+
+InstructionSet RV32Zpsfoperand extends RV32I {
+    // architectural_state {
+    //     // register unsigned<64> &P[16] = X[31:0] [[ty=u32]] [[class=GPR32Pair]];
+    //     // Not allowed in CoreDSL2 (needs arbitrary packed/unpacked casts)
+    // }
+    instructions {
+        // SMAL
+        // RADD64
+        // URADD64
+        // KADD64
+        // UKADD64
+        // RSUB64
+        // URSUB64
+        // KSUB64
+        // UKSUB64
+        // TODO
+        // c64 = r[dU].r[dL];
+        // t64 = c64 + rs1 s* rs2;
+        // r[dU].r[dL] = t64;
+        SMAR64 {
+            encoding: 7'b1000010 :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
+            behavior: {
+                signed<64> rs1_val = X[rs1];
+                signed<64> rs2_val = X[rs2];
+                signed<64> rd_hi = X[rd[4:1]*2+1];  // ???
+                signed<32> rd_lo = X[rd[4:1]*2];
+                signed<64> temp = rd_hi :: rd_lo;
+                signed<64> temp2 = temp + rs1_val * rs2_val;
+                // discard overflow
+                X[rd[4:1]*2+1] = temp2[63:32];
+                X[rd[4:1]*2] = temp2[31:0];
+            }
+        }
+
+        // SMSR64
+        // UMAR64
+        // UMSR64
+        // KMAR64
+        // KMSR64
+        // UKMAR64
+        // UKMSR64
+        // SMALBB
+        // SMALBT
+        // SMALTT
+        // SMALDA
+        // SMALXDA
+        // SMALDS
+        // SMALDRS
+        // SMALXDS
+        // SMSLDA
+        // SMSLXDA
+        // TODO
+        MULR64 {
+            encoding: 7'b1111000 :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
+            behavior: {
+                unsigned<32> rs1_val = X[rs1];
+                unsigned<32> rs2_val = X[rs2];
+                unsigned<64> product = rs1_val * rs2_val;
+                // X[rd[4:1]*2+1] = product[63:32];
+                // X[rd[4:1]*2] = product[31:0];
+                // X[rd[4:1] :: 1'b1 : rd[4:1] :: 1'b0] = product;
+                // X[odd(rd):even(rd)] = product;
+                // X[rd[4:1]*2+1:rd[4:1]*2] = product;
+                if (rd % 2) raise(0, 2);  // alternative: rd & 1
+                if (rs1 % 2) raise(0, 2);  // alternative: rs1 & 1
+                if (rs2 % 2) raise(0, 2);  // alternative: rs2 & 1
+                X[rd+1:rd] = product;
+            }
+        }
+        // MULSR64
+        // UMUL8
+        // UMULX8
+        // UMUL16
+        // UMULX16
+        // SMUL8
+        // SMULX8
+        // SMUL16
+        // SMULX16
+        // TODO
+        ADD64 {
+            encoding: 7'b1100000 :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
+            behavior: {
+                // signed<64> rs1_val_hi = X[rs1[4:1]*2+1];  // ???
+                // unsigned<32> rs1_val_lo = X[rs1[4:1]*2];
+                // signed<64> rs1_val = rs1_val_hi :: rs1_val_lo;
+                // signed<64> rs2_val_hi = X[rs2[4:1]*2+1];  // ???
+                // unsigned<32> rs2_val_lo = X[rs2[4:1]*2];
+                // signed<64> rs2_val = rs2_val_hi :: rs2_val_lo;
+                // signed<64> sum = rs1_val + rs2_val;
+                // X[rd[4:1]*2+1] = sum[63:32];
+                // X[rd[4:1]*2] = sum[31:0];
+                if (rd % 2) raise(0, 2);  // alternative: rd & 1
+                X[rd+1:rd] = X[rs1+1:rs1] + X[rs2+1:rs2];
+            }
+        }
+        // TODO
+        SUB64 {
+            encoding: 7'b1100001 :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1110111;
+            assembly:"{name(rs2)}, {name(rs1)}, {name(rd)}";
+            behavior: {
+                signed<64> rs1_val_hi = X[rs1[4:1]*2+1];  // ???
+                signed<32> rs1_val_lo = X[rs1[4:1]*2];
+                signed<64> rs1_val = rs1_val_hi :: rs1_val_lo;
+                signed<64> rs2_val_hi = X[rs2[4:1]*2+1];  // ???
+                signed<32> rs2_val_lo = X[rs2[4:1]*2];
+                signed<64> rs2_val = rs2_val_hi :: rs2_val_lo;
+                signed<64> sum = rs1_val - rs2_val;
+                X[rd[4:1]*2+1] = sum[63:32];
+                X[rd[4:1]*2] = sum[31:0];
+            }
+        }
+    }
+}
+
+// InstructionSet RV32P extends RV32Zpn, RV32Zbpo, RV32Zpsfoperand {
+//     // architectural_state {
+//     //     // unsigned<32> VXSAT_ADDR_ = 0x009;
+//     //     // unsigned<32>& VXSAT_CSR_ = CSR[VXSAT_ADDR_];
+//     // }
+// }

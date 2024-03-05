@@ -20,10 +20,10 @@ simplifications are done:
   type directly to the :class:`IntLiteral` and discard the type conversion
 """
 import logging
+from m2isar.metamodel import arch, behav
 
 logger = logging.getLogger(__name__)
 
-from m2isar.metamodel import arch, behav
 
 # pylint: disable=unused-argument
 
@@ -77,7 +77,8 @@ def slice_operation(self: behav.SliceOperation, context):
         return behav.Group(self.expr)
 
     # if self.right.value == 0:
-    #     return behav.TypeConv(arch.DataType.S if self.expr.inferred_type.signed else arch.DataType.U, target_width, self.expr)
+    #     return behav.TypeConv(arch.DataType.S if self.expr.inferred_type.signed
+    #        else arch.DataType.U, target_width, self.expr)
     return self
 
 

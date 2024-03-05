@@ -20,10 +20,10 @@ simplifications are done:
   type directly to the :class:`IntLiteral` and discard the type conversion
 """
 import logging
+from m2isar.metamodel import behav
 
 logger = logging.getLogger(__name__)
 
-from m2isar.metamodel import arch, behav
 
 # pylint: disable=unused-argument
 

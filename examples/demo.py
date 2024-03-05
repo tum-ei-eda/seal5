@@ -34,38 +34,38 @@ VERBOSE = False
 # VERBOSE = True
 # FAST = False
 FAST = True
+SKIP_PATTERNS = False
+# SKIP_PATTERNS = True
+INTERACTIVE = False
 
 
 seal5_flow = Seal5Flow("/tmp/seal5_llvm_demo", "demo")
+
+# Optional: clean existing settings/models for fresh run
+seal5_flow.reset(settings=True, interactive=False)
+seal5_flow.clean(temp=True, patches=True, models=True, inputs=True, interactive=INTERACTIVE)
 
 # Clone LLVM and init seal5 metadata directory
 seal5_flow.initialize(
     clone=True,
     clone_url="https://github.com/llvm/llvm-project.git",
-    clone_ref="llvmorg-17.0.6",
+    # clone_ref="llvmorg-17.0.6",
+    clone_ref="llvmorg-18.1.0-rc3",
     force=True,
     verbose=VERBOSE,
 )
-
-# Optional: clean existing settings/models for fresh run
-seal5_flow.reset(settings=True, interactive=False)
-
-# Clone Seal5 dependencies
-# 1. M2-ISA-R (frontend only)
-# 2. CDSL2LLVM (later)
-# TODO: refresh refs
-seal5_flow.setup(force=True, verbose=VERBOSE)
 
 # Load CoreDSL inputs
 cdsl_files = [
     # XCOREV
     EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMac.core_desc",
     EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVAlu.core_desc",
-    EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVBitmanip.core_desc",
-    EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVSimd.core_desc",
-    EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMem.core_desc",
-    EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVBranchImmediate.core_desc",
+    # EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVBitmanip.core_desc",
+    # EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVSimd.core_desc",
+    # EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMem.core_desc",
+    # EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVBranchImmediate.core_desc",
     # RVP (will not work)
+    # EXAMPLES_DIR / "cdsl" / "RV32P.core_desc",
     # EXAMPLES_DIR / "cdsl" / "RVP.core_desc",
     # S4E (untested) -> undefined XLEN
     # EXAMPLES_DIR / "cdsl" / "rv_s4e" / "s4e-mac.core_desc",
@@ -78,15 +78,26 @@ cdsl_files = [
 ]
 seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
+# Load test inputs
+test_files = [
+    # EXAMPLES_DIR / "tests" / "xcorev" / "cv_abs.test.c",
+    EXAMPLES_DIR / "tests" / "cv_nand" / "cv_nand.c",
+    EXAMPLES_DIR / "tests" / "cv_nand" / "cv_nand.s",
+    EXAMPLES_DIR / "tests" / "cv_nand" / "cv_nand_invalid.s",
+    # TODO: support subdirectories to avoid duplicate test names (WARN!)
+    # EXAMPLES_DIR / "tests" / "cv_nand" / "*.c",  # TODO: support glob patterns
+]
+seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
+
 # Load YAML inputs
 cfg_files = [
     # XCOREV
     EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVMac.yml",
     EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVAlu.yml",
-    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVBitmanip.yml",
-    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVSimd.yml",
-    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVMem.yml",
-    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVBranchImmediate.yml",
+    # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVBitmanip.yml",
+    # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVSimd.yml",
+    # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVMem.yml",
+    # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVBranchImmediate.yml",
     # S4E
     # TUMEDA
     # GENERATED
@@ -94,9 +105,15 @@ cfg_files = [
     EXAMPLES_DIR / "cfg" / "llvm.yml",
     EXAMPLES_DIR / "cfg" / "filter.yml",
     EXAMPLES_DIR / "cfg" / "patches.yml",
+    EXAMPLES_DIR / "cfg" / "riscv.yml",
+    EXAMPLES_DIR / "cfg" / "tests.yml",
     EXAMPLES_DIR / "cfg" / "git.yml",
 ]
 seal5_flow.load(cfg_files, verbose=VERBOSE, overwrite=False)
+
+# Clone & install Seal5 dependencies
+# 1. CDSL2LLVM (add PHASE_0 patches)
+seal5_flow.setup(force=True, verbose=VERBOSE)
 
 # Apply initial patches
 seal5_flow.patch(verbose=VERBOSE, stages=[PatchStage.PHASE_0])
@@ -111,11 +128,25 @@ if not FAST:
 #   3. Analyse/optimize instructions
 seal5_flow.transform(verbose=VERBOSE)
 
-# Generate patches
-seal5_flow.generate(verbose=VERBOSE)
+# Generate patches (except Patterns)
+seal5_flow.generate(verbose=VERBOSE, skip=["pattern_gen"])
 
-# Apply patches
-seal5_flow.patch(verbose=VERBOSE)
+# Apply next patches
+seal5_flow.patch(verbose=VERBOSE, stages=[PatchStage.PHASE_1, PatchStage.PHASE_2])
+
+if not FAST:
+    # Build patched LLVM
+    seal5_flow.build(verbose=VERBOSE, config="release")
+if not SKIP_PATTERNS:
+    # Build PatternGen & llc
+    seal5_flow.build(verbose=VERBOSE, config="release", target="pattern-gen")
+    seal5_flow.build(verbose=VERBOSE, config="release", target="llc")
+
+    # Generate remaining patches
+    seal5_flow.generate(verbose=VERBOSE, only=["pattern_gen"])
+
+    # Apply patches
+    seal5_flow.patch(verbose=VERBOSE)
 
 # Build patched LLVM
 seal5_flow.build(verbose=VERBOSE, config="release")
@@ -130,4 +161,4 @@ seal5_flow.deploy(verbose=VERBOSE)
 seal5_flow.export("/tmp/seal5_llvm_demo.tar.gz", verbose=VERBOSE)
 
 # Optional: cleanup temorary files, build dirs,...
-# seal5.cleanup(temp=True, build=True, deps=True, force=True)
+# seal5.clean(temp=True, build=True, deps=True, interactive=INTERACTIVE)

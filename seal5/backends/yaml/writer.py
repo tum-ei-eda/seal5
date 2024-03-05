@@ -16,7 +16,7 @@ from typing import Union
 
 import yaml
 
-from m2isar.metamodel import arch, patch_model, behav
+from m2isar.metamodel import arch
 
 logger = logging.getLogger("yaml_writer")
 
