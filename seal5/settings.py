@@ -79,6 +79,7 @@ DEFAULT_SETTINGS = {
         "defaults": {
             "skip": [],
             "only": [],
+            "overrides": {},
         },
         "per_model": {},
     },
@@ -327,6 +328,7 @@ class PatchSettings(YAMLSettings):
 class PassesSetting(YAMLSettings):
     skip: Optional[List[str]] = None
     only: Optional[List[str]] = None
+    overrides: Optional[dict] = None
 
 
 @dataclass

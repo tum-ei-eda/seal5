@@ -110,12 +110,20 @@ class Seal5Pass:
                 with ThreadPoolExecutor(max_workers=parallel) as executor:
                     futures = []
                     for input_model in inputs:
-                        overrides = passes_settings.per_model.get(input_model, None)
-                        if overrides:
-                            if check_filter(self.name, overrides.skip, overrides.only):
+                        print("input_model", input_model)
+                        kwargs__ = kwargs_.copy()
+                        per_model = passes_settings.per_model.get(input_model, None)
+                        print("per_model", per_model)
+                        if per_model:
+                            if check_filter(self.name, per_model.skip, per_model.only):
+                                print("SKIP")
                                 logger.info("Skipped pass %s for model %s", self.name, input_model)
                                 continue
-                        future = executor.submit(self.handler, input_model, settings=settings, **kwargs_)
+                            if per_model.overrides:
+                                overrides = per_model.overrides.get(self.name, None)
+                                if overrides:
+                                    kwargs__.update(overrides)
+                        future = executor.submit(self.handler, input_model, settings=settings, **kwargs__)
                         futures.append(future)
                     results = []
                     for i, future in enumerate(futures):
