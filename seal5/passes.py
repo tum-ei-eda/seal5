@@ -54,7 +54,6 @@ class PassResult:
 
 
 def check_filter(name, skip, only):
-    print("check_filter", name, skip, only)
     if skip is None:
         skip = []
     if only is None:
@@ -109,13 +108,10 @@ class Seal5Pass:
                 with ThreadPoolExecutor(max_workers=parallel) as executor:
                     futures = []
                     for input_model in inputs:
-                        print("input_model", input_model)
                         kwargs__ = kwargs_.copy()
                         per_model = passes_settings.per_model.get(input_model, None)
-                        print("per_model", per_model)
                         if per_model:
                             if check_filter(self.name, per_model.skip, per_model.only):
-                                print("SKIP")
                                 logger.info("Skipped pass %s for model %s", self.name, input_model)
                                 continue
                             if per_model.overrides:

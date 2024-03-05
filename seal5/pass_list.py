@@ -403,8 +403,6 @@ def collect_operand_types(
     **kwargs,
 ):
     assert inplace
-    # print("input_file", input_file)
-    # input(">")
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
     name = input_file.name
@@ -573,7 +571,6 @@ def write_yaml(
         print_func=logger.info if verbose else logger.debug,
         live=True,
     )
-    # print(settings.temp_dir / new_name)
     new_settings: Seal5Settings = Seal5Settings.from_yaml_file(settings.temp_dir / new_name)
     settings.merge(new_settings, overwrite=False)
 
