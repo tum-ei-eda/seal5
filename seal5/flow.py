@@ -178,8 +178,12 @@ class Seal5Flow:
         # Generates
         GENERATE_PASS_MAP = [
             ("seal5_td", passes.gen_seal5_td, {}),
+            # ("model_td", passes.gen_model_td, {}),
+            ("set_td", passes.gen_set_td, {}),
             ("riscv_features", passes.gen_riscv_features_patch, {}),
             ("riscv_isa_infos", passes.gen_riscv_isa_info_patch, {}),
+            # ("riscv_instr_formats", passes.gen_riscv_instr_formats_patch, {}),
+            ("riscv_instr_info", passes.gen_riscv_instr_info_patch, {}),
             # subtarget_tests
             # register_types
             # operand_types

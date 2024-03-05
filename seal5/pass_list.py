@@ -954,6 +954,73 @@ def gen_riscv_isa_info_patch(
             logger.warning("No patches found!")
 
 
+def gen_riscv_instr_info_patch(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    split: bool = True,
+    **kwargs,
+):
+    # assert not split, "TODO"
+    assert split, "TODO"
+    # formats = True
+    gen_metrics_file = True
+    gen_index_file = True
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    new_name = name.replace(".seal5model", "")
+    logger.info("Writing RISCVInstrInfo.td patch for %s", name)
+    out_dir = settings.patches_dir / new_name
+    out_dir.mkdir(exist_ok=True)
+    if split:
+        out_path = out_dir / "riscv_instr_info"
+        out_path.mkdir(exist_ok=True)
+    else:
+        out_path = out_dir / "riscv_instr_info.patch"
+
+    args = [
+        settings.models_dir / name,
+        "--log",
+        # "info",
+        "debug",
+        "--output",
+        out_path,
+    ]
+    if split:
+        args.append("--splitted")
+    if gen_metrics_file:
+        metrics_file = out_dir / ("riscv_instr_info_metrics.csv")
+        args.extend(["--metrics", metrics_file])
+    if gen_index_file:
+        index_file = out_dir / ("riscv_instr_info_index.yml")
+        args.extend(["--index", index_file])
+    utils.python(
+        "-m",
+        "seal5.backends.riscv_instr_info.writer",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+    if gen_index_file:
+        if index_file.is_file():
+            patch_name = f"riscv_instr_info_{input_file.stem}"
+            patch_settings = PatchSettings(
+                name=patch_name,
+                stage=int(PatchStage.PHASE_1),
+                comment=f"Generated RISCVInstrInfo.td patch for {input_file.name}",
+                index=str(index_file),
+                generated=True,
+                target="llvm",
+            )
+            settings.add_patch(patch_settings)
+            settings.to_yaml_file(settings.settings_file)
+        else:
+            logger.warning("No patches found!")
+
+
 def gen_riscv_gisel_legalizer_patch(
     input_model: str,
     settings: Optional[Seal5Settings] = None,
@@ -1165,6 +1232,99 @@ include "seal5.td"
         name=patch_name,
         stage=int(PatchStage.PHASE_1),
         comment="Add seal5.td to llvm/lib/Target/RISCV",
+        index=str(index_file),
+        generated=True,
+        target="llvm",
+    )
+    settings.add_patch(patch_settings)
+
+
+def gen_model_td(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    **kwargs,
+):
+    assert input_model is not None
+    patch_name = f"model_td_{input_model}"
+    dest = f"llvm/lib/Target/RISCV/seal5/{input_model}.td"
+    dest2 = "llvm/lib/Target/RISCV/seal5.td"
+    content = f"""
+// Includes
+// {input_model}.td - {input_model.lower()}_td_includes - INSERTION_START
+// {input_model}.td - {input_model.lower()}_td_includes - INSERTION_END
+"""
+    content2 = f"""
+include "seal5/{input_model}.td"
+"""
+
+    file_artifact = File(
+        dest,
+        content=content,
+    )
+    patch_artifact = NamedPatch(
+        dest2,
+        key=f"{input_model.lower()}_td_includes",
+        content=content2,
+    )
+    artifacts = [file_artifact, patch_artifact]
+
+    index_file = settings.temp_dir / "model_td_index.yml"
+    write_index_yaml(index_file, artifacts, {}, content=True)
+    patch_settings = PatchSettings(
+        name=patch_name,
+        stage=int(PatchStage.PHASE_1),
+        comment=f"Add {input_model}.td to llvm/lib/Target/RISCV/seal5",
+        index=str(index_file),
+        generated=True,
+        target="llvm",
+    )
+    settings.add_patch(patch_settings)
+
+
+def gen_set_td(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    **kwargs,
+):
+    assert input_model is not None
+    artifacts = []
+    includes = []
+    for set_name, set_settings in settings.extensions.items():
+        if set_settings.model != input_model:
+            continue
+        set_name_lower = set_name.lower()
+        patch_name = f"set_td_{set_name}"
+        dest = f"llvm/lib/Target/RISCV/seal5/{set_name}.td"
+        dest2 = "llvm/lib/Target/RISCV/seal5.td"
+        content = f"""
+// Includes
+// {set_name}.td - {set_name_lower}_set_td_includes - INSERTION_START
+// {set_name}.td - {set_name_lower}_set_td_includes - INSERTION_END
+"""
+        includes.append(f"seal5/{set_name}.td")
+        file_artifact = File(
+            dest,
+            content=content,
+        )
+        artifacts.append(file_artifact)
+    content2 = f"// {input_model}\n" + "\n".join([f"include \"{inc}\"" for inc in includes]) + "\n"
+    patch_artifact = NamedPatch(
+        dest2,
+        key="seal5_td_includes",
+        content=content2.strip(),
+    )
+    artifacts.append(patch_artifact)
+
+    index_file = settings.temp_dir / f"{input_model}_set_td_index.yml"
+    write_index_yaml(index_file, artifacts, {}, content=True)
+    patch_settings = PatchSettings(
+        name=patch_name,
+        stage=int(PatchStage.PHASE_1),
+        comment=f"Add {input_model} set includes to llvm/lib/Target/RISCV/seal5",
         index=str(index_file),
         generated=True,
         target="llvm",

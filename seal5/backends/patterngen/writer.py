@@ -181,15 +181,16 @@ def main():
             if len(includes) > 0:
                 set_includes_str = "\n".join([f'include "seal5/{inc}"' for inc in includes])
                 set_includes_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}.td"
-                set_includes_artifact = File(set_includes_artifact_dest, content=set_includes_str)
+                key = f"{set_name}_set_td_includes"
+                set_includes_artifact = NamedPatch(set_includes_artifact_dest, key=key, content=set_includes_str)
                 artifacts[set_name].append(set_includes_artifact)
-                model_includes.append(f"{set_name}.td")
-        if len(model_includes) > 0:
-            model_includes_str = "\n".join([f'include "seal5/{inc}"' for inc in model_includes])
-            model_includes_artifact_dest = "llvm/lib/Target/RISCV/seal5.td"
-            key = "seal5_td_includes"
-            model_includes_artifact = NamedPatch(model_includes_artifact_dest, key, content=model_includes_str)
-            artifacts[None].append(model_includes_artifact)
+                # model_includes.append(f"{set_name}.td")
+        # if len(model_includes) > 0:
+        #     model_includes_str = "\n".join([f'include "seal5/{inc}"' for inc in model_includes])
+        #     model_includes_artifact_dest = "llvm/lib/Target/RISCV/seal5.td"
+        #     key = "seal5_td_includes"
+        #     model_includes_artifact = NamedPatch(model_includes_artifact_dest, key, content=model_includes_str)
+        #     artifacts[None].append(model_includes_artifact)
         # if len(errs) > 0:
         #     # print("errs", errs)
         #     for insn_name, err_str in errs:
