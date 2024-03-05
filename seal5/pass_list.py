@@ -1350,7 +1350,7 @@ def pattern_gen_pass(
         ("behav_to_llvmir", convert_behav_to_llvmir, {"split": split}),
         ("llvmir_to_gmir", convert_llvmir_to_gmir, {"split": split}),
         # ("write_fmt", convert_behav_to_tablegen, {"split": split, "formats": True, "patterns": False}),
-        ("behav_to_pat", convert_behav_to_tablegen, {"split": split, "formats": True, "patterns": True}),
+        ("behav_to_pat", convert_behav_to_tablegen, {"split": split, "formats": False, "patterns": True}),
     ]
     pass_list = []
     for pass_name, pass_handler, pass_options in PATTERN_GEN_PASSES:

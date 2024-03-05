@@ -281,10 +281,10 @@ def main():
     if args.splitted:
         content = ""
         # errs = []
-        includes = []
         for set_name, set_def in model["sets"].items():
             set_name_lower = set_name.lower()
             artifacts[set_name] = []
+            includes = []
             set_dir = out_path / set_name
             set_dir.mkdir(exist_ok=True)
             ext_settings = set_def.settings
@@ -296,7 +296,7 @@ def main():
                 metrics["n_success"] += 1
                 out_name = f"{instr_def.name}InstrInfo.{args.ext}"
                 output_file = set_dir / out_name
-                content += gen_riscv_instr_info_str(instr_def)
+                content = gen_riscv_instr_info_str(instr_def)
                 if len(content) > 0:
                     assert pred is not None
                     predicate_str = f"Predicates = [{pred}, IsRV32]"
