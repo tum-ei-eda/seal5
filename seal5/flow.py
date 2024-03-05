@@ -610,6 +610,9 @@ class Seal5Flow:
         artifacts = [
             self.settings.inputs_dir,
             self.settings.gen_dir,
+            self.settings.patches_dir,
+            self.settings.inputs_dir,
+            self.settings.tests_dir,
             self.settings.models_dir,
             self.settings.logs_dir,
             self.settings.settings_file,

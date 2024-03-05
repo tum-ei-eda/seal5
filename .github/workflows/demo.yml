@@ -61,3 +61,7 @@ jobs:
       run: |
         source .venv/bin/activate
         python examples/demo.py
+    - uses: actions/upload-artifact@v4
+      with:
+        name: demo-export
+        path: /tmp/seal5_llvm_demo.tar.gz
