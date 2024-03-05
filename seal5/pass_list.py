@@ -774,7 +774,6 @@ def convert_behav_to_tablegen(
     **kwargs,
 ):
     assert split, "TODO"
-    formats = True
     gen_metrics_file = True
     gen_index_file = True
     input_file = settings.models_dir / f"{input_model}.seal5model"
