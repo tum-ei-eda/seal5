@@ -178,6 +178,9 @@ class Seal5Operand:
     # TODO: track imm, const?
     # TODO: helpers (is_float, is_int,...)
 
+    def __repr__(self):
+        return f"{type(self)}({self.name}, ty={self.ty}, attrs={self.attributes})"
+
     @property
     def attributes(self):
         ret = self._attributes
