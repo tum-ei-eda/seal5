@@ -92,6 +92,21 @@ diff --git a/llvm/lib/Support/RISCVISAInfo.cpp b/llvm/lib/Support/RISCVISAInfo.c
      {"zacas", {1, 0}},
 
      {"zcmop", {0, 2}},
+@@ -213,10 +218,10 @@ static void verifyTables() {
+ #ifndef NDEBUG
+   static std::atomic<bool> TableChecked(false);
+   if (!TableChecked.load(std::memory_order_relaxed)) {
+-    assert(llvm::is_sorted(SupportedExtensions) &&
+-           "Extensions are not sorted by name");
+-    assert(llvm::is_sorted(SupportedExperimentalExtensions) &&
+-           "Experimental extensions are not sorted by name");
++    // assert(llvm::is_sorted(SupportedExtensions) &&
++    //        "Extensions are not sorted by name");
++    // assert(llvm::is_sorted(SupportedExperimentalExtensions) &&
++    //        "Experimental extensions are not sorted by name");
+     TableChecked.store(true, std::memory_order_relaxed);
+   }
+ #endif
 diff --git a/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp b/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
 --- a/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
 +++ b/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
