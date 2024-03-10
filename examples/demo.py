@@ -30,17 +30,13 @@ from seal5.types import PatchStage
 set_log_level(console_level="DEBUG", file_level="DEBUG")
 
 EXAMPLES_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
-VERBOSE = False
-# VERBOSE = True
-# FAST = False
-FAST = True
-SKIP_PATTERNS = False
-# SKIP_PATTERNS = True
-INTERACTIVE = False
-BUILD_CONFIG = "release"
-# BUILD_CONFIG = "debug"
-# PREPATCHED = False
-PREPATCHED = True
+# VERBOSE = False
+VERBOSE = bool(int(os.environ.get("VERBOSE", 0)))
+FAST = bool(int(os.environ.get("FAST", 1)))
+SKIP_PATTERNS = bool(int(os.environ.get("SKIP_PATTERNS", 0)))
+INTERACTIVE = bool(int(os.environ.get("INTERACTIVE", 0)))
+PREPATCHED = bool(int(os.environ.get("PREPATCHED", 1)))
+BUILD_CONFIG = os.environ.get("BUILD_CONFIG", "release")
 
 
 seal5_flow = Seal5Flow("/tmp/seal5_llvm_demo", "demo")
