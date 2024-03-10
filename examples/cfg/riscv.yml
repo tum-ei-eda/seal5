@@ -4,6 +4,7 @@ riscv:
   features:
   - m
   - fast-unaligned-access
+  - gpr32v
   legalization:
     gisel:
       ops:
