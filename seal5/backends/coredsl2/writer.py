@@ -100,18 +100,21 @@ class CoreDSL2Writer:
     def write_attribute(self, attr, val=None):
         if self.needsspace:
             self.write(" ")
+        if val is not None:
+            if isinstance(val, list) and len(val) == 0:
+                val = None
+        if self.compat and val is not None:
+            return
         self.write("[[")
         self.write(attr.name.lower())
-        if val:
+        if val is not None:
             self.write("=")
-            self.write(val)  # TODO: operation
+            self.write(str(val))  # TODO: operation
         self.write("]]")
         # print("key", key)
         # print("value", value)
 
     def write_attributes(self, attributes):
-        if self.compat:
-            return
         for attr, val in attributes.items():
             self.write_attribute(attr, val)
         # input("inp")
@@ -199,8 +202,6 @@ class CoreDSL2Writer:
         self.leave_block()
 
     def write_operands(self, operands):
-        if self.compat:
-            return
         self.write("operands: ")
         if len(operands) == 0:
             self.write_line("{};")
