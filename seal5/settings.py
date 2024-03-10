@@ -99,7 +99,7 @@ DEFAULT_SETTINGS = {
                     "LLVM_ENABLE_ASSERTIONS": False,
                     "LLVM_OPTIMIZED_TABLEGEN": True,
                     "LLVM_ENABLE_PROJECTS": ["clang", "lld"],
-                    "LLVM_TARGETS_TO_BUILD": ["X86", "RISCV"],
+                    "LLVM_TARGETS_TO_BUILD": ["RISCV"],
                 },
             },
             "release_assertions": {
@@ -109,7 +109,7 @@ DEFAULT_SETTINGS = {
                     "LLVM_ENABLE_ASSERTIONS": True,
                     "LLVM_OPTIMIZED_TABLEGEN": True,
                     "LLVM_ENABLE_PROJECTS": ["clang", "lld"],
-                    "LLVM_TARGETS_TO_BUILD": ["X86", "RISCV"],
+                    "LLVM_TARGETS_TO_BUILD": ["RISCV"],
                 },
             },
             "debug": {
@@ -119,7 +119,7 @@ DEFAULT_SETTINGS = {
                     "LLVM_ENABLE_ASSERTIONS": True,
                     "LLVM_OPTIMIZED_TABLEGEN": True,
                     "LLVM_ENABLE_PROJECTS": ["clang", "lld"],
-                    "LLVM_TARGETS_TO_BUILD": ["X86", "RISCV"],
+                    "LLVM_TARGETS_TO_BUILD": ["RISCV"],
                 },
             },
         },
