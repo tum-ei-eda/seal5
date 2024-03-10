@@ -91,7 +91,7 @@ def get_pattern_gen_patches(
     write_index_yaml(index_file, artifacts, {}, content=True)
     patch_settings = PatchSettings(
         name="pattern_gen_support",
-        stage=int(PatchStage.PHASE_2),
+        stage=int(PatchStage.PHASE_0),
         comment="Integrate PatternGen in Seal5 LLVM",
         index=str(index_file),
         generated=True,
