@@ -537,6 +537,14 @@ class Seal5Settings(YAMLSettings):
         self.inputs = []
         self.metrics = []
         # TODO: clear user provided tests!
+        self.filter = FilterSettings(
+            sets=FilterSetting(keep=[], drop=[]),
+            instructions=FilterSetting(keep=[], drop=[]),
+            aliases=FilterSetting(keep=[], drop=[]),
+            intrinsics=FilterSetting(keep=[], drop=[]),
+            opcodes=FilterSetting(keep=[], drop=[]),
+            encoding_sizes=FilterSetting(keep=[], drop=[]),
+        )
 
     def save(self, dest: Optional[Path] = None):
         if dest is None:
