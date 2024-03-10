@@ -182,11 +182,11 @@ def gen_riscv_instr_info_str(instr):
             assert cls in ["GPR"]
             pre = cls
         elif Seal5OperandAttribute.IS_IMM in op.attributes:
-            assert Seal5OperandAttribute.TY in op.attributes
-            ty = op.attributes[Seal5OperandAttribute.TY]
+            assert Seal5OperandAttribute.TYPE in op.attributes
+            ty = op.attributes[Seal5OperandAttribute.TYPE]
             assert ty[0] in ["u", "s"]
             sz = int(ty[1:])
-            pre = f"{ty}imm{sz}"
+            pre = f"{ty[0]}imm{sz}"
 
         if Seal5OperandAttribute.INOUT in op.attributes or (
             Seal5OperandAttribute.OUT in op.attributes and Seal5OperandAttribute.IN in op.attributes
