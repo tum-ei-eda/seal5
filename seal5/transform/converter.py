@@ -65,6 +65,10 @@ def main():
     for set_name, set_def in sets.items():
         logger.info("replacing set %s", set_name)
         for enc, instr_def in set_def.instructions.items():
+            PREFIX = True
+            if PREFIX:
+                instr_def.name = f"SEAL5_{instr_def.name}"
+                instr_def.mnemonic = f"seal5.{instr_def.mnemonic}"
             set_def.instructions[enc] = seal5_model.Seal5Instruction(
                 instr_def.name,
                 instr_def.attributes,
