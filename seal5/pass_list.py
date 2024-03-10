@@ -1295,7 +1295,6 @@ def gen_set_td(
         set_name_lower = set_name.lower()
         patch_name = f"set_td_{set_name}"
         dest = f"llvm/lib/Target/RISCV/seal5/{set_name}.td"
-        dest2 = "llvm/lib/Target/RISCV/seal5.td"
         content = f"""
 // Includes
 // {set_name}.td - {set_name_lower}_set_td_includes - INSERTION_START
@@ -1308,6 +1307,7 @@ def gen_set_td(
         )
         artifacts.append(file_artifact)
     content2 = f"// {input_model}\n" + "\n".join([f'include "{inc}"' for inc in includes]) + "\n"
+    dest2 = "llvm/lib/Target/RISCV/seal5.td"
     patch_artifact = NamedPatch(
         dest2,
         key="seal5_td_includes",
@@ -1317,6 +1317,7 @@ def gen_set_td(
 
     index_file = settings.temp_dir / f"{input_model}_set_td_index.yml"
     write_index_yaml(index_file, artifacts, {}, content=True)
+    patch_name = f"set_td_{input_model}"
     patch_settings = PatchSettings(
         name=patch_name,
         stage=int(PatchStage.PHASE_1),
