@@ -132,7 +132,7 @@ def run_pattern_gen(
     if not isinstance(build_dir, Path):
         build_dir = Path(build_dir)
     pattern_gen_args = [src]
-    pattern_gen_args.append("--custom-legalizer-settings=foo")
+    pattern_gen_args.extend(["-custom-legalizer-settings=foo", "-disable-gisel-legality-check"])
 
     if dest:
         pattern_gen_args.extend(["-o", str(dest)])
