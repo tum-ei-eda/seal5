@@ -39,6 +39,8 @@ SKIP_PATTERNS = False
 INTERACTIVE = False
 BUILD_CONFIG = "release"
 # BUILD_CONFIG = "debug"
+# PREPATCHED = False
+PREPATCHED = True
 
 
 seal5_flow = Seal5Flow("/tmp/seal5_llvm_demo", "demo")
@@ -50,9 +52,11 @@ seal5_flow.clean(temp=True, patches=True, models=True, inputs=True, interactive=
 # Clone LLVM and init seal5 metadata directory
 seal5_flow.initialize(
     clone=True,
-    clone_url="https://github.com/llvm/llvm-project.git",
+    clone_url="git@gitlab.lrz.de:de-tum-ei-eda-esl/llvm/core-v-llvm-project.git"
+    if PREPATCHED
+    else "https://github.com/llvm/llvm-project.git",
     # clone_ref="llvmorg-17.0.6",
-    clone_ref="llvmorg-18.1.0-rc3",
+    clone_ref="seal5-demo-prepatched" if PREPATCHED else "llvmorg-18.1.0-rc3",
     force=True,
     verbose=VERBOSE,
 )
@@ -121,7 +125,8 @@ seal5_flow.settings.llvm.default_config = BUILD_CONFIG
 seal5_flow.setup(force=True, verbose=VERBOSE)
 
 # Apply initial patches
-seal5_flow.patch(verbose=VERBOSE, stages=[PatchStage.PHASE_0])
+if not PREPATCHED:
+    seal5_flow.patch(verbose=VERBOSE, stages=[PatchStage.PHASE_0])
 
 if not FAST:
     # Build initial LLVM
@@ -151,7 +156,7 @@ if not SKIP_PATTERNS:
     seal5_flow.generate(verbose=VERBOSE, only=["pattern_gen"])
 
     # Apply patches
-    seal5_flow.patch(verbose=VERBOSE)
+    seal5_flow.patch(verbose=VERBOSE, stages=list(range(PatchStage.PHASE_3, PatchStage.PHASE_5 + 1)))
 
 # Build patched LLVM
 seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG)
