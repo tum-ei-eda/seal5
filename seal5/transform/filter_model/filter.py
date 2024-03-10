@@ -8,6 +8,7 @@
 
 """Filter M2-ISA-R/Seal5 metamodel."""
 
+import re
 import argparse
 import logging
 import pathlib
@@ -180,15 +181,24 @@ def main():
     # print("keep", keep_instructions)
     # print("drop", drop_instructions)
     # input("456")
+    # def check_filter(name, keep, drop):
+    #     if drop and keep:
+    #         return name not in drop and name in keep
+    #     elif keep:
+    #         return name in keep
+    #     elif drop:
+    #         return name not in drop
+    #     return True
 
-    def check_filter(name, keep, drop):
+    def check_filter_regex(name, keep, drop):
         if drop and keep:
-            return name not in drop and name in keep
+            return not any(re.compile(expr).match(name) for expr in drop) and any(re.compile(expr).match(name) for expr in keep)
         elif keep:
-            return name in keep
+            return any(re.compile(expr).match(name) for expr in keep)
         elif drop:
-            return name not in drop
+            return not any(re.compile(expr).match(name) for expr in drop)
         return True
+
 
     def check_encoding_filter(enc, keep, drop, keep2, drop2):
         opcode = None
