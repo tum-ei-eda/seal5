@@ -89,6 +89,8 @@ DEFAULT_SETTINGS = {
     },
     "llvm": {
         "state": {"version": "auto", "base_commit": "unknown"},
+        "ninja": False,
+        "default_config": "release",
         "configs": {
             "release": {
                 "options": {
@@ -469,8 +471,10 @@ class LLVMConfig(YAMLSettings):
 
 @dataclass
 class LLVMSettings(YAMLSettings):
-    state: Optional[LLVMState] = None
+    ninja: Optional[bool] = None
+    default_config: Optional[str] = None
     configs: Optional[Dict[str, LLVMConfig]] = None
+    state: Optional[LLVMState] = None
 
 
 @dataclass

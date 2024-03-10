@@ -112,7 +112,9 @@ def build_llvm(
         print_func=logger.info if verbose else logger.debug,
         live=True,
     )
-    utils.make(target=target, cwd=dest, print_func=logger.info if verbose else logger.debug, live=True)
+    utils.make(
+        target=target, cwd=dest, print_func=logger.info if verbose else logger.debug, live=True, use_ninja=use_ninja
+    )
 
 
 def test_llvm(base: Path, build_dir: Path, test_paths: List[str] = [], verbose: bool = False):

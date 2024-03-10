@@ -37,6 +37,8 @@ FAST = True
 SKIP_PATTERNS = False
 # SKIP_PATTERNS = True
 INTERACTIVE = False
+BUILD_CONFIG = "release"
+# BUILD_CONFIG = "debug"
 
 
 seal5_flow = Seal5Flow("/tmp/seal5_llvm_demo", "demo")
@@ -111,6 +113,9 @@ cfg_files = [
 ]
 seal5_flow.load(cfg_files, verbose=VERBOSE, overwrite=False)
 
+# Override settings from Python
+seal5_flow.settings.llvm.default_config = BUILD_CONFIG
+
 # Clone & install Seal5 dependencies
 # 1. CDSL2LLVM (add PHASE_0 patches)
 seal5_flow.setup(force=True, verbose=VERBOSE)
@@ -120,7 +125,7 @@ seal5_flow.patch(verbose=VERBOSE, stages=[PatchStage.PHASE_0])
 
 if not FAST:
     # Build initial LLVM
-    seal5_flow.build(verbose=VERBOSE, config="release")
+    seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG)
 
 # Transform inputs
 #   1. Create M2-ISA-R metamodel
@@ -136,11 +141,11 @@ seal5_flow.patch(verbose=VERBOSE, stages=[PatchStage.PHASE_1, PatchStage.PHASE_2
 
 if not FAST:
     # Build patched LLVM
-    seal5_flow.build(verbose=VERBOSE, config="release")
+    seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG)
 if not SKIP_PATTERNS:
     # Build PatternGen & llc
-    seal5_flow.build(verbose=VERBOSE, config="release", target="pattern-gen")
-    seal5_flow.build(verbose=VERBOSE, config="release", target="llc")
+    seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG, target="pattern-gen")
+    seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG, target="llc")
 
     # Generate remaining patches
     seal5_flow.generate(verbose=VERBOSE, only=["pattern_gen"])
@@ -149,7 +154,7 @@ if not SKIP_PATTERNS:
     seal5_flow.patch(verbose=VERBOSE)
 
 # Build patched LLVM
-seal5_flow.build(verbose=VERBOSE, config="release")
+seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG)
 
 # Test patched LLVM
 seal5_flow.test(verbose=VERBOSE, ignore_error=True)

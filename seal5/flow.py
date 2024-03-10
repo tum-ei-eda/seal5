@@ -287,7 +287,7 @@ class Seal5Flow:
                 self.settings.deps_dir / "cdsl2llvm",
                 self.settings.deps_dir / "cdsl2llvm" / "llvm" / "build",
                 cmake_options=cmake_options,
-                use_ninja=True,
+                use_ninja=self.settings.llvm.ninja,
             )
             logger.info("Completed build of PatternGen")
             logger.info("Building llc")
@@ -295,7 +295,7 @@ class Seal5Flow:
                 self.settings.deps_dir / "cdsl2llvm",
                 self.settings.deps_dir / "cdsl2llvm" / "llvm" / "build",
                 cmake_options=cmake_options,
-                use_ninja=True,
+                use_ninja=self.settings.llvm.ninja,
             )
             logger.info("Completed build of llc")
         # input("qqqqqq")
@@ -324,7 +324,7 @@ class Seal5Flow:
         cdsl2llvm_build_dir = None
         integrated_pattern_gen = self.settings.tools.pattern_gen.integrated
         if integrated_pattern_gen:
-            config = "release"  # TODO: fetch default config
+            config = self.settings.llvm.default_config
             cdsl2llvm_build_dir = str(self.settings.build_dir / config)
         else:
             cdsl2llvm_build_dir = str(self.settings.deps_dir / "cdsl2llvm" / "llvm" / "build")
@@ -376,13 +376,19 @@ class Seal5Flow:
         # TODO: only allow single instr set for now and track inputs in settings
         logger.info("Completed load of Seal5 inputs")
 
-    def build(self, config="release", target="all", verbose: bool = False):
+    def build(self, config=None, target="all", verbose: bool = False):
         logger.info("Building Seal5 LLVM (%s)", target)
+        if config is None:
+            config = self.settings.llvm.default_config
         llvm_config = self.settings.llvm.configs.get(config, None)
         assert llvm_config is not None, f"Invalid llvm config: {config}"
         cmake_options = llvm_config.options
         llvm.build_llvm(
-            Path(self.settings.directory), self.settings.build_dir / config, cmake_options=cmake_options, target=target
+            Path(self.settings.directory),
+            self.settings.build_dir / config,
+            cmake_options=cmake_options,
+            target=target,
+            use_ninja=self.settings.llvm.ninja,
         )
         logger.info("Completed build of Seal5 LLVM (%s)", target)
 
@@ -585,7 +591,7 @@ class Seal5Flow:
     ):
         logger.info("Testing Seal5 LLVM")
         if config is None:
-            config = "debug" if debug else "release"
+            config = self.settings.llvm.default_config
         test_paths = self.settings.test.paths
         failing_tests = llvm.test_llvm(
             self.directory / "llvm" / "test", self.settings.build_dir / config, test_paths, verbose=verbose
