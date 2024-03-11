@@ -19,6 +19,7 @@
 """Seal5 Flow API."""
 import os
 import sys
+import glob
 import tarfile
 from pathlib import Path
 from typing import Optional, List, Dict, Tuple
@@ -362,6 +363,8 @@ class Seal5Flow:
 
     def load(self, files: List[Path], verbose: bool = False, overwrite: bool = False):
         logger.info("Loading Seal5 inputs")
+        # Expand glob patterns
+        files = sum([list(map(Path, glob.glob(str(file)))) for file in files], [])
         for file in files:
             logger.info("Processing file: %s", file)
             ext = file.suffix
