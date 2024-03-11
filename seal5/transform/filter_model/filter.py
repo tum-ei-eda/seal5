@@ -236,13 +236,13 @@ def main():
         return True
 
     model["sets"] = {
-        set_name: set_def for set_name, set_def in model["sets"].items() if check_filter(set_name, keep_sets, drop_sets)
+        set_name: set_def for set_name, set_def in model["sets"].items() if check_filter_regex(set_name, keep_sets, drop_sets)
     }
     for set_name, set_def in model["sets"].items():
         set_def.instructions = {
             key: instr_def
             for key, instr_def in set_def.instructions.items()
-            if check_filter(instr_def.name, keep_instructions, drop_instructions)
+            if check_filter_regex(instr_def.name, keep_instructions, drop_instructions)
             and check_encoding_filter(
                 instr_def.encoding, keep_opcodes, drop_opcodes, keep_encoding_sizes, drop_encoding_sizes
             )
