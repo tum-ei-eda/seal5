@@ -36,6 +36,9 @@ riscv:
       #   onlyif: [HasExtRV32Zbpo]
       # # TODO: RV32Zpsfoperand (register pairs)
       # TODO: G_BITCAST
+      # - name: [G_ROTL, G_ROTR]
+      #   types: [s32]
+      #   onlyif: [HasExtXISE]
   transform_info:
     shouldFoldTerminatingConditionAfterLSR: true
     prefersVectorizedAddressing: false

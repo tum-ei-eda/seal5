@@ -63,7 +63,7 @@ cdsl_files = [
     EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMac.core_desc",
     EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVAlu.core_desc",
     # EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVBitmanip.core_desc",
-    # EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVSimd.core_desc",
+    EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVSimd.core_desc",
     # EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMem.core_desc",
     # EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVBranchImmediate.core_desc",
     # RVP (will not work)
@@ -73,6 +73,7 @@ cdsl_files = [
     # EXAMPLES_DIR / "cdsl" / "rv_s4e" / "s4e-mac.core_desc",
     # TUMEDA (untested)
     EXAMPLES_DIR / "cdsl" / "rv_tumeda" / "XCoreVNand.core_desc",
+    EXAMPLES_DIR / "cdsl" / "rv_tumeda" / "OpenASIP.core_desc",
     # GENERATED (untested)
     EXAMPLES_DIR / "cdsl" / "rv_gen" / "test.core_desc",
     # OTHERS (untested)
