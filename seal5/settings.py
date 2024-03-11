@@ -545,6 +545,14 @@ class Seal5Settings(YAMLSettings):
             opcodes=FilterSetting(keep=[], drop=[]),
             encoding_sizes=FilterSetting(keep=[], drop=[]),
         )
+        self.passes = PassesSettings(
+            defaults=PassesSetting(
+                skip=[],
+                only=[],
+                overrides={},
+            ),
+            per_model={},
+        )
 
     def save(self, dest: Optional[Path] = None):
         if dest is None:
