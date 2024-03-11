@@ -768,6 +768,7 @@ def convert_behav_to_tablegen(
     split: bool = True,
     formats: bool = True,
     patterns: bool = True,
+    parallel: bool = False,
     **kwargs,
 ):
     assert split, "TODO"
@@ -803,6 +804,10 @@ def convert_behav_to_tablegen(
     if gen_index_file:
         index_file = settings.temp_dir / (new_name + "_tblgen_patterns_index.yml")
         args.extend(["--index", index_file])
+    if parallel:
+        import multiprocessing
+        num_threads = multiprocessing.cpu_count()
+        args.extend(["--parallel", num_threads])
     utils.python(
         "-m",
         "seal5.backends.patterngen.writer",

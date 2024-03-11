@@ -13,6 +13,7 @@ import argparse
 import logging
 import pathlib
 import pickle
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Union
 
 from m2isar.metamodel import arch
@@ -38,6 +39,7 @@ def main():
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
     parser.add_argument("--index", default=None, help="Output index to file")
     parser.add_argument("--ext", type=str, default="td", help="Default file extension (if using --splitted)")
+    parser.add_argument("--parallel", type=int, default=1, help="How many instructions should be processed in parallel")
     args = parser.parse_args()
 
     # initialize logging
@@ -112,7 +114,7 @@ def main():
             ext_settings = set_def.settings
             set_dir = out_path / set_name
             includes = []
-            for instr_def in set_def.instructions.values():
+            def process_instrunction(instr_def):
                 metrics["n_instructions"] += 1
                 input_file = out_path / set_name / f"{instr_def.name}.core_desc"
                 attrs = instr_def.attributes
@@ -128,10 +130,10 @@ def main():
                         skip = True
                     if skip:
                         metrics["n_skipped"] += 1
-                        continue
+                        return False
                 if not input_file.is_file():
                     metrics["n_skipped"] += 1
-                    continue
+                    return False
                 # if args.patterns:
                 out_name = f"{instr_def.name}.{args.ext}"
                 output_file = set_dir / out_name
@@ -178,6 +180,16 @@ def main():
                 except AssertionError:
                     metrics["n_failed"] += 1
                     # errs.append((insn_name, str(ex)))
+                return True
+            with ThreadPoolExecutor(args.parallel) as executor:
+                futures = []
+                for instr_def in set_def.instructions.values():
+                    future = executor.submit(process_instrunction, instr_def)
+                    futures.append(future)
+                results = []
+                for future in as_completed(futures):
+                    result = future.result
+                    results.append(result)
             if len(includes) > 0:
                 set_includes_str = "\n".join([f'include "seal5/{inc}"' for inc in includes])
                 set_includes_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}.td"
