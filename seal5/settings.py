@@ -536,7 +536,7 @@ class Seal5Settings(YAMLSettings):
         self.patches = []
         self.inputs = []
         self.metrics = []
-        # TODO: clear user provided tests!
+        self.test = TestSettings(paths=[])
         self.filter = FilterSettings(
             sets=FilterSetting(keep=[], drop=[]),
             instructions=FilterSetting(keep=[], drop=[]),
