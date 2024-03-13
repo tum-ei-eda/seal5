@@ -59,6 +59,7 @@ def block(self: behav.Block, context):
 
 
 def binary_operation(self: behav.BinaryOperation, context):
+    # print("binary_operation")
     self.left = self.left.generate(context)
     self.right = self.right.generate(context)
 
@@ -66,6 +67,7 @@ def binary_operation(self: behav.BinaryOperation, context):
 
 
 def slice_operation(self: behav.SliceOperation, context):
+    # print("slice_operation")
     self.expr = self.expr.generate(context)
     self.left = self.left.generate(context)
     self.right = self.right.generate(context)
@@ -74,6 +76,7 @@ def slice_operation(self: behav.SliceOperation, context):
 
 
 def concat_operation(self: behav.ConcatOperation, context):
+    # print("concat_operation")
     self.left = self.left.generate(context)
     self.right = self.right.generate(context)
 
@@ -81,28 +84,36 @@ def concat_operation(self: behav.ConcatOperation, context):
 
 
 def number_literal(self: behav.IntLiteral, context):
+    # print("number_literal")
     return self
 
 
 def int_literal(self: behav.IntLiteral, context):
+    # print("int_literal")
     return self
 
 
 def scalar_definition(self: behav.ScalarDefinition, context):
+    # print("scalar_definition")
     return self
 
 
 def break_(self: behav.Break, context):
+    # print("break_")
     return self
 
 
 def assignment(self: behav.Assignment, context):
     # print("assignment")
     context.is_write = True
+    # print("> START WRITE")
     self.target = self.target.generate(context)
+    # print("< STOP WRITE")
     context.is_write = False
     context.is_read = True
+    # print("> START READ")
     self.expr = self.expr.generate(context)
+    # print("> STOP READ")
     context.is_read = False
 
     return self
@@ -112,7 +123,9 @@ def conditional(self: behav.Conditional, context):
     # print("conditional")
     for i, cond in enumerate(self.conds):
         context.is_read = True
+        # print("> START READ")
         self.conds[i] = cond.generate(context)
+        # print("> STOP READ")
         context.is_read = False
     for op in self.stmts:
         # for stmt in flatten(op):
@@ -123,8 +136,11 @@ def conditional(self: behav.Conditional, context):
 
 
 def loop(self: behav.Loop, context):
+    # print("loop")
     context.is_read = True
+    # print("> START READ")
     self.cond = self.cond.generate(context)
+    # print("> STOP READ")
     context.is_read = False
     self.stmts = [x.generate(context) for x in self.stmts]
 
@@ -132,16 +148,20 @@ def loop(self: behav.Loop, context):
 
 
 def ternary(self: behav.Ternary, context):
+    # print("ternary")
     context.is_read = True
+    # print("> START READ")
     self.cond = self.cond.generate(context)
     self.then_expr = self.then_expr.generate(context)
     self.else_expr = self.else_expr.generate(context)
+    # print("> STOP READ")
     context.is_read = False
 
     return self
 
 
 def return_(self: behav.Return, context):
+    # print("return_")
     if self.expr is not None:
         self.expr = self.expr.generate(context)
 
@@ -149,12 +169,16 @@ def return_(self: behav.Return, context):
 
 
 def unary_operation(self: behav.UnaryOperation, context):
+    # print("unary_operation")
     self.right = self.right.generate(context)
 
     return self
 
 
 def named_reference(self: behav.NamedReference, context):
+    # print("named_reference", self.reference.name)
+    # print("is_read", context.is_read)
+    # print("is_write", context.is_write)
     if context.is_read:
         context.reads.add(self.reference.name)
     elif context.is_write:
@@ -163,24 +187,27 @@ def named_reference(self: behav.NamedReference, context):
 
 
 def indexed_reference(self: behav.IndexedReference, context):
+    # print("indexed_reference")
     self.index = self.index.generate(context)
     return self
 
 
 def type_conv(self: behav.TypeConv, context):
+    # print("type_conv")
     self.expr = self.expr.generate(context)
 
     return self
 
 
 def callable_(self: behav.Callable, context):
+    # print("callable_")
     self.args = [stmt.generate(context) for stmt in self.args]
 
     return self
 
 
 def group(self: behav.Group, context):
-    # print("group", group)
+    # print("group")
     self.expr = self.expr.generate(context)
 
     return self
