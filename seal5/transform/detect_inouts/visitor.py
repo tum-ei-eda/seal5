@@ -134,9 +134,9 @@ def loop(self: behav.Loop, context):
 def ternary(self: behav.Ternary, context):
     context.is_read = True
     self.cond = self.cond.generate(context)
-    context.is_read = False
     self.then_expr = self.then_expr.generate(context)
     self.else_expr = self.else_expr.generate(context)
+    context.is_read = False
 
     return self
 
