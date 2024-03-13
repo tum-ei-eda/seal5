@@ -88,15 +88,17 @@ test_files = [
     EXAMPLES_DIR / "tests" / "cv_nand" / "cv_nand.s",
     EXAMPLES_DIR / "tests" / "cv_nand" / "cv_nand_invalid.s",
     # TODO: support subdirectories to avoid duplicate test names (WARN!)
-    # EXAMPLES_DIR / "tests" / "cv_nand" / "*.c",  # TODO: support glob patterns
+    # EXAMPLES_DIR / "tests" / "corev" / "*.asm.s",
+    # EXAMPLES_DIR / "tests" / "corev" / "*.invalid-asm.s",
+    EXAMPLES_DIR / "tests" / "corev" / "*.inline-asm.c",
 ]
 seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 
 # Load YAML inputs
 cfg_files = [
     # XCOREV
-    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVMac.yml",
-    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVAlu.yml",
+    # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVMac.yml",
+    # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVAlu.yml",
     # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVBitmanip.yml",
     # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVSimd.yml",
     # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVMem.yml",
@@ -110,6 +112,7 @@ cfg_files = [
     EXAMPLES_DIR / "cfg" / "patches.yml",
     EXAMPLES_DIR / "cfg" / "riscv.yml",
     EXAMPLES_DIR / "cfg" / "tests.yml",
+    EXAMPLES_DIR / "cfg" / "passes.yml",
     EXAMPLES_DIR / "cfg" / "git.yml",
 ]
 seal5_flow.load(cfg_files, verbose=VERBOSE, overwrite=False)
