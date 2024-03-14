@@ -27,6 +27,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("top_level", help="A .m2isarmodel file containing the models to generate.")
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
+    parser.add_argument("--prefix", default="", type=str)
     parser.add_argument("--output", "-o", type=str, default=None)
     args = parser.parse_args()
 
@@ -65,10 +66,9 @@ def main():
     for set_name, set_def in sets.items():
         logger.info("replacing set %s", set_name)
         for enc, instr_def in set_def.instructions.items():
-            PREFIX = True
-            if PREFIX:
-                instr_def.name = f"SEAL5_{instr_def.name}"
-                instr_def.mnemonic = f"seal5.{instr_def.mnemonic}"
+            if args.prefix:
+                instr_def.name = f"{args.prefix.upper()}_{instr_def.name}"
+                instr_def.mnemonic = f"{args.prefix.lower()}.{instr_def.mnemonic}"
             set_def.instructions[enc] = seal5_model.Seal5Instruction(
                 instr_def.name,
                 instr_def.attributes,
