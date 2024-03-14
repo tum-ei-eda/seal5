@@ -192,13 +192,14 @@ def main():
 
     def check_filter_regex(name, keep, drop):
         if drop and keep:
-            return not any(re.compile(expr).match(name) for expr in drop) and any(re.compile(expr).match(name) for expr in keep)
+            return not any(re.compile(expr).match(name) for expr in drop) and any(
+                re.compile(expr).match(name) for expr in keep
+            )
         elif keep:
             return any(re.compile(expr).match(name) for expr in keep)
         elif drop:
             return not any(re.compile(expr).match(name) for expr in drop)
         return True
-
 
     def check_encoding_filter(enc, keep, drop, keep2, drop2):
         opcode = None
@@ -236,7 +237,9 @@ def main():
         return True
 
     model["sets"] = {
-        set_name: set_def for set_name, set_def in model["sets"].items() if check_filter_regex(set_name, keep_sets, drop_sets)
+        set_name: set_def
+        for set_name, set_def in model["sets"].items()
+        if check_filter_regex(set_name, keep_sets, drop_sets)
     }
     for set_name, set_def in model["sets"].items():
         set_def.instructions = {
