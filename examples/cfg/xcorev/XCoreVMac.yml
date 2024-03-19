@@ -11,4 +11,4 @@ passes:
     XCoreVMac:
       overrides:
         convert_models:
-          prefix: "SEAL5"
+          prefix: "SEAL5_"

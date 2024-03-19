@@ -8,7 +8,7 @@ extensions:
     vendor: true
 passes:
   per_model:
-    XCoreVMac:
+    XCoreVBranchImmediate:
       overrides:
         convert_models:
-          prefix: "SEAL5"
+          prefix: "SEAL5_"
