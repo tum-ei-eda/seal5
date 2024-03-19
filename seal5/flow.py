@@ -382,7 +382,13 @@ class Seal5Flow:
     def load(self, files: List[Path], verbose: bool = False, overwrite: bool = False):
         logger.info("Loading Seal5 inputs")
         # Expand glob patterns
-        files = sum([list(map(Path, glob.glob(str(file)))) for file in files], [])
+
+        def glob_helper(file):
+            res = glob.glob(str(file))
+            assert len(res) > 0, f"No files found for pattern: {file}"
+            return list(map(Path, res))
+
+        files = sum([glob_helper(file) for file in files], [])
         for file in files:
             logger.info("Processing file: %s", file)
             ext = file.suffix
