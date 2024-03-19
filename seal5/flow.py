@@ -90,7 +90,7 @@ class Seal5Flow:
         self.name: str = name
         self.state: Seal5State = Seal5State.UNKNOWN
         self.passes: List[Seal5Pass] = []  # TODO: implement PassManager
-        self.repo: Optional[git.Repo] = git.Repo(self.directory)
+        self.repo: Optional[git.Repo] = git.Repo(self.directory) if self.directory.is_dir() else None
         self.check()
         self.settings = Seal5Settings.from_dict(DEFAULT_SETTINGS)
         # self.settings: Seal5Settings = Seal5Settings(directory=self.directory)
@@ -713,13 +713,13 @@ class Seal5Flow:
         metrics = {}
         if interactive:
             raise NotImplementedError
-        if settings:
-            self.settings.reset()
+        self.settings.reset()
         end = time.time()
         diff = end - start
         metrics["time_s"] = diff
         self.settings.metrics.append({"reset": metrics})
-        self.settings.save()
+        if self.settings.meta_dir.is_dir():
+            self.settings.save()
         logger.info("Completed clean of Seal5 settings")
 
     def clean(
@@ -764,5 +764,6 @@ class Seal5Flow:
         diff = end - start
         metrics["time_s"] = diff
         self.settings.metrics.append({"clean": metrics})
-        self.settings.save()
+        if self.settings.meta_dir.is_dir():
+            self.settings.save()
         logger.info("Completed clean of Seal5 directories")
