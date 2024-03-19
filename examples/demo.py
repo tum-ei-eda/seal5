@@ -62,9 +62,9 @@ cdsl_files = [
     # XCOREV
     EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMac.core_desc",
     EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVAlu.core_desc",
-    # EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVBitmanip.core_desc",
+    EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVBitmanip.core_desc",
     EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVSimd.core_desc",
-    # EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMem.core_desc",
+    EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMem.core_desc",
     # EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVBranchImmediate.core_desc",
     # RVP (will not work)
     # EXAMPLES_DIR / "cdsl" / "RV32P.core_desc",
@@ -97,11 +97,11 @@ seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 # Load YAML inputs
 cfg_files = [
     # XCOREV
-    # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVMac.yml",
-    # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVAlu.yml",
-    # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVBitmanip.yml",
-    # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVSimd.yml",
-    # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVMem.yml",
+    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVMac.yml",
+    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVAlu.yml",
+    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVBitmanip.yml",
+    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVSimd.yml",
+    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVMem.yml",
     # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVBranchImmediate.yml",
     # S4E
     # TUMEDA
