@@ -62,9 +62,10 @@ def clone_llvm_repo(
             repo = git.Repo(dest)
             repo.remotes.origin.set_url(clone_url)
             repo.remotes.origin.fetch()
-            if ref and ref not in repo.tags:
+            if ref:
                 repo.git.checkout(ref)
-                repo.git.pull("origin", ref)
+                if ref not in repo.tags:
+                    repo.git.pull("origin", ref)
     else:
         logger.debug("Cloning LLVM repository: %s", clone_url)
         repo = git.Repo.clone_from(clone_url, dest, no_checkout=ref is not None)
