@@ -114,6 +114,7 @@ def main():
             ext_settings = set_def.settings
             set_dir = out_path / set_name
             includes = []
+
             def process_instrunction(instr_def):
                 metrics["n_instructions"] += 1
                 input_file = out_path / set_name / f"{instr_def.name}.core_desc"
@@ -181,6 +182,7 @@ def main():
                     metrics["n_failed"] += 1
                     # errs.append((insn_name, str(ex)))
                 return True
+
             with ThreadPoolExecutor(args.parallel) as executor:
                 futures = []
                 for instr_def in set_def.instructions.values():

@@ -806,6 +806,7 @@ def convert_behav_to_tablegen(
         args.extend(["--index", index_file])
     if parallel:
         import multiprocessing
+
         num_threads = multiprocessing.cpu_count()
         args.extend(["--parallel", str(num_threads)])
     utils.python(
