@@ -9,6 +9,6 @@ extensions:
 passes:
   per_model:
     XCoreVMac:
-      override:
+      overrides:
         convert_models:
           prefix: "SEAL5"
