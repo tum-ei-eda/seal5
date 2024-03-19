@@ -45,14 +45,16 @@ seal5_flow = Seal5Flow("/tmp/seal5_llvm_demo", "demo")
 seal5_flow.reset(settings=True, interactive=False)
 seal5_flow.clean(temp=True, patches=True, models=True, inputs=True, interactive=INTERACTIVE)
 
+if PREPATCHED:
+    if seal5_flow.repo is None or "seal5-demo-stage0" not in seal5_flow.repo.tags:
+        raise RuntimeError("PREPATCHED can only be used after LLVM was patched at least once.")
+
 # Clone LLVM and init seal5 metadata directory
 seal5_flow.initialize(
     clone=True,
-    clone_url="git@gitlab.lrz.de:de-tum-ei-eda-esl/llvm/core-v-llvm-project.git"
-    if PREPATCHED
-    else "https://github.com/llvm/llvm-project.git",
+    clone_url="https://github.com/llvm/llvm-project.git",
     # clone_ref="llvmorg-17.0.6",
-    clone_ref="seal5-demo-prepatched" if PREPATCHED else "llvmorg-18.1.0-rc3",
+    clone_ref="seal5-demo-stage0" if PREPATCHED else "llvmorg-18.1.0-rc3",
     force=True,
     verbose=VERBOSE,
 )

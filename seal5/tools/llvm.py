@@ -62,7 +62,7 @@ def clone_llvm_repo(
             repo = git.Repo(dest)
             repo.remotes.origin.set_url(clone_url)
             repo.remotes.origin.fetch()
-            if ref:
+            if ref and ref not in repo.tags:
                 repo.git.checkout(ref)
                 repo.git.pull("origin", ref)
     else:
@@ -89,7 +89,7 @@ def clone_llvm_repo(
             version_info["rc"] = int(rc)
 
     sha = repo.head.commit.hexsha
-    return sha, version_info
+    return repo, sha, version_info
 
 
 def build_llvm(

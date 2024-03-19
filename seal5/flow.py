@@ -90,6 +90,7 @@ class Seal5Flow:
         self.name: str = name
         self.state: Seal5State = Seal5State.UNKNOWN
         self.passes: List[Seal5Pass] = []  # TODO: implement PassManager
+        self.repo: Optional[git.Repo] = git.Repo(self.directory)
         self.check()
         self.settings = Seal5Settings.from_dict(DEFAULT_SETTINGS)
         # self.settings: Seal5Settings = Seal5Settings(directory=self.directory)
@@ -228,10 +229,12 @@ class Seal5Flow:
             if clone is False and not utils.ask_user("Clone LLVM repository?", default=False, interactive=interactive):
                 logger.error("Target directory does not exist! Aborting...")
                 sys.exit(1)
-            sha, version_info = llvm.clone_llvm_repo(self.directory, clone_url, ref=clone_ref, label=self.name)
+            self.repo, sha, version_info = llvm.clone_llvm_repo(
+                self.directory, clone_url, ref=clone_ref, label=self.name
+            )
         else:
             if force:
-                sha, version_info = llvm.clone_llvm_repo(
+                self.repo, sha, version_info = llvm.clone_llvm_repo(
                     self.directory, clone_url, ref=clone_ref, refresh=True, label=self.name
                 )
         if self.settings.meta_dir.is_dir():
@@ -623,6 +626,10 @@ class Seal5Flow:
                     # skipping
                     continue
                 self.apply_patch(patch, force=force)
+            assert self.repo is not None
+            tag_name = f"seal5-{self.name}-stage{int(stage)}"
+            tag_msg = f"Patched Seal5 LLVM after {stage}"
+            self.repo.create_tag(tag_name, message=tag_msg, force=True)
         end = time.time()
         diff = end - start
         metrics["time_s"] = diff
