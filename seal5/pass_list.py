@@ -17,6 +17,7 @@ def convert_models(
     env: Optional[dict] = None,
     verbose: bool = False,
     inplace: bool = False,
+    prefix: Optional[str] = None,
     **kwargs,
 ):
     assert not inplace
@@ -35,6 +36,9 @@ def convert_models(
         "info",
         # "debug",
     ]
+    if prefix:
+        assert isinstance(prefix, str)
+        args.extend(["--prefix", prefix])
     utils.python(
         "-m",
         "seal5.transform.converter",
