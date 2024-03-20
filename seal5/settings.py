@@ -553,6 +553,12 @@ class Seal5Settings(YAMLSettings):
             ),
             per_model={},
         )
+        self.riscv = RISCVSettings(
+            xlen=None,
+            features=None,
+            transform_info=None,
+            legalization=None,
+        )
 
     def save(self, dest: Optional[Path] = None):
         if dest is None:

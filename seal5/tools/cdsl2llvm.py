@@ -132,13 +132,14 @@ def run_pattern_gen(
     if not isinstance(build_dir, Path):
         build_dir = Path(build_dir)
     pattern_gen_args = [src]
-    pattern_gen_args.extend(["-custom-legalizer-settings=foo", "-disable-gisel-legality-check"])
+    # pattern_gen_args.extend(["-custom-legalizer-settings=foo", "-disable-gisel-legality-check"])
 
     if dest:
         pattern_gen_args.extend(["-o", str(dest)])
 
     if ext:
-        pattern_gen_args.extend(["--ext", ext])
+        # pattern_gen_args.extend(["--ext", ext])
+        pattern_gen_args.extend(["-p", f"Has{ext}"])
 
     if mattr is None:
         attrs = ["+m", "+fast-unaligned-access"]
