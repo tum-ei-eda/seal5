@@ -17,6 +17,7 @@ patches:
     # file: /absolute/path/to/gitlab_ci.patch
   # - name: insert_markers_llvm17
   - name: insert_markers_llvm18
+  - name: legalizer_split
   # TODO:  automatially select patch depending on llvm version
   # generated patch (TODO: implement)
   # - name: ???

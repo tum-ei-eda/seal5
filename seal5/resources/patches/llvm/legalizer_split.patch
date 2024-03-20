@@ -1,0 +1,24 @@
+diff --git a/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp b/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
+--- a/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
++++ b/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
+@@ -299,11 +299,14 @@ RISCVLegalizerInfo::RISCVLegalizerInfo(const RISCVSubtarget &ST)
+     AbsActions.customFor({s32, sXLen}).minScalar(0, sXLen);
+   AbsActions.lower();
+
+-  auto &MinMaxActions =
+-      getActionDefinitionsBuilder({G_UMAX, G_UMIN, G_SMAX, G_SMIN});
+-  if (ST.hasStdExtZbb())
+-    MinMaxActions.legalFor({sXLen}).minScalar(0, sXLen);
+-  MinMaxActions.lower();
++  // auto &MinMaxActions =
++  //     getActionDefinitionsBuilder({G_UMAX, G_UMIN, G_SMAX, G_SMIN});
++  for (auto &Op : {G_UMAX, G_UMIN, G_SMAX, G_SMIN}) {
++    auto &Actions = getActionDefinitionsBuilder(Op);
++    if (ST.hasStdExtZbb())
++      Actions.legalFor({sXLen}).minScalar(0, sXLen);
++    Actions.lower();
++  }
+
+   getActionDefinitionsBuilder(G_FRAME_INDEX).legalFor({p0});
+
+
