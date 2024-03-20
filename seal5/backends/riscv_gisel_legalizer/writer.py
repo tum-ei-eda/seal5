@@ -71,7 +71,12 @@ def gen_riscv_gisel_legalizer_str(legalizer_settings: RISCVLegalizerSettings):
                 line = type_helper(ty)
                 types_lines.append(line)
                 used_types.append(ty)
-        names_str = "{" + ", ".join(names) + "}"
+        assert len(names) > 0
+        if len(names) == 1:
+            names_str = names[0]
+        else:  # TODO: iterate over ops!
+            raise NotImplementedError
+            names_str = "{" + ", ".join(names) + "}"
         line = ""
         if onlyif:
             cond = " && ".join(["ST." + pred[0].lower() + pred[1:] + "()" for pred in onlyif])
