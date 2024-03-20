@@ -1,0 +1,90 @@
+import "../rv_base/RV32I.core_desc"
+
+InstructionSet Seal5Test_alu extends RV32I {
+    instructions {
+        abs {
+            encoding: 7'b0000000 :: 5'b00000 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.abs", "{name(rd)}, {name(rs1)}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<32>)(X[rs1]) < 0 ? -(signed<32>)(X[rs1]) : (signed<32>)(X[rs1]);
+            }
+        }
+        min {
+            encoding: 7'b0000001 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.min", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<32>)(X[rs1]) < (signed<32>)(X[rs2]) ? (signed<32>)(X[rs1]) : (signed<32>)(X[rs2]);
+            }
+        }
+        max {
+            encoding: 7'b0000010 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.max", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<32>)(X[rs1]) > (signed<32>)(X[rs2]) ? (signed<32>)(X[rs1]) : (signed<32>)(X[rs2]);
+            }
+        }
+        slet {
+            encoding: 7'b0000011 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.slet", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<32>)(X[rs1]) <= (signed<32>)(X[rs2]) ? 1 : 0;
+            }
+        }
+        addNr {
+            encoding: 7'b0000100 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.addNr", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] + (signed<32>)(X[rs1]) >> (signed<32>)(X[rs2])[4:0];
+            }
+        }
+        subNr {
+            encoding: 7'b0000101 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.subNr", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] - (signed<32>)(X[rs1]) >> (signed<32>)(X[rs2])[4:0];
+            }
+        }
+        addRNr {
+            encoding: 7'b0000110 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.addRNr", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] + (signed<32>)(X[rs1]) + 2 ^ (signed<32>)(X[rs2])[4:0] - 1 >> (signed<32>)(X[rs2])[4:0];
+            }
+        }
+        subRNr {
+            encoding: 7'b0000111 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.subRNr", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] - (signed<32>)(X[rs1]) + 2 ^ (signed<32>)(X[rs2])[4:0] - 1 >> (signed<32>)(X[rs2])[4:0];
+            }
+        }
+        addN {
+            encoding: 2'b00 :: imm5[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.addN", "{name(rd)}, {name(rs1)}, {name(rs2)}, {imm5}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<32>)(X[rs1]) + (signed<32>)(X[rs2]) >> (unsigned<5>)(imm5);
+            }
+        }
+        subN {
+            encoding: 2'b01 :: imm5[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.subN", "{name(rd)}, {name(rs1)}, {name(rs2)}, {imm5}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<32>)(X[rs1]) - (signed<32>)(X[rs2]) >> (unsigned<5>)(imm5);
+            }
+        }
+        addRN {
+            encoding: 2'b10 :: imm5[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.addRN", "{name(rd)}, {name(rs1)}, {name(rs2)}, {imm5}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<32>)(X[rs1]) + (signed<32>)(X[rs2]) + 2 ^ (unsigned<5>)(imm5) - 1 >> (unsigned<5>)(imm5);
+            }
+        }
+        subRN {
+            encoding: 2'b11 :: imm5[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.subRN", "{name(rd)}, {name(rs1)}, {name(rs2)}, {imm5}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<32>)(X[rs1]) - (signed<32>)(X[rs2]) + 2 ^ (unsigned<5>)(imm5) - 1 >> (unsigned<5>)(imm5);
+            }
+        }
+    }
+}
