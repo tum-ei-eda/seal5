@@ -1,0 +1,12 @@
+---
+extensions:
+  XISE:
+    version: "1.0"
+    experimental: true
+    vendor: true
+passes:
+  per_model:
+    OpenASIP:
+      overrides:
+        convert_models:
+          prefix: "SEAL5_"

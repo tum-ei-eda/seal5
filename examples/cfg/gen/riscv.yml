@@ -1,0 +1,41 @@
+---
+riscv:
+  xlen: 32
+  features:
+  - m
+  - fast-unaligned-access
+  # - gpr32v
+riscv:
+  legalization:
+    gisel:
+      ops:
+      - name:
+        - G_ABS
+        onlyif:
+        - HasExtseal5testalucvabs
+        types:
+        - s32
+      - name:
+        - G_UMIN
+        onlyif:
+        - HasExtseal5testalucvminu
+        types:
+        - s32
+      - name:
+        - G_SMIN
+        onlyif:
+        - HasExtseal5testalucvmins
+        types:
+        - s32
+      - name:
+        - G_UMAX
+        onlyif:
+        - HasExtseal5testalucvmaxu
+        types:
+        - s32
+      - name:
+        - G_SMAX
+        onlyif:
+        - HasExtseal5testalucvmaxs
+        types:
+        - s32

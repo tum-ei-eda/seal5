@@ -1,0 +1,6 @@
+---
+passes:
+  defaults:
+    overrides:
+      behav_to_pat:
+        parallel: true
