@@ -44,7 +44,7 @@ def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings):
     content_template = Template(MAKO_TEMPLATE)
     content_text = content_template.render(predicate=predicate, feature=feature, arch=arch, description=description)
     # content_text = content_text.rstrip("\n")
-    return content_text
+    return content_text + "\n"
 
 
 def main():
