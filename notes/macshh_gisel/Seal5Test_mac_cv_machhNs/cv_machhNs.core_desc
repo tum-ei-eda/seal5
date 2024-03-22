@@ -1,0 +1,17 @@
+InstructionSet Seal5Test_mac_cv_machhNs extends RV32I {
+    instructions {
+        cv_machhNs {
+            operands: {
+                unsigned<5> rd [[is_reg]] [[inout]];
+                unsigned<5> rs1 [[is_reg]] [[in]];
+                unsigned<5> rs2 [[is_reg]] [[in]];
+                unsigned<5> Is3 [[is_imm]] [[in]];
+            }
+            encoding: 2'b11 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1011011;
+            assembly: "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}";
+            behavior: {
+                X[rd] = ((signed<16>)((X[rs1])[31:16]) * (signed<16>)((X[rs2])[31:16]) + (signed)((X[rd])) >> (unsigned<5>)((Is3)))[31:0];
+            }
+        }
+    }
+}

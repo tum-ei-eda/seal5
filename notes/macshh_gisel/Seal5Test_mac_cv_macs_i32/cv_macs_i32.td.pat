@@ -1,0 +1,1 @@
+ (add (mul GPR:$rs2, GPR:$rs1), GPR:$rd)

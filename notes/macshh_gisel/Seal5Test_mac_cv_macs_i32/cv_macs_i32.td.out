@@ -1,0 +1,1 @@
+Pattern for cv_macs_i32: (add (mul GPR:$rs2, GPR:$rs1), GPR:$rd)
