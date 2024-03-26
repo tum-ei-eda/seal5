@@ -107,6 +107,7 @@ cfg_files = [
     # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVBranchImmediate.yml",
     # S4E
     # TUMEDA
+    EXAMPLES_DIR / "cfg" / "tumeda" / "OpenASIP.yml",
     # GENERATED
     # OTHERS
     EXAMPLES_DIR / "cfg" / "llvm.yml",
