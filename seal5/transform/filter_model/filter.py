@@ -201,7 +201,7 @@ def main():
             return not any(re.compile(expr).match(name) for expr in drop)
         return True
 
-    def check_encoding_filter(enc, keep, drop, keep2, drop2):
+    def check_encoding_filter(name, enc, keep, drop, keep2, drop2):
         opcode = None
         size = 0
         for e in reversed(enc):
@@ -217,7 +217,7 @@ def main():
             else:
                 assert False
             size += length
-        assert size in [16, 32, 64, 128], f"Invalid size: {size}"
+        assert size in [16, 32, 64, 128], f"Invalid size: {size} (Instruction: {name})"
         if drop2 and keep2:
             ret = size not in drop2 and size in keep2
         elif keep2:
@@ -247,7 +247,7 @@ def main():
             for key, instr_def in set_def.instructions.items()
             if check_filter_regex(instr_def.name, keep_instructions, drop_instructions)
             and check_encoding_filter(
-                instr_def.encoding, keep_opcodes, drop_opcodes, keep_encoding_sizes, drop_encoding_sizes
+                instr_def.name, instr_def.encoding, keep_opcodes, drop_opcodes, keep_encoding_sizes, drop_encoding_sizes
             )
         }
         # for instr_name, instr_def in set_def.instructions.items():
