@@ -1,0 +1,66 @@
+diff --git a/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp b/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp
+--- a/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp
++++ b/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp
+@@ -74,6 +74,19 @@ static DecodeStatus DecodeGPRRegisterClass(MCInst &Inst, uint32_t RegNo,
+   return MCDisassembler::Success;
+ }
+
++// LLVMGEN: need to this to compile new reg classes
++static DecodeStatus DecodeGPR32V2RegisterClass(MCInst &Inst, uint64_t RegNo,
++                                               uint64_t Address,
++                                               const MCDisassembler *Decoder) {
++  return DecodeGPRRegisterClass(Inst, RegNo, Address, Decoder);
++}
++
++static DecodeStatus DecodeGPR32V4RegisterClass(MCInst &Inst, uint64_t RegNo,
++                                               uint64_t Address,
++                                               const MCDisassembler *Decoder) {
++  return DecodeGPRRegisterClass(Inst, RegNo, Address, Decoder);
++}
++
+ static DecodeStatus DecodeGPRX1X5RegisterClass(MCInst &Inst, uint32_t RegNo,
+                                                uint64_t Address,
+                                                const MCDisassembler *Decoder) {
+diff --git a/llvm/lib/Target/RISCV/GISel/RISCVRegisterBankInfo.cpp b/llvm/lib/Target/RISCV/GISel/RISCVRegisterBankInfo.cpp
+--- a/llvm/lib/Target/RISCV/GISel/RISCVRegisterBankInfo.cpp
++++ b/llvm/lib/Target/RISCV/GISel/RISCVRegisterBankInfo.cpp
+@@ -80,6 +80,8 @@ RISCVRegisterBankInfo::getRegBankFromRegClass(const TargetRegisterClass &RC,
+   switch (RC.getID()) {
+   default:
+     llvm_unreachable("Register class not supported");
++  case RISCV::GPR32V2RegClassID:
++  case RISCV::GPR32V4RegClassID:
+   case RISCV::GPRRegClassID:
+   case RISCV::GPRF16RegClassID:
+   case RISCV::GPRF32RegClassID:
+diff --git a/llvm/lib/Target/RISCV/RISCVRegisterInfo.td b/llvm/lib/Target/RISCV/RISCVRegisterInfo.td
+--- a/llvm/lib/Target/RISCV/RISCVRegisterInfo.td
++++ b/llvm/lib/Target/RISCV/RISCVRegisterInfo.td
+@@ -606,6 +606,27 @@ def FFLAGS : RISCVReg<0, "fflags">;
+ def FRM    : RISCVReg<0, "frm">;
+
+ // RISCVRegisterInfo.td - riscv_register_info - INSERTION_START
++def GPR32V2 : RegisterClass<"RISCV", [v2i16], 32, (add
++    (sequence "X%u", 10, 17),
++    (sequence "X%u", 5, 7),
++    (sequence "X%u", 28, 31),
++    (sequence "X%u", 8, 9),
++    (sequence "X%u", 18, 27),
++    (sequence "X%u", 0, 4)
++  )> {
++    let RegInfos = XLenRI;
++}
++
++def GPR32V4 : RegisterClass<"RISCV", [v4i8], 32, (add
++    (sequence "X%u", 10, 17),
++    (sequence "X%u", 5, 7),
++    (sequence "X%u", 28, 31),
++    (sequence "X%u", 8, 9),
++    (sequence "X%u", 18, 27),
++    (sequence "X%u", 0, 4)
++  )> {
++    let RegInfos = XLenRI;
++}
+ // RISCVRegisterInfo.td - riscv_register_info - INSERTION_END
+
+ // Shadow Stack register
