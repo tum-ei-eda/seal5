@@ -170,6 +170,7 @@ def gen_riscv_instr_info_str(instr):
     print("operands", operands)
     reads = []
     writes = []
+    constraints = []
     for op_name, op in operands.items():
         print("op", op)
         print("op.constraints", op.constraints)
@@ -195,6 +196,9 @@ def gen_riscv_instr_info_str(instr):
             writes.append(op_str2)
             op_str = f"{pre}:${op_name}"
             reads.append(op_str)
+            constraint = f"${op_name} = ${op_name}_wb"
+            constraints.append(constraint)
+
         elif Seal5OperandAttribute.OUT in op.attributes:
             op_str = f"{pre}:${op_name}"
             writes.append(op_str)
@@ -203,6 +207,8 @@ def gen_riscv_instr_info_str(instr):
             reads.append(op_str)
     print("reads", reads)
     print("writes", writes)
+    print("constraints", constraints)
+    # constraints_str = ", ".join(constraints)
     attributes = instr.attributes
     print("attributes", attributes)
     real_name = instr.mnemonic
@@ -251,9 +257,9 @@ def gen_riscv_instr_info_str(instr):
         attrs["isTerminator"] = 1
     else:
         attrs["isTerminator"] = 0
-    constraints = instr.constraints
-    if len(constraints) > 0:
-        raise NotImplementedError
+    # constraints = instr.constraints
+    # if len(constraints) > 0:
+    #     raise NotImplementedError
     formats = True
     tablegen_str = write_riscv_instruction_info(
         name,
