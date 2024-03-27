@@ -33,7 +33,7 @@ class LoadOrder(CoreDSL2Visitor):
         self.instruction_sets[name] = ctx
         stack = []
         for e in ctx.extension:
-            assert e.text in self.stacks
+            assert e.text in self.stacks, f"Set not found: {e.text}. Missing include?"
             for x in self.stacks[e.text]:
                 if x not in stack:
                     stack.append(x)
