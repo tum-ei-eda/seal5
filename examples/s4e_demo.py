@@ -73,7 +73,7 @@ seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 
 # Load YAML inputs
 cfg_files = [
-    EXAMPLES_DIR / "cfg" / "s4e" / "???.yml",
+    EXAMPLES_DIR / "cfg" / "s4e" / "s4e-mac.yml",
     EXAMPLES_DIR / "cfg" / "llvm.yml",
     EXAMPLES_DIR / "cfg" / "filter.yml",
     EXAMPLES_DIR / "cfg" / "patches.yml",
