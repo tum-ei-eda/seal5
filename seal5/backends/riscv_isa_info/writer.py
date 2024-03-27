@@ -136,7 +136,7 @@ def main():
             key, new_content = gen_riscv_isa_info_str(set_name, ext_settings=ext_settings, llvm_version=llvm_version)
             contents.append((key, new_content))
         contents = sorted(contents, key=lambda x: x[0])
-        content = "\n".join([x[1] for x in contents]) + "\n"
+        content = "\n".join([x[1] for x in contents])
         if len(content) > 0:
             with open(out_path, "w") as f:
                 f.write(content)
