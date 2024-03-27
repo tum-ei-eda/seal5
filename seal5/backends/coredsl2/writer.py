@@ -204,7 +204,7 @@ class CoreDSL2Writer:
     def write_operands(self, operands):
         self.write("operands: ")
         if len(operands) == 0:
-            self.write_line("{};")
+            self.write_line("{}")
             return
         self.enter_block()
         # print("operands", operands)
