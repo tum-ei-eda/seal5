@@ -1,0 +1,869 @@
+import "../rv_base/RV32I.core_desc"
+
+InstructionSet Seal5Test_alu_cv_abs extends RV32I {
+    instructions {
+        cv_abs {
+            encoding: 7'b0000000 :: 5'b00000 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.abs", "{name(rd)}, {name(rs1)}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed)(X[rs1]) < 0 ? -X[rs1] : X[rs1];
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_mini5_16 extends RV32I {
+    instructions {
+        cv_mini5_16 {
+            encoding: 7'b0000001 :: imm5[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.mini5.16", "{name(rd)}, {name(rs1)}, {imm5}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<16>)(X[rs1]) < (signed<5>)(imm5) ? (signed<16>)(X[rs1]) : (signed<5>)(imm5);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_mini5_32 extends RV32I {
+    instructions {
+        cv_mini5_32 {
+            encoding: 7'b0000010 :: imm5[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.mini5.32", "{name(rd)}, {name(rs1)}, {imm5}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<32>)(X[rs1]) < (signed<5>)(imm5) ? (signed<32>)(X[rs1]) : (signed<5>)(imm5);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_mini12_16 extends RV32I {
+    instructions {
+        cv_mini12_16 {
+            encoding: imm5[11:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.mini12.16", "{name(rd)}, {name(rs1)}, {imm5}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<16>)(X[rs1]) < (signed<12>)(imm5) ? (signed<16>)(X[rs1]) : (signed<12>)(imm5);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_mini12_32 extends RV32I {
+    instructions {
+        cv_mini12_32 {
+            encoding: imm5[11:0] :: rs1[4:0] :: 3'b010 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.mini12.32", "{name(rd)}, {name(rs1)}, {imm5}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<32>)(X[rs1]) < (signed<12>)(imm5) ? (signed<32>)(X[rs1]) : (signed<12>)(imm5);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_maxi5_16 extends RV32I {
+    instructions {
+        cv_maxi5_16 {
+            encoding: 7'b0000011 :: imm5[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.maxi5.16", "{name(rd)}, {name(rs1)}, {imm5}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<16>)(X[rs1]) > (signed<5>)(imm5) ? (signed<16>)(X[rs1]) : (signed<5>)(imm5);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_maxi5_32 extends RV32I {
+    instructions {
+        cv_maxi5_32 {
+            encoding: 7'b0000100 :: imm5[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.maxi5.32", "{name(rd)}, {name(rs1)}, {imm5}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<32>)(X[rs1]) > (signed<5>)(imm5) ? (signed<32>)(X[rs1]) : (signed<5>)(imm5);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_maxi12_16 extends RV32I {
+    instructions {
+        cv_maxi12_16 {
+            encoding: imm5[11:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.maxi12.16", "{name(rd)}, {name(rs1)}, {imm5}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<16>)(X[rs1]) > (signed<12>)(imm5) ? (signed<16>)(X[rs1]) : (signed<12>)(imm5);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_maxi12_32 extends RV32I {
+    instructions {
+        cv_maxi12_32 {
+            encoding: imm5[11:0] :: rs1[4:0] :: 3'b100 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.maxi12.32", "{name(rd)}, {name(rs1)}, {imm5}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<32>)(X[rs1]) > (signed<12>)(imm5) ? (signed<32>)(X[rs1]) : (signed<12>)(imm5);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_minu_i16 extends RV32I {
+    instructions {
+        cv_minu_i16 {
+            encoding: 7'b0000101 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.minu.i16", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = (unsigned<16>)(X[rs1]) < (unsigned<16>)(X[rs2]) ? (unsigned<16>)(X[rs1]) : (unsigned<16>)(X[rs2]);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_mins_i16 extends RV32I {
+    instructions {
+        cv_mins_i16 {
+            encoding: 7'b0000110 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.mins.i16", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<16>)(X[rs1]) < (signed<16>)(X[rs2]) ? (signed<16>)(X[rs1]) : (signed<16>)(X[rs2]);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_minu_i32 extends RV32I {
+    instructions {
+        cv_minu_i32 {
+            encoding: 7'b0000111 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.minu.i32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rs1] < X[rs2] ? X[rs1] : X[rs2];
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_mins_i32 extends RV32I {
+    instructions {
+        cv_mins_i32 {
+            encoding: 7'b0001000 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.mins.i32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<32>)(X[rs1]) < (signed<32>)(X[rs2]) ? (signed<32>)(X[rs1]) : (signed<32>)(X[rs2]);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_maxu_i16 extends RV32I {
+    instructions {
+        cv_maxu_i16 {
+            encoding: 7'b0001001 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.maxu.i16", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = (unsigned<16>)(X[rs1]) > (unsigned<16>)(X[rs2]) ? (unsigned<16>)(X[rs1]) : (unsigned<16>)(X[rs2]);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_maxs_i16 extends RV32I {
+    instructions {
+        cv_maxs_i16 {
+            encoding: 7'b0001010 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.maxs.i16", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<16>)(X[rs1]) > (signed<16>)(X[rs2]) ? (signed<16>)(X[rs1]) : (signed<16>)(X[rs2]);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_maxu_i32 extends RV32I {
+    instructions {
+        cv_maxu_i32 {
+            encoding: 7'b0001011 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.maxu.i32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rs1] > X[rs2] ? X[rs1] : X[rs2];
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_maxs_i32 extends RV32I {
+    instructions {
+        cv_maxs_i32 {
+            encoding: 7'b0001100 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.maxs.i32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<32>)(X[rs1]) > (signed<32>)(X[rs2]) ? (signed<32>)(X[rs1]) : (signed<32>)(X[rs2]);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_sletu_i16 extends RV32I {
+    instructions {
+        cv_sletu_i16 {
+            encoding: 7'b0001101 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.sletu.i16", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = (unsigned<16>)(X[rs1]) <= (unsigned<16>)(X[rs2]) ? 1 : 0;
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_slets_i16 extends RV32I {
+    instructions {
+        cv_slets_i16 {
+            encoding: 7'b0001110 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.slets.i16", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<16>)(X[rs1]) <= (signed<16>)(X[rs2]) ? 1 : 0;
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_sletu_i32 extends RV32I {
+    instructions {
+        cv_sletu_i32 {
+            encoding: 7'b0001111 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.sletu.i32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rs1] <= X[rs2] ? 1 : 0;
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_slets_i32 extends RV32I {
+    instructions {
+        cv_slets_i32 {
+            encoding: 7'b0010000 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.slets.i32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<32>)(X[rs1]) <= (signed<32>)(X[rs2]) ? 1 : 0;
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_addNru_i16 extends RV32I {
+    instructions {
+        cv_addNru_i16 {
+            encoding: 7'b0010001 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.addNru.i16", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] + (unsigned<16>)(X[rs1]) >> (unsigned<16>)(X[rs2])[4:0];
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_addNrs_i16 extends RV32I {
+    instructions {
+        cv_addNrs_i16 {
+            encoding: 7'b0010010 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.addNrs.i16", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] + (signed<16>)(X[rs1]) >> (signed<16>)(X[rs2])[4:0];
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_addNru_i32 extends RV32I {
+    instructions {
+        cv_addNru_i32 {
+            encoding: 7'b0010011 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.addNru.i32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] + X[rs1] >> X[rs2][4:0];
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_addNrs_i32 extends RV32I {
+    instructions {
+        cv_addNrs_i32 {
+            encoding: 7'b0010100 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.addNrs.i32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] + (signed<32>)(X[rs1]) >> (signed<32>)(X[rs2])[4:0];
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_subNru_i16 extends RV32I {
+    instructions {
+        cv_subNru_i16 {
+            encoding: 7'b0010101 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.subNru.i16", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] - (unsigned<16>)(X[rs1]) >> (unsigned<16>)(X[rs2])[4:0];
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_subNrs_i16 extends RV32I {
+    instructions {
+        cv_subNrs_i16 {
+            encoding: 7'b0010110 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.subNrs.i16", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] - (signed<16>)(X[rs1]) >> (signed<16>)(X[rs2])[4:0];
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_subNru_i32 extends RV32I {
+    instructions {
+        cv_subNru_i32 {
+            encoding: 7'b0010111 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.subNru.i32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] - X[rs1] >> X[rs2][4:0];
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_subNrs_i32 extends RV32I {
+    instructions {
+        cv_subNrs_i32 {
+            encoding: 7'b0011000 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.subNrs.i32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] - (signed<32>)(X[rs1]) >> (signed<32>)(X[rs2])[4:0];
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_addRNru_i16 extends RV32I {
+    instructions {
+        cv_addRNru_i16 {
+            encoding: 7'b0011001 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.addRNru.i16", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] + (unsigned<16>)(X[rs1]) + 2 ^ (unsigned<16>)(X[rs2])[4:0] - 1 >> (unsigned<16>)(X[rs2])[4:0];
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_addRNrs_i16 extends RV32I {
+    instructions {
+        cv_addRNrs_i16 {
+            encoding: 7'b0011010 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.addRNrs.i16", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] + (signed<16>)(X[rs1]) + 2 ^ (signed<16>)(X[rs2])[4:0] - 1 >> (signed<16>)(X[rs2])[4:0];
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_addRNru_i32 extends RV32I {
+    instructions {
+        cv_addRNru_i32 {
+            encoding: 7'b0011011 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.addRNru.i32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] + X[rs1] + 2 ^ X[rs2][4:0] - 1 >> X[rs2][4:0];
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_addRNrs_i32 extends RV32I {
+    instructions {
+        cv_addRNrs_i32 {
+            encoding: 7'b0011100 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.addRNrs.i32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] + (signed<32>)(X[rs1]) + 2 ^ (signed<32>)(X[rs2])[4:0] - 1 >> (signed<32>)(X[rs2])[4:0];
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_subRNru_i16 extends RV32I {
+    instructions {
+        cv_subRNru_i16 {
+            encoding: 7'b0011101 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.subRNru.i16", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] - (unsigned<16>)(X[rs1]) + 2 ^ (unsigned<16>)(X[rs2])[4:0] - 1 >> (unsigned<16>)(X[rs2])[4:0];
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_subRNrs_i16 extends RV32I {
+    instructions {
+        cv_subRNrs_i16 {
+            encoding: 7'b0011110 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.subRNrs.i16", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] - (signed<16>)(X[rs1]) + 2 ^ (signed<16>)(X[rs2])[4:0] - 1 >> (signed<16>)(X[rs2])[4:0];
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_subRNru_i32 extends RV32I {
+    instructions {
+        cv_subRNru_i32 {
+            encoding: 7'b0011111 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.subRNru.i32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] - X[rs1] + 2 ^ X[rs2][4:0] - 1 >> X[rs2][4:0];
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_subRNrs_i32 extends RV32I {
+    instructions {
+        cv_subRNrs_i32 {
+            encoding: 7'b0100000 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.subRNrs.i32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] - (signed<32>)(X[rs1]) + 2 ^ (signed<32>)(X[rs2])[4:0] - 1 >> (signed<32>)(X[rs2])[4:0];
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_addNu extends RV32I {
+    instructions {
+        cv_addNu {
+            encoding: 2'b00 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b101 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.addNu", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rs1] + X[rs2] >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_addNs extends RV32I {
+    instructions {
+        cv_addNs {
+            encoding: 2'b01 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b101 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.addNs", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<32>)(X[rs1]) + (signed<32>)(X[rs2]) >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_subNu extends RV32I {
+    instructions {
+        cv_subNu {
+            encoding: 2'b10 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b101 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.subNu", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rs1] - X[rs2] >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_subNs extends RV32I {
+    instructions {
+        cv_subNs {
+            encoding: 2'b11 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b101 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.subNs", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<32>)(X[rs1]) - (signed<32>)(X[rs2]) >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_addRNu extends RV32I {
+    instructions {
+        cv_addRNu {
+            encoding: 2'b00 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b110 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.addRNu", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rs1] + X[rs2] + 2 ^ (unsigned<5>)(Is3) - 1 >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_addRNs extends RV32I {
+    instructions {
+        cv_addRNs {
+            encoding: 2'b01 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b110 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.addRNs", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<32>)(X[rs1]) + (signed<32>)(X[rs2]) + 2 ^ (unsigned<5>)(Is3) - 1 >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_subRNu extends RV32I {
+    instructions {
+        cv_subRNu {
+            encoding: 2'b10 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b110 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.subRNu", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rs1] - X[rs2] + 2 ^ (unsigned<5>)(Is3) - 1 >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_alu_cv_subRNs extends RV32I {
+    instructions {
+        cv_subRNs {
+            encoding: 2'b11 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b110 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.subRNs", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<32>)(X[rs1]) - (signed<32>)(X[rs2]) + 2 ^ (unsigned<5>)(Is3) - 1 >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_macu_i16 extends RV32I {
+    instructions {
+        cv_macu_i16 {
+            encoding: 7'b0100001 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.macu.i16", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] + (unsigned<16>)(X[rs1]) * (signed<16>)(X[rs2]);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_macs_i16 extends RV32I {
+    instructions {
+        cv_macs_i16 {
+            encoding: 7'b0100010 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.macs.i16", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] + (signed<16>)(X[rs1]) * (signed<16>)(X[rs2]);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_macu_i32 extends RV32I {
+    instructions {
+        cv_macu_i32 {
+            encoding: 7'b0100011 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.macu.i32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] + X[rs1] * (signed<16>)(X[rs2]);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_macs_i32 extends RV32I {
+    instructions {
+        cv_macs_i32 {
+            encoding: 7'b0100100 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.macs.i32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] + (signed<32>)(X[rs1]) * (signed<16>)(X[rs2]);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_msuu_i16 extends RV32I {
+    instructions {
+        cv_msuu_i16 {
+            encoding: 7'b0100101 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.msuu.i16", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] - (unsigned<16>)(X[rs1]) * (signed<16>)(X[rs2]);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_msus_i16 extends RV32I {
+    instructions {
+        cv_msus_i16 {
+            encoding: 7'b0100110 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.msus.i16", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] - (signed<16>)(X[rs1]) * (signed<16>)(X[rs2]);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_msuu_i32 extends RV32I {
+    instructions {
+        cv_msuu_i32 {
+            encoding: 7'b0100111 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.msuu.i32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] - X[rs1] * (signed<16>)(X[rs2]);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_msus_i32 extends RV32I {
+    instructions {
+        cv_msus_i32 {
+            encoding: 7'b0101000 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.msus.i32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) {
+                X[rd] = X[rd] - (signed<32>)(X[rs1]) * (signed<16>)(X[rs2]);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_mulNu extends RV32I {
+    instructions {
+        cv_mulNu {
+            encoding: 2'b00 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b111 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.mulNu", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = (unsigned<16>)(X[rs1])[15:0] * (unsigned<16>)(X[rs2])[15:0] >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_mulNs extends RV32I {
+    instructions {
+        cv_mulNs {
+            encoding: 2'b01 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b111 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.mulNs", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<16>)(X[rs1])[15:0] * (signed<16>)(X[rs2])[15:0] >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_mulhhNu extends RV32I {
+    instructions {
+        cv_mulhhNu {
+            encoding: 2'b10 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b111 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.mulhhNu", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = (unsigned<16>)(X[rs1])[31:16] * (unsigned<16>)(X[rs2])[31:16] >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_mulhhNs extends RV32I {
+    instructions {
+        cv_mulhhNs {
+            encoding: 2'b11 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b111 :: rd[4:0] :: 7'b1111011;
+            assembly: {"cv.mulhhNs", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<16>)(X[rs1])[31:16] * (signed<16>)(X[rs2])[31:16] >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_mulRNu extends RV32I {
+    instructions {
+        cv_mulRNu {
+            encoding: 2'b00 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1011011;
+            assembly: {"cv.mulRNu", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = (unsigned<16>)(X[rs1])[15:0] * (unsigned<16>)(X[rs2])[15:0] + 2 ^ (unsigned<5>)(Is3) - 1 >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_mulRNs extends RV32I {
+    instructions {
+        cv_mulRNs {
+            encoding: 2'b01 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1011011;
+            assembly: {"cv.mulRNs", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<16>)(X[rs1])[15:0] * (signed<16>)(X[rs2])[15:0] + 2 ^ (unsigned<5>)(Is3) - 1 >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_mulhhRNu extends RV32I {
+    instructions {
+        cv_mulhhRNu {
+            encoding: 2'b10 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1011011;
+            assembly: {"cv.mulhhRNu", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = (unsigned<16>)(X[rs1])[31:16] * (unsigned<16>)(X[rs2])[31:16] + 2 ^ (unsigned<5>)(Is3) - 1 >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_mulhhRNs extends RV32I {
+    instructions {
+        cv_mulhhRNs {
+            encoding: 2'b11 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1011011;
+            assembly: {"cv.mulhhRNs", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<16>)(X[rs1])[31:16] * (signed<16>)(X[rs2])[31:16] + 2 ^ (unsigned<5>)(Is3) - 1 >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_macNu extends RV32I {
+    instructions {
+        cv_macNu {
+            encoding: 2'b00 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1011011;
+            assembly: {"cv.macNu", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = (unsigned<16>)(X[rs1])[15:0] * (unsigned<16>)(X[rs2])[15:0] + X[rd] >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_macNs extends RV32I {
+    instructions {
+        cv_macNs {
+            encoding: 2'b01 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1011011;
+            assembly: {"cv.macNs", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<16>)(X[rs1])[15:0] * (signed<16>)(X[rs2])[15:0] + X[rd] >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_machhNu extends RV32I {
+    instructions {
+        cv_machhNu {
+            encoding: 2'b10 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1011011;
+            assembly: {"cv.machhNu", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = (unsigned<16>)(X[rs1])[31:16] * (unsigned<16>)(X[rs2])[31:16] + X[rd] >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_machhNs extends RV32I {
+    instructions {
+        cv_machhNs {
+            encoding: 2'b11 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1011011;
+            assembly: {"cv.machhNs", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<16>)(X[rs1])[31:16] * (signed<16>)(X[rs2])[31:16] + X[rd] >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_macRNu extends RV32I {
+    instructions {
+        cv_macRNu {
+            encoding: 2'b00 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b010 :: rd[4:0] :: 7'b1011011;
+            assembly: {"cv.macRNu", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = (unsigned<16>)(X[rs1])[15:0] * (unsigned<16>)(X[rs2])[15:0] + X[rd] + 2 ^ (unsigned<5>)(Is3) - 1 >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_macRNs extends RV32I {
+    instructions {
+        cv_macRNs {
+            encoding: 2'b01 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b010 :: rd[4:0] :: 7'b1011011;
+            assembly: {"cv.macRNs", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<16>)(X[rs1])[15:0] * (signed<16>)(X[rs2])[15:0] + X[rd] + 2 ^ (unsigned<5>)(Is3) - 1 >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_machhRNu extends RV32I {
+    instructions {
+        cv_machhRNu {
+            encoding: 2'b10 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b010 :: rd[4:0] :: 7'b1011011;
+            assembly: {"cv.machhRNu", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = (unsigned<16>)(X[rs1])[31:16] * (unsigned<16>)(X[rs2])[31:16] + X[rd] + 2 ^ (unsigned<5>)(Is3) - 1 >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+
+InstructionSet Seal5Test_mac_cv_machhRNs extends RV32I {
+    instructions {
+        cv_machhRNs {
+            encoding: 2'b11 :: Is3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b010 :: rd[4:0] :: 7'b1011011;
+            assembly: {"cv.machhRNs", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Is3}"};
+            behavior: if (rd != 0) {
+                X[rd] = (signed<16>)(X[rs1])[31:16] * (signed<16>)(X[rs2])[31:16] + X[rd] + 2 ^ (unsigned<5>)(Is3) - 1 >> (unsigned<5>)(Is3);
+            }
+        }
+    }
+}
+InstructionSet Seal5Test_ext extends RV32I {
+    instructions {
+        CV_EXTHS {
+            encoding: 7'b0110000 :: 5'b00000 :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+            assembly: {"cv.exths", "{name(rd)}, {name(rs1)}" };
+            behavior: {
+                if (rd != 0) {
+                    X[rd] = (signed)X[rs1][15:0];
+                }
+            }
+        }
+        CV_EXTHZ {
+            encoding: 7'b0110001 :: 5'b00000 :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+            assembly: {"cv.exthz", "{name(rd)}, {name(rs1)}" };
+            behavior: {
+                if (rd != 0) {
+                    X[rd] = (unsigned)X[rs1][15:0];
+                }
+            }
+        }
+        CV_EXTBS {
+            encoding: 7'b0110010 :: 5'b00000 :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+            assembly: {"cv.extbs", "{name(rd)}, {name(rs1)}" };
+            behavior: {
+                if (rd != 0) {
+                    X[rd] = (signed)X[rs1][7:0];
+                }
+            }
+        }
+        CV_EXTBZ {
+            encoding: 7'b0110011 :: 5'b00000 :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+            assembly: {"cv.extbz", "{name(rd)}, {name(rs1)}" };
+            behavior: {
+                if (rd != 0) {
+                    X[rd] = (unsigned)X[rs1][7:0];
+                }
+            }
+        }
+    }
+}
