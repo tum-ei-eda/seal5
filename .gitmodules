@@ -7,3 +7,6 @@
 [submodule "examples/cdsl/rv_s4e"]
 	path = examples/cdsl/rv_s4e
 	url = https://github.com/DLR-SE/riscv-coredsl-extensions.git
+[submodule "examples/cdsl/rv_gen"]
+	path = examples/cdsl/rv_gen
+	url = https://github.com/PhilippvK/Gen_ISA_CoreDSL.git

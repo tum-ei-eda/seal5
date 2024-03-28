@@ -1,0 +1,216 @@
+import "../rv_base/RV32I.core_desc"
+
+InstructionSet XISE extends RV32I {
+  // functions {
+  //     unsigned<32> rotl32(unsigned<32> x, unsigned<32> n) {
+  //         return (x << n) | (x >> (32 - n))
+  //         // return (x << n) | (x >> (-(n)&31))
+  //     }
+  //     unsigned<32> rotr32(unsigned<32> x, unsigned<32> n) {
+  //         return (x >> n) | (x << (32 - n))
+  //         // return (x >> n) | (x << (-(n)&31))
+  //     }
+  // }
+  instructions {
+    AES283XOR {
+      // opcode: custom-0
+      encoding: 7'b0000000 :: 5'b00000 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b0001011;
+      assembly: {"oa.aes283xor", "{name(rd)}, {name(rs1)}"};
+      behavior: {
+        if (rd != 0) {
+          unsigned<32> input = X[rs1];
+          unsigned<32> temp = input << 1;
+          X[rd] = ((input >> 7) == 1) ? (temp ^ 283) : temp;
+        }
+      }
+    }
+    AES283XORB {
+      // opcode: custom-0
+      encoding: 7'b0000001 :: 5'b00000 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b0001011;
+      assembly: {"oa.aes283xorb", "{name(rd)}, {name(rs1)}"};
+      behavior: {
+        if (rd != 0) {
+          unsigned<32> input = X[rs1];
+          unsigned<32> temp = input << 1;
+          X[rd] = ((input >> 8) == 1) ? (temp ^ 283) : temp;
+        }
+      }
+    }
+    // REFLECT8 {
+    //   // opcode: custom-0
+    //   encoding: 7'b0000010 :: 5'b00000 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b0001011;
+    //   assembly: {"oa.reflect8", "{name(rd)}, {name(rs1)}"};
+    //   behavior: {
+    //     if (rd != 0) {
+    //       // unsigned<8> input = X[rs1][7:0];
+    //       // TODO: try loop variant (evantually with automatic unrolling)
+    //       // TODO: try concat (::) version
+    //       // TODO: try 8 bit slice
+    //       X[rd][0] = X[rs1][7];
+    //       X[rd][1] = X[rs1][6];
+    //       X[rd][2] = X[rs1][5];
+    //       X[rd][3] = X[rs1][4];
+    //       X[rd][4] = X[rs1][3];
+    //       X[rd][5] = X[rs1][2];
+    //       X[rd][6] = X[rs1][1];
+    //       X[rd][7] = X[rs1][0];
+    //     }
+    //   }
+    // }
+    // REFLECT32 {
+    //   // opcode: custom-0
+    //   encoding: 7'b0000011 :: 5'b00000 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b0001011;
+    //   assembly: {"oa.reflect32", "{name(rd)}, {name(rs1)}"};
+    //   behavior: {
+    //     if (rd != 0) {
+    //       // TODO: try loop variant (evantually with automatic unrolling)
+    //       // TODO: try concat (::) version
+    //       X[rd][0] = X[rs1][31];
+    //       X[rd][1] = X[rs1][30];
+    //       X[rd][2] = X[rs1][29];
+    //       X[rd][3] = X[rs1][28];
+    //       X[rd][4] = X[rs1][27];
+    //       X[rd][5] = X[rs1][26];
+    //       X[rd][6] = X[rs1][25];
+    //       X[rd][7] = X[rs1][24];
+    //       X[rd][8] = X[rs1][23];
+    //       X[rd][9] = X[rs1][22];
+    //       X[rd][10] = X[rs1][21];
+    //       X[rd][11] = X[rs1][20];
+    //       X[rd][12] = X[rs1][19];
+    //       X[rd][13] = X[rs1][18];
+    //       X[rd][14] = X[rs1][17];
+    //       X[rd][15] = X[rs1][16];
+    //       X[rd][16] = X[rs1][15];
+    //       X[rd][17] = X[rs1][14];
+    //       X[rd][18] = X[rs1][13];
+    //       X[rd][19] = X[rs1][12];
+    //       X[rd][20] = X[rs1][11];
+    //       X[rd][21] = X[rs1][10];
+    //       X[rd][22] = X[rs1][9];
+    //       X[rd][23] = X[rs1][8];
+    //       X[rd][24] = X[rs1][7];
+    //       X[rd][25] = X[rs1][6];
+    //       X[rd][26] = X[rs1][5];
+    //       X[rd][27] = X[rs1][4];
+    //       X[rd][28] = X[rs1][3];
+    //       X[rd][29] = X[rs1][2];
+    //       X[rd][30] = X[rs1][1];
+    //       X[rd][31] = X[rs1][0];
+    //     }
+    //   }
+    // }
+    SHA256SIG0 {
+      // opcode: custom-0
+      encoding: 7'b0000100 :: 5'b00000 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b0001011;
+      assembly: {"oa.sha256sig0", "{name(rd)}, {name(rs1)}"};
+      behavior: {
+        // TODO: try with inlining or intrinsic detection
+        if (rd != 0) {
+          // X[rd] = rotr32(X[rs1], 7) ^ rotr32(X[rs1], 18) ^ (X[rs1] >> 3);
+          X[rd] = ((X[rs1] >> 7) | (X[rs1] << 25)) ^ ((X[rs1] >> 18) | (X[rs1] << 14)) ^ (X[rs1] >> 3);
+        }
+      }
+    }
+    SHA256SIG1 {
+      // opcode: custom-0
+      encoding: 7'b0000101 :: 5'b00000 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b0001011;
+      assembly: {"oa.sha256sig1", "{name(rd)}, {name(rs1)}"};
+      behavior: {
+        if (rd != 0) {
+          // X[rd] = rotr32(X[rs1], 17) ^ rotr32(X[rs1], 19) ^ (X[rs1] >> 10);
+          X[rd] = ((X[rs1] >> 17) | (X[rs1] << 15)) ^ ((X[rs1] >> 19) | (X[rs1] << 13)) ^ (X[rs1] >> 10);
+        }
+      }
+    }
+    SHA256SUM0 {
+      // opcode: custom-0
+      encoding: 7'b0000110 :: 5'b00000 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b0001011;
+      assembly: {"oa.sha256sum0", "{name(rd)}, {name(rs1)}"};
+      behavior: {
+        if (rd != 0) {
+          // X[rd] = rotr32(X[rs1], 2) ^ rotr32(X[rs1], 13) ^ rotr32(X[rs1], 22);
+          X[rd] = ((X[rs1] >> 2) | (X[rs1] << 30)) ^ ((X[rs1] >> 13) | (X[rs1] << 19)) ^ ((X[rs1] >> 22) | (X[rs1] << 10));
+        }
+      }
+    }
+    SHA256SUM1 {
+      // opcode: custom-0
+      encoding: 7'b0000111 :: 5'b00000 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b0001011;
+      assembly: {"oa.sha256sum1", "{name(rd)}, {name(rs1)}"};
+      behavior: {
+        if (rd != 0) {
+          // X[rd] = rotr32(X[rs1], 6) ^ rotr32(X[rs1], 11) ^ rotr32(X[rs1], 25);
+          X[rd] = ((X[rs1] >> 6) | (X[rs1] << 26)) ^ ((X[rs1] >> 11) | (X[rs1] << 21)) ^ ((X[rs1] >> 25) | (X[rs1] << 7));
+        }
+      }
+    }
+    SHA256SIG0B {
+      // opcode: custom-0
+      encoding: 7'b0001000 :: 5'b00000 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b0001011;
+      assembly: {"oa.sha256sig0b", "{name(rd)}, {name(rs1)}"};
+      behavior: {
+        // TODO: try with inlining or intrinsic detection
+        if (rd != 0) {
+          // X[rd] = rotl32(X[rs1], 25) ^ rotl32(X[rs1], 14) ^ (X[rs1] >> 3);
+          X[rd] = ((X[rs1] << 25) | (X[rs1] >> 7)) ^ ((X[rs1] << 14) | (X[rs1] >> 18)) ^ (X[rs1] >> 3);
+        }
+      }
+    }
+    SHA256SIG1B {
+      // opcode: custom-0
+      encoding: 7'b0001001 :: 5'b00000 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b0001011;
+      assembly: {"oa.sha256sig1b", "{name(rd)}, {name(rs1)}"};
+      behavior: {
+        if (rd != 0) {
+          // X[rd] = rotl32(X[rs1], 15) ^ rotl32(X[rs1], 13) ^ (X[rs1] >> 10);
+          X[rd] = ((X[rs1] << 15) | (X[rs1] >> 17)) ^ ((X[rs1] << 13) | (X[rs1] >> 19)) ^ (X[rs1] >> 10);
+        }
+      }
+    }
+    SHA256SUM0B {
+      // opcode: custom-0
+      encoding: 7'b0001010 :: 5'b00000 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b0001011;
+      assembly: {"oa.sha256sum0b", "{name(rd)}, {name(rs1)}"};
+      behavior: {
+        if (rd != 0) {
+          // X[rd] = rotl32(X[rs1], 30) ^ rotl32(X[rs1], 19) ^ rotl32(X[rs1], 10);
+          X[rd] = ((X[rs1] << 30) | (X[rs1] >> 2)) ^ ((X[rs1] << 19) | (X[rs1] >> 13)) ^ ((X[rs1] << 10) | (X[rs1] >> 12));
+        }
+      }
+    }
+    SHA256SUM1B {
+      // opcode: custom-0
+      encoding: 7'b0001011 :: 5'b00000 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b0001011;
+      assembly: {"oa.sha256sum1b", "{name(rd)}, {name(rs1)}"};
+      behavior: {
+        if (rd != 0) {
+          // X[rd] = rotl32(X[rs1], 26) ^ rotl32(X[rs1], 21) ^ rotl32(X[rs1], 7);
+          X[rd] = ((X[rs1] << 26) | (X[rs1] >> 6)) ^ ((X[rs1] << 21) | (X[rs1] >> 11)) ^ ((X[rs1] << 7) | (X[rs1] >> 25));
+        }
+      }
+    }
+    ROTL32 {
+      // opcode: custom-0
+      encoding: 7'b0010000 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b0001011;
+      assembly: {"oa.rotl32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: {
+        if (rd != 0) {
+          // X[rd] = (X[rs1] << X[rs2]) | (X[rs1] >> (32 - X[rs2]));
+          X[rd] = (X[rs1] << X[rs2][4:0]) | (X[rs1] >> (32 - X[rs2][4:0]));
+        }
+      }
+    }
+    ROTR32 {
+      // opcode: custom-0
+      encoding: 7'b0010001 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b0001011;
+      assembly: {"oa.rotr32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: {
+        if (rd != 0) {
+          // X[rd] = (X[rs1] >> X[rs2]) | (X[rs1] << (32 - X[rs2]));
+          X[rd] = (X[rs1] >> X[rs2][4:0]) | (X[rs1] << (32 - X[rs2][4:0]));
+        }
+      }
+    }
+  }
+}

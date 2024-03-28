@@ -4,6 +4,7 @@ riscv:
   features:
   - m
   - fast-unaligned-access
+  - gpr32v
   legalization:
     gisel:
       ops:
@@ -21,9 +22,9 @@ riscv:
       # - name: [G_ADD]
       #   types: [v4i8, v2i16]
       #   onlyif: [HasExtmyextsimd]
-      - name: [G_ADD]
-        types: [s16, s32]
-        onlyif: [HasExtmyextalu]
+      # - name: [G_ADD]
+      #   types: [s16, s32]
+      #   onlyif: [HasExtmyextalu]
       # - name: [G_ADD, G_SMAX]
       #   types: [v4i8, v2i16]
       #   onlyif: [HasExtRV32Zpn]
@@ -35,6 +36,9 @@ riscv:
       #   onlyif: [HasExtRV32Zbpo]
       # # TODO: RV32Zpsfoperand (register pairs)
       # TODO: G_BITCAST
+      # - name: [G_ROTL, G_ROTR]
+      #   types: [s32]
+      #   onlyif: [HasExtXISE]
   transform_info:
     shouldFoldTerminatingConditionAfterLSR: true
     prefersVectorizedAddressing: false

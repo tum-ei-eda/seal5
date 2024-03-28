@@ -1,0 +1,20 @@
+diff --git a/llvm/lib/Target/RISCV/seal5/Seal5Test_mac_cv_machhNs/cv_machhNs.td b/llvm/lib/Target/RISCV/seal5/Seal5Test_mac_cv_machhNs/cv_machhNs.td
+index 576ae24d39ff..c0bbaa39acb3 100644
+--- a/llvm/lib/Target/RISCV/seal5/Seal5Test_mac_cv_machhNs/cv_machhNs.td
++++ b/llvm/lib/Target/RISCV/seal5/Seal5Test_mac_cv_machhNs/cv_machhNs.td
+@@ -4,6 +4,14 @@ let hasSideEffects = 0, mayLoad = 0, mayStore = 0, isCodeGenOnly = 1, Constraint
+ def : Pat<
+ 	(i32 (i32 (sra (add (mul (i32 (sra (i32 (shl (i32 (srl GPR:$rs2, (i32 16))), (i32 16))), (i32 16))), (i32 (sra (i32 (shl (i32 (srl GPR:$rs1, (i32 16))), (i32 16))), (i32 16)))), GPR:$rd), (and (i32 uimm5:$Is3), (i32 31))))),
+ 	(cv_machhNs_ GPR:$rd, GPR:$rs1, GPR:$rs2, uimm5:$Is3)>;
++def : Pat<
++	(i32 (add (mul (i32 (sra (i32 (shl (i32 (srl GPR:$rs2, (i32 16))), (i32 16))), (i32 16))), (i32 (sra (i32 (shl (i32 (srl GPR:$rs1, (i32 16))), (i32 16))), (i32 16)))), GPR:$rd)),
++	(cv_machhNs_ GPR:$rd, GPR:$rs1, GPR:$rs2, 0)>;
++def : Pat<
++	(i32 (add (mul (i32 (sra (i32 (shl (i32 (sra GPR:$rs2, (i32 16))), (i32 16))), (i32 16))), (i32 (sra (i32 (shl (i32 (sra GPR:$rs1, (i32 16))), (i32 16))), (i32 16)))), GPR:$rd)),
++	(cv_machhNs_ GPR:$rd, GPR:$rs1, GPR:$rs2, 0)>;
++def : Pat<
++	(i32 (add (mul (i32 (sra GPR:$rs2, (i32 16))), (i32 (sra GPR:$rs1, (i32 16)))), GPR:$rd)),
++	(cv_machhNs_ GPR:$rd, GPR:$rs1, GPR:$rs2, 0)>;
+ 
+ }
+-

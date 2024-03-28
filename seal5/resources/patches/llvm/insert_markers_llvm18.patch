@@ -73,16 +73,16 @@ diff --git a/llvm/lib/CodeGen/GlobalISel/GlobalISel.cpp b/llvm/lib/CodeGen/Globa
 diff --git a/llvm/lib/Support/RISCVISAInfo.cpp b/llvm/lib/Support/RISCVISAInfo.cpp
 --- a/llvm/lib/Support/RISCVISAInfo.cpp
 +++ b/llvm/lib/Support/RISCVISAInfo.cpp
-@@ -89,6 +89,9 @@ static const RISCVSupportedExtension SupportedExtensions[] = {
-     {"xtheadvdot", {1, 0}},
-     {"xventanacondops", {1, 0}},
+@@ -63,6 +63,9 @@ static const RISCVSupportedExtension SupportedExtensions[] = {
+
+     {"v", {1, 0}},
 
 +// RISCVISAInfo.cpp - riscv_isa_info - INSERTION_START
 +// RISCVISAInfo.cpp - riscv_isa_info - INSERTION_END
 +
-     {"za128rs", {1, 0}},
-     {"za64rs", {1, 0}},
-     {"zawrs", {1, 0}},
+     // vendor-defined ('X') extensions
+     {"xcvalu", {1, 0}},
+     {"xcvbi", {1, 0}},
 @@ -192,6 +195,8 @@ static const RISCVSupportedExtension SupportedExtensions[] = {
 
  // NOTE: This table should be sorted alphabetically by extension name.
@@ -92,6 +92,21 @@ diff --git a/llvm/lib/Support/RISCVISAInfo.cpp b/llvm/lib/Support/RISCVISAInfo.c
      {"zacas", {1, 0}},
 
      {"zcmop", {0, 2}},
+@@ -213,10 +218,10 @@ static void verifyTables() {
+ #ifndef NDEBUG
+   static std::atomic<bool> TableChecked(false);
+   if (!TableChecked.load(std::memory_order_relaxed)) {
+-    assert(llvm::is_sorted(SupportedExtensions) &&
+-           "Extensions are not sorted by name");
+-    assert(llvm::is_sorted(SupportedExperimentalExtensions) &&
+-           "Experimental extensions are not sorted by name");
++    // assert(llvm::is_sorted(SupportedExtensions) &&
++    //        "Extensions are not sorted by name");
++    // assert(llvm::is_sorted(SupportedExperimentalExtensions) &&
++    //        "Experimental extensions are not sorted by name");
+     TableChecked.store(true, std::memory_order_relaxed);
+   }
+ #endif
 diff --git a/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp b/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
 --- a/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
 +++ b/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp

@@ -1,4 +1,7 @@
 llvm:
+  ninja: true  # TODO: move to configs
+  num_threads: -1  # TODO: move to configs
+  default_config: release
   configs:
     release:
       options:
@@ -7,7 +10,8 @@ llvm:
         LLVM_ENABLE_ASSERTIONS: false
         LLVM_OPTIMIZED_TABLEGEN: true
         LLVM_ENABLE_PROJECTS: [clang, lld]
-        LLVM_TARGETS_TO_BUILD: [X86, RISCV]
+        # LLVM_TARGETS_TO_BUILD: [X86, RISCV]
+        LLVM_TARGETS_TO_BUILD: [RISCV]
     release_assertions:
       options:
         CMAKE_BUILD_TYPE: Release
@@ -15,7 +19,8 @@ llvm:
         LLVM_ENABLE_ASSERTIONS: true
         LLVM_OPTIMIZED_TABLEGEN: true
         LLVM_ENABLE_PROJECTS: [clang, lld]
-        LLVM_TARGETS_TO_BUILD: [X86, RISCV]
+        # LLVM_TARGETS_TO_BUILD: [X86, RISCV]
+        LLVM_TARGETS_TO_BUILD: [RISCV]
     debug:
       options:
         CMAKE_BUILD_TYPE: Debug
@@ -23,4 +28,7 @@ llvm:
         LLVM_ENABLE_ASSERTIONS: true
         LLVM_OPTIMIZED_TABLEGEN: true
         LLVM_ENABLE_PROJECTS: [clang, lld]
-        LLVM_TARGETS_TO_BUILD: [X86, RISCV]
+        # LLVM_TARGETS_TO_BUILD: [X86, RISCV]
+        LLVM_TARGETS_TO_BUILD: [RISCV]
+        LLVM_PARALLEL_LINK_JOBS: 8
+        # LLVM_USE_LINKER: lld

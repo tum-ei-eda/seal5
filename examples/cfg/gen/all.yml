@@ -1,0 +1,483 @@
+---
+extensions:
+  Seal5Test_alu_cv_abs16:
+    arch: xseal5testalucvabs16
+    experimental: false
+    feature: Seal5Testalucvabs16
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_abs32:
+    arch: xseal5testalucvabs32
+    experimental: false
+    feature: Seal5Testalucvabs32
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_abs8:
+    arch: xseal5testalucvabs8
+    experimental: false
+    feature: Seal5Testalucvabs8
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_addNrs_i16:
+    arch: xseal5testalucvaddnrsi16
+    experimental: false
+    feature: Seal5TestalucvaddNrsi16
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_addNrs_i32:
+    arch: xseal5testalucvaddnrsi32
+    experimental: false
+    feature: Seal5TestalucvaddNrsi32
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_addNru_i16:
+    arch: xseal5testalucvaddnrui16
+    experimental: false
+    feature: Seal5TestalucvaddNrui16
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_addNru_i32:
+    arch: xseal5testalucvaddnrui32
+    experimental: false
+    feature: Seal5TestalucvaddNrui32
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_addNs:
+    arch: xseal5testalucvaddns
+    experimental: false
+    feature: Seal5TestalucvaddNs
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_addNu:
+    arch: xseal5testalucvaddnu
+    experimental: false
+    feature: Seal5TestalucvaddNu
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_addRNrs_i16:
+    arch: xseal5testalucvaddrnrsi16
+    experimental: false
+    feature: Seal5TestalucvaddRNrsi16
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_addRNrs_i32:
+    arch: xseal5testalucvaddrnrsi32
+    experimental: false
+    feature: Seal5TestalucvaddRNrsi32
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_addRNru_i16:
+    arch: xseal5testalucvaddrnrui16
+    experimental: false
+    feature: Seal5TestalucvaddRNrui16
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_addRNru_i32:
+    arch: xseal5testalucvaddrnrui32
+    experimental: false
+    feature: Seal5TestalucvaddRNrui32
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_addRNs:
+    arch: xseal5testalucvaddrns
+    experimental: false
+    feature: Seal5TestalucvaddRNs
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_addRNu:
+    arch: xseal5testalucvaddrnu
+    experimental: false
+    feature: Seal5TestalucvaddRNu
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_extbs:
+    arch: xseal5testalucvextbs
+    experimental: false
+    feature: Seal5Testalucvextbs
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_extbz:
+    arch: xseal5testalucvextbz
+    experimental: false
+    feature: Seal5Testalucvextbz
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_exths:
+    arch: xseal5testalucvexths
+    experimental: false
+    feature: Seal5Testalucvexths
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_exthz:
+    arch: xseal5testalucvexthz
+    experimental: false
+    feature: Seal5Testalucvexthz
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_max_s_16:
+    arch: xseal5testalucvmaxs16
+    experimental: false
+    feature: Seal5Testalucvmaxs16
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_max_s_32:
+    arch: xseal5testalucvmaxs32
+    experimental: false
+    feature: Seal5Testalucvmaxs32
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_max_s_8:
+    arch: xseal5testalucvmaxs8
+    experimental: false
+    feature: Seal5Testalucvmaxs8
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_max_u_16:
+    arch: xseal5testalucvmaxu16
+    experimental: false
+    feature: Seal5Testalucvmaxu16
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_max_u_32:
+    arch: xseal5testalucvmaxu32
+    experimental: false
+    feature: Seal5Testalucvmaxu32
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_max_u_8:
+    arch: xseal5testalucvmaxu8
+    experimental: false
+    feature: Seal5Testalucvmaxu8
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_maxi12_16:
+    arch: xseal5testalucvmaxi1216
+    experimental: false
+    feature: Seal5Testalucvmaxi1216
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_maxi12_32:
+    arch: xseal5testalucvmaxi1232
+    experimental: false
+    feature: Seal5Testalucvmaxi1232
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_maxi5_16:
+    arch: xseal5testalucvmaxi516
+    experimental: false
+    feature: Seal5Testalucvmaxi516
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_maxi5_32:
+    arch: xseal5testalucvmaxi532
+    experimental: false
+    feature: Seal5Testalucvmaxi532
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_min_s_16:
+    arch: xseal5testalucvmins16
+    experimental: false
+    feature: Seal5Testalucvmins16
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_min_s_32:
+    arch: xseal5testalucvmins32
+    experimental: false
+    feature: Seal5Testalucvmins32
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_min_s_8:
+    arch: xseal5testalucvmins8
+    experimental: false
+    feature: Seal5Testalucvmins8
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_min_u_16:
+    arch: xseal5testalucvminu16
+    experimental: false
+    feature: Seal5Testalucvminu16
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_min_u_32:
+    arch: xseal5testalucvminu32
+    experimental: false
+    feature: Seal5Testalucvminu32
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_min_u_8:
+    arch: xseal5testalucvminu8
+    experimental: false
+    feature: Seal5Testalucvminu8
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_mini12_16:
+    arch: xseal5testalucvmini1216
+    experimental: false
+    feature: Seal5Testalucvmini1216
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_mini12_32:
+    arch: xseal5testalucvmini1232
+    experimental: false
+    feature: Seal5Testalucvmini1232
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_mini5_16:
+    arch: xseal5testalucvmini516
+    experimental: false
+    feature: Seal5Testalucvmini516
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_mini5_32:
+    arch: xseal5testalucvmini532
+    experimental: false
+    feature: Seal5Testalucvmini532
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_slets_i16:
+    arch: xseal5testalucvsletsi16
+    experimental: false
+    feature: Seal5Testalucvsletsi16
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_slets_i32:
+    arch: xseal5testalucvsletsi32
+    experimental: false
+    feature: Seal5Testalucvsletsi32
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_sletu_i16:
+    arch: xseal5testalucvsletui16
+    experimental: false
+    feature: Seal5Testalucvsletui16
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_sletu_i32:
+    arch: xseal5testalucvsletui32
+    experimental: false
+    feature: Seal5Testalucvsletui32
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_subNrs_i16:
+    arch: xseal5testalucvsubnrsi16
+    experimental: false
+    feature: Seal5TestalucvsubNrsi16
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_subNrs_i32:
+    arch: xseal5testalucvsubnrsi32
+    experimental: false
+    feature: Seal5TestalucvsubNrsi32
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_subNru_i16:
+    arch: xseal5testalucvsubnrui16
+    experimental: false
+    feature: Seal5TestalucvsubNrui16
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_subNru_i32:
+    arch: xseal5testalucvsubnrui32
+    experimental: false
+    feature: Seal5TestalucvsubNrui32
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_subNs:
+    arch: xseal5testalucvsubns
+    experimental: false
+    feature: Seal5TestalucvsubNs
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_subNu:
+    arch: xseal5testalucvsubnu
+    experimental: false
+    feature: Seal5TestalucvsubNu
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_subRNrs_i16:
+    arch: xseal5testalucvsubrnrsi16
+    experimental: false
+    feature: Seal5TestalucvsubRNrsi16
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_subRNrs_i32:
+    arch: xseal5testalucvsubrnrsi32
+    experimental: false
+    feature: Seal5TestalucvsubRNrsi32
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_subRNru_i16:
+    arch: xseal5testalucvsubrnrui16
+    experimental: false
+    feature: Seal5TestalucvsubRNrui16
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_subRNru_i32:
+    arch: xseal5testalucvsubrnrui32
+    experimental: false
+    feature: Seal5TestalucvsubRNrui32
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_subRNs:
+    arch: xseal5testalucvsubrns
+    experimental: false
+    feature: Seal5TestalucvsubRNs
+    vendor: true
+    version: '1.0'
+  Seal5Test_alu_cv_subRNu:
+    arch: xseal5testalucvsubrnu
+    experimental: false
+    feature: Seal5TestalucvsubRNu
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_macNs:
+    arch: xseal5testmaccvmacns
+    experimental: false
+    feature: Seal5TestmaccvmacNs
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_macNu:
+    arch: xseal5testmaccvmacnu
+    experimental: false
+    feature: Seal5TestmaccvmacNu
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_macRNs:
+    arch: xseal5testmaccvmacrns
+    experimental: false
+    feature: Seal5TestmaccvmacRNs
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_macRNu:
+    arch: xseal5testmaccvmacrnu
+    experimental: false
+    feature: Seal5TestmaccvmacRNu
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_machhNs:
+    arch: xseal5testmaccvmachhns
+    experimental: false
+    feature: Seal5TestmaccvmachhNs
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_machhNu:
+    arch: xseal5testmaccvmachhnu
+    experimental: false
+    feature: Seal5TestmaccvmachhNu
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_machhRNs:
+    arch: xseal5testmaccvmachhrns
+    experimental: false
+    feature: Seal5TestmaccvmachhRNs
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_machhRNu:
+    arch: xseal5testmaccvmachhrnu
+    experimental: false
+    feature: Seal5TestmaccvmachhRNu
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_macs_i16:
+    arch: xseal5testmaccvmacsi16
+    experimental: false
+    feature: Seal5Testmaccvmacsi16
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_macs_i32:
+    arch: xseal5testmaccvmacsi32
+    experimental: false
+    feature: Seal5Testmaccvmacsi32
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_macu_i16:
+    arch: xseal5testmaccvmacui16
+    experimental: false
+    feature: Seal5Testmaccvmacui16
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_macu_i32:
+    arch: xseal5testmaccvmacui32
+    experimental: false
+    feature: Seal5Testmaccvmacui32
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_msus_i16:
+    arch: xseal5testmaccvmsusi16
+    experimental: false
+    feature: Seal5Testmaccvmsusi16
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_msus_i32:
+    arch: xseal5testmaccvmsusi32
+    experimental: false
+    feature: Seal5Testmaccvmsusi32
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_msuu_i16:
+    arch: xseal5testmaccvmsuui16
+    experimental: false
+    feature: Seal5Testmaccvmsuui16
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_msuu_i32:
+    arch: xseal5testmaccvmsuui32
+    experimental: false
+    feature: Seal5Testmaccvmsuui32
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_mulNs:
+    arch: xseal5testmaccvmulns
+    experimental: false
+    feature: Seal5TestmaccvmulNs
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_mulNu:
+    arch: xseal5testmaccvmulnu
+    experimental: false
+    feature: Seal5TestmaccvmulNu
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_mulRNs:
+    arch: xseal5testmaccvmulrns
+    experimental: false
+    feature: Seal5TestmaccvmulRNs
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_mulRNu:
+    arch: xseal5testmaccvmulrnu
+    experimental: false
+    feature: Seal5TestmaccvmulRNu
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_mulhhNs:
+    arch: xseal5testmaccvmulhhns
+    experimental: false
+    feature: Seal5TestmaccvmulhhNs
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_mulhhNu:
+    arch: xseal5testmaccvmulhhnu
+    experimental: false
+    feature: Seal5TestmaccvmulhhNu
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_mulhhRNs:
+    arch: xseal5testmaccvmulhhrns
+    experimental: false
+    feature: Seal5TestmaccvmulhhRNs
+    vendor: true
+    version: '1.0'
+  Seal5Test_mac_cv_mulhhRNu:
+    arch: xseal5testmaccvmulhhrnu
+    experimental: false
+    feature: Seal5TestmaccvmulhhRNu
+    vendor: true
+    version: '1.0'
+passes:
+  per_model:
+    all_v7:
+      overrides:
+        convert_models:
+          prefix: "GEN_"
+          extensions:

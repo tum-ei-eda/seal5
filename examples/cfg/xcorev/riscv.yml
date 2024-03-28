@@ -1,0 +1,21 @@
+---
+riscv:
+  xlen: 32
+  features:
+  - m
+  - fast-unaligned-access
+  - gpr32v
+  legalization:
+    gisel:
+      ops:
+      # TODO: simd shift?
+      # TODO: rotate left/right?
+      # - name: [G_SMAX, G_UMAX, G_SMIN, G_UMIN, G_ABS]
+      #   types: [s32]
+      #   onlyif: [HasVendorXCValu]
+      # - name: [G_ADD, G_SUB, G_AND, G_OR, G_XOR, G_ASHR, G_LSHR, G_SHL]
+      #   types: [v4i8, v2i16]
+      #   onlyif: [HasVendorXCVsimd]
+      # - name: G_INSERT_VECTOR_ELT
+      #   types: [v4i8, v2i16]
+      #   onlyif: [HasVendorXCVsimd]

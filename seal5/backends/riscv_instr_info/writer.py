@@ -29,11 +29,6 @@ from .templates import template_dir
 logger = logging.getLogger("riscv_instr_info")
 
 
-# MAKO_TEMPLATE = """def Feature${predicate} : SubtargetFeature<"${arch}", "Has${predicate}", "true", "'${feature}' (${description})">;
-#
-# def Has${predicate} : Predicate<"Subtarget->has${predicate}()">, AssemblerPredicate<(any_of Feature${predicate}), "'${feature}' (${description})">;"""
-
-
 class Operand:
     def __init__(self, name, lower, upper):
         self.name = name
@@ -170,6 +165,7 @@ def gen_riscv_instr_info_str(instr):
     print("operands", operands)
     reads = []
     writes = []
+    constraints = []
     for op_name, op in operands.items():
         print("op", op)
         print("op.constraints", op.constraints)
@@ -182,11 +178,11 @@ def gen_riscv_instr_info_str(instr):
             assert cls in ["GPR"]
             pre = cls
         elif Seal5OperandAttribute.IS_IMM in op.attributes:
-            assert Seal5OperandAttribute.TY in op.attributes
-            ty = op.attributes[Seal5OperandAttribute.TY]
+            assert Seal5OperandAttribute.TYPE in op.attributes
+            ty = op.attributes[Seal5OperandAttribute.TYPE]
             assert ty[0] in ["u", "s"]
             sz = int(ty[1:])
-            pre = f"{ty}imm{sz}"
+            pre = f"{ty[0]}imm{sz}"
 
         if Seal5OperandAttribute.INOUT in op.attributes or (
             Seal5OperandAttribute.OUT in op.attributes and Seal5OperandAttribute.IN in op.attributes
@@ -195,6 +191,9 @@ def gen_riscv_instr_info_str(instr):
             writes.append(op_str2)
             op_str = f"{pre}:${op_name}"
             reads.append(op_str)
+            constraint = f"${op_name} = ${op_name}_wb"
+            constraints.append(constraint)
+
         elif Seal5OperandAttribute.OUT in op.attributes:
             op_str = f"{pre}:${op_name}"
             writes.append(op_str)
@@ -203,6 +202,8 @@ def gen_riscv_instr_info_str(instr):
             reads.append(op_str)
     print("reads", reads)
     print("writes", writes)
+    print("constraints", constraints)
+    # constraints_str = ", ".join(constraints)
     attributes = instr.attributes
     print("attributes", attributes)
     real_name = instr.mnemonic
@@ -251,9 +252,9 @@ def gen_riscv_instr_info_str(instr):
         attrs["isTerminator"] = 1
     else:
         attrs["isTerminator"] = 0
-    constraints = instr.constraints
-    if len(constraints) > 0:
-        raise NotImplementedError
+    # constraints = instr.constraints
+    # if len(constraints) > 0:
+    #     raise NotImplementedError
     formats = True
     tablegen_str = write_riscv_instruction_info(
         name,

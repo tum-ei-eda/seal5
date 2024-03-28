@@ -1,0 +1,15 @@
+diff --git a/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp b/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
+--- a/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
++++ b/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
+@@ -121,7 +121,10 @@ RISCVLegalizerInfo::RISCVLegalizerInfo(const RISCVSubtarget &ST)
+         .maxScalar(0, sXLen)
+         .lower();
+   } else {
+-    getActionDefinitionsBuilder({G_ZEXT, G_SEXT, G_ANYEXT}).maxScalar(0, sXLen);
++    // getActionDefinitionsBuilder({G_ZEXT, G_SEXT, G_ANYEXT}).maxScalar(0, sXLen);
++    getActionDefinitionsBuilder(G_ZEXT).maxScalar(0, sXLen);
++    getActionDefinitionsBuilder(G_SEXT).maxScalar(0, sXLen);
++    getActionDefinitionsBuilder(G_ANYEXT).maxScalar(0, sXLen).alwaysLegal();
+
+     getActionDefinitionsBuilder(G_SEXT_INREG).maxScalar(0, sXLen).lower();
+   }

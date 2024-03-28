@@ -1,0 +1,63 @@
+diff --git a/llvm/lib/Target/RISCV/RISCVFeatures.td b/llvm/lib/Target/RISCV/RISCVFeatures.td
+--- a/llvm/lib/Target/RISCV/RISCVFeatures.td
++++ b/llvm/lib/Target/RISCV/RISCVFeatures.td
+@@ -771,6 +771,12 @@ def HasStdExtSvinval : Predicate<"Subtarget->hasStdExtSvinval()">,
+                        AssemblerPredicate<(all_of FeatureStdExtSvinval),
+                            "'Svinval' (Fine-Grained Address-Translation Cache Invalidation)">;
+
++def FeatureGPR32V : SubtargetFeature<"gpr32v", "HasGPR32V", "true", "TODO">;
++def HasGPR32V
++   : Predicate<"Subtarget->hasGPR32V)">,
++     AssemblerPredicate<(any_of FeatureGPR32V),
++                        "'GPR32V' (TODO)">;
++
+ // RISCVFeatures.td - riscv_features - INSERTION_START
+ // RISCVFeatures.td - riscv_features - INSERTION_END
+
+diff --git a/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp b/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
+--- a/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
++++ b/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
+@@ -274,8 +274,9 @@ RISCVTTIImpl::getRegisterBitWidth(TargetTransformInfo::RegisterKind K) const {
+   case TargetTransformInfo::RGK_Scalar:
+     return TypeSize::getFixed(ST->getXLen());
+   case TargetTransformInfo::RGK_FixedWidthVector:
+-    return TypeSize::getFixed(
+-        ST->useRVVForFixedLengthVectors() ? LMUL * ST->getRealMinVLen() : 0);
++    return TypeSize::getFixed(ST->useRVVForFixedLengthVectors()
++                                  ? LMUL * ST->getRealMinVLen()
++                                  : (ST->hasGPR32V() ? 32 : 0));
+   case TargetTransformInfo::RGK_ScalableVector:
+     return TypeSize::getScalable(
+         (ST->hasVInstructions() &&
+@@ -315,6 +316,10 @@ InstructionCost RISCVTTIImpl::getShuffleCost(TTI::ShuffleKind Kind,
+
+   std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(Tp);
+
++  if (ST->hasGPR32V()) {
++    return 1; // placeholder
++  }
++
+   // First, handle cases where having a fixed length vector enables us to
+   // give a more accurate cost than falling back to generic scalable codegen.
+   // TODO: Each of these cases hints at a modeling gap around scalable vectors.
+@@ -1036,7 +1041,7 @@ InstructionCost RISCVTTIImpl::getMemoryOpCost(unsigned Opcode, Type *Src,
+                                               const Instruction *I) {
+   EVT VT = TLI->getValueType(DL, Src, true);
+   // Type legalization can't handle structs
+-  if (VT == MVT::Other)
++  if (VT == MVT::Other || ST->hasGPR32V())
+     return BaseT::getMemoryOpCost(Opcode, Src, Alignment, AddressSpace,
+                                   CostKind, OpInfo, I);
+
+diff --git a/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.h b/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.h
+--- a/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.h
++++ b/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.h
+@@ -332,7 +332,7 @@ public:
+
+   unsigned getRegisterClassForType(bool Vector, Type *Ty = nullptr) const {
+     if (Vector)
+-      return RISCVRegisterClass::VRRC;
++      return ST->hasGPR32V() ? RISCVRegisterClass::GPRRC : RISCVRegisterClass::VRRC;
+     if (!Ty)
+       return RISCVRegisterClass::GPRRC;
+

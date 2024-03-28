@@ -88,11 +88,19 @@ class Seal5Pass:
     def run(self, inputs: List[str], *args, settings: Optional[Seal5Settings] = None, **kwargs):
         logger.debug("Running pass: %s", self)
         self.status = PassStatus.RUNNING
+        assert settings is not None
+        passes_settings = settings.passes
+        assert passes_settings is not None
+        assert passes_settings.defaults is not None
+        assert passes_settings.defaults.overrides is not None
+        default_overrides = passes_settings.defaults.overrides.get(self.name, None)
         self.metrics["models"] = []
         try:
             kwargs_ = {**kwargs}
             if self.options:
                 kwargs_.update(self.options)
+            if default_overrides:
+                kwargs_.update(default_overrides)
             start = time.time()
             parent = kwargs.get("parent", None)
             if parent:
@@ -100,9 +108,6 @@ class Seal5Pass:
             else:
                 parallel = 1
             if self.pass_scope == PassScope.MODEL:
-                assert settings is not None
-                passes_settings = settings.passes
-                assert passes_settings is not None
                 assert passes_settings.per_model is not None
 
                 with ThreadPoolExecutor(max_workers=parallel) as executor:

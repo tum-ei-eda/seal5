@@ -64,7 +64,8 @@ def clone_llvm_repo(
             repo.remotes.origin.fetch()
             if ref:
                 repo.git.checkout(ref)
-                repo.git.pull("origin", ref)
+                if ref not in repo.tags:
+                    repo.git.pull("origin", ref)
     else:
         logger.debug("Cloning LLVM repository: %s", clone_url)
         repo = git.Repo.clone_from(clone_url, dest, no_checkout=ref is not None)
@@ -89,7 +90,7 @@ def clone_llvm_repo(
             version_info["rc"] = int(rc)
 
     sha = repo.head.commit.hexsha
-    return sha, version_info
+    return repo, sha, version_info
 
 
 def build_llvm(
@@ -112,7 +113,9 @@ def build_llvm(
         print_func=logger.info if verbose else logger.debug,
         live=True,
     )
-    utils.make(target=target, cwd=dest, print_func=logger.info if verbose else logger.debug, live=True)
+    utils.make(
+        target=target, cwd=dest, print_func=logger.info if verbose else logger.debug, live=True, use_ninja=use_ninja
+    )
 
 
 def test_llvm(base: Path, build_dir: Path, test_paths: List[str] = [], verbose: bool = False):

@@ -91,7 +91,7 @@ def get_pattern_gen_patches(
     write_index_yaml(index_file, artifacts, {}, content=True)
     patch_settings = PatchSettings(
         name="pattern_gen_support",
-        stage=int(PatchStage.PHASE_2),
+        stage=int(PatchStage.PHASE_0),
         comment="Integrate PatternGen in Seal5 LLVM",
         index=str(index_file),
         generated=True,
@@ -132,12 +132,14 @@ def run_pattern_gen(
     if not isinstance(build_dir, Path):
         build_dir = Path(build_dir)
     pattern_gen_args = [src]
+    # pattern_gen_args.extend(["-custom-legalizer-settings=foo", "-disable-gisel-legality-check"])
 
     if dest:
         pattern_gen_args.extend(["-o", str(dest)])
 
     if ext:
-        pattern_gen_args.extend(["--ext", ext])
+        # pattern_gen_args.extend(["--ext", ext])
+        pattern_gen_args.extend(["-p", f"Has{ext}"])
 
     if mattr is None:
         attrs = ["+m", "+fast-unaligned-access"]

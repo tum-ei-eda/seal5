@@ -8,6 +8,7 @@
 
 """Filter M2-ISA-R/Seal5 metamodel."""
 
+import re
 import argparse
 import logging
 import pathlib
@@ -180,17 +181,27 @@ def main():
     # print("keep", keep_instructions)
     # print("drop", drop_instructions)
     # input("456")
+    # def check_filter(name, keep, drop):
+    #     if drop and keep:
+    #         return name not in drop and name in keep
+    #     elif keep:
+    #         return name in keep
+    #     elif drop:
+    #         return name not in drop
+    #     return True
 
-    def check_filter(name, keep, drop):
+    def check_filter_regex(name, keep, drop):
         if drop and keep:
-            return name not in drop and name in keep
+            return not any(re.compile(expr).match(name) for expr in drop) and any(
+                re.compile(expr).match(name) for expr in keep
+            )
         elif keep:
-            return name in keep
+            return any(re.compile(expr).match(name) for expr in keep)
         elif drop:
-            return name not in drop
+            return not any(re.compile(expr).match(name) for expr in drop)
         return True
 
-    def check_encoding_filter(enc, keep, drop, keep2, drop2):
+    def check_encoding_filter(name, enc, keep, drop, keep2, drop2):
         opcode = None
         size = 0
         for e in reversed(enc):
@@ -206,7 +217,8 @@ def main():
             else:
                 assert False
             size += length
-        assert size in [16, 32, 64, 128], f"Invalid size: {size}"
+        assert size in [16, 32, 64, 128], f"Invalid size: {size} (Instruction: {name})"
+        ret = True
         if drop2 and keep2:
             ret = size not in drop2 and size in keep2
         elif keep2:
@@ -226,15 +238,17 @@ def main():
         return True
 
     model["sets"] = {
-        set_name: set_def for set_name, set_def in model["sets"].items() if check_filter(set_name, keep_sets, drop_sets)
+        set_name: set_def
+        for set_name, set_def in model["sets"].items()
+        if check_filter_regex(set_name, keep_sets, drop_sets)
     }
     for set_name, set_def in model["sets"].items():
         set_def.instructions = {
             key: instr_def
             for key, instr_def in set_def.instructions.items()
-            if check_filter(instr_def.name, keep_instructions, drop_instructions)
+            if check_filter_regex(instr_def.name, keep_instructions, drop_instructions)
             and check_encoding_filter(
-                instr_def.encoding, keep_opcodes, drop_opcodes, keep_encoding_sizes, drop_encoding_sizes
+                instr_def.name, instr_def.encoding, keep_opcodes, drop_opcodes, keep_encoding_sizes, drop_encoding_sizes
             )
         }
         # for instr_name, instr_def in set_def.instructions.items():

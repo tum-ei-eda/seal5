@@ -17,6 +17,7 @@ def convert_models(
     env: Optional[dict] = None,
     verbose: bool = False,
     inplace: bool = False,
+    prefix: Optional[str] = None,
     **kwargs,
 ):
     assert not inplace
@@ -35,6 +36,9 @@ def convert_models(
         "info",
         # "debug",
     ]
+    if prefix:
+        assert isinstance(prefix, str)
+        args.extend(["--prefix", prefix])
     utils.python(
         "-m",
         "seal5.transform.converter",
@@ -768,6 +772,7 @@ def convert_behav_to_tablegen(
     split: bool = True,
     formats: bool = True,
     patterns: bool = True,
+    parallel: bool = False,
     **kwargs,
 ):
     assert split, "TODO"
@@ -803,6 +808,11 @@ def convert_behav_to_tablegen(
     if gen_index_file:
         index_file = settings.temp_dir / (new_name + "_tblgen_patterns_index.yml")
         args.extend(["--index", index_file])
+    if parallel:
+        import multiprocessing
+
+        num_threads = multiprocessing.cpu_count()
+        args.extend(["--parallel", str(num_threads)])
     utils.python(
         "-m",
         "seal5.backends.patterngen.writer",
@@ -1171,7 +1181,7 @@ def convert_llvmir_to_gmir(
                     cdsl2llvm_build_dir = None
                     integrated_pattern_gen = settings.tools.pattern_gen.integrated
                     if integrated_pattern_gen:
-                        config = "release"  # TODO: fetch default config
+                        config = settings.llvm.default_config
                         cdsl2llvm_build_dir = str(settings.build_dir / config)
                     else:
                         cdsl2llvm_build_dir = str(settings.deps_dir / "cdsl2llvm" / "llvm" / "build")
@@ -1295,7 +1305,6 @@ def gen_set_td(
         set_name_lower = set_name.lower()
         patch_name = f"set_td_{set_name}"
         dest = f"llvm/lib/Target/RISCV/seal5/{set_name}.td"
-        dest2 = "llvm/lib/Target/RISCV/seal5.td"
         content = f"""
 // Includes
 // {set_name}.td - {set_name_lower}_set_td_includes - INSERTION_START
@@ -1308,6 +1317,7 @@ def gen_set_td(
         )
         artifacts.append(file_artifact)
     content2 = f"// {input_model}\n" + "\n".join([f'include "{inc}"' for inc in includes]) + "\n"
+    dest2 = "llvm/lib/Target/RISCV/seal5.td"
     patch_artifact = NamedPatch(
         dest2,
         key="seal5_td_includes",
@@ -1317,6 +1327,7 @@ def gen_set_td(
 
     index_file = settings.temp_dir / f"{input_model}_set_td_index.yml"
     write_index_yaml(index_file, artifacts, {}, content=True)
+    patch_name = f"set_td_{input_model}"
     patch_settings = PatchSettings(
         name=patch_name,
         stage=int(PatchStage.PHASE_1),

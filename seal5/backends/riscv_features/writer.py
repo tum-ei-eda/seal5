@@ -43,8 +43,7 @@ def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings):
 
     content_template = Template(MAKO_TEMPLATE)
     content_text = content_template.render(predicate=predicate, feature=feature, arch=arch, description=description)
-    # content_text = content_text.rstrip("\n")
-    return content_text
+    return content_text + "\n"
 
 
 def main():
@@ -126,6 +125,7 @@ def main():
                 continue
             metrics["n_success"] += 1
             content += gen_riscv_features_str(set_name, ext_settings)
+        content = content.rstrip()
         if len(content) > 0:
             with open(out_path, "w") as f:
                 f.write(content)

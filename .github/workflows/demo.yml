@@ -20,7 +20,25 @@
 # Seal5 demonstration (also serves as end-to-end testj
 name: Usage Demo
 
-on: [workflow_dispatch]
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: "Script"
+        required: true
+        default: "demo.py"
+      verbose:
+        description: "Verbose (0/1)"
+        required: true
+        default: "0"
+      fast:
+        description: "Fast (0/1)"
+        required: true
+        default: "0"
+      build_config:
+        description: "Build Config (debug/release/...)"
+        required: true
+        default: "release"
 # push:
 #   branches:
 #     - main
@@ -60,7 +78,7 @@ jobs:
     - name: Run the demo
       run: |
         source .venv/bin/activate
-        python examples/demo.py
+        VERBOSE=${{ github.event.inputs.verbose }} FAST=${{ github.event.inputs.fast }} BUILD_CONFIG=${{ github.event.inputs.build_config }} python examples/${{ github.event.inputs.script }}
     - uses: actions/upload-artifact@v4
       with:
         name: demo-export

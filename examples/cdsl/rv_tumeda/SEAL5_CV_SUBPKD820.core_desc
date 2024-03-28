@@ -1,0 +1,124 @@
+InstructionSet XCoreVSimd extends RV32I {
+    instructions {
+        // SEAL5_CV_SUBPKD810 {
+        //     operands: {
+        //         unsigned<5> rd [[is_reg]] [[out]];
+        //         unsigned<5> rs1 [[is_reg]] [[in]];
+        //     }
+        //     encoding: 5'b01110 :: 1'b0 :: 1'b0 :: 5'b00000 :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1111011;
+        //     assembly: "{name(rd)}, {name(rs1)}";
+        //     behavior: {
+        //         {
+        //             X[rd][15:0] = (signed<16>)(X[rs1][7:0]);
+        //             X[rd][31:16] = (signed<16>)(X[rs1][15:8]);
+        //         }
+        //     }
+        // }
+        // SEAL5_CV_SUBPKD820 {
+        //     operands: {
+        //         unsigned<5> rd [[is_reg]] [[out]];
+        //         unsigned<5> rs1 [[is_reg]] [[in]];
+        //     }
+        //     encoding: 5'b01110 :: 1'b0 :: 1'b0 :: 5'b00000 :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1111011;
+        //     assembly: "{name(rd)}, {name(rs1)}";
+        //     behavior: {
+        //         {
+        //             X[rd][15:0] = (signed<16>)(X[rs1][7:0]);
+        //             X[rd][31:16] = (signed<16>)(X[rs1][23:16]);
+        //         }
+        //     }
+        // }
+        // SEAL5_CV_SUBPKD820_ {
+        //     operands: {
+        //         unsigned<5> rd [[is_reg]] [[out]];
+        //         unsigned<5> rs1 [[is_reg]] [[in]];
+        //     }
+        //     encoding: 5'b01110 :: 1'b0 :: 1'b0 :: 5'b00000 :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1111011;
+        //     assembly: "{name(rd)}, {name(rs1)}";
+        //     behavior: {
+        //         {
+        //             X[rd][15:0] = (signed<16>)(signed)(X[rs1][7:0]);
+        //             X[rd][31:16] = (signed<16>)(signed)(X[rs1][23:16]);
+        //         }
+        //     }
+        // }
+        // CV_MAC_H {
+        //     operands: {
+        //         unsigned<5> rd [[is_reg]] [[out]];
+        //         unsigned<5> rs1 [[is_reg]] [[in]];
+        //         unsigned<5> rs2 [[is_reg]] [[in]];
+        //     }
+        //     encoding: 5'b1111 :: 1'b0 :: 1'b0 :: rs2[4:0] :: rs1[4:0] :: 3'b0 :: rd[4:0] :: 7'b1111011;
+        //     assembly: "{name(rd)}, {name(rs1)}, {name(rs2)}";
+        //     behavior: {
+        //         if (rd != 0) {
+        //             X[rd][15: 0] += (X[rs1][15: 0] * X[rs2][15: 0])[15:0];
+        //             X[rd][31:16] += (X[rs1][31:16] * X[rs2][31:16])[15:0];
+        //         }
+
+        //     }
+        // }
+        // CV_MAC_B {
+        //     operands: {
+        //       unsigned<5> rd [[is_reg]] [[out]];
+        //       unsigned<5> rs1 [[is_reg]] [[in]];
+        //       unsigned<5> rs2 [[is_reg]] [[in]];
+        //     }
+        //     encoding: 5'b1111 :: 1'b0 :: 1'b0 :: rs2[4:0] :: rs1[4:0] :: 3'b1 :: rd[4:0] :: 7'b1111011;
+        //     assembly: "{name(rd)}, {name(rs1)}, {name(rs2)}";
+        //     behavior: {
+        //         if (rd != 0) {
+        //             X[rd][ 7: 0] += (X[rs1][ 7: 0] * X[rs2][ 7: 0])[7:0];
+        //             X[rd][15: 8] += (X[rs1][15: 8] * X[rs2][15: 8])[7:0];
+        //             X[rd][23:16] += (X[rs1][23:16] * X[rs2][23:16])[7:0];
+        //             X[rd][31:24] += (X[rs1][31:24] * X[rs2][31:24])[7:0];
+        //         }
+        //     }
+        // }
+        // CV_MAC_B_820 {
+        //     operands: {
+        //       unsigned<5> rd [[is_reg]] [[out]];
+        //       unsigned<5> rs1 [[is_reg]] [[in]];
+        //       unsigned<5> rs2 [[is_reg]] [[in]];
+        //     }
+        //     encoding: 5'b1111 :: 1'b0 :: 1'b0 :: rs2[4:0] :: rs1[4:0] :: 3'b1 :: rd[4:0] :: 7'b1111011;
+        //     assembly: "{name(rd)}, {name(rs1)}, {name(rs2)}";
+        //     behavior: {
+        //         if (rd != 0) {
+        //             X[rd][15: 0] += (X[rs1][ 7: 0] * X[rs2][ 7: 0])[15:0];
+        //             X[rd][31:16] += (X[rs1][23:16] * X[rs2][23:16])[15:0];
+        //         }
+        //     }
+        // }
+        CV_MAC_B_810 {
+            operands: {
+              unsigned<5> rd [[is_reg]] [[out]];
+              unsigned<5> rs1 [[is_reg]] [[in]];
+              unsigned<5> rs2 [[is_reg]] [[in]];
+            }
+            encoding: 5'b1111 :: 1'b0 :: 1'b0 :: rs2[4:0] :: rs1[4:0] :: 3'b1 :: rd[4:0] :: 7'b1111011;
+            assembly: "{name(rd)}, {name(rs1)}, {name(rs2)}";
+            behavior: {
+                if (rd != 0) {
+                    X[rd][15: 0] += (X[rs1][ 7: 0] * X[rs2][ 7: 0])[15:0];
+                    X[rd][31:16] += (X[rs1][15: 8] * X[rs2][15: 8])[15:0];
+                }
+            }
+        }
+        CV_MAC_B_832 {
+            operands: {
+              unsigned<5> rd [[is_reg]] [[out]];
+              unsigned<5> rs1 [[is_reg]] [[in]];
+              unsigned<5> rs2 [[is_reg]] [[in]];
+            }
+            encoding: 5'b1111 :: 1'b0 :: 1'b0 :: rs2[4:0] :: rs1[4:0] :: 3'b1 :: rd[4:0] :: 7'b1111011;
+            assembly: "{name(rd)}, {name(rs1)}, {name(rs2)}";
+            behavior: {
+                if (rd != 0) {
+                    X[rd][15: 0] += (X[rs1][23:16] * X[rs2][23:16])[15:0];
+                    X[rd][31:16] += (X[rs1][31:24] * X[rs2][31:24])[15:0];
+                }
+            }
+        }
+    }
+}

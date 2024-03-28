@@ -85,7 +85,19 @@ def main():
         "n_failed": 0,
         "n_success": 0,
     }
+    settings = model.get("settings", None)
     if args.splitted:
+        # errs = []
+        # model_includes = []
+        default_mattr = "+m,+fast-unaligned-access"
+        if settings:
+            riscv_settings = settings.riscv
+            if riscv_settings:
+                features = riscv_settings.features
+                if features is None:
+                    pass
+                else:
+                    default_mattr = ",".join([f"+{f}" for f in features])
         # errs = []
         assert out_path.is_dir(), "Expecting output directory when using --splitted"
         for set_name, set_def in model["sets"].items():
@@ -122,6 +134,7 @@ def main():
                         output_file,
                         skip_patterns=True,
                         skip_formats=True,
+                        mattr=default_mattr,
                     )
                     metrics["n_success"] += 1
                 except AssertionError:

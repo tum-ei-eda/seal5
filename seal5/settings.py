@@ -89,6 +89,8 @@ DEFAULT_SETTINGS = {
     },
     "llvm": {
         "state": {"version": "auto", "base_commit": "unknown"},
+        "ninja": False,
+        "default_config": "release",
         "configs": {
             "release": {
                 "options": {
@@ -97,7 +99,7 @@ DEFAULT_SETTINGS = {
                     "LLVM_ENABLE_ASSERTIONS": False,
                     "LLVM_OPTIMIZED_TABLEGEN": True,
                     "LLVM_ENABLE_PROJECTS": ["clang", "lld"],
-                    "LLVM_TARGETS_TO_BUILD": ["X86", "RISCV"],
+                    "LLVM_TARGETS_TO_BUILD": ["RISCV"],
                 },
             },
             "release_assertions": {
@@ -107,7 +109,7 @@ DEFAULT_SETTINGS = {
                     "LLVM_ENABLE_ASSERTIONS": True,
                     "LLVM_OPTIMIZED_TABLEGEN": True,
                     "LLVM_ENABLE_PROJECTS": ["clang", "lld"],
-                    "LLVM_TARGETS_TO_BUILD": ["X86", "RISCV"],
+                    "LLVM_TARGETS_TO_BUILD": ["RISCV"],
                 },
             },
             "debug": {
@@ -117,7 +119,7 @@ DEFAULT_SETTINGS = {
                     "LLVM_ENABLE_ASSERTIONS": True,
                     "LLVM_OPTIMIZED_TABLEGEN": True,
                     "LLVM_ENABLE_PROJECTS": ["clang", "lld"],
-                    "LLVM_TARGETS_TO_BUILD": ["X86", "RISCV"],
+                    "LLVM_TARGETS_TO_BUILD": ["RISCV"],
                 },
             },
         },
@@ -469,8 +471,10 @@ class LLVMConfig(YAMLSettings):
 
 @dataclass
 class LLVMSettings(YAMLSettings):
-    state: Optional[LLVMState] = None
+    ninja: Optional[bool] = None
+    default_config: Optional[str] = None
     configs: Optional[Dict[str, LLVMConfig]] = None
+    state: Optional[LLVMState] = None
 
 
 @dataclass
@@ -532,7 +536,29 @@ class Seal5Settings(YAMLSettings):
         self.patches = []
         self.inputs = []
         self.metrics = []
-        # TODO: clear user provided tests!
+        self.test = TestSettings(paths=[])
+        self.filter = FilterSettings(
+            sets=FilterSetting(keep=[], drop=[]),
+            instructions=FilterSetting(keep=[], drop=[]),
+            aliases=FilterSetting(keep=[], drop=[]),
+            intrinsics=FilterSetting(keep=[], drop=[]),
+            opcodes=FilterSetting(keep=[], drop=[]),
+            encoding_sizes=FilterSetting(keep=[], drop=[]),
+        )
+        self.passes = PassesSettings(
+            defaults=PassesSetting(
+                skip=[],
+                only=[],
+                overrides={},
+            ),
+            per_model={},
+        )
+        self.riscv = RISCVSettings(
+            xlen=None,
+            features=None,
+            transform_info=None,
+            legalization=None,
+        )
 
     def save(self, dest: Optional[Path] = None):
         if dest is None:

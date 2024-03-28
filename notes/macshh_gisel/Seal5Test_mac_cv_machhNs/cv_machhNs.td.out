@@ -1,0 +1,1 @@
+Pattern for cv_machhNs: (i32 (sra (add (mul (i32 (sra (i32 (shl (i32 (srl GPR:$rs2, (i32 16))), (i32 16))), (i32 16))), (i32 (sra (i32 (shl (i32 (srl GPR:$rs1, (i32 16))), (i32 16))), (i32 16)))), GPR:$rd), (and (i32 uimm5:$Is3), (i32 31))))

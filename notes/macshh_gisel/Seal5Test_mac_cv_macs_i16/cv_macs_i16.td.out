@@ -1,0 +1,1 @@
+Pattern for cv_macs_i16: (add (mul (i32 (sra (i32 (shl GPR:$rs2, (i32 16))), (i32 16))), (i32 (sra (i32 (shl GPR:$rs1, (i32 16))), (i32 16)))), GPR:$rd)

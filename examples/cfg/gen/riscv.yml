@@ -1,0 +1,245 @@
+---
+riscv:
+  xlen: 32
+  features:
+  - m
+  - fast-unaligned-access
+  - gpr32v
+riscv:
+  legalization:
+    gisel:
+      ops: []
+      # - name:
+      #   - G_ABS
+      #   onlyif:
+      #   - HasVendorseal5testalucvabs8
+      #   types:
+      #   - s8
+      # - name:
+      #   - G_ABS
+      #   onlyif:
+      #   - HasVendorseal5testalucvabs16
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_ABS
+      #   onlyif:
+      #   - HasVendorseal5testalucvabs32
+      #   types:
+      #   - s32
+      # - name:
+      #   - G_SEXT
+      #   onlyif:
+      #   - HasVendorseal5testalucvexths
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_ZEXT
+      #   onlyif:
+      #   - HasVendorseal5testalucvexthz
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_SEXT
+      #   onlyif:
+      #   - HasVendorseal5testalucvextbs
+      #   types:
+      #   - s8
+      # - name:
+      #   - G_ZEXT
+      #   onlyif:
+      #   - HasVendorseal5testalucvextbz
+      #   types:
+      #   - s8
+      # - name:
+      #   - G_UMIN
+      #   onlyif:
+      #   - HasVendorseal5testalucvminu8
+      #   types:
+      #   - s8
+      # - name:
+      #   - G_SMIN
+      #   onlyif:
+      #   - HasVendorseal5testalucvmins8
+      #   types:
+      #   - s8
+      # - name:
+      #   - G_UMIN
+      #   onlyif:
+      #   - HasVendorseal5testalucvminu16
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_SMIN
+      #   onlyif:
+      #   - HasVendorseal5testalucvmins16
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_UMIN
+      #   onlyif:
+      #   - HasVendorseal5testalucvminu32
+      #   types:
+      #   - s32
+      # - name:
+      #   - G_SMIN
+      #   onlyif:
+      #   - HasVendorseal5testalucvmins32
+      #   types:
+      #   - s32
+      # - name:
+      #   - G_UMAX
+      #   onlyif:
+      #   - HasVendorseal5testalucvmaxu8
+      #   types:
+      #   - s8
+      # - name:
+      #   - G_SMAX
+      #   onlyif:
+      #   - HasVendorseal5testalucvmaxs8
+      #   types:
+      #   - s8
+      # - name:
+      #   - G_UMAX
+      #   onlyif:
+      #   - HasVendorseal5testalucvmaxu16
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_SMAX
+      #   onlyif:
+      #   - HasVendorseal5testalucvmaxs16
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_UMAX
+      #   onlyif:
+      #   - HasVendorseal5testalucvmaxu32
+      #   types:
+      #   - s32
+      # - name:
+      #   - G_SMAX
+      #   onlyif:
+      #   - HasVendorseal5testalucvmaxs32
+      #   types:
+      #   - s32
+      # - name:
+      #   - G_MUL
+      #   onlyif:
+      #   - HasVendorseal5testmaccvmacui16
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_MUL
+      #   onlyif:
+      #   - HasVendorseal5testmaccvmacsi16
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_MUL
+      #   onlyif:
+      #   - HasVendorseal5testmaccvmsuui16
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_MUL
+      #   onlyif:
+      #   - HasVendorseal5testmaccvmsusi16
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_MUL
+      #   onlyif:
+      #   - HasVendorseal5testmaccvmulnu
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_MUL
+      #   onlyif:
+      #   - HasVendorseal5testmaccvmulns
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_MUL
+      #   onlyif:
+      #   - HasVendorseal5testmaccvmulhhnu
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_MUL
+      #   onlyif:
+      #   - HasVendorseal5testmaccvmulhhns
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_MUL
+      #   onlyif:
+      #   - HasVendorseal5testmaccvmulrnu
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_MUL
+      #   onlyif:
+      #   - HasVendorseal5testmaccvmulrns
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_MUL
+      #   onlyif:
+      #   - HasVendorseal5testmaccvmulhhrnu
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_MUL
+      #   onlyif:
+      #   - HasVendorseal5testmaccvmulhhrns
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_MUL
+      #   onlyif:
+      #   - HasVendorseal5testmaccvmacnu
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_MUL
+      #   onlyif:
+      #   - HasVendorseal5testmaccvmacns
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_MUL
+      #   onlyif:
+      #   - HasVendorseal5testmaccvmachhnu
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_MUL
+      #   onlyif:
+      #   - HasVendorseal5testmaccvmachhns
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_MUL
+      #   onlyif:
+      #   - HasVendorseal5testmaccvmacrnu
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_MUL
+      #   onlyif:
+      #   - HasVendorseal5testmaccvmacrns
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_MUL
+      #   onlyif:
+      #   - HasVendorseal5testmaccvmachhrnu
+      #   types:
+      #   - s16
+      # - name:
+      #   - G_MUL
+      #   onlyif:
+      #   - HasVendorseal5testmaccvmachhrns
+      #   types:
+      #   - s16
