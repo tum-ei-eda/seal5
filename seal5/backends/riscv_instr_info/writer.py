@@ -29,11 +29,6 @@ from .templates import template_dir
 logger = logging.getLogger("riscv_instr_info")
 
 
-# MAKO_TEMPLATE = """def Feature${predicate} : SubtargetFeature<"${arch}", "Has${predicate}", "true", "'${feature}' (${description})">;
-#
-# def Has${predicate} : Predicate<"Subtarget->has${predicate}()">, AssemblerPredicate<(any_of Feature${predicate}), "'${feature}' (${description})">;"""
-
-
 class Operand:
     def __init__(self, name, lower, upper):
         self.name = name
