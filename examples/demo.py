@@ -35,7 +35,7 @@ VERBOSE = bool(int(os.environ.get("VERBOSE", 0)))
 FAST = bool(int(os.environ.get("FAST", 1)))
 SKIP_PATTERNS = bool(int(os.environ.get("SKIP_PATTERNS", 0)))
 INTERACTIVE = bool(int(os.environ.get("INTERACTIVE", 0)))
-PREPATCHED = bool(int(os.environ.get("PREPATCHED", 1)))
+PREPATCHED = bool(int(os.environ.get("PREPATCHED", 0)))
 BUILD_CONFIG = os.environ.get("BUILD_CONFIG", "release")
 
 
