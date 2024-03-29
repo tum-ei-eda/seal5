@@ -120,7 +120,7 @@ def binary_operation(self: behav.BinaryOperation, context):
         self.inferred_type = arch.IntegerType(wr, sr, None)
     else:
         if self.op.value in ["||", "&&"]:
-            pass
+            self.inferred_type = arch.IntegerType(1, False, None)  # unsigned<1> / bool
         elif self.op.value in ["<", ">", "==", "!=", ">=", "<="]:
             self.inferred_type = arch.IntegerType(1, False, None)  # unsigned<1> / bool
     # print("sit", self.inferred_type.width)
