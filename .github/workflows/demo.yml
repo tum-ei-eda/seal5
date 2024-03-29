@@ -78,8 +78,8 @@ jobs:
     - name: Run the demo
       run: |
         source .venv/bin/activate
-        VERBOSE=${{ github.event.inputs.verbose }} FAST=${{ github.event.inputs.fast }} BUILD_CONFIG=${{ github.event.inputs.build_config }} python examples/${{ github.event.inputs.script }}
+        VERBOSE=${{ github.event.inputs.verbose }} FAST=${{ github.event.inputs.fast }} BUILD_CONFIG=${{ github.event.inputs.build_config }} DEST=/tmp/seal5_llvm python examples/${{ github.event.inputs.script }}
     - uses: actions/upload-artifact@v4
       with:
         name: demo-export
-        path: /tmp/seal5_llvm_demo.tar.gz
+        path: /tmp/seal5_llvm.tar.gz
