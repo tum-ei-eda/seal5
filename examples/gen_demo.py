@@ -37,9 +37,10 @@ SKIP_PATTERNS = bool(int(os.environ.get("SKIP_PATTERNS", 0)))
 INTERACTIVE = bool(int(os.environ.get("INTERACTIVE", 0)))
 PREPATCHED = bool(int(os.environ.get("PREPATCHED", 0)))
 BUILD_CONFIG = os.environ.get("BUILD_CONFIG", "release")
+DEST = os.environ.get("BUILD_CONFIG", "/tmp/seal5_llvm_gen")
+NAME = os.environ.get("NAME", "gen")
 
-
-seal5_flow = Seal5Flow("/tmp/seal5_llvm_gen", "gen")
+seal5_flow = Seal5Flow(DEST, NAME)
 
 # Optional: clean existing settings/models for fresh run
 seal5_flow.reset(settings=True, interactive=False)
@@ -138,7 +139,7 @@ seal5_flow.test(verbose=VERBOSE, ignore_error=True)
 seal5_flow.deploy(verbose=VERBOSE)
 
 # Export patches, logs, reports
-seal5_flow.export("/tmp/seal5_llvm_gen.tar.gz", verbose=VERBOSE)
+seal5_flow.export(f"{DEST}.tar.gz", verbose=VERBOSE)
 
 # Optional: cleanup temorary files, build dirs,...
 # seal5.clean(temp=True, build=True, deps=True, interactive=INTERACTIVE)
