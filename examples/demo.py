@@ -68,31 +68,11 @@ seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load test inputs
 test_files = [
-    # EXAMPLES_DIR / "tests" / "xcorev" / "cv_abs.test.c",
-    EXAMPLES_DIR / "tests" / "cv_nand" / "cv_nand.c",
-    EXAMPLES_DIR / "tests" / "cv_nand" / "cv_nand.s",
-    EXAMPLES_DIR / "tests" / "cv_nand" / "cv_nand_invalid.s",
-    # TODO: support subdirectories to avoid duplicate test names (WARN!)
-    # EXAMPLES_DIR / "tests" / "corev" / "*.asm.s",
-    # EXAMPLES_DIR / "tests" / "corev" / "*.invalid-asm.s",
-    EXAMPLES_DIR / "tests" / "corev" / "*.inline-asm.c",
 ]
 seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 
 # Load YAML inputs
 cfg_files = [
-    # XCOREV
-    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVMac.yml",
-    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVAlu.yml",
-    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVBitmanip.yml",
-    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVSimd.yml",
-    EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVMem.yml",
-    # EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVBranchImmediate.yml",
-    # S4E
-    # TUMEDA
-    EXAMPLES_DIR / "cfg" / "tumeda" / "OpenASIP.yml",
-    # GENERATED
-    # OTHERS
     EXAMPLES_DIR / "cfg" / "llvm.yml",
     EXAMPLES_DIR / "cfg" / "filter.yml",
     EXAMPLES_DIR / "cfg" / "patches.yml",
