@@ -24,8 +24,10 @@ from typing import List, Optional
 
 import git
 
-from seal5.logging import get_logger
 from seal5 import utils
+from seal5.logging import get_logger
+from seal5.tools.git import get_author
+from seal5.settings import GitSettings
 
 logger = get_logger()
 
@@ -51,7 +53,12 @@ def check_llvm_repo(path: Path):
 
 
 def clone_llvm_repo(
-    dest: Path, clone_url: str, ref: Optional[str] = None, refresh: bool = False, label: str = "default"
+    dest: Path,
+    clone_url: str,
+    ref: Optional[str] = None,
+    refresh: bool = False,
+    label: str = "default",
+    git_settings: GitSettings = None,
 ):
     sha = None
     version_info = {}
@@ -72,7 +79,8 @@ def clone_llvm_repo(
         if ref:
             logger.debug("Checking out branch: %s", ref)
             repo.git.checkout(ref)
-    repo.create_tag(f"seal5-{label}-base", "-f")
+    author = get_author(git_settings)
+    repo.create_tag(f"seal5-{label}-base", "-f", author=author)
     # git describe --tags --match "llvmorg-[0-9]*.[0-9]*.[0-9]*"
     describe = repo.git.describe("--tags", "--match", "llvmorg-[0-9]*.[0-9]*.[0-9]*")
     if describe:
