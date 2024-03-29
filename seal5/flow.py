@@ -33,7 +33,7 @@ from seal5.settings import Seal5Settings, PatchSettings, DEFAULT_SETTINGS, LLVMC
 
 from seal5.dependencies import cdsl2llvm_dependency
 from seal5 import utils
-from seal5.tools import llvm, cdsl2llvm, git as git_, inject_patches
+from seal5.tools import llvm, cdsl2llvm, inject_patches
 from seal5.resources.resources import get_patches, get_test_cfg
 from seal5.passes import Seal5Pass, PassType, PassScope, PassManager, filter_passes
 import seal5.pass_list as passes
@@ -634,9 +634,10 @@ class Seal5Flow:
                 self.apply_patch(patch, force=force)
             assert self.repo is not None
             tag_name = f"seal5-{self.name}-stage{int(stage)}"
-            tag_msg = f"Patched Seal5 LLVM after {stage}"
-            author = git_.get_author(self.settings.git)
-            self.repo.create_tag(tag_name, message=tag_msg, force=True, author=author)
+            tag_msg = f"Patched Seal5 LLVM after stage {stage}"
+            # author = git_.get_author(self.settings.git)
+            # self.repo.create_tag(tag_name, message=tag_msg, force=True, author=author)
+            self.repo.create_tag(tag_name, message=tag_msg, force=True)
         end = time.time()
         diff = end - start
         metrics["time_s"] = diff

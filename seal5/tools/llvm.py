@@ -26,7 +26,7 @@ import git
 
 from seal5 import utils
 from seal5.logging import get_logger
-from seal5.tools.git import get_author
+from seal5.tools.git import get_author_from_settings
 from seal5.settings import GitSettings
 
 logger = get_logger()
@@ -79,8 +79,13 @@ def clone_llvm_repo(
         if ref:
             logger.debug("Checking out branch: %s", ref)
             repo.git.checkout(ref)
-    author = get_author(git_settings)
-    repo.create_tag(f"seal5-{label}-base", "-f", author=author)
+    # Set author in repo config
+    author = get_author_from_settings(git_settings)
+    with repo.config_writer() as writer:
+        writer.set_value("user", "name", author.name)
+        writer.set_value("user", "email", author.email)
+    # repo.create_tag(f"seal5-{label}-base", "-f", author=author)
+    repo.create_tag(f"seal5-{label}-base", "-f")
     # git describe --tags --match "llvmorg-[0-9]*.[0-9]*.[0-9]*"
     describe = repo.git.describe("--tags", "--match", "llvmorg-[0-9]*.[0-9]*.[0-9]*")
     if describe:
