@@ -10,3 +10,6 @@
 [submodule "examples/cdsl/rv_gen"]
 	path = examples/cdsl/rv_gen
 	url = https://github.com/PhilippvK/Gen_ISA_CoreDSL.git
+[submodule "examples/cdsl/rv_openasip"]
+	path = examples/cdsl/rv_openasip
+	url = https://github.com/PhilippvK/OpenASIP_ISA_CoreDSL.git
