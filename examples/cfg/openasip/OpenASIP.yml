@@ -6,7 +6,7 @@ extensions:
     vendor: true
 passes:
   per_model:
-    OpenASIP:
+    OpenASIP_:
       overrides:
         convert_models:
           prefix: "SEAL5_"
