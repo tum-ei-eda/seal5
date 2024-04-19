@@ -145,8 +145,9 @@ def cmake(src, *args, debug: Optional[bool] = None, use_ninja: Optional[bool] = 
     if isinstance(cwd, Path):
         cwd = str(cwd.resolve())
     extraArgs = []
-    if debug is not None:
-        buildType = "Debug" if debug else "Release"
+    if not any("CMAKE_BUILD_TYPE" in x for x in args):
+        if debug is not None:
+            buildType = "Debug" if debug else "Release"
         extraArgs.append("-DCMAKE_BUILD_TYPE=" + buildType)
     if use_ninja:
         extraArgs.append("-GNinja")
