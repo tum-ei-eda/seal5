@@ -23,7 +23,7 @@ import time
 import glob
 import tarfile
 from pathlib import Path
-from typing import Optional, List, Dict, Tuple
+from typing import Optional, List, Dict, Tuple, Union
 
 import git
 
@@ -67,6 +67,21 @@ def handle_directory(directory: Optional[Path]):
     return path
 
 
+def handle_meta_dir(meta_dir: Optional[Union[str, Path]], directory: Path, name: str):
+    # TODO: handle environment vars
+    if meta_dir is None:
+        meta_dir = "default"
+    if meta_dir == "default":
+        meta_dir = directory / ".seal5"
+    elif meta_dir == "user":
+        # config_dir = get_seal5_user_config_dir()
+        raise NotImplementedError("store meta dirs in .config/seal5/meta")
+    if isinstance(meta_dir, str):
+        meta_dir = Path(meta_dir)
+    # assert meta_dir.parent.is_dir()
+    return meta_dir
+
+
 def create_seal5_directories(path: Path, directories: list):
     logger.debug("Creating Seal5 directories")
     if not isinstance(path, Path):
@@ -85,13 +100,17 @@ def add_test_cfg(tests_dir: Path):
 
 
 class Seal5Flow:
-    def __init__(self, directory: Optional[Path] = None, name: Optional[str] = None):
+    def __init__(
+        self, directory: Optional[Path] = None, meta_dir: Optional[Union[str, Path]] = None, name: Optional[str] = None
+    ):
         self.directory: Path = handle_directory(directory)
+        self.meta_dir: Path = handle_meta_dir(meta_dir, directory, name)
+        self.name: str = name
         self.state: Seal5State = Seal5State.UNKNOWN
         self.passes: List[Seal5Pass] = []
         self.repo: Optional[git.Repo] = git.Repo(self.directory) if self.directory.is_dir() else None
         self.check()
-        self.settings = Seal5Settings.from_dict(DEFAULT_SETTINGS)
+        self.settings = Seal5Settings.from_dict({"meta_dir": self.meta_dir, **DEFAULT_SETTINGS})
         # self.settings: Seal5Settings = Seal5Settings(directory=self.directory)
         self.settings.directory = str(self.directory)
         if self.settings.settings_file.is_file():

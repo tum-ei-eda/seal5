@@ -535,6 +535,7 @@ class ToolsSettings(YAMLSettings):
 class Seal5Settings(YAMLSettings):
     directory: Optional[str] = None
     name: Optional[str] = None
+    meta_dir: Optional[str] = None
     logging: Optional[LoggingSettings] = None
     filter: Optional[FilterSettings] = None
     llvm: Optional[LLVMSettings] = None
@@ -596,52 +597,52 @@ class Seal5Settings(YAMLSettings):
         return [Path(path).stem for path in self.inputs]
 
     @property
-    def meta_dir(self):
-        return Path(self.directory) / ".seal5"
+    def _meta_dir(self):
+        return Path(self.meta_dir)
 
     @property
     def settings_file(self):
-        return self.meta_dir / "settings.yml"
+        return self._meta_dir / "settings.yml"
 
     @property
     def deps_dir(self):
-        return self.meta_dir / "deps"
+        return self._meta_dir / "deps"
 
     @property
     def build_dir(self):
-        return self.meta_dir / "build"
+        return self._meta_dir / "build"
 
     @property
     def install_dir(self):
-        return self.meta_dir / "install"
+        return self._meta_dir / "install"
 
     @property
     def logs_dir(self):
-        return self.meta_dir / "logs"
+        return self._meta_dir / "logs"
 
     @property
     def models_dir(self):
-        return self.meta_dir / "models"
+        return self._meta_dir / "models"
 
     @property
     def inputs_dir(self):
-        return self.meta_dir / "inputs"
+        return self._meta_dir / "inputs"
 
     @property
     def temp_dir(self):
-        return self.meta_dir / "temp"
+        return self._meta_dir / "temp"
 
     @property
     def gen_dir(self):
-        return self.meta_dir / "gen"
+        return self._meta_dir / "gen"
 
     @property
     def tests_dir(self):
-        return self.meta_dir / "tests"
+        return self._meta_dir / "tests"
 
     @property
     def patches_dir(self):  # TODO: maybe merge with gen_dir
-        return self.meta_dir / "patches"
+        return self._meta_dir / "patches"
 
     @property
     def log_file_path(self):
