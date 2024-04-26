@@ -67,8 +67,7 @@ cdsl_files = [
 seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load test inputs
-test_files = [
-]
+test_files = []
 seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 
 # Load YAML inputs

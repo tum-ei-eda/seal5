@@ -163,7 +163,7 @@ class Seal5Flow:
             ("detect_side_effects", passes.detect_side_effects, {}),
             ("detect_inouts", passes.detect_inouts, {}),
             ("detect_registers", passes.detect_registers, {}),
-            ("write_cdsl_full", passes.write_cdsl, {"split": False, "compat": False})
+            ("write_cdsl_full", passes.write_cdsl, {"split": False, "compat": False}),
             # TODO: determine static constraints (xlen,...) -> subtargetvmap
             # detect memory adressing modes
             # self.detect_adressing_modes(verbose)  # TODO
@@ -235,7 +235,12 @@ class Seal5Flow:
         else:
             if force:
                 self.repo, sha, version_info = llvm.clone_llvm_repo(
-                    self.directory, clone_url, ref=clone_ref, refresh=True, label=self.name, git_settings=self.settings.git
+                    self.directory,
+                    clone_url,
+                    ref=clone_ref,
+                    refresh=True,
+                    label=self.name,
+                    git_settings=self.settings.git,
                 )
         if self.settings.meta_dir.is_dir():
             if force is False and not utils.ask_user(

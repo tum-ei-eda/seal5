@@ -1,0 +1,6 @@
+-r ../requirements_dev.txt
+Sphinx>=5.0
+myst-parser
+numpydoc
+sphinx-rtd-theme
+sphinxemoji
