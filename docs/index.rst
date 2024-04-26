@@ -6,6 +6,7 @@ Seal5 documentation
    :caption: Contents:
 
    readme
+   docs
 
 Indices and tables
 ==================
