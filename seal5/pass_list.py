@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Optional
 
 from seal5 import utils
@@ -11,12 +12,17 @@ from seal5.settings import Seal5Settings, PatchSettings
 logger = get_logger()
 
 
+def sanitize_args(args):
+    return [str(arg) if isinstance(arg, Path) else arg for arg in args]
+
+
 def convert_models(
     input_model: str,
     settings: Optional[Seal5Settings] = None,
     env: Optional[dict] = None,
     verbose: bool = False,
     inplace: bool = False,
+    use_subprocess: bool = False,
     prefix: Optional[str] = None,
     **kwargs,
 ):
@@ -39,14 +45,19 @@ def convert_models(
     if prefix:
         assert isinstance(prefix, str)
         args.extend(["--prefix", prefix])
-    utils.python(
-        "-m",
-        "seal5.transform.converter",
-        *args,
-        env=env,
-        print_func=logger.info if verbose else logger.debug,
-        live=True,
-    )
+    if not use_subprocess:
+        from seal5.transform.converter import main as Converter
+        args = sanitize_args(args)
+        Converter(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.converter",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
     return PassResult(metrics=metrics)
 
 
@@ -56,6 +67,7 @@ def optimize_model(
     env: Optional[dict] = None,
     verbose: bool = False,
     inplace: bool = True,
+    use_subprocess: bool = False,
     **kwargs,
 ):
     assert inplace
@@ -69,14 +81,19 @@ def optimize_model(
         "info",
         # "debug",
     ]
-    utils.python(
-        "-m",
-        "seal5.transform.optimize_instructions.optimizer",
-        *args,
-        env=env,
-        print_func=logger.info if verbose else logger.debug,
-        live=True,
-    )
+    if not use_subprocess:
+        from seal5.transform.optimize_instructions import OptimizeInstructions
+        args = sanitize_args(args)
+        OptimizeInstructions(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.optimize_instructions.optimizer",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
 
 
 def infer_types(
@@ -85,6 +102,7 @@ def infer_types(
     env: Optional[dict] = None,
     verbose: bool = False,
     inplace: bool = True,
+    use_subprocess: bool = False,
     **kwargs,
 ):
     assert inplace
@@ -98,14 +116,19 @@ def infer_types(
         "info",
         # "debug",
     ]
-    utils.python(
-        "-m",
-        "seal5.transform.infer_types.transform",
-        *args,
-        env=env,
-        print_func=logger.info if verbose else logger.debug,
-        live=True,
-    )
+    if not use_subprocess:
+        from seal5.transform.infer_types import InferTypes
+        args = sanitize_args(args)
+        InferTypes(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.infer_types.transform",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
 
 
 def simplify_trivial_slices(
@@ -114,6 +137,7 @@ def simplify_trivial_slices(
     env: Optional[dict] = None,
     verbose: bool = False,
     inplace: bool = True,
+    use_subprocess: bool = False,
     **kwargs,
 ):
     assert inplace
@@ -127,14 +151,19 @@ def simplify_trivial_slices(
         "info",
         # "debug",
     ]
-    utils.python(
-        "-m",
-        "seal5.transform.simplify_trivial_slices.transform",
-        *args,
-        env=env,
-        print_func=logger.info if verbose else logger.debug,
-        live=True,
-    )
+    if not use_subprocess:
+        from seal5.transform.simplify_trivial_slices import SimplifyTrivialSlices
+        args = sanitize_args(args)
+        SimplifyTrivialSlices(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.simplify_trivial_slices.transform",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
 
 
 def explicit_truncations(
@@ -143,6 +172,7 @@ def explicit_truncations(
     env: Optional[dict] = None,
     verbose: bool = False,
     inplace: bool = True,
+    use_subprocess: bool = False,
     **kwargs,
 ):
     assert inplace
@@ -156,14 +186,19 @@ def explicit_truncations(
         "info",
         # "debug",
     ]
-    utils.python(
-        "-m",
-        "seal5.transform.explicit_truncations.transform",
-        *args,
-        env=env,
-        print_func=logger.info if verbose else logger.debug,
-        live=True,
-    )
+    if not use_subprocess:
+        from seal5.transform.explicit_truncations import ExplicitTruncations
+        args = sanitize_args(args)
+        ExplicitTruncations(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.explicit_truncations.transform",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
 
 
 def process_settings(
@@ -172,6 +207,7 @@ def process_settings(
     env: Optional[dict] = None,
     verbose: bool = False,
     inplace: bool = True,
+    use_subprocess: bool = False,
     **kwargs,
 ):
     assert inplace
@@ -187,14 +223,19 @@ def process_settings(
         "--yaml",
         settings.settings_file,
     ]
-    utils.python(
-        "-m",
-        "seal5.transform.process_settings.transform",
-        *args,
-        env=env,
-        print_func=logger.info if verbose else logger.debug,
-        live=True,
-    )
+    if not use_subprocess:
+        from seal5.transform.process_settings import ProcessSettings
+        args = sanitize_args(args)
+        ProcessSettings(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.process_settings.transform",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
 
 
 def filter_model(
@@ -203,6 +244,7 @@ def filter_model(
     env: Optional[dict] = None,
     verbose: bool = False,
     inplace: bool = True,
+    use_subprocess: bool = False,
     **kwargs,
 ):
     assert inplace
@@ -243,14 +285,19 @@ def filter_model(
         # "info",
         "debug",
     ]
-    utils.python(
-        "-m",
-        "seal5.transform.filter_model.filter",
-        *args,
-        env=env,
-        print_func=logger.info if verbose else logger.debug,
-        live=True,
-    )
+    if not use_subprocess:
+        from seal5.transform.filter_model import FilterModel
+        args = sanitize_args(args)
+        FilterModel(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.filter_model.filter",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
 
 
 def drop_unused(
@@ -259,6 +306,7 @@ def drop_unused(
     env: Optional[dict] = None,
     verbose: bool = False,
     inplace: bool = True,
+    use_subprocess: bool = False,
     **kwargs,
 ):
     assert inplace
@@ -272,14 +320,19 @@ def drop_unused(
         # "info",
         "debug",
     ]
-    utils.python(
-        "-m",
-        "seal5.transform.drop_unused.optimizer",
-        *args,
-        env=env,
-        print_func=logger.info if verbose else logger.debug,
-        live=True,
-    )
+    if not use_subprocess:
+        from seal5.transform.drop_unused import DropUnused
+        args = sanitize_args(args)
+        DropUnused(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.drop_unused.optimizer",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
 
 
 def detect_registers(
@@ -288,6 +341,7 @@ def detect_registers(
     env: Optional[dict] = None,
     verbose: bool = False,
     inplace: bool = True,
+    use_subprocess: bool = False,
     **kwargs,
 ):
     assert inplace
@@ -301,14 +355,19 @@ def detect_registers(
         "info",
         # "debug",
     ]
-    utils.python(
-        "-m",
-        "seal5.transform.detect_registers",
-        *args,
-        env=env,
-        print_func=logger.info if verbose else logger.debug,
-        live=True,
-    )
+    if not use_subprocess:
+        from seal5.transform.detect_registers import main as DetectRegisters
+        args = sanitize_args(args)
+        DetectRegisters(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.detect_registers",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
 
 
 def detect_behavior_constraints(
@@ -317,6 +376,7 @@ def detect_behavior_constraints(
     env: Optional[dict] = None,
     verbose: bool = False,
     inplace: bool = True,
+    use_subprocess: bool = False,
     **kwargs,
 ):
     assert inplace
@@ -330,14 +390,19 @@ def detect_behavior_constraints(
         # "info",
         "debug",
     ]
-    utils.python(
-        "-m",
-        "seal5.transform.collect_raises.collect",
-        *args,
-        env=env,
-        print_func=logger.info if verbose else logger.debug,
-        live=True,
-    )
+    if not use_subprocess:
+        from seal5.transform.collect_raises import CollectRaises
+        args = sanitize_args(args)
+        CollectRaises(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.collect_raises.collect",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
 
 
 def detect_side_effects(
@@ -346,6 +411,7 @@ def detect_side_effects(
     env: Optional[dict] = None,
     verbose: bool = False,
     inplace: bool = True,
+    use_subprocess: bool = False,
     **kwargs,
 ):
     assert inplace
@@ -359,14 +425,19 @@ def detect_side_effects(
         # "info",
         "debug",
     ]
-    utils.python(
-        "-m",
-        "seal5.transform.detect_side_effects.collect",
-        *args,
-        env=env,
-        print_func=logger.info if verbose else logger.debug,
-        live=True,
-    )
+    if not use_subprocess:
+        from seal5.transform.detect_side_effects import DetectSideEffects
+        args = sanitize_args(args)
+        DetectSideEffects(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.detect_side_effects.collect",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
 
 
 def detect_inouts(
@@ -375,6 +446,7 @@ def detect_inouts(
     env: Optional[dict] = None,
     verbose: bool = False,
     inplace: bool = True,
+    use_subprocess: bool = False,
     **kargs,
 ):
     assert inplace
@@ -388,14 +460,19 @@ def detect_inouts(
         # "info",
         "debug",
     ]
-    utils.python(
-        "-m",
-        "seal5.transform.detect_inouts.collect",
-        *args,
-        env=env,
-        print_func=logger.info if verbose else logger.debug,
-        live=True,
-    )
+    if not use_subprocess:
+        from seal5.transform.detect_inouts import DetectInouts
+        args = sanitize_args(args)
+        DetectInouts(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.detect_inouts.collect",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
 
 
 def collect_operand_types(
@@ -404,6 +481,7 @@ def collect_operand_types(
     env: Optional[dict] = None,
     verbose: bool = False,
     inplace: bool = True,
+    use_subprocess: bool = False,
     **kwargs,
 ):
     assert inplace
@@ -418,14 +496,19 @@ def collect_operand_types(
         "debug",
         "--skip-failing",
     ]
-    utils.python(
-        "-m",
-        "seal5.transform.collect_operand_types.collect",
-        *args,
-        env=env,
-        print_func=logger.info if verbose else logger.debug,
-        live=True,
-    )
+    if not use_subprocess:
+        from seal5.transform.collect_operand_types import CollectOperandTypes
+        args = sanitize_args(args)
+        CollectOperandTypes(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.collect_operand_types.collect",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
     # input("<")
 
 
@@ -435,6 +518,7 @@ def collect_register_operands(
     env: Optional[dict] = None,
     verbose: bool = False,
     inplace: bool = True,
+    use_subprocess: bool = False,
     **kwargs,
 ):
     assert inplace
@@ -448,14 +532,19 @@ def collect_register_operands(
         # "info",
         "debug",
     ]
-    utils.python(
-        "-m",
-        "seal5.transform.collect_register_operands.collect",
-        *args,
-        env=env,
-        print_func=logger.info if verbose else logger.debug,
-        live=True,
-    )
+    if not use_subprocess:
+        from seal5.transform.collect_register_operands import CollectRegisterOperands
+        args = sanitize_args(args)
+        CollectRegisterOperands(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.collect_register_operands.collect",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
 
 
 def collect_immediate_operands(
@@ -464,6 +553,7 @@ def collect_immediate_operands(
     env: Optional[dict] = None,
     verbose: bool = False,
     inplace: bool = True,
+    use_subprocess: bool = False,
     **kwargs,
 ):
     assert inplace
@@ -477,14 +567,19 @@ def collect_immediate_operands(
         # "info",
         "debug",
     ]
-    utils.python(
-        "-m",
-        "seal5.transform.collect_immediate_operands.collect",
-        *args,
-        env=env,
-        print_func=logger.info if verbose else logger.debug,
-        live=True,
-    )
+    if not use_subprocess:
+        from seal5.transform.collect_immediate_operands import CollectImmediateOperands
+        args = sanitize_args(args)
+        CollectImmediateOperands(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.collect_immediate_operands.collect",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
 
 
 def eliminate_rd_cmp_zero(
@@ -493,6 +588,7 @@ def eliminate_rd_cmp_zero(
     env: Optional[dict] = None,
     verbose: bool = False,
     inplace: bool = True,
+    use_subprocess: bool = False,
     **kwargs,
 ):
     assert inplace
@@ -506,14 +602,19 @@ def eliminate_rd_cmp_zero(
         # "info",
         "debug",
     ]
-    utils.python(
-        "-m",
-        "seal5.transform.eliminate_rd_cmp_zero.transform",
-        *args,
-        env=env,
-        print_func=logger.info if verbose else logger.debug,
-        live=True,
-    )
+    if not use_subprocess:
+        from seal5.transform.eliminate_rd_cmp_zero import EliminateRdCmpZero
+        args = sanitize_args(args)
+        EliminateRdCmpZero(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.eliminate_rd_cmp_zero.transform",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
 
 
 def eliminate_mod_rfs(
@@ -522,6 +623,7 @@ def eliminate_mod_rfs(
     env: Optional[dict] = None,
     verbose: bool = False,
     inplace: bool = True,
+    use_subprocess: bool = False,
     **kwargs,
 ):
     assert inplace
@@ -535,14 +637,19 @@ def eliminate_mod_rfs(
         # "info",
         "debug",
     ]
-    utils.python(
-        "-m",
-        "seal5.transform.eliminate_mod_rfs.transform",
-        *args,
-        env=env,
-        print_func=logger.info if verbose else logger.debug,
-        live=True,
-    )
+    if not use_subprocess:
+        from seal5.transform.eliminate_mod_rfs import EliminateModRFS
+        args = sanitize_args(args)
+        EliminateModRFS(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.eliminate_mod_rfs.transform",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
 
 
 def write_yaml(
