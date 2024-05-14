@@ -163,7 +163,7 @@ class Seal5Flow:
             ("detect_side_effects", passes.detect_side_effects, {}),
             ("detect_inouts", passes.detect_inouts, {}),
             ("detect_registers", passes.detect_registers, {}),
-            ("write_cdsl_full", passes.write_cdsl, {"split": False, "compat": False})
+            ("write_cdsl_full", passes.write_cdsl, {"split": False, "compat": False}),
             # TODO: determine static constraints (xlen,...) -> subtargetvmap
             # detect memory adressing modes
             # self.detect_adressing_modes(verbose)  # TODO
