@@ -209,12 +209,14 @@ def gen_riscv_instr_info_str(instr):
     real_name = instr.mnemonic
     asm_str = instr.assembly
     asm_str = re.sub(
-        r"{([a-zA-Z0-9]+)}",
+        r"{([a-zA-Z0-9_]+)}",
         r"$\g<1>",
-        re.sub(r"{([a-zA-Z0-9]+):[#0-9a-zA-Z\.]+}", r"{\g<1>}", re.sub(r"name\(([a-zA-Z0-9]+)\)", r"\g<1>", asm_str)),
+        re.sub(
+            r"{([a-zA-Z0-9_]+):[#0-9a-zA-Z\._]+}", r"{\g<1>}", re.sub(r"name\(([a-zA-Z0-9_]+)\)", r"\g<1>", asm_str)
+        ),
     )
     print("asm_str_orig", asm_str)
-    asm_order = re.compile(r"(\$[a-zA-Z0-9]+)").findall(asm_str)
+    asm_order = re.compile(r"(\$[a-zA-Z0-9_]+)").findall(asm_str)
     print("asm_order", asm_order)
     for op in asm_order:
         if f"{op}(" in asm_str or f"{op})" in asm_str or f"{op}!" in asm_str or f"!{op}" in asm_str:
