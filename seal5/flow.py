@@ -235,7 +235,12 @@ class Seal5Flow:
         else:
             if force:
                 self.repo, sha, version_info = llvm.clone_llvm_repo(
-                    self.directory, clone_url, ref=clone_ref, refresh=True, label=self.name, git_settings=self.settings.git
+                    self.directory,
+                    clone_url,
+                    ref=clone_ref,
+                    refresh=True,
+                    label=self.name,
+                    git_settings=self.settings.git,
                 )
         if self.settings.meta_dir.is_dir():
             if force is False and not utils.ask_user(

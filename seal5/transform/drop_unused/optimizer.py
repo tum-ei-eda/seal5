@@ -46,7 +46,6 @@ def get_parser():
 
 
 def run(args):
-
     # initialize logging
     logging.basicConfig(level=getattr(logging, args.log.upper()))
 

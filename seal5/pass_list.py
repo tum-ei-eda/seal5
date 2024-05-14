@@ -47,6 +47,7 @@ def convert_models(
         args.extend(["--prefix", prefix])
     if not use_subprocess:
         from seal5.transform.converter import main as Converter
+
         args = sanitize_args(args)
         Converter(args)
     else:
@@ -83,6 +84,7 @@ def optimize_model(
     ]
     if not use_subprocess:
         from seal5.transform.optimize_instructions import OptimizeInstructions
+
         args = sanitize_args(args)
         OptimizeInstructions(args)
     else:
@@ -118,6 +120,7 @@ def infer_types(
     ]
     if not use_subprocess:
         from seal5.transform.infer_types import InferTypes
+
         args = sanitize_args(args)
         InferTypes(args)
     else:
@@ -153,6 +156,7 @@ def simplify_trivial_slices(
     ]
     if not use_subprocess:
         from seal5.transform.simplify_trivial_slices import SimplifyTrivialSlices
+
         args = sanitize_args(args)
         SimplifyTrivialSlices(args)
     else:
@@ -188,6 +192,7 @@ def explicit_truncations(
     ]
     if not use_subprocess:
         from seal5.transform.explicit_truncations import ExplicitTruncations
+
         args = sanitize_args(args)
         ExplicitTruncations(args)
     else:
@@ -225,6 +230,7 @@ def process_settings(
     ]
     if not use_subprocess:
         from seal5.transform.process_settings import ProcessSettings
+
         args = sanitize_args(args)
         ProcessSettings(args)
     else:
@@ -287,6 +293,7 @@ def filter_model(
     ]
     if not use_subprocess:
         from seal5.transform.filter_model import FilterModel
+
         args = sanitize_args(args)
         FilterModel(args)
     else:
@@ -322,6 +329,7 @@ def drop_unused(
     ]
     if not use_subprocess:
         from seal5.transform.drop_unused import DropUnused
+
         args = sanitize_args(args)
         DropUnused(args)
     else:
@@ -357,6 +365,7 @@ def detect_registers(
     ]
     if not use_subprocess:
         from seal5.transform.detect_registers import main as DetectRegisters
+
         args = sanitize_args(args)
         DetectRegisters(args)
     else:
@@ -392,6 +401,7 @@ def detect_behavior_constraints(
     ]
     if not use_subprocess:
         from seal5.transform.collect_raises import CollectRaises
+
         args = sanitize_args(args)
         CollectRaises(args)
     else:
@@ -427,6 +437,7 @@ def detect_side_effects(
     ]
     if not use_subprocess:
         from seal5.transform.detect_side_effects import DetectSideEffects
+
         args = sanitize_args(args)
         DetectSideEffects(args)
     else:
@@ -462,6 +473,7 @@ def detect_inouts(
     ]
     if not use_subprocess:
         from seal5.transform.detect_inouts import DetectInouts
+
         args = sanitize_args(args)
         DetectInouts(args)
     else:
@@ -498,6 +510,7 @@ def collect_operand_types(
     ]
     if not use_subprocess:
         from seal5.transform.collect_operand_types import CollectOperandTypes
+
         args = sanitize_args(args)
         CollectOperandTypes(args)
     else:
@@ -534,6 +547,7 @@ def collect_register_operands(
     ]
     if not use_subprocess:
         from seal5.transform.collect_register_operands import CollectRegisterOperands
+
         args = sanitize_args(args)
         CollectRegisterOperands(args)
     else:
@@ -569,6 +583,7 @@ def collect_immediate_operands(
     ]
     if not use_subprocess:
         from seal5.transform.collect_immediate_operands import CollectImmediateOperands
+
         args = sanitize_args(args)
         CollectImmediateOperands(args)
     else:
@@ -604,6 +619,7 @@ def eliminate_rd_cmp_zero(
     ]
     if not use_subprocess:
         from seal5.transform.eliminate_rd_cmp_zero import EliminateRdCmpZero
+
         args = sanitize_args(args)
         EliminateRdCmpZero(args)
     else:
@@ -639,6 +655,7 @@ def eliminate_mod_rfs(
     ]
     if not use_subprocess:
         from seal5.transform.eliminate_mod_rfs import EliminateModRFS
+
         args = sanitize_args(args)
         EliminateModRFS(args)
     else:

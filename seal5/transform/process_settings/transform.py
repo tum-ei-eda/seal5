@@ -31,8 +31,8 @@ def get_parser():
     parser.add_argument("--yaml", type=str, default=None)
     return parser
 
-def run(args):
 
+def run(args):
     # initialize logging
     logging.basicConfig(level=getattr(logging, args.log.upper()))
 
