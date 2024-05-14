@@ -1,4 +1,4 @@
-import "rv_base/RV32I.core_desc"
+import "../rv_base/RV32I.core_desc"
 
 // InstructionSet XExample extends RISCVBase {
 InstructionSet XExample extends RV32I {
