@@ -1,8 +1,66 @@
 ---
 filter:
   sets:
-    drop: [RISCVBase, RISCVEncoding, Zicsr, Zifencei, RVSMode, RVDebug, RV32I, RVNMode]
+    drop:
+    - RISCVBase
+    - RISCVEncoding
+    - Zicsr
+    - Zifencei
+    - RVSMode
+    - RVDebug
+    - RV32I
+    - RVNMod
   instructions:
-    drop: [SEAL5_CV_CLIPU, SEAL5_CV_CLIPR, SEAL5_CV_CLIPUR, SEAL5_CV_SLET, SEAL5_CV_SLETU, SEAL5_CV_PACK, SEAL5_CV_PACKLO_B]
+    # drop: [CV_CLIPU, CV_CLIPR, CV_CLIPUR, CV_SLET, CV_SLETU, SEAL5_CV_SHUFFLE2_B, SEAL5_CV_SHUFFLE2_H, ".*_(SC|SCI)_.*"]
+    drop:
+    - SEAL5_CV_CLIPU
+    - SEAL5_CV_CLIPR
+    - SEAL5_CV_CLIPUR
+    - SEAL5_CV_SLET
+    - SEAL5_CV_SLETU
+    - SEAL5_CV_PACK
+    - SEAL5_CV_PACKLO_B
+    # broken due to pattern freeze
+    - SEAL5_CV_MACUN
+    - SEAL5_CV_MULURN
+    - SEAL5_CV_MULSRN
+    - SEAL5_CV_MACHHSN
+    - SEAL5_CV_MULHHURN
+    - SEAL5_CV_MACHHUN
+    - SEAL5_CV_MACSN
+    - SEAL5_CV_MULHHSRN
+    - SEAL5_CV_MACHHSRN
+    - SEAL5_CV_MACSRN
+    - SEAL5_CV_SDOTUSP_SC_H
+    - SEAL5_CV_SDOTSP_SC_H
+    - SEAL5_CV_SDOTUP_SC_B
+    - SEAL5_CV_SDOTUP_B
+    - SEAL5_CV_DOTSP_SC_H
+    - SEAL5_CV_SDOTSP_H
+    - SEAL5_CV_SDOTUSP_H
+    - SEAL5_CV_DOTSP_SCI_B
+    - SEAL5_CV_DOTUSP_SCI_H
+    - SEAL5_CV_SDOTUP_SCI_B
+    - SEAL5_CV_DOTUSP_SC_H
+    - SEAL5_CV_SDOTUSP_B
+    - SEAL5_CV_SDOTSP_SCI_H
+    - SEAL5_CV_DOTUSP_B
+    - SEAL5_CV_SDOTUSP_SCI_B
+    - SEAL5_CV_SDOTUSP_SC_B
+    - SEAL5_CV_DOTUSP_H
+    - SEAL5_CV_SDOTSP_SCI_B
+    - SEAL5_CV_SDOTSP_B
+    - SEAL5_CV_DOTUP_SCI_B
+    - SEAL5_CV_SDOTUP_H
+    - SEAL5_CV_SDOTSP_SC_B
   opcodes:
-    keep: [custom-0, custom-1, custom-2 ,custom-3, 0b00000, OP-P, OP]
+    keep:
+    - custom-0
+    - custom-1
+    - custom-2
+    - custom-3
+    - 0b00000
+    - OP-P
+    - OP
+  encoding_sizes:
+    keep: [32]

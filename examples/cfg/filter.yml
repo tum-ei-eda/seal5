@@ -12,14 +12,7 @@ filter:
     - RVNMod
   instructions:
     # drop: [CV_CLIPU, CV_CLIPR, CV_CLIPUR, CV_SLET, CV_SLETU, SEAL5_CV_SHUFFLE2_B, SEAL5_CV_SHUFFLE2_H, ".*_(SC|SCI)_.*"]
-    drop:
-    - SEAL5_CV_CLIPU
-    - SEAL5_CV_CLIPR
-    - SEAL5_CV_CLIPUR
-    - SEAL5_CV_SLET
-    - SEAL5_CV_SLETU
-    - SEAL5_CV_PACK
-    - SEAL5_CV_PACKLO_B
+    drop: []
   opcodes:
     keep:
     - custom-0
