@@ -31,26 +31,31 @@ def operation(self: behav.Operation, writer):
 
 def binary_operation(self: behav.BinaryOperation, writer):
     # print("binary_operation")
+    writer.write("(")
     self.left = self.left.generate(writer)
-    writer.write(f" {self.op.value} ")
+    writer.write(f") {self.op.value} (")
     self.right = self.right.generate(writer)
+    writer.write(")")
 
 
 def slice_operation(self: behav.SliceOperation, writer):
     # print("slice_operation")
     self.expr = self.expr.generate(writer)
-    writer.write("[")
+    writer.write("[(")
     self.left = self.left.generate(writer)
-    writer.write(":")
+    writer.write("):(")
     self.right = self.right.generate(writer)
-    writer.write("]")
+    writer.write(")]")
 
 
 def concat_operation(self: behav.ConcatOperation, writer):
     # print("concat_operation")
+    # TODO: only add () where required
+    writer.write("(")
     self.left = self.left.generate(writer)
-    writer.write(" :: ")
+    writer.write(") :: (")
     self.right = self.right.generate(writer)
+    writer.write(")")
 
 
 def number_literal(self: behav.IntLiteral, writer):
@@ -128,11 +133,13 @@ def loop(self: behav.Loop, writer):
 
 def ternary(self: behav.Ternary, writer):
     # print("ternary")
+    writer.write("(")
     self.cond.generate(writer)
-    writer.write(" ? ")
+    writer.write(") ? (")
     self.then_expr.generate(writer)
-    writer.write(" : ")
+    writer.write(") : (")
     self.else_expr.generate(writer)
+    writer.write(")")
 
 
 def return_(self: behav.Return, writer):
@@ -147,7 +154,9 @@ def return_(self: behav.Return, writer):
 def unary_operation(self: behav.UnaryOperation, writer):
     # print("unary_operation")
     writer.write(self.op.value)
+    writer.write("(")
     self.right.generate(writer)
+    writer.write(")")
 
 
 def named_reference(self: behav.NamedReference, writer):
