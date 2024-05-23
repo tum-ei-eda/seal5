@@ -1,0 +1,35 @@
+seal5.transform.collect\_raises.collect
+=======================================
+
+.. automodule:: seal5.transform.collect_raises.collect
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      main
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      VisitorContext
+   
+   
+
+   
+   
+   
+
+
+

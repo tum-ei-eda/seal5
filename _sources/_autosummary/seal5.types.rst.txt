@@ -1,0 +1,30 @@
+seal5.types
+===========
+
+.. automodule:: seal5.types
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      PatchStage
+      Seal5State
+   
+   
+
+   
+   
+   
+
+
+

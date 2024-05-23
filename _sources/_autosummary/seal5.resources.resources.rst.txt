@@ -1,0 +1,30 @@
+seal5.resources.resources
+=========================
+
+.. automodule:: seal5.resources.resources
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_patches
+      get_test_cfg
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

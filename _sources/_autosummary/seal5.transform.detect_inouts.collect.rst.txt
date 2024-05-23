@@ -1,0 +1,35 @@
+seal5.transform.detect\_inouts.collect
+======================================
+
+.. automodule:: seal5.transform.detect_inouts.collect
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      main
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      VisitorContext
+   
+   
+
+   
+   
+   
+
+
+

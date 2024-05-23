@@ -1,0 +1,32 @@
+seal5.transform.explicit\_truncations
+=====================================
+
+.. automodule:: seal5.transform.explicit_truncations
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   seal5.transform.explicit_truncations.transform
+   seal5.transform.explicit_truncations.visitor
+

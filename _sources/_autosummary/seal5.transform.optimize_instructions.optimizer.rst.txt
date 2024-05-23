@@ -1,0 +1,29 @@
+seal5.transform.optimize\_instructions.optimizer
+================================================
+
+.. automodule:: seal5.transform.optimize_instructions.optimizer
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      main
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

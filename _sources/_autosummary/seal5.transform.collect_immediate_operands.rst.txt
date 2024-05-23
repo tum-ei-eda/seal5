@@ -1,0 +1,32 @@
+seal5.transform.collect\_immediate\_operands
+============================================
+
+.. automodule:: seal5.transform.collect_immediate_operands
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   seal5.transform.collect_immediate_operands.collect
+   seal5.transform.collect_immediate_operands.visitor
+

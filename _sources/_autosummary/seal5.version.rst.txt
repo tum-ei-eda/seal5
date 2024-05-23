@@ -1,0 +1,23 @@
+seal5.version
+=============
+
+.. automodule:: seal5.version
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

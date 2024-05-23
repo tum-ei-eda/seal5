@@ -1,0 +1,46 @@
+seal5.model
+===========
+
+.. automodule:: seal5.model
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Seal5Alias
+      Seal5CSROperand
+      Seal5Constraint
+      Seal5DataType
+      Seal5FPROperand
+      Seal5GPROperand
+      Seal5ImmOperand
+      Seal5InstrAttribute
+      Seal5Instruction
+      Seal5InstructionSet
+      Seal5Intrinsic
+      Seal5Operand
+      Seal5OperandAttribute
+      Seal5RegOperand
+      Seal5Register
+      Seal5RegisterClass
+      Seal5RegisterGroup
+      Seal5Type
+   
+   
+
+   
+   
+   
+
+
+

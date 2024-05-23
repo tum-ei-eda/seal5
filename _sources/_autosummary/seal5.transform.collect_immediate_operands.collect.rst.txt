@@ -1,0 +1,35 @@
+seal5.transform.collect\_immediate\_operands.collect
+====================================================
+
+.. automodule:: seal5.transform.collect_immediate_operands.collect
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      main
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      VisitorContext
+   
+   
+
+   
+   
+   
+
+
+

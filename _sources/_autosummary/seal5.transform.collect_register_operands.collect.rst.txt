@@ -1,0 +1,35 @@
+seal5.transform.collect\_register\_operands.collect
+===================================================
+
+.. automodule:: seal5.transform.collect_register_operands.collect
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      main
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      VisitorContext
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,29 @@
+seal5.transform.infer\_types.transform
+======================================
+
+.. automodule:: seal5.transform.infer_types.transform
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      main
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

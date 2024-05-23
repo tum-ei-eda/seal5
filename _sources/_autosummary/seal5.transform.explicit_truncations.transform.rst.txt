@@ -1,0 +1,29 @@
+seal5.transform.explicit\_truncations.transform
+===============================================
+
+.. automodule:: seal5.transform.explicit_truncations.transform
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      main
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

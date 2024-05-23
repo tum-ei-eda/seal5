@@ -1,0 +1,57 @@
+seal5.settings
+==============
+
+.. automodule:: seal5.settings
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      check_supported_types
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ConsoleLoggingSettings
+      ExtensionsSettings
+      FileLoggingSettings
+      FilterSetting
+      FilterSettings
+      GitSettings
+      GroupsSettings
+      LLVMConfig
+      LLVMSettings
+      LLVMState
+      LLVMVersion
+      LoggingSettings
+      PassesSetting
+      PassesSettings
+      PatchSettings
+      PatternGenSettings
+      RISCVLegalizerSetting
+      RISCVLegalizerSettings
+      RISCVSettings
+      Seal5Settings
+      TestSettings
+      ToolsSettings
+      YAMLSettings
+   
+   
+
+   
+   
+   
+
+
+

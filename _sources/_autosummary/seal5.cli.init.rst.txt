@@ -1,0 +1,31 @@
+seal5.cli.init
+==============
+
+.. automodule:: seal5.cli.init
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      add_init_options
+      get_parser
+      handle
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

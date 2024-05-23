@@ -1,0 +1,33 @@
+seal5.cli
+=========
+
+.. automodule:: seal5.cli
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   seal5.cli.common
+   seal5.cli.init
+   seal5.cli.main
+

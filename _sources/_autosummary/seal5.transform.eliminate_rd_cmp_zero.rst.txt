@@ -1,0 +1,32 @@
+seal5.transform.eliminate\_rd\_cmp\_zero
+========================================
+
+.. automodule:: seal5.transform.eliminate_rd_cmp_zero
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   seal5.transform.eliminate_rd_cmp_zero.transform
+   seal5.transform.eliminate_rd_cmp_zero.visitor
+

@@ -1,0 +1,35 @@
+seal5.transform.filter\_model.filter
+====================================
+
+.. automodule:: seal5.transform.filter_model.filter
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      main
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      DropUnusedContext
+   
+   
+
+   
+   
+   
+
+
+

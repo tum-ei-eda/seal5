@@ -1,0 +1,32 @@
+seal5.logging
+=============
+
+.. automodule:: seal5.logging
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_formatter
+      get_logger
+      set_log_file
+      set_log_level
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,29 @@
+seal5.tools.git
+===============
+
+.. automodule:: seal5.tools.git
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_author_from_settings
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,38 @@
+seal5.flow
+==========
+
+.. automodule:: seal5.flow
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      add_test_cfg
+      create_seal5_directories
+      handle_directory
+      lookup_manual_patch
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Seal5Flow
+   
+   
+
+   
+   
+   
+
+
+

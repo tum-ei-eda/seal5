@@ -1,0 +1,31 @@
+seal5.transform.optimize\_instructions
+======================================
+
+.. automodule:: seal5.transform.optimize_instructions
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   seal5.transform.optimize_instructions.optimizer
+

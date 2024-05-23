@@ -1,0 +1,31 @@
+seal5.tools.inject\_patches
+===========================
+
+.. automodule:: seal5.tools.inject_patches
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      generate_patch
+      main
+      process_arguments
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

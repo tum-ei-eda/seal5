@@ -1,0 +1,30 @@
+seal5.cli.common
+================
+
+.. automodule:: seal5.cli.common
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      add_common_options
+      handle_logging_flags
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

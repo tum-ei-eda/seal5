@@ -1,0 +1,32 @@
+seal5.dependencies
+==================
+
+.. automodule:: seal5.dependencies
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CDSL2LLVMDependency
+      Dependency
+      GitDependency
+      M2ISARDependency
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,32 @@
+seal5.tools.llvm
+================
+
+.. automodule:: seal5.tools.llvm
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      build_llvm
+      check_llvm_repo
+      clone_llvm_repo
+      test_llvm
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

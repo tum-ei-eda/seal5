@@ -1,0 +1,33 @@
+seal5.tools.cdsl2llvm
+=====================
+
+.. automodule:: seal5.tools.cdsl2llvm
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      build_llc
+      build_pattern_gen
+      convert_ll_to_gmir
+      get_pattern_gen_patches
+      run_pattern_gen
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

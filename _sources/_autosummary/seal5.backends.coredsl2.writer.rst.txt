@@ -1,0 +1,35 @@
+seal5.backends.coredsl2.writer
+==============================
+
+.. automodule:: seal5.backends.coredsl2.writer
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      main
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CoreDSL2Writer
+   
+   
+
+   
+   
+   
+
+
+

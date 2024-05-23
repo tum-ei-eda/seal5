@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seal5 &mdash; Seal5 v0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=fa47ad08"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="seal5.version" href="_autosummary/seal5.version.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Seal5
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="_autosummary/seal5.html">seal5</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Seal5</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#ubuntu-packages">Ubuntu Packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#python-requirements">Python Requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installation">Installation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#from-pypi">From PyPI</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#local-development-version">Local Development Version</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#python-api">Python API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#command-line-interface">Command-Line Interface</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#limitations">Limitations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ci-cd-flow">CI/CD Flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#contributions">Contributions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Seal5</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Seal5</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/readme.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="seal5">
+<h1>Seal5<a class="headerlink" href="#seal5" title="Link to this heading"></a></h1>
+<p><a class="reference external" href="https://pypi.org/project/seal5"><img alt="pypi package" src="https://badge.fury.io/py/seal5.svg" /></a>
+<a class="reference external" href="https://seal5.readthedocs.io/en/latest/?version=latest"><img alt="readthedocs" src="https://readthedocs.org/projects/seal5/badge/?version=latest" /></a>
+<a class="reference external" href="https://github.com/tum-ei-eda/seal5/blob/main/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/tum-ei-eda/seal5.svg" /></a></p>
+<p><a class="reference external" href="https://github.com/tum-ei-eda/seal5/actions/workflows/demo.yml"><img alt="demo workflow" src="https://github.com/tum-ei-eda/seal5/actions/workflows/demo.yml/badge.svg" /></a></p>
+<p>TODO: Summary</p>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading"></a></h2>
+<p>To be able to run the examples, make sure to clone the Seal5 repo using the <code class="docutils literal notranslate"><span class="pre">--recursive</span></code> flag. Otherwise run the following command to fetch (and update) the referenced submodules.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>submodule<span class="w"> </span>update<span class="w"> </span>--init<span class="w"> </span>--recursive
+</pre></div>
+</div>
+<section id="ubuntu-packages">
+<h3>Ubuntu Packages<a class="headerlink" href="#ubuntu-packages" title="Link to this heading"></a></h3>
+<p>First, a set of APT packages needs to be installed:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>python3-pip<span class="w"> </span>python3-venv<span class="w"> </span>cmake<span class="w"> </span>make<span class="w"> </span>ninja-build
+</pre></div>
+</div>
+</section>
+<section id="python-requirements">
+<h3>Python Requirements<a class="headerlink" href="#python-requirements" title="Link to this heading"></a></h3>
+<p>First, setup a virtual environment with Python v3.8 or newer.</p>
+<p>Install all required python packages using the follow8n* command:</p>
+<p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-r</span> <span class="pre">requirements.txt</span></code>.</p>
+<p>For development (linting, packaging,…) there are a few more dependencies which can be installed via:</p>
+<p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-r</span> <span class="pre">requirements_dev.txt</span></code>.</p>
+</section>
+<section id="installation">
+<h3>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h3>
+<p><strong>Warning:</strong> It is highly recommended to install <code class="docutils literal notranslate"><span class="pre">seal5</span></code> into a new virtual environment. Follow these steps to initialize and enter a venv in your seal5 repo directory:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="c1"># alternative: python3 -m venv venv</span>
+virtualenv<span class="w"> </span>-p<span class="w"> </span>python3.8<span class="w"> </span>venv
+<span class="nb">source</span><span class="w"> </span>venv/bin/activate
+</pre></div>
+</div>
+<section id="from-pypi">
+<h4>From PyPI<a class="headerlink" href="#from-pypi" title="Link to this heading"></a></h4>
+<p>TODO: Publish after open-source release.</p>
+</section>
+<section id="local-development-version">
+<h4>Local Development Version<a class="headerlink" href="#local-development-version" title="Link to this heading"></a></h4>
+<p>First prepare your shell by executing <code class="docutils literal notranslate"><span class="pre">export</span> <span class="pre">PYTHONPATH=$(pwd):$PYTHONPATH</span></code> inside the seal5 repository. Then you should be able to use Seal5 without needing to reinstall it.</p>
+<p>Alternatively you should be able to use <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code>.</p>
+</section>
+</section>
+</section>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
+<section id="python-api">
+<h3>Python API<a class="headerlink" href="#python-api" title="Link to this heading"></a></h3>
+<p>The flow can be sketched as follows (see Example below for functional code!):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create flow</span>
+<span class="n">seal5_flow</span> <span class="o">=</span> <span class="n">Seal5Flow</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="c1"># Initialize LLVM repo and .seal5 directories</span>
+<span class="n">seal5_flow</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="c1"># Optional: remove artifacts from previous builds</span>
+<span class="n">seal5_flow</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="c1"># Install Seal5 dependencies (CDSL2LLVM/PatternGen)</span>
+<span class="n">seal5_flow</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="c1"># Load CoreDSL2+CFG files (Git config, filters,...)</span>
+<span class="n">seal5_flow</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="c1"># Transform Seal5 model (Extract side effects, operands,...)</span>
+<span class="n">seal5_flow</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="c1"># Generate patches based on Seal5 model (ISel patterns, RISC-V features,...)</span>
+<span class="n">seal5_flow</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="c1"># Apply generated (and manual) patches to LLVM codebase</span>
+<span class="n">seal5_flow</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="c1"># Build patches LLVM (This will take a while)</span>
+<span class="n">seal5_flow</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="c1"># Run LLVM+Seal5 tests to verify functionality</span>
+<span class="n">seal5_flow</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="c1"># Combine patches and install LLVM</span>
+<span class="n">seal5_flow</span><span class="o">.</span><span class="n">deploy</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="c1"># Archive final LLVM (optionally inclusing logs, reports,...)</span>
+<span class="n">seal5_flow</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="c1"># Optional: Cleanup all artifacts</span>
+<span class="n">seal5_flow</span><span class="o">.</span><span class="n">cleanup</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="command-line-interface">
+<h3>Command-Line Interface<a class="headerlink" href="#command-line-interface" title="Link to this heading"></a></h3>
+<p>TODO: Not yet implemented…</p>
+</section>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<p>See <a class="reference internal" href="#examples/demo.py"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">examples/demo.py</span></code></span></a> for example of end-to-end flow!</p>
+</section>
+<section id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Link to this heading"></a></h2>
+<p>TODO: Sphinx Documentation / GitHub Pages</p>
+</section>
+<section id="limitations">
+<h2>Limitations<a class="headerlink" href="#limitations" title="Link to this heading"></a></h2>
+<p>See <a class="reference internal" href="#./LIMITATIONS.md"><span class="xref myst">here</span></a>.</p>
+</section>
+<section id="ci-cd-flow">
+<h2>CI/CD Flow<a class="headerlink" href="#ci-cd-flow" title="Link to this heading"></a></h2>
+<p>We added a (manual) CI job to run the <code class="docutils literal notranslate"><span class="pre">examples/demo.py</span></code> script via GitHub actions.</p>
+</section>
+<section id="contributions">
+<h2>Contributions<a class="headerlink" href="#contributions" title="Link to this heading"></a></h2>
+<p>Seal5 issue tracker: https://github.com/tum-ei-eda/seal5/issues</p>
+<p>CoreDSL2LLVM/PatternGen issue tracker: https://github.com/mathis-s/CoreDSL2LLVM/issues</p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="_autosummary/seal5.version.html" class="btn btn-neutral float-left" title="seal5.version" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, TUM Department of Electrical and Computer Engineering - Chair of Electronic Design Automation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

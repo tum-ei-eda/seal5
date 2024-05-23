@@ -1,0 +1,32 @@
+seal5.transform.collect\_register\_operands
+===========================================
+
+.. automodule:: seal5.transform.collect_register_operands
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   seal5.transform.collect_register_operands.collect
+   seal5.transform.collect_register_operands.visitor
+

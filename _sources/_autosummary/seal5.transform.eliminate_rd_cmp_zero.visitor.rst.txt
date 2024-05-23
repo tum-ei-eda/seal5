@@ -1,0 +1,48 @@
+seal5.transform.eliminate\_rd\_cmp\_zero.visitor
+================================================
+
+.. automodule:: seal5.transform.eliminate_rd_cmp_zero.visitor
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      assignment
+      binary_operation
+      break_
+      callable_
+      concat_operation
+      conditional
+      group
+      indexed_reference
+      int_literal
+      loop
+      named_reference
+      number_literal
+      operation
+      procedure_call
+      return_
+      scalar_definition
+      slice_operation
+      ternary
+      type_conv
+      unary_operation
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

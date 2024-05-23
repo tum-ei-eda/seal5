@@ -1,0 +1,29 @@
+seal5.transform.eliminate\_mod\_rfs.transform
+=============================================
+
+.. automodule:: seal5.transform.eliminate_mod_rfs.transform
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      main
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

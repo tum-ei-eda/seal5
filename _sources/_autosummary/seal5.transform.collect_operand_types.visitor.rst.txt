@@ -1,0 +1,48 @@
+seal5.transform.collect\_operand\_types.visitor
+===============================================
+
+.. automodule:: seal5.transform.collect_operand_types.visitor
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      assignment
+      binary_operation
+      break_
+      callable_
+      concat_operation
+      conditional
+      group
+      indexed_reference
+      int_literal
+      loop
+      named_reference
+      number_literal
+      operation
+      procedure_call
+      return_
+      scalar_definition
+      slice_operation
+      ternary
+      type_conv
+      unary_operation
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

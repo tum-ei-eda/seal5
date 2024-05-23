@@ -1,0 +1,58 @@
+seal5.pass\_list
+================
+
+.. automodule:: seal5.pass_list
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      collect_immediate_operands
+      collect_operand_types
+      collect_register_operands
+      convert_behav_to_llvmir
+      convert_behav_to_tablegen
+      convert_llvmir_to_gmir
+      convert_models
+      detect_behavior_constraints
+      detect_inouts
+      detect_registers
+      detect_side_effects
+      drop_unused
+      eliminate_mod_rfs
+      eliminate_rd_cmp_zero
+      explicit_truncations
+      filter_model
+      gen_model_td
+      gen_riscv_features_patch
+      gen_riscv_gisel_legalizer_patch
+      gen_riscv_instr_info_patch
+      gen_riscv_isa_info_patch
+      gen_seal5_td
+      gen_set_td
+      infer_types
+      optimize_model
+      pattern_gen_pass
+      process_settings
+      simplify_trivial_slices
+      write_cdsl
+      write_yaml
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

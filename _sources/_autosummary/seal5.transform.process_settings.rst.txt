@@ -1,0 +1,31 @@
+seal5.transform.process\_settings
+=================================
+
+.. automodule:: seal5.transform.process_settings
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   seal5.transform.process_settings.transform
+

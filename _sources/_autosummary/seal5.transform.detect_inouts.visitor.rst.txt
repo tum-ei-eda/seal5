@@ -1,0 +1,49 @@
+seal5.transform.detect\_inouts.visitor
+======================================
+
+.. automodule:: seal5.transform.detect_inouts.visitor
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      assignment
+      binary_operation
+      block
+      break_
+      callable_
+      concat_operation
+      conditional
+      group
+      indexed_reference
+      int_literal
+      loop
+      named_reference
+      number_literal
+      operation
+      procedure_call
+      return_
+      scalar_definition
+      slice_operation
+      ternary
+      type_conv
+      unary_operation
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

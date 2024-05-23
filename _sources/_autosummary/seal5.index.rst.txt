@@ -1,0 +1,42 @@
+seal5.index
+===========
+
+.. automodule:: seal5.index
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      write_index_yaml
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Artifact
+      Directory
+      File
+      GitPatch
+      IndexedPatch
+      NamedPatch
+      Patch
+      RangedPatch
+   
+   
+
+   
+   
+   
+
+
+
