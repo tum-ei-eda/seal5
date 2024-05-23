@@ -8,7 +8,7 @@
 //   llvm-objdump -d test_subincacc.o --disassembler-options=numeric
 
 // For automated runs by llvm-lit:
-// RUN: %clang -c -target riscv32-unknown-elf -march=rv32ixexample -o %t.o %s
+// RUN: clang -c -target riscv32-unknown-elf -march=rv32ixexample -o %t.o %s
 // RUN: llvm-objdump --disassembler-options=numeric -d %t.o | FileCheck %s
 
 

@@ -74,6 +74,7 @@ seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 # Load test inputs
 test_files = [
     EXAMPLES_DIR / "tests" / "xcorev" / "*.inline_asm.c",
+    EXAMPLES_DIR / "tests" / "xcorev" / "test_subincacc.c",
 ]
 seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 
