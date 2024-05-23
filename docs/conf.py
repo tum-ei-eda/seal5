@@ -9,7 +9,7 @@
 project = 'Seal5'
 copyright = '2024, TUM Department of Electrical and Computer Engineering - Chair of Electronic Design Automation'
 author = 'TUM Department of Electrical and Computer Engineering - Chair of Electronic Design Automation'
-release = 'v0.1.1'
+release = 'v0.1.2'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
