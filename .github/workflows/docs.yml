@@ -41,15 +41,14 @@ jobs:
         source .venv/bin/activate
         cd docs
         make html
-    - name: Archive environment (without deps)
+    - name: Store docs as an artifact
       uses: actions/upload-artifact@v2
       with:
         name: html-docs
         path: docs/_build/html
-    # TODO: enable after open source release
-    # - name: Deploy docs
-    #   uses: peaceiris/actions-gh-pages@v3
-    #   if: ${{ github.ref == 'refs/heads/main' }}
-    #   with:
-    #     github_token: ${{ secrets.GITHUB_TOKEN }}
-    #     publish_dir: ./docs/_build/html
+    - name: Deploy docs
+      uses: peaceiris/actions-gh-pages@v3
+      if: ${{ github.ref == 'refs/heads/main' }}
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs/_build/html
