@@ -62,12 +62,14 @@ seal5_flow.initialize(
 
 # Load CoreDSL inputs
 cdsl_files = [
-    EXAMPLES_DIR / "cdsl" / "Example.core_desc",
+    EXAMPLES_DIR / "cdsl" / "rv_example" / "Example.core_desc",
 ]
 seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load test inputs
-test_files = []
+test_files = [
+    EXAMPLES_DIR / "tests" / "example" / "test_subincacc.c",
+]
 seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 
 # Load YAML inputs

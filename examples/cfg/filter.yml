@@ -1,16 +1,26 @@
 ---
 filter:
   sets:
-    # keep: [XCoreVSimd]
-    # drop: [RISCVBase, RISCVEncoding, Zicsr, Zifencei, RVSMode, RVDebug, RV32I, RVNMode, XCoreVSimd]
-    drop: [RISCVBase, RISCVEncoding, Zicsr, Zifencei, RVSMode, RVDebug, RV32I, RVNMode]
-    # drop: [RISCVBase, RISCVEncoding, Zicsr, Zifencei, RVSMode, RVDebug, RV32I, RVNMode, RV32Zpsfoperand]
+    drop:
+    - RISCVBase
+    - RISCVEncoding
+    - Zicsr
+    - Zifencei
+    - RVSMode
+    - RVDebug
+    - RV32I
+    - RVNMod
   instructions:
-    # keep: [CV_ABS, CV_ADD_B]
-    # keep: [SEAL5_simd_add16]
     # drop: [CV_CLIPU, CV_CLIPR, CV_CLIPUR, CV_SLET, CV_SLETU, SEAL5_CV_SHUFFLE2_B, SEAL5_CV_SHUFFLE2_H, ".*_(SC|SCI)_.*"]
-    drop: [SEAL5_CV_CLIPU, SEAL5_CV_CLIPR, SEAL5_CV_CLIPUR, SEAL5_CV_SLET, SEAL5_CV_SLETU, SEAL5_CV_PACK, SEAL5_CV_PACKLO_B]
+    drop: []
   opcodes:
-    keep: [custom-0, custom-1, custom-2 ,custom-3, 0b00000, OP-P, OP]
+    keep:
+    - custom-0
+    - custom-1
+    - custom-2
+    - custom-3
+    - 0b00000
+    - OP-P
+    - OP
   encoding_sizes:
     keep: [32]

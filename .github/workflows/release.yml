@@ -1,0 +1,51 @@
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v\d+.\d+.\d+' # Push events for v0.1.0, v20.15.10 but not v0.1.0dev0
+
+name: Create Release
+
+jobs:
+  build:
+    name: Create Release
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'tum-ei-eda/seal5' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Generate changelog
+        id: changelog
+        uses: metcalfc/changelog-generator@v4.3.1
+        with:
+          myToken: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Changes in this Release:
+            ${{ steps.changelog.outputs.changelog }}
+          draft: true
+          prerelease: false
+
+
+  publish:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'tum-ei-eda/seal5' }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Build package
+      run: |
+        python -m pip install -r requirements_dev.txt
+        python -m build
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        password: ${{ secrets.PYPI_API_TOKEN }}
