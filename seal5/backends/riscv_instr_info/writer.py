@@ -114,6 +114,7 @@ def write_riscv_instruction_info(
     enc,
     fields,
     operands,
+    size,
     details_str,
     attrs={},
     constraints=[],
@@ -132,7 +133,7 @@ def write_riscv_instruction_info(
     out_str = instr_template.render(
         name=name,
         real_name=real_name,
-        xlen=32,
+        size=size,
         asm_str=asm_str,
         ins_str=ins_str,
         outs_str=outs_str,
@@ -162,6 +163,7 @@ def gen_riscv_instr_info_str(instr):
     print("instr", instr)
     name = instr.name
     operands = instr.operands
+    size = instr.size
     print("operands", operands)
     reads = []
     writes = []
@@ -175,7 +177,7 @@ def gen_riscv_instr_info_str(instr):
         if Seal5OperandAttribute.IS_REG in op.attributes:
             assert Seal5OperandAttribute.REG_CLASS in op.attributes
             cls = op.attributes[Seal5OperandAttribute.REG_CLASS]
-            assert cls in ["GPR"]
+            assert cls in ["GPR", "GPRC"]
             pre = cls
         elif Seal5OperandAttribute.IS_IMM in op.attributes:
             assert Seal5OperandAttribute.TYPE in op.attributes
@@ -208,11 +210,12 @@ def gen_riscv_instr_info_str(instr):
     print("attributes", attributes)
     real_name = instr.mnemonic
     asm_str = instr.assembly
-    asm_str = re.sub(
-        r"{([a-zA-Z0-9]+)}",
-        r"$\g<1>",
-        re.sub(r"{([a-zA-Z0-9]+):[#0-9a-zA-Z\.]+}", r"{\g<1>}", re.sub(r"name\(([a-zA-Z0-9]+)\)", r"\g<1>", asm_str)),
-    )
+    asm_str = re.sub(r"name\(([a-zA-Z0-9\+]+)\)", r"\g<1>", asm_str)
+    asm_str = re.sub(r"{([a-zA-Z0-9\+]+):[#0-9a-zA-Z\.]+}", r"{\g<1>}", asm_str)
+    asm_str = re.sub(r"{([a-zA-Z0-9\+]+)}", r"$\g<1>", asm_str)
+    # remove offsets
+    asm_str = re.sub(r"[0-9]+\+([a-zA-Z0-9]+)", r"\g<1>", asm_str)
+    asm_str = re.sub(r"([a-zA-Z0-9]+)\+[0-9]+", r"\g<1>", asm_str)
     print("asm_str_orig", asm_str)
     asm_order = re.compile(r"(\$[a-zA-Z0-9]+)").findall(asm_str)
     print("asm_order", asm_order)
@@ -227,9 +230,14 @@ def gen_riscv_instr_info_str(instr):
 
     ins_str = ", ".join([reads[reads_.index(x)] for x in asm_order if x in reads_])
     print("ins_str", ins_str)
+    if len(ins_str) == 0:
+        assert len(reads) == 0
     outs_str = ", ".join([writes[writes_.index(x)] for x in asm_order if x in writes_])
     print("outs_str", outs_str)
+    if len(outs_str) == 0:
+        assert len(writes) == 0
     details_str = ""
+    # input("@")
     fields = instr.fields
     print("fields")
     encoding = instr.encoding
@@ -265,6 +273,7 @@ def gen_riscv_instr_info_str(instr):
         encoding,
         fields,
         operands,
+        size,
         details_str,
         attrs=attrs,
         constraints=constraints,

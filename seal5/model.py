@@ -61,6 +61,8 @@ class Seal5RegisterClass(IntEnum):
     CSR = 2
     CUSTOM = 3
     UNKNOWN = 4
+    GPRC = 5
+    # TODO: use auto()
     # TODO: GPRv2, GPRv4 // GPR32V2, GPR32V4
 
 

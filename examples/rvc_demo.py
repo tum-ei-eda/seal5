@@ -62,7 +62,7 @@ seal5_flow.initialize(
 
 # Load CoreDSL inputs
 cdsl_files = [
-    EXAMPLES_DIR / "cdsl" / "RVC.core_desc",
+    EXAMPLES_DIR / "cdsl" / "ExampleRV32C.core_desc",
 ]
 seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 

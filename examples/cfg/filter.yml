@@ -23,4 +23,6 @@ filter:
     - OP-P
     - OP
   encoding_sizes:
-    keep: [32]
+    keep:
+    - 32
+    - 16

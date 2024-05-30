@@ -209,9 +209,9 @@ def main():
             if isinstance(e, arch.BitVal):
                 length = e.length
                 if size == 0:
-                    assert length == 7
-                    val = e.value
-                    opcode = val >> 2
+                    if length == 7:
+                        val = e.value
+                        opcode = val >> 2
             elif isinstance(e, arch.BitField):
                 length = e.range.length
             else:
