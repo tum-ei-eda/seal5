@@ -18,6 +18,7 @@ from m2isar.metamodel.arch import (
     Function,
     BaseNode,
     InstrAttribute,
+    MemoryAttribute,
     BitField,
     BitVal,
     DataType,
@@ -53,6 +54,17 @@ class Seal5InstructionSet(InstructionSet):
         self.registers = registers
         self.register_groups = register_groups
         self.settings: ExtensionsSettings = None
+        self._xlen = None
+
+    @property
+    def xlen(self):
+        if self._xlen is None:
+            for mem_name, mem_def in self.memories.items():
+                if mem_name == "X" or MemoryAttribute.IS_MAIN_REG in mem_def.attributes:
+                    self._xlen = mem_def.size
+                    break
+        assert self._xlen is not None, "Could not determine XLEN"
+        return self._xlen
 
 
 class Seal5RegisterClass(IntEnum):
