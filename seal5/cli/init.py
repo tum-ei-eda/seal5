@@ -56,13 +56,13 @@ def add_init_options(parser):
     init_parser.add_argument(
         "--clone_url",
         default="https://github.com/llvm/llvm-project.git",
-        action="store_true",
+        action="store",
         help="Corresponding LLVM repository URL",
     )
     init_parser.add_argument(
         "--clone_ref",
         default="llvmorg-18.1.0-rc3",
-        action="store_true",
+        action="store",
         help="Corresponding LLVM repository commit/tag",
     )
     init_parser.add_argument(
@@ -80,7 +80,6 @@ def add_init_options(parser):
     )
 
 
-
 def get_parser(subparsers):
     """ "Define and return a subparser for the init subcommand."""
     parser = subparsers.add_parser("init", description="Initialize Seal5.")
@@ -93,7 +92,6 @@ def handle(args):
     """Callback function which will be called to process the init subcommand"""
     name = args.name[0] if isinstance(args.name, list) else args.name
     seal5_flow = Seal5Flow(args.DIR, name)
-    PREPATCHED = True
     seal5_flow.initialize(
         interactive=not args.non_interactive,
         clone=args.clone,
