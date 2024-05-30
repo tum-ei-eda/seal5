@@ -41,23 +41,44 @@ def add_init_options(parser):
     )
     init_parser.add_argument(
         "--non-interactive",
+        default=False,
         dest="non_interactive",
         action="store_true",
         help="Do not ask questions interactively",
     )
     init_parser.add_argument(
         "--clone",
-        default=None,
+        "-c",
+        default=False,
         action="store_true",
         help="Clone LLVM repository",
     )
     init_parser.add_argument(
+        "--clone_url",
+        default="https://github.com/llvm/llvm-project.git",
+        action="store_true",
+        help="Corresponding LLVM repository URL",
+    )
+    init_parser.add_argument(
+        "--clone_ref",
+        default="llvmorg-18.1.0-rc3",
+        action="store_true",
+        help="Corresponding LLVM repository commit/tag",
+    )
+    init_parser.add_argument(
         "--force",
         "-f",
-        default=None,
+        default=False,
         action="store_true",
         help="Allow overwriting an existing seal5 directory",
     )
+    init_parser.add_argument(
+        "--verbose",
+        default=False,
+        action="store_true",
+        help="Verbose printing of steps into console",
+    )
+
 
 
 def get_parser(subparsers):
@@ -72,9 +93,12 @@ def handle(args):
     """Callback function which will be called to process the init subcommand"""
     name = args.name[0] if isinstance(args.name, list) else args.name
     seal5_flow = Seal5Flow(args.DIR, name)
+    PREPATCHED = True
     seal5_flow.initialize(
         interactive=not args.non_interactive,
         clone=args.clone,
+        clone_url=args.clone_url,
+        clone_ref=args.clone_ref,
         force=args.force,
         verbose=args.verbose,
     )
