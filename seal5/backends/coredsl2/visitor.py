@@ -29,6 +29,7 @@ def operation(self: behav.Operation, writer):
 
 
 def binary_operation(self: behav.BinaryOperation, writer):
+    # print("binary_operation")
     writer.write("(")
     self.left.generate(writer)
     writer.write(f") {self.op.value} (")
