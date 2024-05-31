@@ -36,7 +36,7 @@ def add_patch_options(parser):
         "DIR",
         nargs="?",
         type=str,
-        default=".",
+        default="/home/hansos/temp/",
         help="LLVM directory (default: %(default)s",
     )
     patch_parser.add_argument(
@@ -47,12 +47,7 @@ def add_patch_options(parser):
         default=1,
         help="Patched Seal5 LLVM after stages",
     )
-    patch_parser.add_argument(
-        "--force",
-        "-f",
-        default=False,
-        action="store_true",
-        help="Force patch in LLVM")
+    patch_parser.add_argument("--force", "-f", default=False, action="store_true", help="Force patch in LLVM")
     patch_parser.add_argument(
         "--verbose",
         default=False,

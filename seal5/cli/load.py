@@ -36,7 +36,7 @@ def add_load_options(parser):
         "DIR",
         nargs="?",
         type=str,
-        default=".",
+        default="/home/hansos/temp/",
         help="LLVM directory (default: %(default)s",
     )
     load_parser.add_argument(
