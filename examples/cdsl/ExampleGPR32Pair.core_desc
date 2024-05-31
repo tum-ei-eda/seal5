@@ -1,0 +1,22 @@
+import "rv_base/RV32I.core_desc"
+
+InstructionSet XExampleGPR32 extends RV32I {
+  instructions {
+    XRP_ADD64 {
+      encoding: 7'b0101000 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+      assembly: {"xrp.add64", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: {
+        if (rd % 2) raise(0, 2);  // alternative: rd & 1
+        if (rd != 0) X[rd+1:rd] = X[rs1+1:rs1] + X[rs2+1:rs2];
+      }
+    }
+    XRP_MAC32_64 {
+      encoding: 7'b1101000 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+      assembly: {"xrp.mac32_64", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: {
+        if (rd % 2) raise(0, 2);  // alternative: rd & 1
+        if (rd != 0) X[rd+1:rd] += X[rs1] + X[rs2];
+      }
+    }
+  }
+}
