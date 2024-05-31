@@ -362,6 +362,7 @@ def main():
             if ext_settings is not None:
                 pred = "Has" + ext_settings.get_predicate(name=set_name)
             metrics["n_sets"] += 1
+            # TODO: check for GPRC and require HasStdExtCOrZca?
             for instr_name, instr_def in set_def.instructions.items():
                 metrics["n_success"] += 1
                 out_name = f"{instr_def.name}InstrInfo.{args.ext}"
