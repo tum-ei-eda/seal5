@@ -30,21 +30,25 @@ def operation(self: behav.Operation, writer):
 
 
 def binary_operation(self: behav.BinaryOperation, writer):
-    # print("binary_operation")
+    print("binary_operation")
     writer.write("(")
-    self.left = self.left.generate(writer)
+    print("self.left0", self.left)
+    self.left.generate(writer)
+    print("self.left", self.left)
     writer.write(f") {self.op.value} (")
-    self.right = self.right.generate(writer)
+    print("self.right0", self.right)
+    self.right.generate(writer)
+    print("self.right", self.right)
     writer.write(")")
 
 
 def slice_operation(self: behav.SliceOperation, writer):
     # print("slice_operation")
-    self.expr = self.expr.generate(writer)
+    self.expr.generate(writer)
     writer.write("[(")
-    self.left = self.left.generate(writer)
+    self.left.generate(writer)
     writer.write("):(")
-    self.right = self.right.generate(writer)
+    self.right.generate(writer)
     writer.write(")]")
 
 
@@ -52,9 +56,9 @@ def concat_operation(self: behav.ConcatOperation, writer):
     # print("concat_operation")
     # TODO: only add () where required
     writer.write("(")
-    self.left = self.left.generate(writer)
+    self.left.generate(writer)
     writer.write(") :: (")
-    self.right = self.right.generate(writer)
+    self.right.generate(writer)
     writer.write(")")
 
 
@@ -147,7 +151,7 @@ def return_(self: behav.Return, writer):
     writer.write("return")
     if self.expr is not None:
         writer.write(" ")
-        self.expr = self.expr.generate(writer)
+        self.expr.generate(writer)
     # writer.write_line(";")
 
 
