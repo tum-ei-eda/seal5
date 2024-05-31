@@ -1,0 +1,32 @@
+image: ubuntu:22.04
+
+stages:
+  - build
+  # TODO: lint stage
+
+# Change pip's cache directory to be inside the project directory since we can
+# only cache local items.
+variables:
+  DEBIAN_FRONTEND: noninteractive
+
+before_script:
+  - export RUNNER_MAX_LINK_JOBS=`free --giga | grep Mem | awk '{print int($2 / 16)}'`
+  - apt-get update
+  - apt-get install -y build-essential cmake ninja-build python3-dev
+
+build:
+  stage: build
+  script:
+    - mkdir build
+    - cmake -DLLVM_PARALLEL_LINK_JOBS=${RUNNER_MAX_LINK_JOBS} -DLLVM_TARGETS_TO_BUILD="X86;RISCV" -DLLVM_ENABLE_PROJECTS="clang;lld" -DLLVM_ENABLE_ASSERTIONS=ON -DCMAKE_BUILD_TYPE=Release -G Ninja -B build -DCMAKE_INSTALL_PREFIX=$(pwd)/installed/ -DLLVM_BUILD_TOOLS=OFF -DLLVM_OPTIMIZED_TABLEGEN=ON ./llvm
+    - cmake --build build
+    - cmake --build build -t llvm-config
+    - cmake --build build -t llvm-objdump
+    - cmake --install build
+    - cp build/bin/llvm-config installed/bin/
+    - cp build/bin/llvm-objdump installed/bin/
+    - cd installed && time XZ_OPT="-T0 -9" tar -cfJ ../llvm.tar.xz . && cd -
+    - cmake --build build -t check-all
+  artifacts:
+    paths:
+      - llvm.tar.xz
