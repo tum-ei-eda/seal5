@@ -82,7 +82,7 @@ def run(args):
             logger.debug("collecting register operands for instr %s", instr_def.name)
             instr_def.operation.generate(context)
             instr_def.operands = context.operands
-            # print("context.raises", context.raises)
+            # print("instr_def.operands", instr_def.operands)
             # input("next?")
 
     logger.info("dumping model")
