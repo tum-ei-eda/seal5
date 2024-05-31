@@ -280,7 +280,6 @@ class Seal5Instruction(Instruction):
         operands: "dict[str, Seal5Operand]",
     ):
         super().__init__(name, attributes, encoding, mnemonic, assembly, operation)
-        # print("name", name)
         self.constraints = constraints
         self.operands = {}
         self._llvm_asm_str = None
@@ -304,20 +303,14 @@ class Seal5Instruction(Instruction):
             op_attrs = {}
             # check for fixed bits
             temp = [False] * width
-            # print("field_name", field_name)
-            # print("temp", temp)
             for enc in self.encoding:
                 if isinstance(enc, BitField):
                     if enc.name == field_name:
-                        # print("enc", enc, dir(enc))
                         rng = enc.range
-                        # print("rng", rng)
                         assert rng.lower <= rng.upper
                         for pos in range(rng.lower, rng.upper + 1):
-                            # print("pos", pos)
                             assert pos < len(temp)
                             temp[pos] = True
-            # print("temp", temp)
             temp = [pos for pos, val in enumerate(temp) if not val]
             temp2 = []
             cur = None
@@ -333,8 +326,6 @@ class Seal5Instruction(Instruction):
             if cur is not None:
                 temp2.append(f"{cur[0]}:{cur[1]}")
             temp = temp2
-            # print("temp", temp)
-            # input("pp")
             constraints = []
             for pos in temp:
                 lower, upper = pos.split(":", 1)
@@ -350,9 +341,7 @@ class Seal5Instruction(Instruction):
                 )
                 constraint = Seal5Constraint([stmt])
                 constraints.append(constraint)
-            # print("constraints", constraints)
             if len(constraints) > 0:
-                # input("eee")
                 pass
             # if "imm" in field_name:
             #     cls = Seal5ImmOperand
