@@ -363,6 +363,8 @@ def main():
                 pred = "Has" + ext_settings.get_predicate(name=set_name)
             metrics["n_sets"] += 1
             # TODO: check for GPRC and require HasStdExtCOrZca?
+            # TODO: check for GPR32Pair and require HasGPR32Pair
+            # TODO: check for GPR32V2/GPR32V4 and require HasGPR32V
             for instr_name, instr_def in set_def.instructions.items():
                 metrics["n_success"] += 1
                 out_name = f"{instr_def.name}InstrInfo.{args.ext}"
