@@ -71,6 +71,10 @@ DEFAULT_SETTINGS = {
             "keep": [],
             "drop": [],
         },
+        "opcodes": {
+            "keep": [],
+            "drop": [],
+        },
     },
     # "transform": {
     #     "passes": "*",
