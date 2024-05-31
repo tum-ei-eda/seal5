@@ -16,14 +16,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""Command line subcommand for loading Seal5 inputs (CoreDesc,yml, ll,.c ...) ."""
+"""Command line subcommand for transforming Seal5 inputs .
+    Transform inputs
+      1. Create M2-ISA-R metamodel
+      2. Convert to Seal5 metamodel (including aliases, builtins,...)
+      3. Analyse/optimize instructions
+"""
 
 from seal5.flow import Seal5Flow
 
 
-def add_load_options(parser):
-    load_parser = parser.add_argument_group("load options")
-    load_parser.add_argument(
+def add_transform_options(parser):
+    transform_parser = parser.add_argument_group("transform options")
+    transform_parser.add_argument(
         "-n",
         "--name",
         metavar="NAME",
@@ -32,22 +37,28 @@ def add_load_options(parser):
         default="default",
         help="Environment name (default: %(default)s)",
     )
-    load_parser.add_argument(
+    transform_parser.add_argument(
         "DIR",
         nargs="?",
         type=str,
         default=".",
         help="LLVM directory (default: %(default)s",
     )
-    load_parser.add_argument(
-        "--files",
-        nargs="+",
+    transform_parser.add_argument(
+        "--skip",
+        nargs="?",
         type=str,
-        default="./examples/cdsl/RV32P.core_desc",
-        help="File names that should be loaded",
+        default=None,
+        help="Passes that should be skipped",
     )
-    load_parser.add_argument("--overwrite", default=False, action="store_true", help="Overwrite loaded file")
-    load_parser.add_argument(
+    transform_parser.add_argument(
+        "--only",
+        nargs="?",
+        type=str,
+        default=None,
+        help="Passes that should be carried out",
+    )
+    transform_parser.add_argument(
         "--verbose",
         default=False,
         action="store_true",
@@ -56,15 +67,15 @@ def add_load_options(parser):
 
 
 def get_parser(subparsers):
-    """ "Define and return a subparser for the load subcommand."""
-    parser = subparsers.add_parser("load", description="load Seal5 inputs.")
+    """ "Define and return a subparser for the transform subcommand."""
+    parser = subparsers.add_parser("transform", description="transform Seal5 inputs.")
     parser.set_defaults(func=handle)
-    add_load_options(parser)
+    add_transform_options(parser)
     return parser
 
 
 def handle(args):
-    """Callback function which will be called to process the load subcommand"""
+    """Callback function which will be called to process the transform subcommand"""
     name = args.name[0] if isinstance(args.name, list) else args.name
     seal5_flow = Seal5Flow(args.DIR, name)
-    seal5_flow.load(files=args.files, overwrite=args.overwrite, verbose=args.verbose)
+    seal5_flow.transform(verbose=args.verbose, skip=args.skip, only=args.only)

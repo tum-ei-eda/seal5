@@ -16,14 +16,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""Command line subcommand for loading Seal5 inputs (CoreDesc,yml, ll,.c ...) ."""
+"""Command line subcommand for resetting the seal5 environment."""
 
 from seal5.flow import Seal5Flow
 
 
-def add_load_options(parser):
-    load_parser = parser.add_argument_group("load options")
-    load_parser.add_argument(
+def add_reset_options(parser):
+    reset_parser = parser.add_argument_group("reset options")
+    reset_parser.add_argument(
         "-n",
         "--name",
         metavar="NAME",
@@ -32,22 +32,29 @@ def add_load_options(parser):
         default="default",
         help="Environment name (default: %(default)s)",
     )
-    load_parser.add_argument(
+    reset_parser.add_argument(
         "DIR",
         nargs="?",
         type=str,
         default=".",
         help="LLVM directory (default: %(default)s",
     )
-    load_parser.add_argument(
-        "--files",
-        nargs="+",
-        type=str,
-        default="./examples/cdsl/RV32P.core_desc",
-        help="File names that should be loaded",
+    reset_parser.add_argument(
+        "--non-interactive",
+        dest="non_interactive",
+        default=True,
+        action="store_true",
+        help="Do not ask questions interactively",
     )
-    load_parser.add_argument("--overwrite", default=False, action="store_true", help="Overwrite loaded file")
-    load_parser.add_argument(
+
+    reset_parser.add_argument(
+        "--settings",
+        default=False,
+        dest="settings",
+        action="store_true",
+        help="Should settings be reset?",
+    )
+    reset_parser.add_argument(
         "--verbose",
         default=False,
         action="store_true",
@@ -56,15 +63,15 @@ def add_load_options(parser):
 
 
 def get_parser(subparsers):
-    """ "Define and return a subparser for the load subcommand."""
-    parser = subparsers.add_parser("load", description="load Seal5 inputs.")
+    """ "Define and return a subparser for the reset subcommand."""
+    parser = subparsers.add_parser("reset", description="Reset Seal5 settings.")
     parser.set_defaults(func=handle)
-    add_load_options(parser)
+    add_reset_options(parser)
     return parser
 
 
 def handle(args):
-    """Callback function which will be called to process the load subcommand"""
+    """Callback function which will be called to process the reset subcommand"""
     name = args.name[0] if isinstance(args.name, list) else args.name
     seal5_flow = Seal5Flow(args.DIR, name)
-    seal5_flow.load(files=args.files, overwrite=args.overwrite, verbose=args.verbose)
+    seal5_flow.reset(settings=args.settings, verbose=args.verbose, interactive=not args.non_interactive)

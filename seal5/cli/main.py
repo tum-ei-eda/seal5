@@ -23,7 +23,7 @@ import sys
 
 
 from seal5.logging import get_logger
-from seal5.cli import init, load
+from seal5.cli import init, load, setup, transform, reset, clean
 from .common import handle_logging_flags, add_common_options
 from ..version import __version__
 
@@ -41,6 +41,10 @@ def main(args=None):
     subparsers = parser.add_subparsers(dest="subcommand")  # this line changed
     init.get_parser(subparsers)
     load.get_parser(subparsers)
+    setup.get_parser(subparsers)
+    transform.get_parser(subparsers)
+    reset.get_parser(subparsers)
+    clean.get_parser(subparsers)
     if args:
         args = parser.parse_args(args)
     else:
