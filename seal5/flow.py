@@ -727,7 +727,8 @@ class Seal5Flow:
         metrics = {}
         if interactive:
             raise NotImplementedError
-        self.settings.reset()
+        if settings:
+            self.settings.reset()
         end = time.time()
         diff = end - start
         metrics["time_s"] = diff
