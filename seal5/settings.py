@@ -75,6 +75,10 @@ DEFAULT_SETTINGS = {
             "keep": [],
             "drop": [],
         },
+        "encoding_sizes": {
+            "keep": [],
+            "drop": [],
+        },
     },
     # "transform": {
     #     "passes": "*",
