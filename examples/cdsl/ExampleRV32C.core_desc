@@ -1,0 +1,21 @@
+// import "rv_base/RVC.core_desc"
+import "rv_base/RV32I.core_desc"
+
+InstructionSet XExampleRV32C extends RV32I {
+    instructions{
+        XRV_NAND {
+            encoding: 7'b1001001 :: rs2[4:0] :: rs1[4:0] :: 3'b110 :: rd[4:0] :: 7'b0101011;
+            assembly: {"xrv.nand", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: {
+              if(rd != 0) X[rd] = ~(X[rs1] & X[rs2]);
+            }
+        }
+        XRVC_NAND [[compressed="XRV_NAND"]] {
+            encoding: 3'b100 :: 1'b1 :: 2'b11 :: rd[2:0] :: 2'b11 :: rs2[2:0] :: 2'b01;
+            assembly: {"xrvc.nand", "{name(8+rd)}, {name(8+rs2)}"};
+            behavior: {
+                X[rd + 8] = X[rd + 8] & X[rs2 + 8];
+            }
+        }
+    }
+}
