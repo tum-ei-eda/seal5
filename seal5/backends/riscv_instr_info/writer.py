@@ -177,7 +177,7 @@ def gen_riscv_instr_info_str(instr):
         if Seal5OperandAttribute.IS_REG in op.attributes:
             assert Seal5OperandAttribute.REG_CLASS in op.attributes
             cls = op.attributes[Seal5OperandAttribute.REG_CLASS]
-            assert cls in ["GPR", "GPRC"]
+            assert cls in ["GPR", "GPRC", "GPR32Pair"]
             pre = cls
         elif Seal5OperandAttribute.IS_IMM in op.attributes:
             assert Seal5OperandAttribute.TYPE in op.attributes
