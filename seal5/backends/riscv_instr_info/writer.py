@@ -255,6 +255,10 @@ def gen_riscv_instr_info_str(instr):
         attrs["isTerminator"] = 1
     else:
         attrs["isTerminator"] = 0
+    uses = attributes.get(Seal5InstrAttribute.USES, [])
+    attrs["Uses"] = "[" + ", ".join(uses) + "]"
+    defs = attributes.get(Seal5InstrAttribute.DEFS, [])
+    attrs["Defs"] = "[" + ", ".join(defs) + "]"
     # constraints = instr.constraints
     # if len(constraints) > 0:
     #     raise NotImplementedError
