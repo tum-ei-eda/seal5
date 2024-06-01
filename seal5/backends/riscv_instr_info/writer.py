@@ -126,7 +126,10 @@ def write_riscv_instruction_info(
 
     operands, fields = process_encoding(enc)
 
-    attrs = {key: int(value) if isinstance(value, bool) else value for key, value in attrs.items()}
+    def attr_helper(value):
+        return int(value) if isinstance(value, bool) else value
+
+    attrs = {key: attr_helper(value) for key, value in attrs.items()}
     constraints_str = ", ".join(constraints)
 
     out_str = instr_template.render(
