@@ -97,6 +97,7 @@ def run(args):
                 [],
                 {},
             )
+            set_def.instructions[enc].scalars = instr_def.scalars
         sets[set_name] = seal5_model.Seal5InstructionSet(
             set_def.name,
             set_def.extension,
