@@ -182,12 +182,12 @@ class Seal5Flow:
             ("process_settings", passes.process_settings, {}),
             ("write_yaml", passes.write_yaml, {}),
             ("detect_behavior_constraints", passes.detect_behavior_constraints, {}),
+            ("detect_registers", passes.detect_registers, {}),
             ("collect_register_operands", passes.collect_register_operands, {}),
             ("collect_immediate_operands", passes.collect_immediate_operands, {}),
             ("collect_operand_types", passes.collect_operand_types, {}),
             ("detect_side_effects", passes.detect_side_effects, {}),
             ("detect_inouts", passes.detect_inouts, {}),
-            ("detect_registers", passes.detect_registers, {}),
             ("write_cdsl_full", passes.write_cdsl, {"split": False, "compat": False}),
             # TODO: determine static constraints (xlen,...) -> subtargetvmap
             # detect memory adressing modes
