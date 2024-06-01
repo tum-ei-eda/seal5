@@ -36,7 +36,7 @@ def add_load_options(parser):
         "DIR",
         nargs="?",
         type=str,
-        default="/home/hansos/temp/",
+        default="~/.config/seal5/demo/",
         help="LLVM directory (default: %(default)s",
     )
     load_parser.add_argument(
@@ -44,7 +44,7 @@ def add_load_options(parser):
         nargs="+",
         type=str,
         default="./examples/cdsl/RV32P.core_desc",
-        help="File names that should be loaded",
+        help="Files that should be loaded",
     )
     load_parser.add_argument("--overwrite", default=False, action="store_true", help="Overwrite loaded file")
     load_parser.add_argument(
@@ -67,4 +67,4 @@ def handle(args):
     """Callback function which will be called to process the load subcommand"""
     name = args.name[0] if isinstance(args.name, list) else args.name
     seal5_flow = Seal5Flow(args.DIR, name)
-    seal5_flow.load(files=args.files, overwrite=args.overwrite, verbose=args.verbose)
+    seal5_flow.load(files=list(args.files), overwrite=args.overwrite, verbose=args.verbose)

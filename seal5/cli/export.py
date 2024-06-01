@@ -16,19 +16,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""Command line subcommand for transforming Seal5 inputs .
-    Transform inputs
-      1. Create M2-ISA-R metamodel
-      2. Convert to Seal5 metamodel (including aliases, builtins,...)
-      3. Analyse/optimize instructions
-"""
+"""Command line subcommand for Exporting Seal5 artifacts"""
 
 from seal5.flow import Seal5Flow
 
 
-def add_transform_options(parser):
-    transform_parser = parser.add_argument_group("transform options")
-    transform_parser.add_argument(
+def add_export_options(parser):
+    export_parser = parser.add_argument_group("export options")
+    export_parser.add_argument(
         "-n",
         "--name",
         metavar="NAME",
@@ -37,28 +32,21 @@ def add_transform_options(parser):
         default="default",
         help="Environment name (default: %(default)s)",
     )
-    transform_parser.add_argument(
+    export_parser.add_argument(
         "DIR",
         nargs="?",
         type=str,
         default="~/.config/seal5/demo/",
         help="LLVM directory (default: %(default)s",
     )
-    transform_parser.add_argument(
-        "--skip",
-        nargs="+",
+    export_parser.add_argument(
+        "--dest",
+        nargs="?",
         type=str,
-        default=None,
-        help="Passes that should be skipped",
+        default="~/.config/seal5/demo/seal5artifact.tar.gz",
+        help="Path to which compressed artifacts should go",
     )
-    transform_parser.add_argument(
-        "--only",
-        nargs="+",
-        type=str,
-        default=None,
-        help="Passes that should be carried out",
-    )
-    transform_parser.add_argument(
+    export_parser.add_argument(
         "--verbose",
         default=False,
         action="store_true",
@@ -67,19 +55,15 @@ def add_transform_options(parser):
 
 
 def get_parser(subparsers):
-    """ "Define and return a subparser for the transform subcommand."""
-    parser = subparsers.add_parser("transform", description="transform Seal5 models.")
+    """ "Define and return a subparser for the export subcommand."""
+    parser = subparsers.add_parser("export", description="Export Seal5 artifacts.")
     parser.set_defaults(func=handle)
-    add_transform_options(parser)
+    add_export_options(parser)
     return parser
 
 
 def handle(args):
-    """Callback function which will be called to process the transform subcommand"""
+    """Callback function which will be called to process the export subcommand"""
     name = args.name[0] if isinstance(args.name, list) else args.name
     seal5_flow = Seal5Flow(args.DIR, name)
-    seal5_flow.transform(
-        verbose=args.verbose,
-        skip=None if args.skip is None else list(args.skip),
-        only=None if args.only is None else list(args.only),
-    )
+    seal5_flow.export(dest=args.dest, verbose=args.verbose)

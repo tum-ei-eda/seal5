@@ -36,7 +36,7 @@ def add_patch_options(parser):
         "DIR",
         nargs="?",
         type=str,
-        default="/home/hansos/temp/",
+        default="~/.config/seal5/demo/",
         help="LLVM directory (default: %(default)s",
     )
     patch_parser.add_argument(
@@ -58,7 +58,7 @@ def add_patch_options(parser):
 
 def get_parser(subparsers):
     """ "Define and return a subparser for the patch subcommand."""
-    parser = subparsers.add_parser("patch", description="patch Seal5")
+    parser = subparsers.add_parser("patch", description="Applying Seal5 patches")
     parser.set_defaults(func=handle)
     add_patch_options(parser)
     return parser

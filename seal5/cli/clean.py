@@ -36,7 +36,7 @@ def add_clean_options(parser):
         "DIR",
         nargs="?",
         type=str,
-        default="/home/hansos/temp/",
+        default="~/.config/seal5/demo/",
         help="LLVM directory (default: %(default)s",
     )
     clean_parser.add_argument(

@@ -16,19 +16,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""Command line subcommand for transforming Seal5 inputs .
-    Transform inputs
-      1. Create M2-ISA-R metamodel
-      2. Convert to Seal5 metamodel (including aliases, builtins,...)
-      3. Analyse/optimize instructions
-"""
+"""Command line subcommand for building Seal5 LLVM."""
 
 from seal5.flow import Seal5Flow
 
 
-def add_transform_options(parser):
-    transform_parser = parser.add_argument_group("transform options")
-    transform_parser.add_argument(
+def add_build_options(parser):
+    build_parser = parser.add_argument_group("build options")
+    build_parser.add_argument(
         "-n",
         "--name",
         metavar="NAME",
@@ -37,28 +32,25 @@ def add_transform_options(parser):
         default="default",
         help="Environment name (default: %(default)s)",
     )
-    transform_parser.add_argument(
+    build_parser.add_argument(
         "DIR",
         nargs="?",
         type=str,
         default="~/.config/seal5/demo/",
         help="LLVM directory (default: %(default)s",
     )
-    transform_parser.add_argument(
-        "--skip",
-        nargs="+",
-        type=str,
-        default=None,
-        help="Passes that should be skipped",
+    build_parser.add_argument(
+        "--target",
+        "-t",
+        default="all",
+        help="All things that should be build in the make process",
     )
-    transform_parser.add_argument(
-        "--only",
-        nargs="+",
-        type=str,
-        default=None,
-        help="Passes that should be carried out",
+    build_parser.add_argument(
+        "--config",
+        default="release",
+        help="Choose build Config in Settings.yml",
     )
-    transform_parser.add_argument(
+    build_parser.add_argument(
         "--verbose",
         default=False,
         action="store_true",
@@ -67,19 +59,19 @@ def add_transform_options(parser):
 
 
 def get_parser(subparsers):
-    """ "Define and return a subparser for the transform subcommand."""
-    parser = subparsers.add_parser("transform", description="transform Seal5 models.")
+    """ "Define and return a subparser for the build subcommand."""
+    parser = subparsers.add_parser("build", description="Build Seal5.")
     parser.set_defaults(func=handle)
-    add_transform_options(parser)
+    add_build_options(parser)
     return parser
 
 
 def handle(args):
-    """Callback function which will be called to process the transform subcommand"""
+    """Callback function which will be called to process the build subcommand"""
     name = args.name[0] if isinstance(args.name, list) else args.name
     seal5_flow = Seal5Flow(args.DIR, name)
-    seal5_flow.transform(
+    seal5_flow.build(
+        config=args.config,
+        target=args.target,
         verbose=args.verbose,
-        skip=None if args.skip is None else list(args.skip),
-        only=None if args.only is None else list(args.only),
     )
