@@ -58,7 +58,7 @@ def add_test_options(parser):
         help="Ignore failed tests?",
     )
     test_parser.add_argument(
-        "config",
+        "--config",
         nargs="?",
         type=str,
         default=None,
