@@ -122,6 +122,8 @@ class Seal5InstrAttribute(Enum):
     MAY_STORE = auto()
     IS_TERMINATOR = auto()
     IS_BRANCH = auto()
+    USES = auto()
+    DEFS = auto()
 
 
 class Seal5OperandAttribute(Enum):
