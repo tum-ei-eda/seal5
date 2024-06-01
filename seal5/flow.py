@@ -210,6 +210,7 @@ class Seal5Flow:
             ("riscv_features", passes.gen_riscv_features_patch, {}),
             ("riscv_isa_infos", passes.gen_riscv_isa_info_patch, {}),
             # ("riscv_instr_formats", passes.gen_riscv_instr_formats_patch, {}),
+            ("riscv_register_info", passes.gen_riscv_register_info_patch, {}),
             ("riscv_instr_info", passes.gen_riscv_instr_info_patch, {}),
             # subtarget_tests
             # register_types
