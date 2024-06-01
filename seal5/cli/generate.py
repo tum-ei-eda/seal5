@@ -33,7 +33,7 @@ def add_generate_options(parser):
         help="Environment name (default: %(default)s)",
     )
     generate_parser.add_argument(
-        "DIR",
+        "-dir",
         nargs="?",
         type=str,
         default="~/.config/seal5/demo/",

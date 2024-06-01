@@ -33,7 +33,7 @@ def add_init_options(parser):
         help="Environment name (default: %(default)s)",
     )
     init_parser.add_argument(
-        "DIR",
+        "-dir",
         nargs="?",
         type=str,
         default="~/.config/seal5/demo/",

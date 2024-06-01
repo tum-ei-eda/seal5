@@ -33,7 +33,7 @@ def add_load_options(parser):
         help="Environment name (default: %(default)s)",
     )
     load_parser.add_argument(
-        "DIR",
+        "-dir",
         nargs="?",
         type=str,
         default="~/.config/seal5/demo/",
@@ -43,7 +43,7 @@ def add_load_options(parser):
         "--files",
         nargs="+",
         type=str,
-        default="./examples/cdsl/RV32P.core_desc",
+        default="examples/cdsl/rv_example/Example.core_desc",
         help="Files that should be loaded",
     )
     load_parser.add_argument("--overwrite", default=False, action="store_true", help="Overwrite loaded file")

@@ -33,7 +33,7 @@ def add_deploy_options(parser):
         help="Environment name (default: %(default)s)",
     )
     deploy_parser.add_argument(
-        "DIR",
+        "-dir",
         nargs="?",
         type=str,
         default="~/.config/seal5/demo/",
