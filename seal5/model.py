@@ -457,3 +457,118 @@ class Seal5Instruction(Instruction):
                 assert len(writes) == 0
             self._llvm_outs_str = outs_str
         return self._llvm_outs_str
+
+    @property
+    def llvm_attributes(self):
+        attrs = {}
+        if Seal5InstrAttribute.HAS_SIDE_EFFECTS in self.attributes:
+            attrs["hasSideEffects"] = 1
+        else:
+            attrs["hasSideEffects"] = 0
+        if Seal5InstrAttribute.MAY_LOAD in self.attributes:
+            attrs["mayLoad"] = 1
+        else:
+            attrs["mayLoad"] = 0
+        if Seal5InstrAttribute.MAY_STORE in self.attributes:
+            attrs["mayStore"] = 1
+        else:
+            attrs["mayStore"] = 0
+        if Seal5InstrAttribute.IS_TERMINATOR in self.attributes:
+            attrs["isTerminator"] = 1
+        else:
+            attrs["isTerminator"] = 0
+        return attrs
+
+    def llvm_get_compressed_pat(self, set_def):
+        # TODO: map metamodel instr names to llvm instr names
+        uncompressed_instr = self.attributes.get(Seal5InstrAttribute.COMPRESSED, None)
+        if uncompressed_instr is None or len(uncompressed_instr) == 0:
+            return None
+        if isinstance(uncompressed_instr, list):
+            uncompressed_instr = uncompressed_instr[0]
+        compressed_instr = self.name
+        print("compressed_instr", compressed_instr)
+        uncompressed_instr = uncompressed_instr.value.strip()
+        print("uncompressed_instr", uncompressed_instr)
+        uncompressed = None
+        assert set_def is not None
+        for _, instr_def in set_def.instructions.items():
+            print("idn", instr_def.name)
+            if instr_def.name == uncompressed_instr:
+                print("if")
+                uncompressed = instr_def
+                print("break")
+                break
+        assert uncompressed is not None, f"Could not find instr {uncompressed_instr} in set {set_def.name}"
+        print("uncompressed", uncompressed)
+        print("compressed_constraints", self.llvm_constraints)
+        print("compressed_ins_str", self.llvm_ins_str)
+        print("compressed_outs_str", self.llvm_outs_str)
+        print("compressed_asm_order", self.llvm_asm_order)
+        print("uncompressed_constraints", uncompressed.llvm_constraints)
+        print("uncompressed_ins_str", uncompressed.llvm_ins_str)
+        print("uncompressed_outs_str", uncompressed.llvm_outs_str)
+        print("uncompressed_asm_order", uncompressed.llvm_asm_order)
+        # TODO: rs1_wb vs. rd_wb?
+        uncompressed_asm_order_ = None
+        assert len(uncompressed.llvm_constraints) == 0
+        if len(self.llvm_asm_order) == len(uncompressed.llvm_asm_order):
+            print("EQUAL")
+            raise NotImplementedError
+        elif len(self.llvm_asm_order) < len(uncompressed.llvm_asm_order):
+            print("LESS")
+            assert len(self.llvm_asm_order) == (len(uncompressed.llvm_asm_order) - 1)
+            missing = set(uncompressed.llvm_asm_order) - set(self.llvm_asm_order)
+            assert len(missing) == 1
+            missing = list(missing)[0]
+            print("missing", missing)
+            assert len(self.llvm_constraints) > 0
+            wb_reg = None
+            for constr in self.llvm_constraints:
+                print("constr", constr)
+                m = re.compile(r"(\$[a-zA-Z0-9]*)\s*=\s*(\$[a-zA-Z0-9]*)_wb").match(constr)
+                if m:
+                    x, y = m.groups()
+                    if x == y:
+                        wb_reg = x
+            print("wb_reg", wb_reg)
+
+            def replace_helper(x):
+                if x == missing:
+                    return wb_reg
+                # if x == wb_reg:
+                #     return f"{wb_reg}_wb"
+                return x
+
+            uncompressed_asm_order_ = [replace_helper(x) for x in uncompressed.llvm_asm_order]
+            print("uncompressed_asm_order", uncompressed_asm_order_)
+        else:
+            raise RuntimeError("Compressed instr has more args than uncompressed one")
+        assert uncompressed_asm_order_ is not None
+        # compressed_args = "GPRC:$rs1, GPRC:$rs2"
+
+        def args_helper(asm_order, ins_str, outs_str):
+            ret = []
+            for x in asm_order:
+                for y in outs_str.split(", ") + ins_str.split(", "):
+                    y_ = y.split(":", 1)[-1]
+                    if y_ == x:
+                        ret.append(y)
+                        break
+            assert len(ret) == len(asm_order)
+            return ", ".join(ret)
+
+        compressed_args = args_helper(self.llvm_asm_order, self.llvm_ins_str, self.llvm_outs_str)
+        print("compressed_args", compressed_args)
+        uncompressed_args = args_helper(uncompressed_asm_order_, self.llvm_ins_str, self.llvm_outs_str)
+        # uncompressed_args = "GPRC:$rs1, GPRC:$rs1, GPRC:$rs2"
+        print("uncompressed_args", uncompressed_args)
+        uncompressed_str = f"{uncompressed_instr} {uncompressed_args}"
+        print("uncompressed_str", uncompressed_str)
+        compressed_str = f"{compressed_instr} {compressed_args}"
+        print("compressed_str", compressed_str)
+        ret = f"def : CompressPat<({uncompressed_str}), ({compressed_str})>;"
+        print("ret", ret)
+
+        # raise NotImplementedError
+        return ret

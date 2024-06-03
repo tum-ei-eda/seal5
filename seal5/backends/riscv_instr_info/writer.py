@@ -112,13 +112,13 @@ def write_riscv_instruction_info(
     outs_str,
     enc,
     fields,
-    operands,
+    # operands,
     size,
     details_str,
     attrs={},
     constraints=[],
     formats=False,
-    compressed_instr=None,
+    compressed_pat=None,
 ):
     if formats:
         instr_template = Template(filename=str(template_dir / "instr_tablegen2.mako"))
@@ -142,11 +142,9 @@ def write_riscv_instruction_info(
         fields=fields,
         attrs=attrs,
         constraints_str=constraints_str,
-        compressed_instr=compressed_instr,
     )
-    """
-    def : CompressPat<(AND GPRC:$rs1, GPRC:$rs2, GPRC:$rs1),
-    """
+    if compressed_pat:
+        out_str += f"\n{compressed_pat}"
 
     if len(details_str) > 0:
         out_str = (
@@ -163,12 +161,12 @@ def write_riscv_instruction_info(
     return out_str
 
 
-def gen_riscv_instr_info_str(instr):
+def gen_riscv_instr_info_str(instr, set_def):
     print("instr", instr)
     name = instr.name
-    operands = instr.operands
+    # operands = instr.operands
     size = instr.size
-    print("operands", operands)
+    # print("operands", operands)
     reads = instr.llvm_reads
     writes = instr.llvm_writes
     constraints = instr.llvm_constraints
@@ -191,35 +189,12 @@ def gen_riscv_instr_info_str(instr):
     print("fields")
     encoding = instr.encoding
     print("encoding")
-    attrs = {}
-    if Seal5InstrAttribute.HAS_SIDE_EFFECTS in attributes:
-        attrs["hasSideEffects"] = 1
-    else:
-        attrs["hasSideEffects"] = 0
-    if Seal5InstrAttribute.MAY_LOAD in attributes:
-        attrs["mayLoad"] = 1
-    else:
-        attrs["mayLoad"] = 0
-    if Seal5InstrAttribute.MAY_STORE in attributes:
-        attrs["mayStore"] = 1
-    else:
-        attrs["mayStore"] = 0
-    if Seal5InstrAttribute.IS_TERMINATOR in attributes:
-        attrs["isTerminator"] = 1
-    else:
-        attrs["isTerminator"] = 0
+    attrs = instr.llvm_attributes
     # constraints = instr.constraints
     # if len(constraints) > 0:
     #     raise NotImplementedError
     formats = True
-    compressed_instr = attributes.get(Seal5InstrAttribute.COMPRESSED, None)
-    compressed_instr = None
-    if compressed_instr:  # not None and len() > 0
-        if isinstance(compressed_instr, list):
-            compressed_instr = compressed_instr[0]
-        compressed_instr = compressed_instr.value
-        print(f"Uncompressed: {compressed_instr}")
-        raise NotImplementedError
+    compressed_pat = instr.llvm_get_compressed_pat(set_def)
     tablegen_str = write_riscv_instruction_info(
         name,
         real_name,
@@ -228,13 +203,13 @@ def gen_riscv_instr_info_str(instr):
         outs_str,
         encoding,
         fields,
-        operands,
+        # operands,
         size,
         details_str,
         attrs=attrs,
         constraints=constraints,
         formats=formats,
-        compressed_instr=compressed_instr,
+        compressed_pat=compressed_pat,
     )
     return tablegen_str
 
@@ -326,7 +301,7 @@ def main():
                 metrics["n_success"] += 1
                 out_name = f"{instr_def.name}InstrInfo.{args.ext}"
                 output_file = set_dir / out_name
-                content = gen_riscv_instr_info_str(instr_def)
+                content = gen_riscv_instr_info_str(instr_def, set_def)
                 if len(content) > 0:
                     assert pred is not None
                     predicate_str = f"Predicates = [{pred}, IsRV32]"
