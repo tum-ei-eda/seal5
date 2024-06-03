@@ -13,6 +13,7 @@ from m2isar.metamodel import arch, behav, intrinsics
 from m2isar.metamodel.utils import StaticType
 from .parser_gen import CoreDSL2Parser, CoreDSL2Visitor
 from .utils import BOOLCONST, RADIX, SHORTHANDS, SIGNEDNESS
+
 # import seal5.model as seal5_model
 
 logger = logging.getLogger("behav_builder")
@@ -363,12 +364,11 @@ class BehaviorModelBuilder(CoreDSL2Visitor):
 
     #     return behav.IntLiteral(0, 8)
 
-    def visitString_constant(self, ctx:CoreDSL2Parser.String_constantContext):
-
+    def visitString_constant(self, ctx: CoreDSL2Parser.String_constantContext):
         print("visitString_constant", self, ctx, dir(self), dir(ctx))
         text: str = ctx.value.text
         assert len(text) >= 2
-        assert text[0] == "\"" and text[-1] == "\""
+        assert text[0] == '"' and text[-1] == '"'
         text = text[1:-1]
         # text: str = ctx.text
 

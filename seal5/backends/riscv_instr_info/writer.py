@@ -21,7 +21,6 @@ from m2isar.metamodel import arch
 from seal5.index import NamedPatch, File, write_index_yaml
 
 # from seal5.settings import ExtensionsSettings
-from seal5.model import Seal5InstrAttribute
 
 from .templates import template_dir
 
