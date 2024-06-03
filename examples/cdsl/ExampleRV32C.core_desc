@@ -14,7 +14,7 @@ InstructionSet XExampleRV32C extends RV32I {
             encoding: 3'b100 :: 1'b1 :: 2'b11 :: rd[2:0] :: 2'b11 :: rs2[2:0] :: 2'b01;
             assembly: {"xrvc.nand", "{name(8+rd)}, {name(8+rs2)}"};
             behavior: {
-                X[rd + 8] = X[rd + 8] & X[rs2 + 8];
+                X[rd + 8] = ~(X[rd + 8] & X[rs2 + 8]);
             }
         }
     }
