@@ -8,4 +8,4 @@
 # Chair of Electrical Design Automation
 # Technical University of Munich
 
-java -jar ../../../ext/antlr-4.12.0-complete.jar -o parser_gen -listener -visitor -Dlanguage=Python3 CoreDSL2.g4
+java -jar antlr-4.13.1-complete.jar -o parser_gen -listener -visitor -Dlanguage=Python3 CoreDSL2.g4
