@@ -119,6 +119,7 @@ def write_riscv_instruction_info(
     attrs={},
     constraints=[],
     formats=False,
+    compressed_instr=None,
 ):
     if formats:
         instr_template = Template(filename=str(template_dir / "instr_tablegen2.mako"))
@@ -142,7 +143,11 @@ def write_riscv_instruction_info(
         fields=fields,
         attrs=attrs,
         constraints_str=constraints_str,
+        compressed_instr=compressed_instr,
     )
+    """
+    def : CompressPat<(AND GPRC:$rs1, GPRC:$rs2, GPRC:$rs1),
+    """
 
     if len(details_str) > 0:
         out_str = (
@@ -264,6 +269,9 @@ def gen_riscv_instr_info_str(instr):
     # if len(constraints) > 0:
     #     raise NotImplementedError
     formats = True
+    compressed_instr = None
+    if Seal5InstrAttribute.COMPRESSED in attributes:
+        compressed_instr = attributes[Seal5InstrAttribute.COMPRESSED].value
     tablegen_str = write_riscv_instruction_info(
         name,
         real_name,
@@ -278,6 +286,7 @@ def gen_riscv_instr_info_str(instr):
         attrs=attrs,
         constraints=constraints,
         formats=formats,
+        compressed_instr=compressed_instr,
     )
     return tablegen_str
 
