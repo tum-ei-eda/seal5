@@ -40,7 +40,7 @@ def add_common_options(parser):
         metavar="NAME",
         type=str,
         default=None,
-        help="Environment name (: \"default\")",
+        help='Environment name (: "default")',
     )
     parser.add_argument(
         "--dir",

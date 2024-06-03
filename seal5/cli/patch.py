@@ -19,6 +19,12 @@
 """Command line subcommand for Applying Seal5 patches."""
 
 from seal5.flow import Seal5Flow
+from seal5.logging import get_logger
+from seal5.types import PatchStage
+from os import getenv
+
+
+logger = get_logger()
 
 
 def add_patch_options(parser):
@@ -44,6 +50,11 @@ def get_parser(subparsers):
 
 def handle(args):
     """Callback function which will be called to process the patch subcommand"""
-    name = args.name[0] if isinstance(args.name, list) else args.name
-    seal5_flow = Seal5Flow(args.dir, name)
-    seal5_flow.patch(verbose=args.verbose, stages=[eval(i) for i in args.stages], force=args.force)
+    if args.dir is None:
+        home_dir = getenv("SEAL5_HOME")
+        if home_dir is not None:
+            args.dir = home_dir
+        else:
+            logger.error("Seal5_HOME Env var not specified !!!")
+    seal5_flow = Seal5Flow(args.dir, args.name)
+    seal5_flow.patch(verbose=args.verbose, stages=[PatchStage(int(i)) for i in args.stages], force=args.force)

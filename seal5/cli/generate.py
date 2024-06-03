@@ -19,6 +19,11 @@
 """Generating Seal5 patches"""
 
 from seal5.flow import Seal5Flow
+from seal5.logging import get_logger
+from os import getenv
+
+
+logger = get_logger()
 
 
 def add_generate_options(parser):
@@ -49,8 +54,13 @@ def get_parser(subparsers):
 
 def handle(args):
     """Callback function which will be called to process the generate subcommand"""
-    name = args.name[0] if isinstance(args.name, list) else args.name
-    seal5_flow = Seal5Flow(args.dir, name)
+    if args.dir is None:
+        home_dir = getenv("SEAL5_HOME")
+        if home_dir is not None:
+            args.dir = home_dir
+        else:
+            logger.error("Seal5_HOME Env var not specified !!!")
+    seal5_flow = Seal5Flow(args.dir, args.name)
     seal5_flow.generate(
         verbose=args.verbose,
         skip=None if args.skip is None else list(args.skip),

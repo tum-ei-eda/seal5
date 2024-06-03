@@ -85,9 +85,8 @@ def add_test_cfg(tests_dir: Path):
 
 
 class Seal5Flow:
-    def __init__(self, directory: Optional[Path] = None, name: str = "default"):
+    def __init__(self, directory: Optional[Path] = None, name: Optional[str] = None):
         self.directory: Path = handle_directory(directory)
-        self.name: str = name
         self.state: Seal5State = Seal5State.UNKNOWN
         self.passes: List[Seal5Pass] = []  # TODO: implement PassManager
         self.repo: Optional[git.Repo] = git.Repo(self.directory) if self.directory.is_dir() else None
@@ -103,6 +102,8 @@ class Seal5Flow:
                 set_log_level(
                     console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level
                 )
+        self.name = self.settings.name if name is None else name
+        self.settings.name = self.settings.name if name is None else name
         self.reset_passes()
         self.create_passes()
         # self.init_global_model()

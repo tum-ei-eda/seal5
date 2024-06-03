@@ -19,6 +19,11 @@
 """Command line subcommand for resetting the seal5 environment."""
 
 from seal5.flow import Seal5Flow
+from seal5.logging import get_logger
+from os import getenv
+
+
+logger = get_logger()
 
 
 def add_reset_options(parser):
@@ -49,6 +54,11 @@ def get_parser(subparsers):
 
 def handle(args):
     """Callback function which will be called to process the reset subcommand"""
-    name = args.name[0] if isinstance(args.name, list) else args.name
-    seal5_flow = Seal5Flow(args.dir, name)
+    if args.dir is None:
+        home_dir = getenv("SEAL5_HOME")
+        if home_dir is not None:
+            args.dir = home_dir
+        else:
+            logger.error("Seal5_HOME Env var not specified !!!")
+    seal5_flow = Seal5Flow(args.dir, args.name)
     seal5_flow.reset(settings=args.settings, verbose=args.verbose, interactive=not args.non_interactive)
