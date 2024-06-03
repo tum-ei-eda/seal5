@@ -24,22 +24,6 @@ from seal5.flow import Seal5Flow
 def add_patch_options(parser):
     patch_parser = parser.add_argument_group("patch options")
     patch_parser.add_argument(
-        "-n",
-        "--name",
-        metavar="NAME",
-        nargs=1,
-        type=str,
-        default="default",
-        help="Environment name (default: %(default)s)",
-    )
-    patch_parser.add_argument(
-        "-dir",
-        nargs="?",
-        type=str,
-        default="/var/tmp/seal5_demo/",
-        help="LLVM directory (default: %(default)s",
-    )
-    patch_parser.add_argument(
         "--stages",
         "-s",
         nargs="+",
@@ -48,12 +32,6 @@ def add_patch_options(parser):
         help="Patched Seal5 LLVM after stages",
     )
     patch_parser.add_argument("--force", "-f", default=False, action="store_true", help="Force patch in LLVM")
-    patch_parser.add_argument(
-        "--verbose",
-        default=False,
-        action="store_true",
-        help="Verbose printing of steps into console",
-    )
 
 
 def get_parser(subparsers):

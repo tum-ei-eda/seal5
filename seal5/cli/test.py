@@ -24,32 +24,10 @@ from seal5.flow import Seal5Flow
 def add_test_options(parser):
     test_parser = parser.add_argument_group("test options")
     test_parser.add_argument(
-        "-n",
-        "--name",
-        metavar="NAME",
-        nargs=1,
-        type=str,
-        default="default",
-        help="Environment name (default: %(default)s)",
-    )
-    test_parser.add_argument(
-        "-dir",
-        nargs="?",
-        type=str,
-        default="/var/tmp/seal5_demo/",
-        help="LLVM directory (default: %(default)s",
-    )
-    test_parser.add_argument(
         "--debug",
         default=False,
         action="store_true",
         help="Debug?",
-    )
-    test_parser.add_argument(
-        "--verbose",
-        default=False,
-        action="store_true",
-        help="Verbose printing of steps into console",
     )
     test_parser.add_argument(
         "--ignore_error",

@@ -24,22 +24,6 @@ from seal5.flow import Seal5Flow
 def add_init_options(parser):
     init_parser = parser.add_argument_group("init options")
     init_parser.add_argument(
-        "-n",
-        "--name",
-        metavar="NAME",
-        nargs=1,
-        type=str,
-        default="default",
-        help="Environment name (default: %(default)s)",
-    )
-    init_parser.add_argument(
-        "-dir",
-        nargs="?",
-        type=str,
-        default="/var/tmp/seal5_demo/",
-        help="LLVM directory (default: %(default)s",
-    )
-    init_parser.add_argument(
         "--non-interactive",
         default=False,
         dest="non_interactive",
@@ -69,12 +53,6 @@ def add_init_options(parser):
         default=False,
         action="store_true",
         help="Allow overwriting an existing seal5 directory",
-    )
-    init_parser.add_argument(
-        "--verbose",
-        default=False,
-        action="store_true",
-        help="Verbose printing of steps into console",
     )
 
 

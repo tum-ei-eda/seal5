@@ -24,33 +24,11 @@ from seal5.flow import Seal5Flow
 def add_export_options(parser):
     export_parser = parser.add_argument_group("export options")
     export_parser.add_argument(
-        "-n",
-        "--name",
-        metavar="NAME",
-        nargs=1,
-        type=str,
-        default="default",
-        help="Environment name (default: %(default)s)",
-    )
-    export_parser.add_argument(
-        "-dir",
-        nargs="?",
-        type=str,
-        default="/var/tmp/seal5_demo/",
-        help="LLVM directory (default: %(default)s",
-    )
-    export_parser.add_argument(
         "--dest",
         nargs="?",
         type=str,
         default="~/.config/seal5/demo/seal5artifact.tar.gz",
         help="Path to which compressed artifacts should go",
-    )
-    export_parser.add_argument(
-        "--verbose",
-        default=False,
-        action="store_true",
-        help="Verbose printing of steps into console",
     )
 
 

@@ -24,22 +24,6 @@ from seal5.flow import Seal5Flow
 def add_generate_options(parser):
     generate_parser = parser.add_argument_group("generate options")
     generate_parser.add_argument(
-        "-n",
-        "--name",
-        metavar="NAME",
-        nargs=1,
-        type=str,
-        default="default",
-        help="Environment name (default: %(default)s)",
-    )
-    generate_parser.add_argument(
-        "-dir",
-        nargs="?",
-        type=str,
-        default="/var/tmp/seal5_demo/",
-        help="LLVM directory (default: %(default)s",
-    )
-    generate_parser.add_argument(
         "--skip",
         nargs="+",
         type=str,
@@ -52,12 +36,6 @@ def add_generate_options(parser):
         type=str,
         default=None,
         help="Passes that should be carried out",
-    )
-    generate_parser.add_argument(
-        "--verbose",
-        default=False,
-        action="store_true",
-        help="Verbose printing of steps into console",
     )
 
 

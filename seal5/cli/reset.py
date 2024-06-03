@@ -24,41 +24,18 @@ from seal5.flow import Seal5Flow
 def add_reset_options(parser):
     reset_parser = parser.add_argument_group("reset options")
     reset_parser.add_argument(
-        "-n",
-        "--name",
-        metavar="NAME",
-        nargs=1,
-        type=str,
-        default="default",
-        help="Environment name (default: %(default)s)",
-    )
-    reset_parser.add_argument(
-        "-dir",
-        nargs="?",
-        type=str,
-        default="/var/tmp/seal5_demo/",
-        help="LLVM directory (default: %(default)s",
-    )
-    reset_parser.add_argument(
         "--non-interactive",
         dest="non_interactive",
         default=True,
         action="store_true",
         help="Do not ask questions interactively",
     )
-
     reset_parser.add_argument(
         "--settings",
         default=False,
         dest="settings",
         action="store_true",
         help="Should settings be reset?",
-    )
-    reset_parser.add_argument(
-        "--verbose",
-        default=False,
-        action="store_true",
-        help="Verbose printing of steps into console",
     )
 
 

@@ -24,22 +24,6 @@ from seal5.flow import Seal5Flow
 def add_load_options(parser):
     load_parser = parser.add_argument_group("load options")
     load_parser.add_argument(
-        "-n",
-        "--name",
-        metavar="NAME",
-        nargs=1,
-        type=str,
-        default="default",
-        help="Environment name (default: %(default)s)",
-    )
-    load_parser.add_argument(
-        "-dir",
-        nargs="?",
-        type=str,
-        default="/var/tmp/seal5_demo/",
-        help="LLVM directory (default: %(default)s",
-    )
-    load_parser.add_argument(
         "--files",
         nargs="+",
         type=str,
@@ -47,12 +31,6 @@ def add_load_options(parser):
         help="Files that should be loaded",
     )
     load_parser.add_argument("--overwrite", default=False, action="store_true", help="Overwrite loaded file")
-    load_parser.add_argument(
-        "--verbose",
-        default=False,
-        action="store_true",
-        help="Verbose printing of steps into console",
-    )
 
 
 def get_parser(subparsers):

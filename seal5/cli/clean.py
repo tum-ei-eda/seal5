@@ -24,22 +24,6 @@ from seal5.flow import Seal5Flow
 def add_clean_options(parser):
     clean_parser = parser.add_argument_group("clean options")
     clean_parser.add_argument(
-        "-n",
-        "--name",
-        metavar="NAME",
-        nargs=1,
-        type=str,
-        default="default",
-        help="Environment name (default: %(default)s)",
-    )
-    clean_parser.add_argument(
-        "-dir",
-        nargs="?",
-        type=str,
-        default="/var/tmp/seal5_demo/",
-        help="LLVM directory (default: %(default)s",
-    )
-    clean_parser.add_argument(
         "--temp",
         default=False,
         action="store_true",
@@ -93,12 +77,6 @@ def add_clean_options(parser):
         default=True,
         action="store_true",
         help="Do not ask questions interactively",
-    )
-    clean_parser.add_argument(
-        "--verbose",
-        default=False,
-        action="store_true",
-        help="Verbose printing of steps into console",
     )
 
 

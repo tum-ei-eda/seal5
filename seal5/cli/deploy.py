@@ -19,39 +19,17 @@
 """Command line subcommand for deploying seal5 LLVM."""
 
 from seal5.flow import Seal5Flow
+from seal5.logging import get_logger
+from os import getenv
 
 
-def add_deploy_options(parser):
-    deploy_parser = parser.add_argument_group("deploy options")
-    deploy_parser.add_argument(
-        "-n",
-        "--name",
-        metavar="NAME",
-        nargs=1,
-        type=str,
-        default="default",
-        help="Environment name (default: %(default)s)",
-    )
-    deploy_parser.add_argument(
-        "-dir",
-        nargs="?",
-        type=str,
-        default="/var/tmp/seal5_demo/",
-        help="LLVM directory (default: %(default)s",
-    )
-    deploy_parser.add_argument(
-        "--verbose",
-        default=False,
-        action="store_true",
-        help="Verbose printing of steps into console",
-    )
+logger = get_logger()
 
 
 def get_parser(subparsers):
     """ "Define and return a subparser for the deploy subcommand."""
     parser = subparsers.add_parser("deploy", description="Deploy Seal5 LLVM.")
     parser.set_defaults(func=handle)
-    add_deploy_options(parser)
     return parser
 
 
