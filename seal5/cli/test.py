@@ -36,7 +36,7 @@ def add_test_options(parser):
         "-dir",
         nargs="?",
         type=str,
-        default="~/.config/seal5/demo/",
+        default="/var/tmp/seal5_demo/",
         help="LLVM directory (default: %(default)s",
     )
     test_parser.add_argument(
@@ -77,7 +77,7 @@ def get_parser(subparsers):
 def handle(args):
     """Callback function which will be called to process the test subcommand"""
     name = args.name[0] if isinstance(args.name, list) else args.name
-    seal5_flow = Seal5Flow(args.DIR, name)
+    seal5_flow = Seal5Flow(args.dir, name)
     seal5_flow.test(
         debug=args.debug,
         verbose=args.verbose,
