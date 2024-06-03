@@ -14,16 +14,12 @@ import pathlib
 import pickle
 from typing import Union
 
-from mako.template import Template
-
 from m2isar.metamodel import arch
 
 from seal5.index import NamedPatch, write_index_yaml
 
 # from seal5.settings import ExtensionsSettings
 from seal5.model import Seal5RegisterClass
-
-from .templates import template_dir
 
 logger = logging.getLogger("riscv_instr_info")
 
@@ -32,7 +28,7 @@ def write_riscv_register_info(reg):
     # registers_template = Template(filename=str(template_dir / "registers_tablegen.mako"))
 
     # out_str = registers_template.render()
-    out_str = f"def {reg.name} : RISCVReg<0, \"{reg.name.lower()}\">;"
+    out_str = f'def {reg.name} : RISCVReg<0, "{reg.name.lower()}">;'
 
     return out_str
 
