@@ -114,6 +114,7 @@ class Seal5InstrAttribute(Enum):
     MAY_STORE = auto()
     IS_TERMINATOR = auto()
     IS_BRANCH = auto()
+    COMPRESSED = auto()
 
 
 class Seal5OperandAttribute(Enum):
