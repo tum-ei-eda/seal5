@@ -7,6 +7,7 @@
 # Technical University of Munich
 """TODO"""
 
+import re
 from enum import IntEnum, Enum, auto
 from typing import Dict, List, Optional, Union
 
@@ -269,6 +270,16 @@ class Seal5Instruction(Instruction):
         # print("name", name)
         self.constraints = constraints
         self.operands = {}
+        self._llvm_asm_str = None
+        self._llvm_asm_order = None
+        self._llvm_constraints = None
+        self._llvm_reads = None
+        self._llvm_writes = None
+        self._llvm_ins_str = None
+        self._llvm_outs_str = None
+        self._process_fields()
+
+    def _process_fields(self):
         for field_name, field in self.fields.items():
             if field_name in self.operands:
                 continue
@@ -339,3 +350,110 @@ class Seal5Instruction(Instruction):
             self.operands[field_name] = op
         # Test:
         # self.attributes[Seal5InstrAttribute.MAY_LOAD] = []
+
+    def _llvm_process_operands(self):
+        operands = self.operands
+        reads = []
+        writes = []
+        constraints = []
+        for op_name, op in operands.items():
+            if len(op.constraints) > 0:
+                raise NotImplementedError
+            if Seal5OperandAttribute.IS_REG in op.attributes:
+                assert Seal5OperandAttribute.REG_CLASS in op.attributes
+                cls = op.attributes[Seal5OperandAttribute.REG_CLASS]
+                assert cls in ["GPR", "GPRC"]
+                pre = cls
+            elif Seal5OperandAttribute.IS_IMM in op.attributes:
+                assert Seal5OperandAttribute.TYPE in op.attributes
+                ty = op.attributes[Seal5OperandAttribute.TYPE]
+                assert ty[0] in ["u", "s"]
+                sz = int(ty[1:])
+                pre = f"{ty[0]}imm{sz}"
+
+            if Seal5OperandAttribute.INOUT in op.attributes or (
+                Seal5OperandAttribute.OUT in op.attributes and Seal5OperandAttribute.IN in op.attributes
+            ):
+                op_str2 = f"{pre}:${op_name}_wb"
+                writes.append(op_str2)
+                op_str = f"{pre}:${op_name}"
+                reads.append(op_str)
+                constraint = f"${op_name} = ${op_name}_wb"
+                constraints.append(constraint)
+
+            elif Seal5OperandAttribute.OUT in op.attributes:
+                op_str = f"{pre}:${op_name}"
+                writes.append(op_str)
+            elif Seal5OperandAttribute.IN in op.attributes:
+                op_str = f"{pre}:${op_name}"
+                reads.append(op_str)
+        self._llvm_constraints = constraints
+        self._llvm_reads = reads
+        self._llvm_writes = writes
+
+    def _llvm_process_assembly(self):
+        asm_str = self.assembly
+        asm_str = re.sub(r"name\(([a-zA-Z0-9\+]+)\)", r"\g<1>", asm_str)
+        asm_str = re.sub(r"{([a-zA-Z0-9\+]+):[#0-9a-zA-Z\.]+}", r"{\g<1>}", asm_str)
+        asm_str = re.sub(r"{([a-zA-Z0-9\+]+)}", r"$\g<1>", asm_str)
+        # remove offsets
+        asm_str = re.sub(r"[0-9]+\+([a-zA-Z0-9]+)", r"\g<1>", asm_str)
+        asm_str = re.sub(r"([a-zA-Z0-9]+)\+[0-9]+", r"\g<1>", asm_str)
+        asm_order = re.compile(r"(\$[a-zA-Z0-9]+)").findall(asm_str)
+        for op in asm_order:
+            if f"{op}(" in asm_str or f"{op})" in asm_str or f"{op}!" in asm_str or f"!{op}" in asm_str:
+                asm_str = asm_str.replace(op, "${" + op[1:] + "}")
+        self._llvm_asm_str = asm_str
+        self._llvm_asm_order = asm_order
+
+    @property
+    def llvm_asm_str(self):
+        if self._llvm_asm_str is None:
+            self._llvm_process_assembly()
+        return self._llvm_asm_str
+
+    @property
+    def llvm_asm_order(self):
+        if self._llvm_asm_order is None:
+            self._llvm_process_assembly()
+        return self._llvm_asm_order
+
+    @property
+    def llvm_constraints(self):
+        if self._llvm_constraints is None:
+            self._llvm_process_operands()
+        return self._llvm_constraints
+
+    @property
+    def llvm_reads(self):
+        if self._llvm_reads is None:
+            self._llvm_process_operands()
+        return self._llvm_reads
+
+    @property
+    def llvm_writes(self):
+        if self._llvm_writes is None:
+            self._llvm_process_operands()
+        return self._llvm_writes
+
+    @property
+    def llvm_ins_str(self):
+        if self._llvm_ins_str is None:
+            reads = self.llvm_reads
+            reads_ = [(x.split(":", 1)[1] if ":" in x else x) for x in reads]
+            ins_str = ", ".join([reads[reads_.index(x)] for x in self._llvm_asm_order if x in reads_])
+            if len(ins_str) == 0:
+                assert len(reads) == 0
+            self._llvm_ins_str = ins_str
+        return self._llvm_ins_str
+
+    @property
+    def llvm_outs_str(self):
+        if self._llvm_outs_str is None:
+            writes = self.llvm_writes
+            writes_ = [(x.split(":", 1)[1] if ":" in x else x).replace("_wb", "") for x in writes]
+            outs_str = ", ".join([writes[writes_.index(x)] for x in self._llvm_asm_order if x in writes_])
+            if len(outs_str) == 0:
+                assert len(writes) == 0
+            self._llvm_outs_str = outs_str
+        return self._llvm_outs_str
