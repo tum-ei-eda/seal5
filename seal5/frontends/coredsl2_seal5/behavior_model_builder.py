@@ -13,6 +13,7 @@ from m2isar.metamodel import arch, behav, intrinsics
 from m2isar.metamodel.utils import StaticType
 from .parser_gen import CoreDSL2Parser, CoreDSL2Visitor
 from .utils import BOOLCONST, RADIX, SHORTHANDS, SIGNEDNESS
+# import seal5.model as seal5_model
 
 logger = logging.getLogger("behav_builder")
 
@@ -353,6 +354,23 @@ class BehaviorModelBuilder(CoreDSL2Visitor):
         value = min(ord(text.replace("'", "")), 255)
 
         return behav.IntLiteral(value, 8)
+
+    # def visitString_literal(self, ctx:CoreDSL2Parser.String_literalContext):
+
+    #     print("visitString_literal", self, ctx, dir(self), dir(ctx))
+    #     text: str = ctx.value.text
+    #     # text: str = ctx.text
+
+    #     return behav.IntLiteral(0, 8)
+
+    def visitString_constant(self, ctx:CoreDSL2Parser.String_constantContext):
+
+        print("visitString_constant", self, ctx, dir(self), dir(ctx))
+        text: str = ctx.value.text
+        # text: str = ctx.text
+
+        return behav.StringLiteral(text)
+        # return seal5_model.StringLiteral(text)
 
     def visitBool_constant(self, ctx: CoreDSL2Parser.Bool_constantContext):
         """Generate a boolean literal. Converts directly to uint1."""
