@@ -65,7 +65,6 @@ class Seal5RegisterClass(IntEnum):
 
 
 class Seal5Register:
-
     def __init__(self, name: str, size: int, width: int, signed: bool, reg_class: Seal5RegisterClass):
         self.name = name
         self.size = size
@@ -91,7 +90,10 @@ class Seal5RegisterGroup:
 
     @property
     def registers(self):
-        return [Seal5Register(name, size=self.size, width=self.width, signed=self.signed, reg_class=self.reg_class) for name in self.names]
+        return [
+            Seal5Register(name, size=self.size, width=self.width, signed=self.signed, reg_class=self.reg_class)
+            for name in self.names
+        ]
 
     def __len__(self):
         return len(self.names)
