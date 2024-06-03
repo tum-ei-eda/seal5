@@ -367,6 +367,9 @@ class BehaviorModelBuilder(CoreDSL2Visitor):
 
         print("visitString_constant", self, ctx, dir(self), dir(ctx))
         text: str = ctx.value.text
+        assert len(text) >= 2
+        assert text[0] == "\"" and text[-1] == "\""
+        text = text[1:-1]
         # text: str = ctx.text
 
         return behav.StringLiteral(text)
