@@ -21,7 +21,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="seal5.cli.common" href="seal5.cli.common.html" />
+    <link rel="next" title="seal5.cli.build" href="seal5.cli.build.html" />
     <link rel="prev" title="seal5.backends.yaml.writer" href="seal5.backends.yaml.writer.html" /> 
 </head>
 
@@ -48,9 +48,20 @@
 <li class="toctree-l1 current"><a class="reference internal" href="seal5.html">seal5</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="seal5.backends.html">seal5.backends</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">seal5.cli</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seal5.cli.build.html">seal5.cli.build</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.cli.clean.html">seal5.cli.clean</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.cli.common.html">seal5.cli.common</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.cli.deploy.html">seal5.cli.deploy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.cli.export.html">seal5.cli.export</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.cli.generate.html">seal5.cli.generate</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.cli.init.html">seal5.cli.init</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.cli.load.html">seal5.cli.load</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.cli.main.html">seal5.cli.main</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.cli.patch.html">seal5.cli.patch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.cli.reset.html">seal5.cli.reset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.cli.setup.html">seal5.cli.setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.cli.test.html">seal5.cli.test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.cli.transform.html">seal5.cli.transform</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.dependencies.html">seal5.dependencies</a></li>
@@ -106,14 +117,47 @@
 <p class="rubric">Modules</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="seal5.cli.build.html#module-seal5.cli.build" title="seal5.cli.build"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seal5.cli.build</span></code></a></p></td>
+<td><p>Command line subcommand for building Seal5 LLVM.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="seal5.cli.clean.html#module-seal5.cli.clean" title="seal5.cli.clean"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seal5.cli.clean</span></code></a></p></td>
+<td><p>Command line subcommand for cleaning seal5 environment.</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="seal5.cli.common.html#module-seal5.cli.common" title="seal5.cli.common"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seal5.cli.common</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="seal5.cli.init.html#module-seal5.cli.init" title="seal5.cli.init"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seal5.cli.init</span></code></a></p></td>
-<td><p>Command line subcommand for initializing a seal5 environment.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="seal5.cli.deploy.html#module-seal5.cli.deploy" title="seal5.cli.deploy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seal5.cli.deploy</span></code></a></p></td>
+<td><p>Command line subcommand for deploying seal5 LLVM.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="seal5.cli.export.html#module-seal5.cli.export" title="seal5.cli.export"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seal5.cli.export</span></code></a></p></td>
+<td><p>Command line subcommand for Exporting Seal5 artifacts</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="seal5.cli.generate.html#module-seal5.cli.generate" title="seal5.cli.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seal5.cli.generate</span></code></a></p></td>
+<td><p>Generating Seal5 patches</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="seal5.cli.init.html#module-seal5.cli.init" title="seal5.cli.init"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seal5.cli.init</span></code></a></p></td>
+<td><p>Command line subcommand for initializing Seal5 environment.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="seal5.cli.load.html#module-seal5.cli.load" title="seal5.cli.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seal5.cli.load</span></code></a></p></td>
+<td><p>Command line subcommand for loading Seal5 inputs (CoreDesc,yml, ll,.c ...) .</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="seal5.cli.main.html#module-seal5.cli.main" title="seal5.cli.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seal5.cli.main</span></code></a></p></td>
 <td><p>Console script for seal5.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="seal5.cli.patch.html#module-seal5.cli.patch" title="seal5.cli.patch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seal5.cli.patch</span></code></a></p></td>
+<td><p>Command line subcommand for Applying Seal5 patches.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="seal5.cli.reset.html#module-seal5.cli.reset" title="seal5.cli.reset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seal5.cli.reset</span></code></a></p></td>
+<td><p>Command line subcommand for resetting the seal5 environment.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="seal5.cli.setup.html#module-seal5.cli.setup" title="seal5.cli.setup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seal5.cli.setup</span></code></a></p></td>
+<td><p>Command line subcommand for Installing Seal5 dependencies</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="seal5.cli.test.html#module-seal5.cli.test" title="seal5.cli.test"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seal5.cli.test</span></code></a></p></td>
+<td><p>Command line subcommand for Testing seal5 environment.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="seal5.cli.transform.html#module-seal5.cli.transform" title="seal5.cli.transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seal5.cli.transform</span></code></a></p></td>
+<td><p>Command line subcommand for transforming Seal5 inputs . Transform inputs   1. Create M2-ISA-R metamodel   2. Convert to Seal5 metamodel (including aliases, builtins,...)   3. Analyse/optimize instructions.</p></td>
 </tr>
 </tbody>
 </table>
@@ -124,7 +168,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="seal5.backends.yaml.writer.html" class="btn btn-neutral float-left" title="seal5.backends.yaml.writer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="seal5.cli.common.html" class="btn btn-neutral float-right" title="seal5.cli.common" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="seal5.cli.build.html" class="btn btn-neutral float-right" title="seal5.cli.build" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

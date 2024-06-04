@@ -1,0 +1,31 @@
+seal5.cli.generate
+==================
+
+.. automodule:: seal5.cli.generate
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      add_generate_options
+      get_parser
+      handle
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

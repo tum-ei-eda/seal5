@@ -13,6 +13,7 @@ seal5.utils
 
    .. autosummary::
    
+      ask_user
       clean_path
       cmake
       copy

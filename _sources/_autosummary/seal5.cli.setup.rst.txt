@@ -1,0 +1,31 @@
+seal5.cli.setup
+===============
+
+.. automodule:: seal5.cli.setup
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      add_setup_options
+      get_parser
+      handle
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,31 @@
+seal5.cli.patch
+===============
+
+.. automodule:: seal5.cli.patch
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      add_patch_options
+      get_parser
+      handle
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

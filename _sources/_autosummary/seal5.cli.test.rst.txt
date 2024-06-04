@@ -1,0 +1,31 @@
+seal5.cli.test
+==============
+
+.. automodule:: seal5.cli.test
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      add_test_options
+      get_parser
+      handle
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
