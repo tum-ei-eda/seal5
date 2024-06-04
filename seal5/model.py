@@ -363,11 +363,22 @@ class Seal5Instruction(Instruction):
         # Test:
         # self.attributes[Seal5InstrAttribute.MAY_LOAD] = []
 
+    def _llvm_check_operands(self):
+        asm_order = self.llvm_asm_order
+        operands = self.operands
+        # check that number of operands is equal
+        assert len(asm_order) == len(operands), "Number of operands does not match (asm vs. CDSL)"
+        # check that order of operands matches asm syntax
+        for op_idx, op_name in enumerate(operands.keys()):
+            asm_idx = asm_order.index(f"${op_name}")
+            assert asm_idx == op_idx, "Order of asm operands does not match CDSL operands"
+
     def _llvm_process_operands(self):
         operands = self.operands
         reads = []
         writes = []
         constraints = []
+        self._llvm_check_operands()
         for op_name, op in operands.items():
             if len(op.constraints) > 0:
                 raise NotImplementedError
