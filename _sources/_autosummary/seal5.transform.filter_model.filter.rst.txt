@@ -13,7 +13,9 @@ seal5.transform.filter\_model.filter
 
    .. autosummary::
    
+      get_parser
       main
+      run
    
    
 

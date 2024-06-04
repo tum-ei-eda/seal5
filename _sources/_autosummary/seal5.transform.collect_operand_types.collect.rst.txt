@@ -13,7 +13,9 @@ seal5.transform.collect\_operand\_types.collect
 
    .. autosummary::
    
+      get_parser
       main
+      run
    
    
 

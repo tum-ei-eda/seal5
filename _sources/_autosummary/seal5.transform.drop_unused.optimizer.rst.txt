@@ -13,7 +13,9 @@ seal5.transform.drop\_unused.optimizer
 
    .. autosummary::
    
+      get_parser
       main
+      run
    
    
 

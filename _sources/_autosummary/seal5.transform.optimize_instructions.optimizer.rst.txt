@@ -13,7 +13,9 @@ seal5.transform.optimize\_instructions.optimizer
 
    .. autosummary::
    
+      get_parser
       main
+      run
    
    
 

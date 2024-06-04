@@ -14,7 +14,9 @@ seal5.transform.detect\_registers
    .. autosummary::
    
       detect_registers
+      get_parser
       main
+      run
    
    
 

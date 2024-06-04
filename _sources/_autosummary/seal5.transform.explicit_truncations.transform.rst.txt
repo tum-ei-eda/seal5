@@ -13,7 +13,9 @@ seal5.transform.explicit\_truncations.transform
 
    .. autosummary::
    
+      get_parser
       main
+      run
    
    
 

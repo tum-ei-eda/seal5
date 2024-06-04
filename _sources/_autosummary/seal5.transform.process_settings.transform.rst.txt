@@ -13,7 +13,9 @@ seal5.transform.process\_settings.transform
 
    .. autosummary::
    
+      get_parser
       main
+      run
    
    
 

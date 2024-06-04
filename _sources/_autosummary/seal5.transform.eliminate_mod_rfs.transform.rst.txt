@@ -13,7 +13,9 @@ seal5.transform.eliminate\_mod\_rfs.transform
 
    .. autosummary::
    
+      get_parser
       main
+      run
    
    
 

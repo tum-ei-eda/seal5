@@ -13,7 +13,9 @@ seal5.transform.simplify\_trivial\_slices.transform
 
    .. autosummary::
    
+      get_parser
       main
+      run
    
    
 

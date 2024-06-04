@@ -40,6 +40,7 @@ seal5.pass\_list
       optimize_model
       pattern_gen_pass
       process_settings
+      sanitize_args
       simplify_trivial_slices
       write_cdsl
       write_yaml
