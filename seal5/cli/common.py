@@ -34,3 +34,17 @@ def add_common_options(parser):
         action="store_true",
         help="Print tool outputs for easier debugging (default: %(default)s)",
     )
+    parser.add_argument(
+        "-n",
+        "--name",
+        metavar="NAME",
+        type=str,
+        default=None,
+        help='Environment name (: "default")',
+    )
+    parser.add_argument(
+        "--dir",
+        type=str,
+        default=None,
+        help="LLVM directory (default: %(default)s",
+    )

@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""Command line subcommand for initializing Seal5 environment."""
+"""Command line subcommand for Installing Seal5 dependencies"""
 
 from seal5.flow import Seal5Flow
 from seal5.logging import get_logger
@@ -26,51 +26,28 @@ from os import getenv
 logger = get_logger()
 
 
-def add_init_options(parser):
-    init_parser = parser.add_argument_group("init options")
-    init_parser.add_argument(
+def add_setup_options(parser):
+    setup_parser = parser.add_argument_group("setup options")
+    setup_parser.add_argument(
         "--non-interactive",
         default=False,
         dest="non_interactive",
         action="store_true",
         help="Do not ask questions interactively",
     )
-    init_parser.add_argument(
-        "--clone",
-        "-c",
-        default=False,
-        action="store_true",
-        help="Clone LLVM repository",
-    )
-    init_parser.add_argument(
-        "--clone_url",
-        default="https://github.com/llvm/llvm-project.git",
-        help="Corresponding LLVM repository URL",
-    )
-    init_parser.add_argument(
-        "--clone_ref",
-        default="llvmorg-18.1.0-rc3",
-        help="Corresponding LLVM repository commit/tag",
-    )
-    init_parser.add_argument(
-        "--force",
-        "-f",
-        default=False,
-        action="store_true",
-        help="Allow overwriting an existing seal5 directory",
-    )
+    setup_parser.add_argument("--force", "-f", default=False, action="store_true", help="Overwrite Seal5 deps")
 
 
 def get_parser(subparsers):
-    """ "Define and return a subparser for the init subcommand."""
-    parser = subparsers.add_parser("init", description="Initialize Seal5.")
+    """ "Define and return a subparser for the setup subcommand."""
+    parser = subparsers.add_parser("setup", description="Setup Seal5 deps.")
     parser.set_defaults(func=handle)
-    add_init_options(parser)
+    add_setup_options(parser)
     return parser
 
 
 def handle(args):
-    """Callback function which will be called to process the init subcommand"""
+    """Callback function which will be called to process the setup subcommand"""
     if args.dir is None:
         home_dir = getenv("SEAL5_HOME")
         if home_dir is not None:
@@ -78,11 +55,8 @@ def handle(args):
         else:
             logger.error("Seal5_HOME Env var not specified !!!")
     seal5_flow = Seal5Flow(args.dir, args.name)
-    seal5_flow.initialize(
+    seal5_flow.setup(
         interactive=not args.non_interactive,
-        clone=args.clone,
-        clone_url=args.clone_url,
-        clone_ref=args.clone_ref,
         force=args.force,
         verbose=args.verbose,
     )

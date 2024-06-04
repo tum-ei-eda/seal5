@@ -30,6 +30,7 @@ from seal5.types import PatchStage
 
 DEFAULT_SETTINGS = {
     # "directory": ?,
+    "name": "default",
     "logging": {
         "console": {
             "level": "INFO",
@@ -68,6 +69,14 @@ DEFAULT_SETTINGS = {
             "drop": [],
         },
         "intrinsics": {
+            "keep": [],
+            "drop": [],
+        },
+        "opcodes": {
+            "keep": [],
+            "drop": [],
+        },
+        "encoding_sizes": {
             "keep": [],
             "drop": [],
         },
@@ -516,6 +525,7 @@ class ToolsSettings(YAMLSettings):
 @dataclass
 class Seal5Settings(YAMLSettings):
     directory: Optional[str] = None
+    name: Optional[str] = None
     logging: Optional[LoggingSettings] = None
     filter: Optional[FilterSettings] = None
     llvm: Optional[LLVMSettings] = None
@@ -534,6 +544,7 @@ class Seal5Settings(YAMLSettings):
     def reset(self):
         self.extensions = {}
         self.patches = []
+        self.name = "default"
         self.inputs = []
         self.metrics = []
         self.test = TestSettings(paths=[])
