@@ -17,5 +17,19 @@ InstructionSet XRVC extends RV32I {
                 X[rd + 8] = ~(X[rd + 8] & X[rs2 + 8]);
             }
         }
+        XRV_NANDI {
+            encoding: imm[11:0] :: rs1[4:0] :: 3'b111 :: rd[4:0] :: 7'b0001011;
+            assembly: {"xrv.nandi", "{name(rd)}, {name(rs1)}, {imm}"};
+            behavior: {
+              if(rd != 0) X[rd] = ~(X[rs1] & (unsigned<XLEN>)((signed)imm));
+            }
+        }
+        XRVC_NANDI [[compressed="XRV_NANDI"]] {
+            encoding: 3'b100 :: imm[5:5] :: 2'b10 :: rd[2:0] :: imm[4:0] :: 2'b00;
+            assembly: {"xrvc.nandi", "{name(8+rd)}, {imm:#05x}"};
+            behavior: {
+                X[rd + 8] = ~(X[rd + 8] & (signed<6>)imm);
+            }
+        }
     }
 }
