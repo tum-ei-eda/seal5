@@ -1,6 +1,6 @@
-# RUN: llvm-mc -triple=riscv64 --mattr=+xexample -show-encoding %s \
+# RUN: llvm-mc -triple=riscv32 --mattr=+xexample -show-encoding %s \
 # RUN:        | FileCheck %s --check-prefixes=CHECK-ENCODING,CHECK-INSTR
-# RUN: not llvm-mc -triple riscv64 %s 2>&1 \
+# RUN: not llvm-mc -triple riscv32 %s 2>&1 \
 # RUN:     | FileCheck -check-prefix=CHECK-NO-EXT %s
 
 xexample.subincacc a1, a2, a3

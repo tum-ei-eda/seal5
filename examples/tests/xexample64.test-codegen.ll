@@ -1,13 +1,13 @@
-; RUN: llc -O0 -mtriple=riscv64 -mattr=+xexample -verify-machineinstrs < %s \
+; RUN: llc -O3 -mtriple=riscv64 -mattr=+xexample -verify-machineinstrs -global-isel=1 < %s \
 ; RUN:   | FileCheck -check-prefix=RV64I %s
 
-define i32 @subincacc(i64 %a, i64 %b, i64 %c) nounwind {
-; RV64IC-LABEL: subincacc:
-; RV64IC:       # %bb.0:
-; RV64IC-NEXT:    xrv.nand a0, a1, a0
-; RV64IC-NEXT:    ret
-  %1 = sub i64 %a, %b
-  %2 = add i64 %1, 1
+define i64 @subincacc(i64 %a, i64 %b, i64 %c) nounwind {
+; RV64I-LABEL: subincacc:
+; RV64I:       # %bb.0:
+; RV64I-NEXT:    xexample.subincacc a2, a0, a1
+  %1 = add i64 %a, 1
+  ; %2 = sub i64 %b, %1
+  %2 = sub i64 %1, %b
   %3 = add i64 %2, %c
   ret i64 %3
 }

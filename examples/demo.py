@@ -67,7 +67,11 @@ cdsl_files = [
 seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load test inputs
-test_files = []
+test_files = [
+    EXAMPLES_DIR / "tests" / "xexample32.test.s",
+    EXAMPLES_DIR / "tests" / "xexample32.test-invalid.s",
+    EXAMPLES_DIR / "tests" / "xexample32.test-codegen.ll",
+]
 seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 
 # Load YAML inputs
