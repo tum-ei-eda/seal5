@@ -89,7 +89,7 @@ class Seal5Flow:
         self.directory: Path = handle_directory(directory)
         self.name: str = name
         self.state: Seal5State = Seal5State.UNKNOWN
-        self.passes: List[Seal5Pass] = []  # TODO: implement PassManager
+        self.passes: List[Seal5Pass] = []
         self.repo: Optional[git.Repo] = git.Repo(self.directory) if self.directory.is_dir() else None
         self.check()
         self.settings = Seal5Settings.from_dict(DEFAULT_SETTINGS)
