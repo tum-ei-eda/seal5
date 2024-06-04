@@ -67,7 +67,13 @@ cdsl_files = [
 seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load test inputs
-test_files = []
+test_files = [
+    EXAMPLES_DIR / "tests" / "xrvc.test.s",  # TODO: rename to test-mc-valid
+    EXAMPLES_DIR / "tests" / "xrvc.test-invalid.s",  # rename to test-mc-invalid
+    EXAMPLES_DIR / "tests" / "xrvc.test-compress.s",  # rename to test-mc-compress
+    EXAMPLES_DIR / "tests" / "xrvc.test-codegen.ll",  # rename to test-llc-codegen
+    # TODO: add c tests (test-clang-valid, test-clang-invalid, test-clang-codegen)
+]
 seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 
 # Load YAML inputs
