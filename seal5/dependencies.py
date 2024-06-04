@@ -66,7 +66,7 @@ class M2ISARDependency(GitDependency):
 
 class CDSL2LLVMDependency(GitDependency):
     # def __init__(self, clone_url="https://github.com/mathis-s/CoreDSL2LLVM.git", ref="main"):
-    def __init__(self, clone_url="https://github.com/PhilippvK/CoreDSL2LLVM.git", ref="philippvk3-llvm18-ops-new"):
+    def __init__(self, clone_url="https://github.com/PhilippvK/CoreDSL2LLVM.git", ref="philippvk4"):
         super().__init__("cdsl2llvm", clone_url, ref=ref)
 
 

@@ -37,8 +37,8 @@ SKIP_PATTERNS = bool(int(os.environ.get("SKIP_PATTERNS", 0)))
 INTERACTIVE = bool(int(os.environ.get("INTERACTIVE", 0)))
 PREPATCHED = bool(int(os.environ.get("PREPATCHED", 0)))
 BUILD_CONFIG = os.environ.get("BUILD_CONFIG", "release")
-DEST = os.environ.get("DEST", "/tmp/seal5_llvm_demo")
-NAME = os.environ.get("NAME", "demo")
+DEST = os.environ.get("DEST", "/tmp/seal5_llvm_rv64")
+NAME = os.environ.get("NAME", "rv64")
 
 seal5_flow = Seal5Flow(DEST, NAME)
 
@@ -47,7 +47,7 @@ seal5_flow.reset(settings=True, interactive=False)
 seal5_flow.clean(temp=True, patches=True, models=True, inputs=True, interactive=INTERACTIVE)
 
 if PREPATCHED:
-    if seal5_flow.repo is None or "seal5-demo-stage0" not in seal5_flow.repo.tags:
+    if seal5_flow.repo is None or "seal5-rv64-stage0" not in seal5_flow.repo.tags:
         raise RuntimeError("PREPATCHED can only be used after LLVM was patched at least once.")
 
 # Clone LLVM and init seal5 metadata directory
@@ -55,32 +55,31 @@ seal5_flow.initialize(
     clone=True,
     clone_url="https://github.com/llvm/llvm-project.git",
     # clone_ref="llvmorg-17.0.6",
-    clone_ref="seal5-demo-stage0" if PREPATCHED else "llvmorg-18.1.0-rc3",
+    clone_ref="seal5-rv64-stage0" if PREPATCHED else "llvmorg-18.1.0-rc3",
     force=True,
     verbose=VERBOSE,
 )
 
 # Load CoreDSL inputs
 cdsl_files = [
-    EXAMPLES_DIR / "cdsl" / "rv_example" / "Example.core_desc",
+    EXAMPLES_DIR / "cdsl" / "ExampleRV64.core_desc",
 ]
 seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load test inputs
 test_files = [
-    EXAMPLES_DIR / "tests" / "example" / "xexample32.test.s",
-    EXAMPLES_DIR / "tests" / "example" / "xexample32.test-invalid.s",
-    EXAMPLES_DIR / "tests" / "example" / "xexample32.test-codegen.ll",
-    EXAMPLES_DIR / "tests" / "example" / "test_subincacc.c",
+    EXAMPLES_DIR / "tests" / "example" / "xexample64.test.s",
+    EXAMPLES_DIR / "tests" / "example" / "xexample64.test-invalid.s",
+    EXAMPLES_DIR / "tests" / "example" / "xexample64.test-codegen.ll",
 ]
 seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 
 # Load YAML inputs
 cfg_files = [
+    # TODO
     EXAMPLES_DIR / "cfg" / "llvm.yml",
     EXAMPLES_DIR / "cfg" / "filter.yml",
     EXAMPLES_DIR / "cfg" / "patches.yml",
-    EXAMPLES_DIR / "cfg" / "riscv.yml",
     EXAMPLES_DIR / "cfg" / "tests.yml",
     EXAMPLES_DIR / "cfg" / "passes.yml",
     EXAMPLES_DIR / "cfg" / "git.yml",

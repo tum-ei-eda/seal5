@@ -1,7 +1,7 @@
-import "../rv_base/RV32I.core_desc"
+import "rv_base/RV64I.core_desc"
 
 // InstructionSet XExample extends RISCVBase {
-InstructionSet XExample extends RV32I {
+InstructionSet XExample extends RV64I {
   instructions {
     // TODO: remove/replace prefix
     CV_SUBINCACC {
