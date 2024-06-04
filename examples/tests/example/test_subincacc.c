@@ -20,6 +20,6 @@ __attribute__((naked)) void test_subincacc() {
     asm("li a0, 11");
     asm("li a1, 5");
     asm("li a2, 7");
-    // CHECK: ab ba b5 51 cv_subincacc x21, x11, x27
-    asm("cv_subincacc x21, x11, x27");
+    // CHECK: ab ba b5 51 xexample.subincacc x21, x11, x27
+    asm("xexample.subincacc x21, x11, x27");
 }
