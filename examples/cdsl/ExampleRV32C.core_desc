@@ -1,7 +1,7 @@
 // import "rv_base/RVC.core_desc"
 import "rv_base/RV32I.core_desc"
 
-InstructionSet XExampleRV32C extends RV32I {
+InstructionSet XRVC extends RV32I {
     instructions{
         XRV_NAND {
             encoding: 7'b1001001 :: rs2[4:0] :: rs1[4:0] :: 3'b110 :: rd[4:0] :: 7'b0101011;
