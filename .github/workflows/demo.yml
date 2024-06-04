@@ -35,6 +35,10 @@ on:
         description: "Fast (0/1)"
         required: true
         default: "0"
+      ignore_error:
+        description: "Ignore Errors in TEST stage (0/1)"
+        required: true
+        default: "1"
       build_config:
         description: "Build Config (debug/release/...)"
         required: true
@@ -78,7 +82,7 @@ jobs:
     - name: Run the demo
       run: |
         source .venv/bin/activate
-        VERBOSE=${{ github.event.inputs.verbose }} FAST=${{ github.event.inputs.fast }} BUILD_CONFIG=${{ github.event.inputs.build_config }} DEST=/tmp/seal5_llvm python examples/${{ github.event.inputs.script }}
+        VERBOSE=${{ github.event.inputs.verbose }} FAST=${{ github.event.inputs.fast }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} DEST=/tmp/seal5_llvm python examples/${{ github.event.inputs.script }}
     - uses: actions/upload-artifact@v4
       with:
         name: demo-export

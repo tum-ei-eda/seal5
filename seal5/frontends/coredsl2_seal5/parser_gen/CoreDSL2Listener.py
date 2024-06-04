@@ -719,6 +719,15 @@ class CoreDSL2Listener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by CoreDSL2Parser#string_constant.
+    def enterString_constant(self, ctx:CoreDSL2Parser.String_constantContext):
+        pass
+
+    # Exit a parse tree produced by CoreDSL2Parser#string_constant.
+    def exitString_constant(self, ctx:CoreDSL2Parser.String_constantContext):
+        pass
+
+
     # Enter a parse tree produced by CoreDSL2Parser#double_left_bracket.
     def enterDouble_left_bracket(self, ctx:CoreDSL2Parser.Double_left_bracketContext):
         pass

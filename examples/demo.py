@@ -37,6 +37,7 @@ SKIP_PATTERNS = bool(int(os.environ.get("SKIP_PATTERNS", 0)))
 INTERACTIVE = bool(int(os.environ.get("INTERACTIVE", 0)))
 PREPATCHED = bool(int(os.environ.get("PREPATCHED", 0)))
 BUILD_CONFIG = os.environ.get("BUILD_CONFIG", "release")
+IGNORE_ERROR = bool(int(os.environ.get("IGNORE_ERROR", 1)))
 DEST = os.environ.get("DEST", "/tmp/seal5_llvm_demo")
 NAME = os.environ.get("NAME", "demo")
 
@@ -68,6 +69,9 @@ seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load test inputs
 test_files = [
+    EXAMPLES_DIR / "tests" / "example" / "xexample32.test.s",
+    EXAMPLES_DIR / "tests" / "example" / "xexample32.test-invalid.s",
+    EXAMPLES_DIR / "tests" / "example" / "xexample32.test-codegen.ll",
     EXAMPLES_DIR / "tests" / "example" / "test_subincacc.c",
 ]
 seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
@@ -129,7 +133,7 @@ if not SKIP_PATTERNS:
 seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG)
 
 # Test patched LLVM
-seal5_flow.test(verbose=VERBOSE, ignore_error=True)
+seal5_flow.test(verbose=VERBOSE, ignore_error=IGNORE_ERROR)
 
 # Deploy patched LLVM (combine commits and create tag)
 seal5_flow.deploy(verbose=VERBOSE)

@@ -11,19 +11,16 @@ class CoreDSL2Visitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by CoreDSL2Parser#description_content.
     def visitDescription_content(self, ctx:CoreDSL2Parser.Description_contentContext):
-        print("visitDescription_content", ctx.children)
         return self.visitChildren(ctx)
 
 
     # Visit a parse tree produced by CoreDSL2Parser#import_file.
     def visitImport_file(self, ctx:CoreDSL2Parser.Import_fileContext):
-        print("visitImport_file")
         return self.visitChildren(ctx)
 
 
     # Visit a parse tree produced by CoreDSL2Parser#instruction_set.
     def visitInstruction_set(self, ctx:CoreDSL2Parser.Instruction_setContext):
-        print("visitInstruction_set")
         return self.visitChildren(ctx)
 
 
@@ -404,6 +401,11 @@ class CoreDSL2Visitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by CoreDSL2Parser#character_constant.
     def visitCharacter_constant(self, ctx:CoreDSL2Parser.Character_constantContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by CoreDSL2Parser#string_constant.
+    def visitString_constant(self, ctx:CoreDSL2Parser.String_constantContext):
         return self.visitChildren(ctx)
 
 

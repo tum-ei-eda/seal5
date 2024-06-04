@@ -233,6 +233,7 @@ constant
 	: integer_constant
 	| floating_constant
 	| character_constant
+	| string_constant
 	| bool_constant
 	;
 
@@ -250,6 +251,10 @@ bool_constant
 
 character_constant
 	: value=CHARCONST
+	;
+
+string_constant
+	: value=STRING
 	;
 
 double_left_bracket

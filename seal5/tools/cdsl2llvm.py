@@ -124,6 +124,7 @@ def run_pattern_gen(
     verbose: bool = False,
     ext=None,
     mattr=None,
+    xlen=None,
     skip_formats=False,
     skip_patterns=False,
     skip_verify=True,
@@ -139,7 +140,9 @@ def run_pattern_gen(
 
     if ext:
         # pattern_gen_args.extend(["--ext", ext])
-        pattern_gen_args.extend(["-p", f"Has{ext}"])
+        preds = [f"Has{ext}", f"IsRV{xlen}"]
+        preds_str = ", ".join(preds)
+        pattern_gen_args.extend(["-p", preds_str])
 
     if mattr is None:
         attrs = ["+m", "+fast-unaligned-access"]
@@ -151,6 +154,10 @@ def run_pattern_gen(
 
     if mattr:
         pattern_gen_args.extend(["--mattr2", mattr])
+
+    if xlen:
+        assert xlen in [32, 64]
+        pattern_gen_args.extend(["--riscv-xlen", str(xlen)])
 
     if skip_patterns:
         pattern_gen_args.append("--skip-patterns")

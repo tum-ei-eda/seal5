@@ -40,6 +40,7 @@ def main():
     parser.add_argument("--index", default=None, help="Output index to file")
     parser.add_argument("--ext", type=str, default="td", help="Default file extension (if using --splitted)")
     parser.add_argument("--parallel", type=int, default=1, help="How many instructions should be processed in parallel")
+    # parser.add_argument("--xlen", type=int, default=32, help="RISC-V XLEN")
     args = parser.parse_args()
 
     # initialize logging
@@ -109,6 +110,7 @@ def main():
 
         assert out_path.is_dir(), "Expecting output directory when using --splitted"
         for set_name, set_def in model["sets"].items():
+            xlen = set_def.xlen
             artifacts[set_name] = []
             metrics["n_sets"] += 1
             ext_settings = set_def.settings
@@ -161,6 +163,7 @@ def main():
                         skip_formats=not args.formats,
                         ext=predicate,
                         mattr=mattr,
+                        xlen=xlen,
                     )
                     if output_file.is_file():
                         metrics["n_success"] += 1
