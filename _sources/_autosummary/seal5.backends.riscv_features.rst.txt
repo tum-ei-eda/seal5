@@ -27,5 +27,6 @@ seal5.backends.riscv\_features
    :toctree:
    :recursive:
 
+   seal5.backends.riscv_features.templates
    seal5.backends.riscv_features.writer
 
