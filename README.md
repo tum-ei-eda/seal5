@@ -119,3 +119,12 @@ Seal5 issue tracker: https://github.com/tum-ei-eda/seal5/issues
 CoreDSL2LLVM/PatternGen issue tracker: https://github.com/mathis-s/CoreDSL2LLVM/issues
 
 ## References
+
+N/A
+
+## Acknowledgment
+
+<img src="./BMBF_gefoerdert_2017_en.jpg" alt="drawing" height="75" align="left" >
+
+This research is partially funded by the German Federal Ministry of Education and Research (BMBF) within
+the projects [Scale4Edge](https://www.edacentrum.de/scale4edge/) (grant number 16ME0465) and [MANNHEIM-FlexKI](https://www.edacentrum.de/projekte/MANNHEIM-FlexKI) (grant number 01IS22086L).

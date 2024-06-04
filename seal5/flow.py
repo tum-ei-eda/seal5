@@ -225,6 +225,7 @@ class Seal5Flow:
         start = time.time()
         metrics = {}
         sha = None
+        version_info = None
         if not self.directory.is_dir():
             if clone is False and not utils.ask_user("Clone LLVM repository?", default=False, interactive=interactive):
                 logger.error("Target directory does not exist! Aborting...")
