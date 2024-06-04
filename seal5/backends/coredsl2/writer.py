@@ -16,7 +16,7 @@ import pickle
 from typing import Union
 
 from . import visitor
-from m2isar.metamodel import arch, patch_model
+from m2isar.metamodel import arch, behav, patch_model
 
 logger = logging.getLogger("coredsl2_writer")
 
@@ -109,7 +109,25 @@ class CoreDSL2Writer:
         self.write(attr.name.lower())
         if val is not None:
             self.write("=")
-            self.write(str(val))  # TODO: operation
+
+            def helper(val):
+                if isinstance(val, list):  # TODO: replace with string literal
+                    if len(val) == 1:
+                        return helper(val[0])
+                    return "(" + ",".join([helper(x) for x in val]) + ")"
+                elif isinstance(val, str):  # TODO: replace with string literal
+                    return val  # TODO: operation
+                elif isinstance(val, int):  # TODO: replace with int literal
+                    return str(val)  # TODO: operation
+                elif isinstance(val, behav.IntLiteral):
+                    return str(val.value)
+                elif isinstance(val, behav.StringLiteral):
+                    return val.value
+                else:
+                    raise NotImplementedError(f"Unhandled case: {type(val)}")
+
+            val = helper(val)
+            self.write(val)
         self.write("]]")
         # print("key", key)
         # print("value", value)

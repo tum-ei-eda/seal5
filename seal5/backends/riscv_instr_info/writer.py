@@ -8,7 +8,6 @@
 
 """Clean M2-ISA-R/Seal5 metamodel to .core_desc file."""
 
-import re
 import argparse
 import logging
 import pathlib
@@ -22,7 +21,6 @@ from m2isar.metamodel import arch
 from seal5.index import NamedPatch, File, write_index_yaml
 
 # from seal5.settings import ExtensionsSettings
-from seal5.model import Seal5OperandAttribute, Seal5InstrAttribute
 
 from .templates import template_dir
 
@@ -113,11 +111,13 @@ def write_riscv_instruction_info(
     outs_str,
     enc,
     fields,
-    operands,
+    # operands,
+    size,
     details_str,
     attrs={},
     constraints=[],
     formats=False,
+    compressed_pat=None,
 ):
     if formats:
         instr_template = Template(filename=str(template_dir / "instr_tablegen2.mako"))
@@ -132,7 +132,7 @@ def write_riscv_instruction_info(
     out_str = instr_template.render(
         name=name,
         real_name=real_name,
-        xlen=32,
+        size=size,
         asm_str=asm_str,
         ins_str=ins_str,
         outs_str=outs_str,
@@ -142,6 +142,8 @@ def write_riscv_instruction_info(
         attrs=attrs,
         constraints_str=constraints_str,
     )
+    if compressed_pat:
+        out_str += f"\n{compressed_pat}"
 
     if len(details_str) > 0:
         out_str = (
@@ -158,106 +160,40 @@ def write_riscv_instruction_info(
     return out_str
 
 
-def gen_riscv_instr_info_str(instr):
+def gen_riscv_instr_info_str(instr, set_def):
     print("instr", instr)
     name = instr.name
-    operands = instr.operands
-    print("operands", operands)
-    reads = []
-    writes = []
-    constraints = []
-    for op_name, op in operands.items():
-        print("op", op)
-        print("op.constraints", op.constraints)
-        if len(op.constraints) > 0:
-            raise NotImplementedError
-        print("op.attributes", op.attributes)
-        if Seal5OperandAttribute.IS_REG in op.attributes:
-            assert Seal5OperandAttribute.REG_CLASS in op.attributes
-            cls = op.attributes[Seal5OperandAttribute.REG_CLASS]
-            assert cls in ["GPR"]
-            pre = cls
-        elif Seal5OperandAttribute.IS_IMM in op.attributes:
-            assert Seal5OperandAttribute.TYPE in op.attributes
-            ty = op.attributes[Seal5OperandAttribute.TYPE]
-            assert ty[0] in ["u", "s"]
-            sz = int(ty[1:])
-            pre = f"{ty[0]}imm{sz}"
-
-        if Seal5OperandAttribute.INOUT in op.attributes or (
-            Seal5OperandAttribute.OUT in op.attributes and Seal5OperandAttribute.IN in op.attributes
-        ):
-            op_str2 = f"{pre}:${op_name}_wb"
-            writes.append(op_str2)
-            op_str = f"{pre}:${op_name}"
-            reads.append(op_str)
-            constraint = f"${op_name} = ${op_name}_wb"
-            constraints.append(constraint)
-
-        elif Seal5OperandAttribute.OUT in op.attributes:
-            op_str = f"{pre}:${op_name}"
-            writes.append(op_str)
-        elif Seal5OperandAttribute.IN in op.attributes:
-            op_str = f"{pre}:${op_name}"
-            reads.append(op_str)
+    # operands = instr.operands
+    size = instr.size
+    # print("operands", operands)
+    reads = instr.llvm_reads
+    writes = instr.llvm_writes
+    constraints = instr.llvm_constraints
     print("reads", reads)
     print("writes", writes)
+    constraints = instr.llvm_constraints
     print("constraints", constraints)
     # constraints_str = ", ".join(constraints)
     attributes = instr.attributes
     print("attributes", attributes)
     real_name = instr.mnemonic
-    asm_str = instr.assembly
-    asm_str = re.sub(
-        r"{([a-zA-Z0-9_]+)}",
-        r"$\g<1>",
-        re.sub(
-            r"{([a-zA-Z0-9_]+):[#0-9a-zA-Z\._]+}", r"{\g<1>}", re.sub(r"name\(([a-zA-Z0-9_]+)\)", r"\g<1>", asm_str)
-        ),
-    )
-    print("asm_str_orig", asm_str)
-    asm_order = re.compile(r"(\$[a-zA-Z0-9_]+)").findall(asm_str)
-    print("asm_order", asm_order)
-    for op in asm_order:
-        if f"{op}(" in asm_str or f"{op})" in asm_str or f"{op}!" in asm_str or f"!{op}" in asm_str:
-            asm_str = asm_str.replace(op, "${" + op[1:] + "}")
-    print("asm_str_new", asm_str)
-    reads_ = [(x.split(":", 1)[1] if ":" in x else x) for x in reads]
-    print("reads_", reads_)
-    writes_ = [(x.split(":", 1)[1] if ":" in x else x).replace("_wb", "") for x in writes]
-    print("writes_", writes_)
-
-    ins_str = ", ".join([reads[reads_.index(x)] for x in asm_order if x in reads_])
+    asm_str = instr.llvm_asm_str
+    print("asm_str", asm_str)
+    ins_str = instr.llvm_ins_str
     print("ins_str", ins_str)
-    outs_str = ", ".join([writes[writes_.index(x)] for x in asm_order if x in writes_])
+    outs_str = instr.llvm_outs_str
     print("outs_str", outs_str)
     details_str = ""
     fields = instr.fields
     print("fields")
     encoding = instr.encoding
     print("encoding")
-    # input(">")
-    attrs = {}
-    if Seal5InstrAttribute.HAS_SIDE_EFFECTS in attributes:
-        attrs["hasSideEffects"] = 1
-    else:
-        attrs["hasSideEffects"] = 0
-    if Seal5InstrAttribute.MAY_LOAD in attributes:
-        attrs["mayLoad"] = 1
-    else:
-        attrs["mayLoad"] = 0
-    if Seal5InstrAttribute.MAY_STORE in attributes:
-        attrs["mayStore"] = 1
-    else:
-        attrs["mayStore"] = 0
-    if Seal5InstrAttribute.IS_TERMINATOR in attributes:
-        attrs["isTerminator"] = 1
-    else:
-        attrs["isTerminator"] = 0
+    attrs = instr.llvm_attributes
     # constraints = instr.constraints
     # if len(constraints) > 0:
     #     raise NotImplementedError
     formats = True
+    compressed_pat = instr.llvm_get_compressed_pat(set_def)
     tablegen_str = write_riscv_instruction_info(
         name,
         real_name,
@@ -266,11 +202,13 @@ def gen_riscv_instr_info_str(instr):
         outs_str,
         encoding,
         fields,
-        operands,
+        # operands,
+        size,
         details_str,
         attrs=attrs,
         constraints=constraints,
         formats=formats,
+        compressed_pat=compressed_pat,
     )
     return tablegen_str
 
@@ -356,11 +294,14 @@ def main():
             if ext_settings is not None:
                 pred = "Has" + ext_settings.get_predicate(name=set_name)
             metrics["n_sets"] += 1
+            # TODO: check for GPRC and require HasStdExtCOrZca?
+            # TODO: check for GPR32Pair and require HasGPR32Pair
+            # TODO: check for GPR32V2/GPR32V4 and require HasGPR32V
             for instr_name, instr_def in set_def.instructions.items():
                 metrics["n_success"] += 1
                 out_name = f"{instr_def.name}InstrInfo.{args.ext}"
                 output_file = set_dir / out_name
-                content = gen_riscv_instr_info_str(instr_def)
+                content = gen_riscv_instr_info_str(instr_def, set_def)
                 if len(content) > 0:
                     assert pred is not None
                     predicate_str = f"Predicates = [{pred}, IsRV{xlen}]"

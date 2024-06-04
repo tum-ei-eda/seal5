@@ -115,26 +115,54 @@ def named_reference(self: behav.NamedReference, context):
 
 
 def indexed_reference(self: behav.IndexedReference, context):
-    # print("indexed_reference", self)
-    # print("self.reference", self.reference)
-    # print("self.index", self.index)
+    print("indexed_reference", self)
+    print("self.reference", self.reference)
+    print("self.index", self.index)
     if isinstance(self.reference, arch.Memory):
         mem_name = self.reference.name
         mem = self.reference
         mem_size = mem.size
         mem_lanes = 1
-        if isinstance(self.index, behav.NamedReference):
-            if isinstance(self.index.reference, arch.BitFieldDescr):
-                op_name = self.index.reference.name
+        index = self.index
+        offset = 0
+        if isinstance(index, behav.BinaryOperation):  # offset?
+            print("binop!")
+            if index.op.value == "+":
+                print("offset!")
+                if isinstance(index.left, behav.NamedReference):
+                    print("lhs named")
+                    if isinstance(index.right, behav.IntLiteral):
+                        print("rhs const")
+                        offset = index.right.value
+                        index = index.left
+                elif isinstance(index.right, behav.NamedReference):
+                    print("rhs named")
+                    if isinstance(index.left, behav.IntLiteral):
+                        print("lhs const")
+                        offset = index.left.value
+                        index = index.right
+        print("index", index)
+        print("offset", offset)
+        if isinstance(index, behav.NamedReference):
+            if isinstance(index.reference, arch.BitFieldDescr):
+                op_name = index.reference.name
                 assert op_name in context.operands
                 op = context.operands[op_name]
                 if mem_name == "X":
-                    reg_class = model.Seal5RegisterClass.GPR
+                    if offset == 0:
+                        reg_class = model.Seal5RegisterClass.GPR
+                    elif offset == 8:
+                        reg_class = model.Seal5RegisterClass.GPRC
+                    else:
+                        raise NotImplementedError(f"GPR with offset {offset}")
                 elif mem_name == "F":
+                    assert offset == 0
                     reg_class = model.Seal5RegisterClass.FPR
                 elif mem_name == "CSR":
+                    assert offset == 0
                     reg_class = model.Seal5RegisterClass.CSR
                 else:
+                    assert offset == 0  # TODO: write offset to Operand class?
                     reg_class = model.Seal5RegisterClass.UNKNOWN
                 if not isinstance(op, model.Seal5RegOperand):
                     op = model.Seal5RegOperand(op.name, op.ty, op.attributes, op.constraints, reg_class=reg_class)
