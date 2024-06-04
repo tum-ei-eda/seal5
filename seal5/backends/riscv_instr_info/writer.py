@@ -285,6 +285,7 @@ def main():
         for set_name, set_def in model["sets"].items():
             set_name_lower = set_name.lower()
             artifacts[set_name] = []
+            xlen = set_def.xlen
             includes = []
             set_dir = out_path / set_name
             set_dir.mkdir(exist_ok=True)
@@ -303,7 +304,7 @@ def main():
                 content = gen_riscv_instr_info_str(instr_def, set_def)
                 if len(content) > 0:
                     assert pred is not None
-                    predicate_str = f"Predicates = [{pred}, IsRV32]"
+                    predicate_str = f"Predicates = [{pred}, IsRV{xlen}]"
                     content = f"let {predicate_str} in {{\n{content}\n}}"
                     with open(output_file, "w") as f:
                         f.write(content)

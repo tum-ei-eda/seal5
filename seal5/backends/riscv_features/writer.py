@@ -20,13 +20,10 @@ from m2isar.metamodel import arch
 
 from seal5.index import NamedPatch, write_index_yaml
 from seal5.settings import ExtensionsSettings
+from .templates import template_dir
+
 
 logger = logging.getLogger("riscv_features")
-
-
-MAKO_TEMPLATE = """def Feature${predicate} : SubtargetFeature<"${arch}", "Has${predicate}", "true", "'${feature}' (${description})">;
-
-def Has${predicate} : Predicate<"Subtarget->has${predicate}()">, AssemblerPredicate<(any_of Feature${predicate}), "'${feature}' (${description})">;"""
 
 
 def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings):
@@ -41,7 +38,7 @@ def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings):
     if requires:
         raise NotImplementedError
 
-    content_template = Template(MAKO_TEMPLATE)
+    content_template = Template(filename=str(template_dir / "riscv_features.mako"))
     content_text = content_template.render(predicate=predicate, feature=feature, arch=arch, description=description)
     return content_text + "\n"
 

@@ -204,3 +204,19 @@ def merge_dicts(a: dict, b: dict, path=[]):
         else:
             a[key] = b[key]
     return a
+
+
+def ask_user(text, default: bool, yes_keys=["y", "j"], no_keys=["n"], interactive=True):
+    assert len(yes_keys) > 0 and len(no_keys) > 0
+    if not interactive:
+        return default
+    if default:
+        suffix = " [{}/{}] ".format(yes_keys[0].upper(), no_keys[0].lower())
+    else:
+        suffix = " [{}/{}] ".format(yes_keys[0].lower(), no_keys[0].upper())
+    message = text + suffix
+    answer = input(message)
+    if default:
+        return answer.lower() not in no_keys and answer.upper() not in no_keys
+    else:
+        return not (answer.lower() not in yes_keys and answer.upper() not in yes_keys)

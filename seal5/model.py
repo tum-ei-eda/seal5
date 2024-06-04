@@ -19,6 +19,7 @@ from m2isar.metamodel.arch import (
     Function,
     BaseNode,
     InstrAttribute,
+    MemoryAttribute,
     BitField,
     BitVal,
     DataType,
@@ -54,6 +55,17 @@ class Seal5InstructionSet(InstructionSet):
         self.registers = registers
         self.register_groups = register_groups
         self.settings: ExtensionsSettings = None
+        self._xlen = None
+
+    @property
+    def xlen(self):
+        if self._xlen is None:
+            for mem_name, mem_def in self.memories.items():
+                if mem_name == "X" or MemoryAttribute.IS_MAIN_REG in mem_def.attributes:
+                    self._xlen = mem_def.size
+                    break
+        assert self._xlen is not None, "Could not determine XLEN"
+        return self._xlen
 
 
 class Seal5RegisterClass(IntEnum):
@@ -393,13 +405,13 @@ class Seal5Instruction(Instruction):
 
     def _llvm_process_assembly(self):
         asm_str = self.assembly
-        asm_str = re.sub(r"name\(([a-zA-Z0-9\+]+)\)", r"\g<1>", asm_str)
-        asm_str = re.sub(r"{([a-zA-Z0-9\+]+):[#0-9a-zA-Z\.]+}", r"{\g<1>}", asm_str)
-        asm_str = re.sub(r"{([a-zA-Z0-9\+]+)}", r"$\g<1>", asm_str)
+        asm_str = re.sub(r"name\(([a-zA-Z0-9_\+]+)\)", r"\g<1>", asm_str)
+        asm_str = re.sub(r"{([a-zA-Z0-9_\+]+):[#0-9a-zA-Z\._]+}", r"{\g<1>}", asm_str)
+        asm_str = re.sub(r"{([a-zA-Z0-9_\+]+)}", r"$\g<1>", asm_str)
         # remove offsets
         asm_str = re.sub(r"[0-9]+\+([a-zA-Z0-9]+)", r"\g<1>", asm_str)
         asm_str = re.sub(r"([a-zA-Z0-9]+)\+[0-9]+", r"\g<1>", asm_str)
-        asm_order = re.compile(r"(\$[a-zA-Z0-9]+)").findall(asm_str)
+        asm_order = re.compile(r"(\$[a-zA-Z0-9_]+)").findall(asm_str)
         for op in asm_order:
             if f"{op}(" in asm_str or f"{op})" in asm_str or f"{op}!" in asm_str or f"!{op}" in asm_str:
                 asm_str = asm_str.replace(op, "${" + op[1:] + "}")

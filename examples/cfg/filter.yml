@@ -9,6 +9,7 @@ filter:
     - RVSMode
     - RVDebug
     - RV32I
+    - RV64I
     - RVNMod
   instructions:
     # drop: [CV_CLIPU, CV_CLIPR, CV_CLIPUR, CV_SLET, CV_SLETU, SEAL5_CV_SHUFFLE2_B, SEAL5_CV_SHUFFLE2_H, ".*_(SC|SCI)_.*"]

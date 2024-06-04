@@ -16,45 +16,46 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""Command line subcommand for initializing a seal5 environment."""
+"""Command line subcommand for initializing Seal5 environment."""
 
 from seal5.flow import Seal5Flow
+from seal5.logging import get_logger
+from os import getenv
+
+
+logger = get_logger()
 
 
 def add_init_options(parser):
     init_parser = parser.add_argument_group("init options")
     init_parser.add_argument(
-        "-n",
-        "--name",
-        metavar="NAME",
-        nargs=1,
-        type=str,
-        default="default",
-        help="Environment name (default: %(default)s)",
-    )
-    init_parser.add_argument(
-        "DIR",
-        nargs="?",
-        type=str,
-        default=".",
-        help="LLVM directory (default: %(default)s",
-    )
-    init_parser.add_argument(
         "--non-interactive",
+        default=False,
         dest="non_interactive",
         action="store_true",
         help="Do not ask questions interactively",
     )
     init_parser.add_argument(
         "--clone",
-        default=None,
+        "-c",
+        default=False,
         action="store_true",
         help="Clone LLVM repository",
     )
     init_parser.add_argument(
+        "--clone_url",
+        default="https://github.com/llvm/llvm-project.git",
+        help="Corresponding LLVM repository URL",
+    )
+    init_parser.add_argument(
+        "--clone_ref",
+        default="llvmorg-18.1.0-rc3",
+        help="Corresponding LLVM repository commit/tag",
+    )
+    init_parser.add_argument(
         "--force",
         "-f",
-        default=None,
+        default=False,
         action="store_true",
         help="Allow overwriting an existing seal5 directory",
     )
@@ -70,11 +71,18 @@ def get_parser(subparsers):
 
 def handle(args):
     """Callback function which will be called to process the init subcommand"""
-    name = args.name[0] if isinstance(args.name, list) else args.name
-    seal5_flow = Seal5Flow(args.DIR, name)
+    if args.dir is None:
+        home_dir = getenv("SEAL5_HOME")
+        if home_dir is not None:
+            args.dir = home_dir
+        else:
+            logger.error("Seal5_HOME Env var not specified !!!")
+    seal5_flow = Seal5Flow(args.dir, args.name)
     seal5_flow.initialize(
         interactive=not args.non_interactive,
         clone=args.clone,
+        clone_url=args.clone_url,
+        clone_ref=args.clone_ref,
         force=args.force,
         verbose=args.verbose,
     )

@@ -8,6 +8,7 @@
 
 """Infer types of instruction operands from behavior."""
 
+import sys
 import argparse
 import logging
 import pathlib
@@ -27,16 +28,16 @@ class VisitorContext:
         # self.uses = None
 
 
-def main():
-    """Main app entrypoint."""
-
+def get_parser():
     # read command line args
     parser = argparse.ArgumentParser()
     parser.add_argument("top_level", help="A .m2isarmodel or .seal5model file.")
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument("--output", "-o", type=str, default=None)
-    args = parser.parse_args()
+    return parser
 
+
+def run(args):
     # initialize logging
     logging.basicConfig(level=getattr(logging, args.log.upper()))
 
@@ -99,5 +100,11 @@ def main():
                 assert False
 
 
+def main(argv):
+    parser = get_parser()
+    args = parser.parse_args(argv)
+    run(args)
+
+
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
