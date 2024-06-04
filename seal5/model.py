@@ -128,6 +128,7 @@ class Seal5InstrAttribute(Enum):
     IS_TERMINATOR = auto()
     IS_BRANCH = auto()
     COMPRESSED = auto()
+    COMMUTABLE = auto()
 
 
 class Seal5OperandAttribute(Enum):
