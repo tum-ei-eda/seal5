@@ -10,3 +10,13 @@ define i32 @nand(i32 %a, i32 %b) nounwind {
   %2 = xor i32 %1, -1
   ret i32 %2
 }
+
+define i32 @nandi(i32 %a) nounwind {
+; RV32IC-LABEL: nand:
+; RV32IC:       # %bb.0:
+; RV32IC-NEXT:    xrv.nand a0, 14, a0
+; RV32IC-NEXT:    ret
+  %1 = and i32 %a, 14
+  %2 = xor i32 %1, -1
+  ret i32 %2
+}

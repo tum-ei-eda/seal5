@@ -7,3 +7,8 @@ xrvc.nand a1, a2
 # CHECK-INSTR: xrvc.nand a1, a2
 # CHECK-ENCODING: [0xf1,0x9d]
 # CHECK-NO-EXT: instruction requires the following: 'XRVC' (XRVC Extension){{$}}
+
+xrvc.nandi a1, 14
+# CHECK-INSTR: xrvc.nandi a1, 14
+# CHECK-ENCODING: [0xb8,0x89]
+# CHECK-NO-EXT: instruction requires the following: 'XRVC' (XRVC Extension){{$}}

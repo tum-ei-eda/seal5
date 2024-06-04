@@ -3,4 +3,8 @@
 
 xrv.nand a0, a1, 0 # CHECK-ERROR: invalid operand for instruction
 
+xrv.nandi a0, a1, a2 # CHECK-ERROR: invalid operand for instruction
+
 xrvc.nand a0, 0 # CHECK-ERROR: invalid operand for instruction
+
+xrvc.nandi a0, a1 # CHECK-ERROR: invalid operand for instruction
