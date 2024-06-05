@@ -1,18 +1,21 @@
 # Limitations
 
-- RV32I only
-  - Extending RISCVBase is not allowed due to undefined XLEN, see Issue #15
-  - RV64I support is untested (Flow does currently assumes 32 bits), see Issue #26
-  - Non-integer (i.e. float) support is planned, see Issue #20
-  - Compressed instruction support is planned, see Issue #21
-  - CSR instruction/register support is planned, see Issue #39
+- Unsupported Instruction Types
+  - Memory
+  - Branch
+  - CSR instructions
+- Unsupported DataTypes
+  - Float (`f32`,...)
+  - Vectors except (`v2i16`, `v4i8`)
+  - Scalars except (`i8`, `i16`, `i32`, `i64`)
 - Codegen Limitations (Patterns)
   - GlobalISel only, ISelDAG backwards-compatibility is planned, see Issue #11
   - Single output-only
   - Single basic block (?)
   - No memory access
   - No branches/jumps
-- TODO
+- SIMD Support
+  - Work in Progress (GlobalISel limitations need to be fixed first)
 
 ## Known Bugs
 
