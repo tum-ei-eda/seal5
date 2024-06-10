@@ -77,14 +77,14 @@ def run(args):
     for set_name, set_def in model["sets"].items():
         logger.debug("collecting operand types for set %s", set_def.name)
         patch_model(visitor)
-        for instr_name, instr_def in set_def.instructions.items():
+        for _, instr_def in set_def.instructions.items():
             context = VisitorContext(instr_def.operands)
             logger.debug("collecting operand types for instr %s", instr_def.name)
             try:
                 instr_def.operation.generate(context)
             except Exception as ex:
                 if args.skip_failing:
-                    logger.warning("Transformation failed for instr %s", instr_name)
+                    logger.warning("Transformation failed for instr %s", instr_def.name)
                 else:
                     raise ex
             instr_def.operands = context.operands
