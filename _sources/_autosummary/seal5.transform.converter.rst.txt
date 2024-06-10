@@ -13,6 +13,7 @@ seal5.transform.converter
 
    .. autosummary::
    
+      convert_attrs
       get_parser
       main
       run
