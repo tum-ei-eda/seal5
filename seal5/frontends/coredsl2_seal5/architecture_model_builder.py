@@ -517,7 +517,7 @@ class ArchitectureModelBuilder(CoreDSL2Visitor):
         # read attribute from enums
         attr = (
             arch.InstrAttribute._member_map_.get(name.upper())
-            or seal5_model.Seal5InstrAttribute._member_map_.get(name.upper())  # TODO
+            # or seal5_model.Seal5InstrAttribute._member_map_.get(name.upper())  # TODO
             or arch.MemoryAttribute._member_map_.get(name.upper())
             or arch.FunctionAttribute._member_map_.get(name.upper())
         )

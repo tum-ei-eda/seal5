@@ -21,6 +21,22 @@ from m2isar.metamodel.utils.expr_preprocessor import process_attributes, process
 logger = logging.getLogger("seal5_converter")
 
 
+def convert_attrs(attrs):
+    print("convert_attrs", attrs)
+    ret = {}
+    for attr, attr_val in attrs.items():
+        if isinstance(attr, str):
+            attr_ = seal5_model.Seal5InstrAttribute._member_map_.get(attr.upper())
+            if attr_ is not None:
+                ret[attr_] = attr_val
+            else:
+                logger.warning("Unknown attribute: %s", attr)
+                ret[attr] = attr_val
+        else:
+            ret[attr] = attr_val
+    return ret
+
+
 def get_parser():
     # read command line args
     parser = argparse.ArgumentParser()
@@ -73,7 +89,7 @@ def run(args):
                 instr_def.mnemonic = f"{prefix_}{instr_def.mnemonic}"
             set_def.instructions[enc] = seal5_model.Seal5Instruction(
                 instr_def.name,
-                instr_def.attributes,
+                convert_attrs(instr_def.attributes),
                 instr_def.encoding,
                 instr_def.mnemonic,
                 instr_def.assembly,
