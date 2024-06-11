@@ -2,7 +2,7 @@
 extensions:
   s4e-mac:
     feature: s4emac
-    arch: x4emac
+    arch: xs4emac
     version: "1.0"
     experimental: true
     vendor: true

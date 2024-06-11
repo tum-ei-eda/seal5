@@ -1153,6 +1153,71 @@ def gen_riscv_instr_info_patch(
             logger.warning("No patches found!")
 
 
+def gen_riscv_register_info_patch(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    split: bool = False,
+    **kwargs,
+):
+    assert not split, "TODO"
+    gen_metrics_file = False
+    gen_index_file = True
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    new_name = name.replace(".seal5model", "")
+    logger.info("Writing RISCVRegisterInfo.td patch for %s", name)
+    out_dir = settings.patches_dir / new_name
+    out_dir.mkdir(exist_ok=True)
+    if split:
+        out_path = out_dir / "riscv_register_info"
+        out_path.mkdir(exist_ok=True)
+    else:
+        out_path = out_dir / "riscv_register_info.patch"
+
+    args = [
+        settings.models_dir / name,
+        "--log",
+        # "info",
+        "debug",
+        "--output",
+        out_path,
+    ]
+    if split:
+        args.append("--splitted")
+    if gen_metrics_file:
+        metrics_file = out_dir / ("riscv_register_info_metrics.csv")
+        args.extend(["--metrics", metrics_file])
+    if gen_index_file:
+        index_file = out_dir / ("riscv_register_info_index.yml")
+        args.extend(["--index", index_file])
+    utils.python(
+        "-m",
+        "seal5.backends.riscv_register_info.writer",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+    if gen_index_file:
+        if index_file.is_file():
+            patch_name = f"riscv_register_info_{input_file.stem}"
+            patch_settings = PatchSettings(
+                name=patch_name,
+                stage=int(PatchStage.PHASE_2),
+                comment=f"Generated RISCVRegisterInfo.td patch for {input_file.name}",
+                index=str(index_file),
+                generated=True,
+                target="llvm",
+            )
+            settings.add_patch(patch_settings)
+            settings.to_yaml_file(settings.settings_file)
+        else:
+            logger.warning("No patches found!")
+
+
 def gen_riscv_gisel_legalizer_patch(
     input_model: str,
     settings: Optional[Seal5Settings] = None,
