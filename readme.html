@@ -49,6 +49,7 @@
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Seal5</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#ubuntu-packages">Ubuntu Packages</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#python-requirements">Python Requirements</a></li>
@@ -101,11 +102,20 @@
              
   <section id="seal5">
 <h1>Seal5<a class="headerlink" href="#seal5" title="Link to this heading"></a></h1>
+<blockquote>
+<div><p>[!NOTE]
+Starting <strong>July 11, 2024</strong> we will be offering (monthly) Seal5 Development/User meetings. Click <a class="reference external" href="https://github.com/tum-ei-eda/seal5/discussions/104">here</a> for details, if you are interested!</p>
+</div></blockquote>
 <p><a class="reference external" href="https://pypi.org/project/seal5"><img alt="pypi package" src="https://badge.fury.io/py/seal5.svg" /></a>
 <a class="reference external" href="https://seal5.readthedocs.io/en/latest/?version=latest"><img alt="readthedocs" src="https://readthedocs.org/projects/seal5/badge/?version=latest" /></a>
 <a class="reference external" href="https://github.com/tum-ei-eda/seal5/blob/main/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/tum-ei-eda/seal5.svg" /></a></p>
 <p><a class="reference external" href="https://github.com/tum-ei-eda/seal5/actions/workflows/demo.yml"><img alt="demo workflow" src="https://github.com/tum-ei-eda/seal5/actions/workflows/demo.yml/badge.svg" /></a></p>
-<p>TODO: Summary</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>The RISC-V instruction set architecture (ISA) is popular for its extensibility. However, a quick exploration of instruction candidates fails due to the lack of tools to auto-generate embedded software toolchain support. Seal5 work establishes a semi-automated flow to generate LLVM compiler support for custom instructions based on the CoreDSL2 ISA description language. Seal5 is capable of generating support for functionalities ranging from baseline assembler-level support, over builtin functions to compiler code generation patterns for scalar as well as vector instructions, while requiring no deeper compiler know-how.</p>
+<p>Eliminating manual efforts for Retargeting is crutial for the automated exploration of custom RISC-V instructions as depicted in the following image. Seal5’s code-generation support allows to make use of custom instructions without needing to make changes to the programs/benchmarks source code (i.e. adding inline-assembly calls).</p>
+<p><img alt="ISADSESeal5" src="https://github.com/tum-ei-eda/seal5/assets/7712605/f387f13f-fc26-4efb-b6e0-d0802ac08200" /></p>
+</section>
 <section id="prerequisites">
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading"></a></h2>
 <p>To be able to run the examples, make sure to clone the Seal5 repo using the <code class="docutils literal notranslate"><span class="pre">--recursive</span></code> flag. Otherwise run the following command to fetch (and update) the referenced submodules.</p>
@@ -137,7 +147,9 @@ virtualenv<span class="w"> </span>-p<span class="w"> </span>python3.8<span class
 </div>
 <section id="from-pypi">
 <h4>From PyPI<a class="headerlink" href="#from-pypi" title="Link to this heading"></a></h4>
-<p>TODO: Publish after open-source release.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">seal5</span>
+</pre></div>
+</div>
 </section>
 <section id="local-development-version">
 <h4>Local Development Version<a class="headerlink" href="#local-development-version" title="Link to this heading"></a></h4>
@@ -206,7 +218,7 @@ seal5<span class="w"> </span>clean<span class="w"> </span><span class="o">[</spa
 </section>
 <section id="documentation">
 <h2>Documentation<a class="headerlink" href="#documentation" title="Link to this heading"></a></h2>
-<p>TODO: Sphinx Documentation / GitHub Pages</p>
+<p>Checkout <a class="reference external" href="https://seal5.readthedocs.io/en/latest/?version=latest">Seal5’s ReadTheDocs Page</a>!</p>
 </section>
 <section id="limitations">
 <h2>Limitations<a class="headerlink" href="#limitations" title="Link to this heading"></a></h2>
