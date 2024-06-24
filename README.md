@@ -1,5 +1,7 @@
 # Seal5
 
+> [!NOTE]  
+> Starting **July 11, 2024** we will be offering (monthly) Seal5 Development/User meetings. Click [here](https://github.com/tum-ei-eda/seal5/discussions/104) for details, if you are interested!
 
 [![pypi package](https://badge.fury.io/py/seal5.svg)](https://pypi.org/project/seal5)
 [![readthedocs](https://readthedocs.org/projects/seal5/badge/?version=latest)](https://seal5.readthedocs.io/en/latest/?version=latest)
@@ -7,7 +9,13 @@
 
 [![demo workflow](https://github.com/tum-ei-eda/seal5/actions/workflows/demo.yml/badge.svg)](https://github.com/tum-ei-eda/seal5/actions/workflows/demo.yml)
 
-TODO: Summary
+## Overview
+
+The RISC-V instruction set architecture (ISA) is popular for its extensibility. However, a quick exploration of instruction candidates fails due to the lack of tools to auto-generate embedded software toolchain support. Seal5 work establishes a semi-automated flow to generate LLVM compiler support for custom instructions based on the CoreDSL2 ISA description language. Seal5 is capable of generating support for functionalities ranging from baseline assembler-level support, over builtin functions to compiler code generation patterns for scalar as well as vector instructions, while requiring no deeper compiler know-how. 
+
+Eliminating manual efforts for Retargeting is crutial for the automated exploration of custom RISC-V instructions as depicted in the following image. Seal5's code-generation support allows to make use of custom instructions without needing to make changes to the programs/benchmarks source code (i.e. adding inline-assembly calls).
+
+![ISADSESeal5](https://github.com/tum-ei-eda/seal5/assets/7712605/f387f13f-fc26-4efb-b6e0-d0802ac08200)
 
 ## Prerequisites
 
@@ -49,7 +57,9 @@ source venv/bin/activate
 
 #### From PyPI
 
-TODO: Publish after open-source release.
+```
+pip install seal5
+```
 
 #### Local Development Version
 
@@ -118,7 +128,7 @@ See [`examples/demo.py`](examples/demo.py) for example of end-to-end flow!
 
 ## Documentation
 
-TODO: Sphinx Documentation / GitHub Pages
+Checkout [Seal5's ReadTheDocs Page](https://seal5.readthedocs.io/en/latest/?version=latest)!
 
 ## Limitations
 
