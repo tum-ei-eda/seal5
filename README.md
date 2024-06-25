@@ -124,7 +124,7 @@ seal5 clean [--temp] [--patches] [--models] [--inputs]
 
 ## Examples
 
-See [`examples/demo.py`](examples/demo.py) for example of end-to-end flow!
+See [`examples/demo.py`](https://github.com/tum-ei-eda/seal5/blob/main/examples/demo.py) for example of end-to-end flow!
 
 ## Documentation
 
@@ -132,7 +132,7 @@ Checkout [Seal5's ReadTheDocs Page](https://seal5.readthedocs.io/en/latest/?vers
 
 ## Limitations
 
-See [here](./LIMITATIONS.md).
+See [here](https://github.com/tum-ei-eda/seal5/blob/main/LIMITATIONS.md).
 
 ## CI/CD Flow
 
