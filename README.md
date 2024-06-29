@@ -45,6 +45,10 @@ For development (linting, packaging,...) there are a few more dependencies which
 
 `pip install -r requirements_dev.txt`.
 
+### System Requirements
+
+The initial cloning of the `llvm-project` repo will take a long time, hence a good internet connection is recommended. To run the demo, make sure to have at least 20GB of disk space available in the destination (`/tmp/seal5_llvm_demo`) directory. The target directory can be changed as follows: `DEST=$HOME/seal5_demo`.
+
 ### Installation
 
 **Warning:** It is highly recommended to install `seal5` into a new virtual environment. Follow these steps to initialize and enter a venv in your seal5 repo directory:
