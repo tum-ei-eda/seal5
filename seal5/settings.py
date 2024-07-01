@@ -100,6 +100,7 @@ DEFAULT_SETTINGS = {
         "state": {"version": "auto", "base_commit": "unknown"},
         "ninja": False,
         "default_config": "release",
+        "clone_depth": None,
         "configs": {
             "release": {
                 "options": {
@@ -481,6 +482,7 @@ class LLVMConfig(YAMLSettings):
 @dataclass
 class LLVMSettings(YAMLSettings):
     ninja: Optional[bool] = None
+    clone_depth: Optional[int] = None
     default_config: Optional[str] = None
     configs: Optional[Dict[str, LLVMConfig]] = None
     state: Optional[LLVMState] = None

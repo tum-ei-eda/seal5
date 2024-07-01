@@ -232,7 +232,7 @@ class Seal5Flow:
                 logger.error("Target directory does not exist! Aborting...")
                 sys.exit(1)
             self.repo, sha, version_info = llvm.clone_llvm_repo(
-                self.directory, clone_url, ref=clone_ref, label=self.name, git_settings=self.settings.git
+                self.directory, clone_url, ref=clone_ref, label=self.name, git_settings=self.settings.git, depth=self.settings.llvm.clone_depth,
             )
         else:
             if force:
