@@ -151,6 +151,10 @@ DEFAULT_SETTINGS = {
     "tools": {
         "pattern_gen": {
             "integrated": True,
+            "clone_url": None,
+            "ref": None,
+            # "clone_depth": None,
+            "clone_depth": 1,
         },
     },
 }
@@ -517,6 +521,9 @@ class RISCVSettings(YAMLSettings):
 @dataclass
 class PatternGenSettings(YAMLSettings):
     integrated: Optional[bool] = None
+    clone_url: Optional[str] = None
+    ref: Optional[str] = None
+    clone_depth: Optional[int] = None
 
 
 @dataclass

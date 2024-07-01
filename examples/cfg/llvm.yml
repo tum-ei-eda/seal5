@@ -2,6 +2,7 @@ llvm:
   ninja: true  # TODO: move to configs
   num_threads: -1  # TODO: move to configs
   default_config: release
+  clone_depth: 1
   configs:
     release:
       options:

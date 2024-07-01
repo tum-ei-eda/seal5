@@ -31,7 +31,7 @@ from seal5.logging import get_logger, set_log_file, set_log_level
 from seal5.types import Seal5State, PatchStage
 from seal5.settings import Seal5Settings, PatchSettings, DEFAULT_SETTINGS, LLVMConfig, LLVMVersion
 
-from seal5.dependencies import cdsl2llvm_dependency
+from seal5.dependencies import CDSL2LLVMDependency
 from seal5 import utils
 from seal5.tools import llvm, cdsl2llvm, inject_patches
 from seal5.resources.resources import get_patches, get_test_cfg
@@ -219,6 +219,7 @@ class Seal5Flow:
         clone: bool = False,
         clone_url: Optional[str] = None,
         clone_ref: Optional[str] = None,
+        clone_depth: Optional[int] = None,
         force: bool = False,
         verbose: bool = False,
     ):
@@ -232,7 +233,12 @@ class Seal5Flow:
                 logger.error("Target directory does not exist! Aborting...")
                 sys.exit(1)
             self.repo, sha, version_info = llvm.clone_llvm_repo(
-                self.directory, clone_url, ref=clone_ref, label=self.name, git_settings=self.settings.git, depth=self.settings.llvm.clone_depth,
+                self.directory,
+                clone_url,
+                ref=clone_ref,
+                label=self.name,
+                git_settings=self.settings.git,
+                depth=clone_depth or self.settings.llvm.clone_depth,
             )
         else:
             if force:
@@ -243,6 +249,7 @@ class Seal5Flow:
                     refresh=True,
                     label=self.name,
                     git_settings=self.settings.git,
+                    depth=clone_depth or self.settings.llvm.clone_depth,
                 )
         if self.settings.meta_dir.is_dir():
             if force is False and not utils.ask_user(
@@ -282,7 +289,16 @@ class Seal5Flow:
         metrics = {}
         logger.info("Cloning CDSL2LLVM")
         # cdsl2llvm_dependency.clone(self.settings.deps_dir / "cdsl2llvm", overwrite=force, depth=1)
-        cdsl2llvm_dependency.clone(self.settings.deps_dir / "cdsl2llvm", overwrite=force)
+        pattern_gen_settings = self.settings.tools.pattern_gen
+        kwargs = {}
+        if pattern_gen_settings.clone_url is not None:
+            kwargs["clone_url"] = pattern_gen_settings.clone_url
+        if pattern_gen_settings.ref is not None:
+            kwargs["ref"] = pattern_gen_settings.ref
+        cdsl2llvm_dependency = CDSL2LLVMDependency(**kwargs)
+        cdsl2llvm_dependency.clone(
+            self.settings.deps_dir / "cdsl2llvm", overwrite=force, depth=pattern_gen_settings.clone_depth
+        )
         integrated_pattern_gen = self.settings.tools.pattern_gen.integrated
         if integrated_pattern_gen:
             logger.info("Adding PatternGen to target LLVM")
