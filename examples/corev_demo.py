@@ -37,7 +37,7 @@ INTERACTIVE = bool(int(os.environ.get("INTERACTIVE", 0)))
 PREPATCHED = bool(int(os.environ.get("PREPATCHED", 0)))
 BUILD_CONFIG = os.environ.get("BUILD_CONFIG", "release")
 IGNORE_ERROR = bool(int(os.environ.get("IGNORE_ERROR", 1)))
-DEST = os.environ.get("DEST", "/tmp/seal5_llvm_corev")
+DEST = os.environ.get("DEST", "/tmp/seal5_llvm_corev").rstrip("/")
 NAME = os.environ.get("NAME", "corev")
 
 seal5_flow = Seal5Flow(DEST, NAME)
