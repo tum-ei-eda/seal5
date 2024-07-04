@@ -53,6 +53,12 @@ def add_init_options(parser):
         help="Corresponding LLVM repository commit/tag",
     )
     init_parser.add_argument(
+        "--clone_depth",
+        default=None,
+        type=int,
+        help="LLVM clone depth (use 1 for shallow clone)",
+    )
+    init_parser.add_argument(
         "--force",
         "-f",
         default=False,
@@ -83,6 +89,7 @@ def handle(args):
         clone=args.clone,
         clone_url=args.clone_url,
         clone_ref=args.clone_ref,
+        clone_depth=args.clone_depth,
         force=args.force,
         verbose=args.verbose,
     )

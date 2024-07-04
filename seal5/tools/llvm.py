@@ -59,6 +59,7 @@ def clone_llvm_repo(
     refresh: bool = False,
     label: str = "default",
     git_settings: GitSettings = None,
+    depth: Optional[int] = None,
 ):
     sha = None
     version_info = {}
@@ -75,7 +76,12 @@ def clone_llvm_repo(
                     repo.git.pull("origin", ref)
     else:
         logger.debug("Cloning LLVM repository: %s", clone_url)
-        repo = git.Repo.clone_from(clone_url, dest, no_checkout=ref is not None)
+        no_checkout = ref is not None
+        branch = None
+        if depth is not None and ref is not None:
+            assert "llvmorg" in ref  # Needs to be a valid branch name, not a tag
+            branch = ref
+        repo = git.Repo.clone_from(clone_url, dest, no_checkout=no_checkout, branch=branch, depth=depth)
         if ref:
             logger.debug("Checking out branch: %s", ref)
             repo.git.checkout(ref)

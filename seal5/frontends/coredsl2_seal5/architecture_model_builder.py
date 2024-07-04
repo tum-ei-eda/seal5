@@ -14,7 +14,6 @@ from m2isar import M2DuplicateError, M2NameError, M2TypeError, M2ValueError, fla
 from m2isar.metamodel import arch, behav, intrinsics
 from .parser_gen import CoreDSL2Parser, CoreDSL2Visitor
 from .utils import RADIX, SHORTHANDS, SIGNEDNESS
-import seal5.model as seal5_model
 
 logger = logging.getLogger("arch_builder")
 
@@ -517,7 +516,6 @@ class ArchitectureModelBuilder(CoreDSL2Visitor):
         # read attribute from enums
         attr = (
             arch.InstrAttribute._member_map_.get(name.upper())
-            # or seal5_model.Seal5InstrAttribute._member_map_.get(name.upper())  # TODO
             or arch.MemoryAttribute._member_map_.get(name.upper())
             or arch.FunctionAttribute._member_map_.get(name.upper())
         )

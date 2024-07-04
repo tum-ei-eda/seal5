@@ -37,7 +37,7 @@ SKIP_PATTERNS = bool(int(os.environ.get("SKIP_PATTERNS", 0)))
 INTERACTIVE = bool(int(os.environ.get("INTERACTIVE", 0)))
 PREPATCHED = bool(int(os.environ.get("PREPATCHED", 0)))
 BUILD_CONFIG = os.environ.get("BUILD_CONFIG", "release")
-DEST = os.environ.get("DEST", "/tmp/seal5_llvm_rv64")
+DEST = os.environ.get("DEST", "/tmp/seal5_llvm_rv64").rstrip("/")
 NAME = os.environ.get("NAME", "rv64")
 
 seal5_flow = Seal5Flow(DEST, NAME)

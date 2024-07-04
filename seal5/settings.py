@@ -100,6 +100,7 @@ DEFAULT_SETTINGS = {
         "state": {"version": "auto", "base_commit": "unknown"},
         "ninja": False,
         "default_config": "release",
+        "clone_depth": None,
         "configs": {
             "release": {
                 "options": {
@@ -150,6 +151,10 @@ DEFAULT_SETTINGS = {
     "tools": {
         "pattern_gen": {
             "integrated": True,
+            "clone_url": None,
+            "ref": None,
+            # "clone_depth": None,
+            "clone_depth": 1,
         },
     },
 }
@@ -481,6 +486,7 @@ class LLVMConfig(YAMLSettings):
 @dataclass
 class LLVMSettings(YAMLSettings):
     ninja: Optional[bool] = None
+    clone_depth: Optional[int] = None
     default_config: Optional[str] = None
     configs: Optional[Dict[str, LLVMConfig]] = None
     state: Optional[LLVMState] = None
@@ -515,6 +521,9 @@ class RISCVSettings(YAMLSettings):
 @dataclass
 class PatternGenSettings(YAMLSettings):
     integrated: Optional[bool] = None
+    clone_url: Optional[str] = None
+    ref: Optional[str] = None
+    clone_depth: Optional[int] = None
 
 
 @dataclass

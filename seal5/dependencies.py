@@ -50,8 +50,12 @@ class GitDependency(Dependency):
             repo.git.pull("origin", self.ref)
             return
         logger.debug("Cloning repository: %s", self.clone_url)
+        no_checkout = self.ref is not None
+        branch = None
+        if depth is not None and self.ref is not None:
+            branch = self.ref
         repo = git.Repo.clone_from(
-            self.clone_url, dest, recursive=self.recursive, no_checkout=self.ref is not None, depth=depth
+            self.clone_url, dest, recursive=self.recursive, no_checkout=no_checkout, depth=depth, branch=branch
         )
         if self.ref:
             logger.debug("Checking out: %s", self.ref)
@@ -70,5 +74,5 @@ class CDSL2LLVMDependency(GitDependency):
         super().__init__("cdsl2llvm", clone_url, ref=ref)
 
 
-m2isar_dependency = M2ISARDependency()
-cdsl2llvm_dependency = CDSL2LLVMDependency()
+# m2isar_dependency = M2ISARDependency()
+# cdsl2llvm_dependency = CDSL2LLVMDependency()

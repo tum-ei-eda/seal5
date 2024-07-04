@@ -37,7 +37,7 @@ INTERACTIVE = bool(int(os.environ.get("INTERACTIVE", 0)))
 PREPATCHED = bool(int(os.environ.get("PREPATCHED", 0)))
 BUILD_CONFIG = os.environ.get("BUILD_CONFIG", "release")
 IGNORE_ERROR = bool(int(os.environ.get("IGNORE_ERROR", 1)))
-DEST = os.environ.get("DEST", "/tmp/seal5_llvm_corev")
+DEST = os.environ.get("DEST", "/tmp/seal5_llvm_corev").rstrip("/")
 NAME = os.environ.get("NAME", "corev")
 
 seal5_flow = Seal5Flow(DEST, NAME)
@@ -56,6 +56,7 @@ seal5_flow.initialize(
     clone_url="https://github.com/llvm/llvm-project.git",
     # clone_ref="llvmorg-17.0.6",
     clone_ref="seal5-corev-stage0" if PREPATCHED else "llvmorg-18.1.0-rc3",
+    clone_depth=1,
     force=True,
     verbose=VERBOSE,
 )
