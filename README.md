@@ -3,7 +3,7 @@
 > [!NOTE]  
 > Starting **July 11, 2024** we will be offering (monthly) Seal5 Development/User meetings.
 >
-> Next call: **Aug 9, 2024, 11:00**
+> Next call: **Aug 8, 2024, 11:00**
 > 
 > Click [here](https://github.com/tum-ei-eda/seal5/discussions/104) for details, if you are interested!
 
