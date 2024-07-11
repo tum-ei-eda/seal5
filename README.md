@@ -1,7 +1,14 @@
 # Seal5
 
 > [!NOTE]  
-> Starting **July 11, 2024** we will be offering (monthly) Seal5 Development/User meetings. Click [here](https://github.com/tum-ei-eda/seal5/discussions/104) for details, if you are interested!
+> Starting **July 11, 2024** we will be offering (monthly) Seal5 Development/User meetings.
+>
+> Next call: **Aug 9, 2024, 11:00**
+> 
+> Click [here](https://github.com/tum-ei-eda/seal5/discussions/104) for details, if you are interested!
+
+> [!NOTE]  
+> Seal5 was recently presented at the RISC-V Summit Europe 2024. Click [here](https://github.com/tum-ei-eda/seal5/discussions/107) to access the poster, slides & recording.
 
 [![pypi package](https://badge.fury.io/py/seal5.svg)](https://pypi.org/project/seal5)
 [![readthedocs](https://readthedocs.org/projects/seal5/badge/?version=latest)](https://seal5.readthedocs.io/en/latest/?version=latest)
