@@ -13,3 +13,6 @@
 [submodule "examples/cdsl/rv_openasip"]
 	path = examples/cdsl/rv_openasip
 	url = https://github.com/PhilippvK/OpenASIP_ISA_CoreDSL.git
+[submodule "etiss_arch_riscv"]
+	path = etiss_arch_riscv
+	url = https://github.com/tum-ei-eda/etiss_arch_riscv.git
