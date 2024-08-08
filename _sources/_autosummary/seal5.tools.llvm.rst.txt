@@ -4,11 +4,6 @@ seal5.tools.llvm
 .. automodule:: seal5.tools.llvm
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -18,15 +13,3 @@ seal5.tools.llvm
       clone_llvm_repo
       test_llvm
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

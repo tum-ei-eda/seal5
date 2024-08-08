@@ -4,11 +4,6 @@ seal5.transform.drop\_unused.track\_uses
 .. automodule:: seal5.transform.drop_unused.track_uses
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -33,15 +28,3 @@ seal5.transform.drop\_unused.track\_uses
       type_conv
       unary_operation
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

@@ -4,21 +4,12 @@ seal5.passes
 .. automodule:: seal5.passes
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
    
       check_filter
       filter_passes
-   
-   
-
-   
    
    .. rubric:: Classes
 
@@ -32,11 +23,3 @@ seal5.passes
       PassType
       Seal5Pass
    
-   
-
-   
-   
-   
-
-
-

@@ -4,11 +4,6 @@ seal5.transform.simplify\_trivial\_slices.transform
 .. automodule:: seal5.transform.simplify_trivial_slices.transform
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -17,15 +12,3 @@ seal5.transform.simplify\_trivial\_slices.transform
       main
       run
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

@@ -4,11 +4,6 @@ seal5.tools.cdsl2llvm
 .. automodule:: seal5.tools.cdsl2llvm
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -19,15 +14,3 @@ seal5.tools.cdsl2llvm
       get_pattern_gen_patches
       run_pattern_gen
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

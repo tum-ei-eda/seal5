@@ -4,15 +4,6 @@ seal5.dependencies
 .. automodule:: seal5.dependencies
 
    
-   
-   
-
-   
-   
-   
-
-   
-   
    .. rubric:: Classes
 
    .. autosummary::
@@ -22,11 +13,3 @@ seal5.dependencies
       GitDependency
       M2ISARDependency
    
-   
-
-   
-   
-   
-
-
-

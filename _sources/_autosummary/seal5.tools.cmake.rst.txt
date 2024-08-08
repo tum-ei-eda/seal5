@@ -4,26 +4,9 @@ seal5.tools.cmake
 .. automodule:: seal5.tools.cmake
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
    
       get_cmake_args
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

@@ -4,20 +4,11 @@ seal5.index
 .. automodule:: seal5.index
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
    
       write_index_yaml
-   
-   
-
-   
    
    .. rubric:: Classes
 
@@ -32,11 +23,3 @@ seal5.index
       Patch
       RangedPatch
    
-   
-
-   
-   
-   
-
-
-

@@ -4,11 +4,6 @@ seal5.backends.riscv\_isa\_info.writer
 .. automodule:: seal5.backends.riscv_isa_info.writer
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -16,15 +11,3 @@ seal5.backends.riscv\_isa\_info.writer
       gen_riscv_isa_info_str
       main
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

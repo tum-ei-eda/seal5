@@ -4,15 +4,6 @@ seal5.types
 .. automodule:: seal5.types
 
    
-   
-   
-
-   
-   
-   
-
-   
-   
    .. rubric:: Classes
 
    .. autosummary::
@@ -20,11 +11,3 @@ seal5.types
       PatchStage
       Seal5State
    
-   
-
-   
-   
-   
-
-
-

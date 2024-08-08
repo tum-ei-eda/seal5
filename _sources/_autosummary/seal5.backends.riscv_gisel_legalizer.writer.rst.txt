@@ -4,11 +4,6 @@ seal5.backends.riscv\_gisel\_legalizer.writer
 .. automodule:: seal5.backends.riscv_gisel_legalizer.writer
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -17,15 +12,3 @@ seal5.backends.riscv\_gisel\_legalizer.writer
       main
       type_helper
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

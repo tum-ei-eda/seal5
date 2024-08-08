@@ -4,11 +4,6 @@ seal5.logging
 .. automodule:: seal5.logging
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -18,15 +13,3 @@ seal5.logging
       set_log_file
       set_log_level
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

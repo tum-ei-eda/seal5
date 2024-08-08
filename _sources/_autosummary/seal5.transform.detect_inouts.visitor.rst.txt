@@ -4,11 +4,6 @@ seal5.transform.detect\_inouts.visitor
 .. automodule:: seal5.transform.detect_inouts.visitor
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -35,15 +30,3 @@ seal5.transform.detect\_inouts.visitor
       type_conv
       unary_operation
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

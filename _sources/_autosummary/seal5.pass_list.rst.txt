@@ -4,11 +4,6 @@ seal5.pass\_list
 .. automodule:: seal5.pass_list
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -45,15 +40,3 @@ seal5.pass\_list
       write_cdsl
       write_yaml
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

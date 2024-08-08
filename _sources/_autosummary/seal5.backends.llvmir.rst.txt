@@ -4,28 +4,10 @@ seal5.backends.llvmir
 .. automodule:: seal5.backends.llvmir
 
    
-   
-   
-
-   
-   
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-
 .. rubric:: Modules
 
 .. autosummary::
    :toctree:
    :recursive:
 
-   seal5.backends.llvmir.writer
-
+   writer

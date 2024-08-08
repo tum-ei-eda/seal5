@@ -4,11 +4,6 @@ seal5.transform.explicit\_truncations.visitor
 .. automodule:: seal5.transform.explicit_truncations.visitor
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -32,15 +27,3 @@ seal5.transform.explicit\_truncations.visitor
       type_conv
       unary_operation
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

@@ -4,33 +4,15 @@ seal5.tools
 .. automodule:: seal5.tools
 
    
-   
-   
-
-   
-   
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-
 .. rubric:: Modules
 
 .. autosummary::
    :toctree:
    :recursive:
 
-   seal5.tools.cdsl2llvm
-   seal5.tools.cmake
-   seal5.tools.git
-   seal5.tools.inject_patches
-   seal5.tools.llvm
-   seal5.tools.m2isar
-
+   cdsl2llvm
+   cmake
+   git
+   inject_patches
+   llvm
+   m2isar

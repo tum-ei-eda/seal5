@@ -4,20 +4,3 @@ seal5.backends.riscv\_features.templates
 .. automodule:: seal5.backends.riscv_features.templates
 
    
-   
-   
-
-   
-   
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

@@ -4,11 +4,6 @@ seal5.transform.collect\_operand\_types.collect
 .. automodule:: seal5.transform.collect_operand_types.collect
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -17,21 +12,9 @@ seal5.transform.collect\_operand\_types.collect
       main
       run
    
-   
-
-   
-   
    .. rubric:: Classes
 
    .. autosummary::
    
       VisitorContext
    
-   
-
-   
-   
-   
-
-
-

@@ -4,11 +4,6 @@ seal5.backends.riscv\_features.writer
 .. automodule:: seal5.backends.riscv_features.writer
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -16,15 +11,3 @@ seal5.backends.riscv\_features.writer
       gen_riscv_features_str
       main
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

@@ -4,11 +4,6 @@ seal5.cli.clean
 .. automodule:: seal5.cli.clean
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -17,15 +12,3 @@ seal5.cli.clean
       get_parser
       handle
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

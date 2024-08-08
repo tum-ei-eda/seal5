@@ -4,26 +4,9 @@ seal5.backends.llvmir.writer
 .. automodule:: seal5.backends.llvmir.writer
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
    
       main
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

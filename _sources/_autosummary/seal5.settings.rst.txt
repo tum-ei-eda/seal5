@@ -4,20 +4,11 @@ seal5.settings
 .. automodule:: seal5.settings
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
    
       check_supported_types
-   
-   
-
-   
    
    .. rubric:: Classes
 
@@ -47,11 +38,3 @@ seal5.settings
       ToolsSettings
       YAMLSettings
    
-   
-
-   
-   
-   
-
-
-

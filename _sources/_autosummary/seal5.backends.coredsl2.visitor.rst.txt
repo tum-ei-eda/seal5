@@ -4,11 +4,6 @@ seal5.backends.coredsl2.visitor
 .. automodule:: seal5.backends.coredsl2.visitor
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -33,15 +28,3 @@ seal5.backends.coredsl2.visitor
       type_conv
       unary_operation
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

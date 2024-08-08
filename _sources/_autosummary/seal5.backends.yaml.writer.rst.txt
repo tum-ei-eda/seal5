@@ -4,26 +4,9 @@ seal5.backends.yaml.writer
 .. automodule:: seal5.backends.yaml.writer
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
    
       main
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

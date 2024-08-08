@@ -4,15 +4,6 @@ seal5.model
 .. automodule:: seal5.model
 
    
-   
-   
-
-   
-   
-   
-
-   
-   
    .. rubric:: Classes
 
    .. autosummary::
@@ -36,11 +27,3 @@ seal5.model
       Seal5RegisterGroup
       Seal5Type
    
-   
-
-   
-   
-   
-
-
-

@@ -4,11 +4,6 @@ seal5.cli.patch
 .. automodule:: seal5.cli.patch
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -17,15 +12,3 @@ seal5.cli.patch
       get_parser
       handle
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

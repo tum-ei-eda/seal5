@@ -4,11 +4,6 @@ seal5.transform.detect\_side\_effects.collect
 .. automodule:: seal5.transform.detect_side_effects.collect
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -17,21 +12,9 @@ seal5.transform.detect\_side\_effects.collect
       main
       run
    
-   
-
-   
-   
    .. rubric:: Classes
 
    .. autosummary::
    
       VisitorContext
    
-   
-
-   
-   
-   
-
-
-

@@ -4,41 +4,23 @@ seal5.cli
 .. automodule:: seal5.cli
 
    
-   
-   
-
-   
-   
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-
 .. rubric:: Modules
 
 .. autosummary::
    :toctree:
    :recursive:
 
-   seal5.cli.build
-   seal5.cli.clean
-   seal5.cli.common
-   seal5.cli.deploy
-   seal5.cli.export
-   seal5.cli.generate
-   seal5.cli.init
-   seal5.cli.load
-   seal5.cli.main
-   seal5.cli.patch
-   seal5.cli.reset
-   seal5.cli.setup
-   seal5.cli.test
-   seal5.cli.transform
-
+   build
+   clean
+   common
+   deploy
+   export
+   generate
+   init
+   load
+   main
+   patch
+   reset
+   setup
+   test
+   transform

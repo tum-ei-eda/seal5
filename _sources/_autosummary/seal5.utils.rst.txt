@@ -4,11 +4,6 @@ seal5.utils
 .. automodule:: seal5.utils
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -25,15 +20,3 @@ seal5.utils
       python
       str2bool
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

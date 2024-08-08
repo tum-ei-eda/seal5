@@ -4,11 +4,6 @@ seal5.flow
 .. automodule:: seal5.flow
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -18,21 +13,9 @@ seal5.flow
       handle_directory
       lookup_manual_patch
    
-   
-
-   
-   
    .. rubric:: Classes
 
    .. autosummary::
    
       Seal5Flow
    
-   
-
-   
-   
-   
-
-
-

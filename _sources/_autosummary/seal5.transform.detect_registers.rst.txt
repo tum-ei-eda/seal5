@@ -4,11 +4,6 @@ seal5.transform.detect\_registers
 .. automodule:: seal5.transform.detect_registers
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -18,15 +13,3 @@ seal5.transform.detect\_registers
       main
       run
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

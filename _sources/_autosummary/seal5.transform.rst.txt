@@ -4,44 +4,26 @@ seal5.transform
 .. automodule:: seal5.transform
 
    
-   
-   
-
-   
-   
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-
 .. rubric:: Modules
 
 .. autosummary::
    :toctree:
    :recursive:
 
-   seal5.transform.collect_immediate_operands
-   seal5.transform.collect_operand_types
-   seal5.transform.collect_raises
-   seal5.transform.collect_register_operands
-   seal5.transform.converter
-   seal5.transform.detect_inouts
-   seal5.transform.detect_registers
-   seal5.transform.detect_side_effects
-   seal5.transform.drop_unused
-   seal5.transform.eliminate_mod_rfs
-   seal5.transform.eliminate_rd_cmp_zero
-   seal5.transform.explicit_truncations
-   seal5.transform.filter_model
-   seal5.transform.infer_types
-   seal5.transform.optimize_instructions
-   seal5.transform.process_settings
-   seal5.transform.simplify_trivial_slices
-
+   collect_immediate_operands
+   collect_operand_types
+   collect_raises
+   collect_register_operands
+   converter
+   detect_inouts
+   detect_registers
+   detect_side_effects
+   drop_unused
+   eliminate_mod_rfs
+   eliminate_rd_cmp_zero
+   explicit_truncations
+   filter_model
+   infer_types
+   optimize_instructions
+   process_settings
+   simplify_trivial_slices

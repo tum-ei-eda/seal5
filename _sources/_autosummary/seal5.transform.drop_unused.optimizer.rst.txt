@@ -4,11 +4,6 @@ seal5.transform.drop\_unused.optimizer
 .. automodule:: seal5.transform.drop_unused.optimizer
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -17,21 +12,9 @@ seal5.transform.drop\_unused.optimizer
       main
       run
    
-   
-
-   
-   
    .. rubric:: Classes
 
    .. autosummary::
    
       DropUnusedContext
    
-   
-
-   
-   
-   
-
-
-

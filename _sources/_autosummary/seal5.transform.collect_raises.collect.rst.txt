@@ -4,11 +4,6 @@ seal5.transform.collect\_raises.collect
 .. automodule:: seal5.transform.collect_raises.collect
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -17,21 +12,9 @@ seal5.transform.collect\_raises.collect
       main
       run
    
-   
-
-   
-   
    .. rubric:: Classes
 
    .. autosummary::
    
       VisitorContext
    
-   
-
-   
-   
-   
-
-
-

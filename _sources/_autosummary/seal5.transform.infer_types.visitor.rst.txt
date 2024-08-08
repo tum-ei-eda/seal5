@@ -4,11 +4,6 @@ seal5.transform.infer\_types.visitor
 .. automodule:: seal5.transform.infer_types.visitor
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -32,15 +27,3 @@ seal5.transform.infer\_types.visitor
       type_conv
       unary_operation
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

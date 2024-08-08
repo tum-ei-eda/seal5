@@ -4,11 +4,6 @@ seal5.transform.converter
 .. automodule:: seal5.transform.converter
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -18,15 +13,3 @@ seal5.transform.converter
       main
       run
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

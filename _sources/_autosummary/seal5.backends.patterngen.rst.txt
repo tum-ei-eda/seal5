@@ -4,28 +4,10 @@ seal5.backends.patterngen
 .. automodule:: seal5.backends.patterngen
 
    
-   
-   
-
-   
-   
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-
 .. rubric:: Modules
 
 .. autosummary::
    :toctree:
    :recursive:
 
-   seal5.backends.patterngen.writer
-
+   writer

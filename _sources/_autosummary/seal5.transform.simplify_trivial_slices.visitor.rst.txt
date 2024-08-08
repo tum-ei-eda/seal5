@@ -4,11 +4,6 @@ seal5.transform.simplify\_trivial\_slices.visitor
 .. automodule:: seal5.transform.simplify_trivial_slices.visitor
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -32,15 +27,3 @@ seal5.transform.simplify\_trivial\_slices.visitor
       type_conv
       unary_operation
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

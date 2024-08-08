@@ -4,11 +4,6 @@ seal5.cli.export
 .. automodule:: seal5.cli.export
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -17,15 +12,3 @@ seal5.cli.export
       get_parser
       handle
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

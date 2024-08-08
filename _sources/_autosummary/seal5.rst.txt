@@ -4,43 +4,25 @@
 .. automodule:: seal5
 
    
-   
-   
-
-   
-   
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-
 .. rubric:: Modules
 
 .. autosummary::
    :toctree:
    :recursive:
 
-   seal5.backends
-   seal5.cli
-   seal5.dependencies
-   seal5.flow
-   seal5.index
-   seal5.logging
-   seal5.model
-   seal5.pass_list
-   seal5.passes
-   seal5.resources
-   seal5.settings
-   seal5.tools
-   seal5.transform
-   seal5.types
-   seal5.utils
-   seal5.version
-
+   backends
+   cli
+   dependencies
+   flow
+   index
+   logging
+   model
+   pass_list
+   passes
+   resources
+   settings
+   tools
+   transform
+   types
+   utils
+   version
