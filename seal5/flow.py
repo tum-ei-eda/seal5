@@ -63,8 +63,8 @@ def handle_directory(directory: Optional[Path]):
     if directory is None:
         assert NotImplementedError
     if not isinstance(directory, Path):
-        path = Path(directory)
-    return path
+        directory = Path(directory)
+    return directory.resolve()
 
 
 def create_seal5_directories(path: Path, directories: list):
