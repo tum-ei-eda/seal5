@@ -510,6 +510,7 @@ class Seal5Flow:
                     target = patch_settings.target
                     key = (target, name)
                     dest = self.settings.patches_dir / target
+                    dest.mkdir(exist_ok=True)
                     patch_settings.to_yaml_file(dest / f"{name}.yml")
                     # assert key not in temp
                     if key in temp:
