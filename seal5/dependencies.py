@@ -98,7 +98,7 @@ CDSL2LLVM_DIRS = ["llvm/tools/pattern-gen", "llvm/lib/CodeGen", "llvm/include/ll
 
 class CDSL2LLVMDependency(GitDependency):
     # def __init__(self, clone_url="https://github.com/mathis-s/CoreDSL2LLVM.git", ref="main"):
-    def __init__(self, clone_url="https://github.com/PhilippvK/CoreDSL2LLVM.git", ref="philippvk4"):
+    def __init__(self, clone_url="https://github.com/PhilippvK/CoreDSL2LLVM.git", ref="future-paper"):
         super().__init__("cdsl2llvm", clone_url, ref=ref)
 
     def clone(
