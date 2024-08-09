@@ -98,7 +98,7 @@ DEFAULT_SETTINGS = {
     },
     "llvm": {
         "state": {"version": "auto", "base_commit": "unknown"},
-        "ninja": False,
+        "ninja": True,
         "default_config": "release",
         "configs": {
             "release": {
