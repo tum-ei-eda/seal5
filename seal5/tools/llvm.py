@@ -23,6 +23,8 @@ from pathlib import Path
 from typing import List, Optional
 
 import git
+from git import RemoteProgress
+from tqdm import tqdm
 
 from seal5 import utils
 from seal5.logging import get_logger
@@ -52,6 +54,17 @@ def check_llvm_repo(path: Path):
     return True
 
 
+class CloneProgress(RemoteProgress):
+    def __init__(self):
+        super().__init__()
+        self.pbar = tqdm()
+
+    def update(self, op_code, cur_count, max_count=None, message=""):
+        self.pbar.total = max_count
+        self.pbar.n = cur_count
+        self.pbar.refresh()
+
+
 def clone_llvm_repo(
     dest: Path,
     clone_url: str,
@@ -61,6 +74,7 @@ def clone_llvm_repo(
     git_settings: GitSettings = None,
     depth: Optional[int] = None,
     default_major_version: int = 18,
+    progress: bool = True,  # TODO: default to False and expose to flow.py
 ):
     sha = None
     version_info = {}
@@ -77,12 +91,16 @@ def clone_llvm_repo(
                     repo.git.pull("origin", ref)
     else:
         logger.debug("Cloning LLVM repository: %s", clone_url)
+        if progress:
+            clone_progress = CloneProgress()
+        else:
+            clone_progress = None
         no_checkout = ref is not None
         branch = None
         if depth is not None and ref is not None:
             assert "llvmorg" in ref  # Needs to be a valid branch name, not a tag
             branch = ref
-        repo = git.Repo.clone_from(clone_url, dest, no_checkout=no_checkout, branch=branch, depth=depth)
+        repo = git.Repo.clone_from(clone_url, dest, no_checkout=no_checkout, branch=branch, depth=depth, progress=clone_progress)
         if ref:
             logger.debug("Checking out branch: %s", ref)
             repo.git.checkout(ref)
