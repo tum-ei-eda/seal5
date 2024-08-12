@@ -35,7 +35,7 @@ def add_test_options(parser):
         help="Debug?",
     )
     test_parser.add_argument(
-        "--ignore_error",
+        "--ignore-error",
         default=False,
         action="store_true",
         help="Ignore failed tests?",

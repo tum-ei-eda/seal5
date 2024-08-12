@@ -31,7 +31,6 @@ def add_setup_options(parser):
     setup_parser.add_argument(
         "--non-interactive",
         default=False,
-        dest="non_interactive",
         action="store_true",
         help="Do not ask questions interactively",
     )

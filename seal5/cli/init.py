@@ -31,7 +31,6 @@ def add_init_options(parser):
     init_parser.add_argument(
         "--non-interactive",
         default=False,
-        dest="non_interactive",
         action="store_true",
         help="Do not ask questions interactively",
     )
@@ -43,12 +42,12 @@ def add_init_options(parser):
         help="Clone LLVM repository",
     )
     init_parser.add_argument(
-        "--clone_url",
+        "--clone-url",
         default="https://github.com/llvm/llvm-project.git",
         help="Corresponding LLVM repository URL",
     )
     init_parser.add_argument(
-        "--clone_ref",
+        "--clone-ref",
         default="llvmorg-18.1.0-rc3",
         help="Corresponding LLVM repository commit/tag",
     )

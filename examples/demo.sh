@@ -34,23 +34,23 @@ echo Seal5 Build Home:;
 echo ${SEAL5_HOME};
 
 
-seal5 --verbose --dir ${SEAL5_HOME} reset  --settings;
-seal5 --verbose --dir ${SEAL5_HOME} clean --temp --patches --models --inputs;
-seal5 --verbose --dir ${SEAL5_HOME} init --non-interactive -c;
-seal5 --verbose load --files ${Example_files};
-seal5 --verbose load --files ${Config_files[@]};
-seal5 --verbose setup;
-seal5 --verbose patch -s 0;
-seal5 --verbose build;
-seal5 --verbose transform;
-seal5 --verbose generate --skip patter_gen;
-seal5 --verbose patch -s 1 2;
-seal5 --verbose build;
-seal5 --verbose build -t pattern-gen;
-seal5 --verbose build -t llc;
-seal5 --verbose generate --only patter_gen;
-seal5 --verbose patch -s 3 4 5;
-seal5 --verbose build;
-seal5 --verbose test;
-seal5 --verbose deploy;
-seal5 --verbose export;
+seal5 --verbose --dir ${SEAL5_HOME} reset  --settings
+seal5 --verbose --dir ${SEAL5_HOME} clean --temp --patches --models --inputs
+seal5 --verbose --dir ${SEAL5_HOME} init --non-interactive -c
+seal5 --verbose load --files ${Example_files}
+seal5 --verbose load --files ${Config_files[@]}
+seal5 --verbose setup
+seal5 --verbose patch -s 0
+seal5 --verbose build
+seal5 --verbose transform
+seal5 --verbose generate --skip pattern_gen
+seal5 --verbose patch -s 1 2
+seal5 --verbose build
+seal5 --verbose build -t pattern-gen
+seal5 --verbose build -t llc
+seal5 --verbose generate --only pattern_gen
+seal5 --verbose patch -s 3 4 5
+seal5 --verbose build
+seal5 --verbose test
+seal5 --verbose deploy
+seal5 --verbose export
