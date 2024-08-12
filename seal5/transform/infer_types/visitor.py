@@ -388,6 +388,11 @@ def callable_(self: behav.Callable, context):
 
     return self
 
+def procedure_call(self: behav.ProcedureCall, context):
+    self.args = [stmt.generate(context) for stmt in self.args]
+
+    return self
+
 
 def group(self: behav.Group, context):
     self.expr = self.expr.generate(context)
