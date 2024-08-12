@@ -251,6 +251,7 @@ class Seal5Flow:
             if clone is False and not utils.ask_user("Clone LLVM repository?", default=False, interactive=interactive):
                 logger.error("Target directory does not exist! Aborting...")
                 sys.exit(1)
+            logger.info("Cloning LLVM Repository")
             self.repo, sha, version_info = llvm.clone_llvm_repo(
                 self.directory,
                 clone_url,
@@ -261,6 +262,7 @@ class Seal5Flow:
             )
         else:
             if force:
+                logger.info("Updating LLVM Repository")
                 self.repo, sha, version_info = llvm.clone_llvm_repo(
                     self.directory,
                     clone_url,
