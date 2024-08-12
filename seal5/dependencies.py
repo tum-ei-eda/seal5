@@ -25,6 +25,7 @@ import git
 
 from seal5.logging import get_logger
 from seal5.utils import is_populated
+from .tools.llvm import CloneProgress  # TODO: move to other file
 
 logger = get_logger()
 
@@ -40,7 +41,7 @@ class GitDependency(Dependency):
         self.ref: Optional[str] = ref
         self.recursive: bool = recursive
 
-    def clone(self, dest: Path, overwrite: bool = False, depth: Optional[int] = None):
+    def clone(self, dest: Path, overwrite: bool = False, depth: Optional[int] = None, progress: bool = False):
         if is_populated(dest):
             logger.debug("Updating repository: %s", dest)
             repo = git.Repo(dest)
@@ -50,12 +51,16 @@ class GitDependency(Dependency):
             repo.git.pull("origin", self.ref)
             return
         logger.debug("Cloning repository: %s", self.clone_url)
+        if progress:
+            clone_progress = CloneProgress()
+        else:
+            clone_progress = None
         no_checkout = self.ref is not None
         branch = None
         if depth is not None and self.ref is not None:
             branch = self.ref
         repo = git.Repo.clone_from(
-            self.clone_url, dest, recursive=self.recursive, no_checkout=no_checkout, depth=depth, branch=branch
+            self.clone_url, dest, recursive=self.recursive, no_checkout=no_checkout, depth=depth, branch=branch, progress=clone_progress,
         )
         if self.ref:
             logger.debug("Checking out: %s", self.ref)
