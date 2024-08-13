@@ -13,3 +13,6 @@
 [submodule "examples/cdsl/rv_openasip"]
 	path = examples/cdsl/rv_openasip
 	url = https://github.com/PhilippvK/OpenASIP_ISA_CoreDSL.git
+[submodule "examples/cdsl/riscv-scalar-efficiency"]
+	path = examples/cdsl/riscv-scalar-efficiency
+	url = https://github.com/PhilippvK/riscv-scalar-efficiency.git
