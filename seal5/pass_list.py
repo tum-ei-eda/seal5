@@ -1495,3 +1495,39 @@ def pattern_gen_pass(
     with PassManager("pattern_gen_passes", pass_list, skip=[], only=[], parent=parent) as pm:
         result = pm.run([model_name], settings=settings, env=env, verbose=verbose)
     return result
+
+
+def detect_branches(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    use_subprocess: bool = False,
+    log_level: str = "debug",
+    **kwargs,
+):
+    assert inplace
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Detecting side effects for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        log_level,
+    ]
+    if not use_subprocess:
+        from seal5.transform.detect_branches import DetectBranches
+
+        args = sanitize_args(args)
+        DetectBranches(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.detect_branches.collect",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )

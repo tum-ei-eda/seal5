@@ -3,7 +3,8 @@ pyyaml
 # antlr4-python3-runtime~=4.13.1
 # M2-ISA-R @ git+https://github.com/PhilippvK/M2-ISA-R-private.git@seal5
 # m2isar @ git+https://github.com/PhilippvK/M2-ISA-R.git@seal5
-m2isar @ git+https://github.com/PhilippvK/M2-ISA-R.git@seal5_new
+# m2isar @ git+https://github.com/PhilippvK/M2-ISA-R.git@seal5_new
+m2isar @ git+https://github.com/PhilippvK/M2-ISA-R.git@seal5_new_rebase
 importlib_resources
 dacite
 mako
