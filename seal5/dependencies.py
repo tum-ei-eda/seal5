@@ -41,7 +41,7 @@ class GitDependency(Dependency):
         self.ref: Optional[str] = ref
         self.recursive: bool = recursive
 
-    def clone(self, dest: Path, overwrite: bool = False, depth: Optional[int] = None, progress: bool = False):
+    def clone(self, dest: Path, overwrite: bool = False, depth: Optional[int] = None, progress: bool = False, sparse: bool = False, sparse_filter=None):
         if is_populated(dest):
             logger.debug("Updating repository: %s", dest)
             repo = git.Repo(dest)
@@ -55,16 +55,21 @@ class GitDependency(Dependency):
             clone_progress = CloneProgress()
         else:
             clone_progress = None
-        no_checkout = self.ref is not None
+        no_checkout = self.ref is not None or sparse
         branch = None
         if depth is not None and self.ref is not None:
             branch = self.ref
         repo = git.Repo.clone_from(
-            self.clone_url, dest, recursive=self.recursive, no_checkout=no_checkout, depth=depth, branch=branch, progress=clone_progress,
+            self.clone_url, dest, recursive=self.recursive, no_checkout=no_checkout, depth=depth, branch=branch, progress=clone_progress, sparse=sparse
         )
         if self.ref:
             logger.debug("Checking out: %s", self.ref)
             repo.git.checkout(self.ref)
+        if sparse:
+            repo.git.sparse_checkout("init", "--cone")
+            assert sparse_filter is not None
+            assert isinstance(sparse_filter, list)
+            repo.git.sparse_checkout("set", *sparse_filter)
 
 
 class M2ISARDependency(GitDependency):
@@ -73,10 +78,16 @@ class M2ISARDependency(GitDependency):
         super().__init__("m2isar", clone_url, ref=ref)
 
 
+CDSL2LLVM_DIRS = ["llvm/tools/pattern-gen", "llvm/lib/CodeGen", "llvm/include/llvm/CodeGen", "llvm/lib/Target/RISCV"]
+
+
 class CDSL2LLVMDependency(GitDependency):
     # def __init__(self, clone_url="https://github.com/mathis-s/CoreDSL2LLVM.git", ref="main"):
     def __init__(self, clone_url="https://github.com/PhilippvK/CoreDSL2LLVM.git", ref="philippvk4"):
         super().__init__("cdsl2llvm", clone_url, ref=ref)
+
+    def clone(self, dest: Path, overwrite: bool = False, depth: Optional[int] = None, progress: bool = False, sparse: bool = True, sparse_filter=CDSL2LLVM_DIRS):
+        super().clone(dest, overwrite=overwrite, depth=depth, progress=progress, sparse=sparse, sparse_filter=sparse_filter)
 
 
 # m2isar_dependency = M2ISARDependency()
