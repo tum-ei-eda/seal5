@@ -36,7 +36,7 @@ def add_build_options(parser):
     )
     build_parser.add_argument(
         "--config",
-        default="release",
+        default=None,
         help="Choose build Config in Settings.yml",
     )
 

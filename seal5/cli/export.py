@@ -30,9 +30,8 @@ def add_export_options(parser):
     export_parser = parser.add_argument_group("export options")
     export_parser.add_argument(
         "--dest",
-        nargs="?",
         type=str,
-        default="~/.config/seal5/demo/seal5artifact.tar.gz",
+        default=None,
         help="Path to which compressed artifacts should go",
     )
 
