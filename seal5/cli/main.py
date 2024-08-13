@@ -23,7 +23,7 @@ import sys
 
 
 from seal5.logging import get_logger
-from seal5.cli import init, load, setup, reset, clean, patch, build, transform, generate, test, deploy, export
+from seal5.cli import init, load, setup, reset, clean, patch, build, install, transform, generate, test, deploy, export
 from .common import handle_logging_flags, add_common_options
 from ..version import __version__
 
@@ -47,6 +47,7 @@ def main(args=None):
     clean.get_parser(subparsers)
     patch.get_parser(subparsers)
     build.get_parser(subparsers)
+    install.get_parser(subparsers)
     generate.get_parser(subparsers)
     test.get_parser(subparsers)
     deploy.get_parser(subparsers)

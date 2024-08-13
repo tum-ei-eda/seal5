@@ -52,5 +52,6 @@ seal5 --verbose generate --only pattern_gen
 seal5 --verbose patch -s 3 4 5
 seal5 --verbose build
 seal5 --verbose test
+seal5 --verbose install --dest ${SEAL5_HOME}/seal5_llvm_install.zip
 seal5 --verbose deploy --dest ${SEAL5_HOME}/seal5_llvm_source.zip
 seal5 --verbose export

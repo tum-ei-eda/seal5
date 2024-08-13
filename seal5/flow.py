@@ -470,6 +470,37 @@ class Seal5Flow:
         self.settings.save()
         logger.info("Completed build of Seal5 LLVM (%s)", target)
 
+    def install(self, dest: Optional[Union[str, Path]] = None, config=None, verbose: bool = False):
+        # TODO: implement compress?
+        if dest is None:
+            dest = self.settings.install_dir / config
+        if not isinstance(dest, Path):
+            dest = Path(dest)
+        dest.mkdir(exist_ok=True)
+        logger.info("Installing Seal5 LLVM to: %s", dest)
+        start = time.time()
+        metrics = {}
+        if config is None:
+            config = self.settings.llvm.default_config
+        llvm_config = self.settings.llvm.configs.get(config, None)
+        assert llvm_config is not None, f"Invalid llvm config: {config}"
+        cmake_options = llvm_config.options
+        llvm.build_llvm(
+            Path(self.settings.directory),
+            self.settings.build_dir / config,
+            cmake_options=cmake_options,
+            use_ninja=self.settings.llvm.ninja,
+            target=None,
+            install=True,
+            install_dir=dest,
+        )
+        end = time.time()
+        diff = end - start
+        metrics["time_s"] = diff
+        self.settings.metrics.append({"build": metrics})
+        self.settings.save()
+        logger.info("Completed install of Seal5 LLVM")
+
     def transform(self, verbose: bool = False, skip: Optional[List[str]] = None, only: Optional[List[str]] = None):
         logger.info("Tranforming Seal5 models")
         start = time.time()
