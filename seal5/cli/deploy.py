@@ -28,9 +28,15 @@ logger = get_logger()
 
 def get_parser(subparsers):
     """ "Define and return a subparser for the deploy subcommand."""
-    parser = subparsers.add_parser("deploy", description="Deploy Seal5 LLVM.")
-    parser.set_defaults(func=handle)
-    return parser
+    deploy_parser = subparsers.add_parser("deploy", description="Deploy Seal5 LLVM.")
+    deploy_parser.add_argument(
+        "--dest",
+        type=str,
+        default=None,
+        help="Path to which compressed artifacts should go",
+    )
+    deploy_parser.set_defaults(func=handle)
+    return deploy_parser
 
 
 def handle(args):
@@ -42,4 +48,4 @@ def handle(args):
         else:
             logger.error("Seal5_HOME Env var not specified !!!")
     seal5_flow = Seal5Flow(args.dir, args.name)
-    seal5_flow.deploy(verbose=args.verbose)
+    seal5_flow.deploy(dest=args.dest, verbose=args.verbose)

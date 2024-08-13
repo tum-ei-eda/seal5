@@ -713,10 +713,15 @@ class Seal5Flow:
         self.settings.save()
         logger.info("Completed test of Seal5 LLVM")
 
-    def deploy(self, verbose: bool = False):
+    def deploy(self, dest: Path, verbose: bool = False, stage: PatchStage = PatchStage.PHASE_5):
+        assert dest is not None
+        # Archive source files
         logger.info("Deploying Seal5 LLVM")
         start = time.time()
         metrics = {}
+        # TODO: move to different file
+        tag_name = f"seal5-{self.name}-stage{int(stage)}"
+        self.repo.git.archive(tag_name, "-o", dest)
         end = time.time()
         diff = end - start
         metrics["time_s"] = diff
