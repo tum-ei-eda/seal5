@@ -764,6 +764,7 @@ class Seal5Flow:
         logger.info("Exporting Seal5 artifacts")
         start = time.time()
         metrics = {}
+        assert dest is not None
         if isinstance(dest, str):
             dest = Path(dest)
         suffix = dest.suffix

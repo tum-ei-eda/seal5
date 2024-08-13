@@ -54,4 +54,4 @@ seal5 --verbose build
 seal5 --verbose test
 seal5 --verbose install --dest ${SEAL5_HOME}/seal5_llvm_install.zip
 seal5 --verbose deploy --dest ${SEAL5_HOME}/seal5_llvm_source.zip
-seal5 --verbose export
+seal5 --verbose export --dest ${SEAL5_HOME}/seal5.zip
