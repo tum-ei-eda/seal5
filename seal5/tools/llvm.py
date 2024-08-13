@@ -20,7 +20,7 @@
 import re
 import os
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import git
 from git import RemoteProgress
@@ -147,7 +147,13 @@ def build_llvm(
     use_ninja: Optional[bool] = None,
     verbose: bool = False,
     cmake_options: dict = {},
+    install: bool = False,
+    install_dir: Optional[Union[str, Path]] = None,
 ):
+    if install:
+        assert install_dir is not None
+        assert Path(install_dir).parent.is_dir()
+        cmake_options["CMAKE_INSTALL_PREFIX"] = str(install_dir)
     cmake_args = utils.get_cmake_args(cmake_options)
     dest.mkdir(exist_ok=True)
     utils.cmake(
@@ -159,6 +165,9 @@ def build_llvm(
         print_func=logger.info if verbose else logger.debug,
         live=True,
     )
+    if install:
+        assert target is None
+        target = "install"
     utils.make(
         target=target, cwd=dest, print_func=logger.info if verbose else logger.debug, live=True, use_ninja=use_ninja
     )
