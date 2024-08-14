@@ -57,6 +57,7 @@ seal5_flow.initialize(
     clone_url="https://github.com/llvm/llvm-project.git",
     # clone_ref="llvmorg-17.0.6",
     clone_ref="seal5-se-stage0" if PREPATCHED else "llvmorg-18.1.0-rc3",
+    clone_depth=1,
     force=True,
     verbose=VERBOSE,
 )
