@@ -101,7 +101,9 @@ def main():
         # errs = []
         assert out_path.is_dir(), "Expecting output directory when using --splitted"
         for set_name, set_def in model["sets"].items():
+            xlen = set_def.xlen
             metrics["n_sets"] += 1
+            ext_settings = set_def.settings
             for instr_def in set_def.instructions.values():
                 metrics["n_instructions"] += 1
                 attrs = instr_def.attributes
@@ -126,6 +128,13 @@ def main():
                 install_dir = os.getenv("CDSL2LLVM_DIR", None)
                 assert install_dir is not None
                 install_dir = pathlib.Path(install_dir)
+                mattr = default_mattr
+                if ext_settings is not None:
+                    # predicate = ext_settings.get_predicate(name=set_name)
+                    arch_ = ext_settings.get_arch(name=set_name)
+                    mattr = ",".join([*mattr.split(","), f"+{arch_}"])
+                if xlen == 64 and "+64bit" not in mattr:
+                    mattr = ",".join([*mattr.split(","), "+64bit"])
                 try:
                     cdsl2llvm.run_pattern_gen(
                         # install_dir / "llvm" / "build",
@@ -134,7 +143,8 @@ def main():
                         output_file,
                         skip_patterns=True,
                         skip_formats=True,
-                        mattr=default_mattr,
+                        mattr=mattr,
+                        xlen=xlen,
                     )
                     metrics["n_success"] += 1
                 except AssertionError:
