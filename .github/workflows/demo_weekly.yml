@@ -45,7 +45,8 @@ jobs:
         - demo.py
         - demo.sh
         - corev_demo.py
-        - gen_demo.py
+        # Broken due to tablegen freeze
+        # - gen_demo.py
         - gpr32_demo.py
         - openasip_demo.py
         - rv64_demo.py
