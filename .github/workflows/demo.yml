@@ -39,10 +39,10 @@ on:
         description: "Set (-1 for full clone)"
         required: true
         default: "1"
-      fast:
-        description: "Fast (0/1)"
-        required: true
-        default: "0"
+      # fast:
+      #   description: "Fast (0/1)"
+      #   required: true
+      #   default: "0"
       ignore_error:
         description: "Ignore Errors in TEST stage (0/1)"
         required: true
@@ -120,7 +120,7 @@ jobs:
     - name: Run the demo
       run: |
         source .venv/bin/activate
-        VERBOSE=${{ github.event.inputs.verbose }} PROGESS=${{ github.event.inputs.progress }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} FAST=${{ github.event.inputs.fast }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ github.event.inputs.test }} INSTALL=${{ github.event.inputs.install }} DEPLOY=${{ github.event.inputs.deploy }} EXPORT=${{ github.event.inputs.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
+        VERBOSE=${{ github.event.inputs.verbose }} PROGESS=${{ github.event.inputs.progress }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ github.event.inputs.test }} INSTALL=${{ github.event.inputs.install }} DEPLOY=${{ github.event.inputs.deploy }} EXPORT=${{ github.event.inputs.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
     - uses: actions/upload-artifact@v4
       if: "${{ github.event.inputs.export == '1' }}"
       with:

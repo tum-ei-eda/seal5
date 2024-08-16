@@ -32,7 +32,6 @@ set_log_level(console_level="DEBUG", file_level="DEBUG")
 EXAMPLES_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
 # VERBOSE = False
 VERBOSE = bool(int(os.environ.get("VERBOSE", 0)))
-FAST = bool(int(os.environ.get("FAST", 1)))
 SKIP_PATTERNS = bool(int(os.environ.get("SKIP_PATTERNS", 0)))
 INTERACTIVE = bool(int(os.environ.get("INTERACTIVE", 0)))
 PREPATCHED = bool(int(os.environ.get("PREPATCHED", 0)))
@@ -107,9 +106,8 @@ seal5_flow.setup(force=True, progress=PROGRESS, verbose=VERBOSE)
 if not PREPATCHED:
     seal5_flow.patch(verbose=VERBOSE, stages=[PatchStage.PHASE_0])
 
-if not FAST:
-    # Build initial LLVM
-    seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG)
+# Build initial LLVM
+seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG)
 
 # Transform inputs
 #   1. Create M2-ISA-R metamodel
@@ -123,9 +121,9 @@ seal5_flow.generate(verbose=VERBOSE, skip=["pattern_gen"])
 # Apply next patches
 seal5_flow.patch(verbose=VERBOSE, stages=[PatchStage.PHASE_1, PatchStage.PHASE_2])
 
-if not FAST:
-    # Build patched LLVM
-    seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG)
+# Build patched LLVM
+seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG)
+
 if not SKIP_PATTERNS:
     # Build PatternGen & llc
     seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG, target="pattern-gen")
