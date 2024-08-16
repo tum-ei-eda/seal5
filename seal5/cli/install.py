@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""Command line subcommand for Installing Seal5 dependencies"""
+"""Command line subcommand for installing Seal5 LLVM."""
 
 from seal5.flow import Seal5Flow
 from seal5.logging import get_logger
@@ -26,32 +26,30 @@ from os import getenv
 logger = get_logger()
 
 
-def add_setup_options(parser):
-    setup_parser = parser.add_argument_group("setup options")
-    setup_parser.add_argument(
-        "--non-interactive",
-        default=False,
-        action="store_true",
-        help="Do not ask questions interactively",
+def add_install_options(parser):
+    install_parser = parser.add_argument_group("install options")
+    install_parser.add_argument(
+        "--config",
+        default=None,
+        help="Choose build Config in Settings.yml",
     )
-    setup_parser.add_argument(
-        "--progress",
-        action="store_true",
-        help="Show progress bar during clones",
+    install_parser.add_argument(
+        "--dest",
+        default=None,
+        help="Choose destination. If not defined, installed to .seal5/install/$config.",
     )
-    setup_parser.add_argument("--force", "-f", default=False, action="store_true", help="Overwrite Seal5 deps")
 
 
 def get_parser(subparsers):
-    """ "Define and return a subparser for the setup subcommand."""
-    parser = subparsers.add_parser("setup", description="Setup Seal5 deps.")
+    """ "Define and return a subparser for the install subcommand."""
+    parser = subparsers.add_parser("install", description="Install Seal5.")
     parser.set_defaults(func=handle)
-    add_setup_options(parser)
+    add_install_options(parser)
     return parser
 
 
 def handle(args):
-    """Callback function which will be called to process the setup subcommand"""
+    """Callback function which will be called to process the install subcommand"""
     if args.dir is None:
         home_dir = getenv("SEAL5_HOME")
         if home_dir is not None:
@@ -59,9 +57,8 @@ def handle(args):
         else:
             logger.error("Seal5_HOME Env var not specified !!!")
     seal5_flow = Seal5Flow(args.dir, name=args.name)
-    seal5_flow.setup(
-        interactive=not args.non_interactive,
-        force=args.force,
-        progress=args.progress,
+    seal5_flow.install(
+        dest=args.dest,
+        config=args.config,
         verbose=args.verbose,
     )

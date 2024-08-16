@@ -30,7 +30,6 @@ def add_reset_options(parser):
     reset_parser = parser.add_argument_group("reset options")
     reset_parser.add_argument(
         "--non-interactive",
-        dest="non_interactive",
         default=True,
         action="store_true",
         help="Do not ask questions interactively",
@@ -60,5 +59,5 @@ def handle(args):
             args.dir = home_dir
         else:
             logger.error("Seal5_HOME Env var not specified !!!")
-    seal5_flow = Seal5Flow(args.dir, args.name)
+    seal5_flow = Seal5Flow(args.dir, name=args.name)
     seal5_flow.reset(settings=args.settings, verbose=args.verbose, interactive=not args.non_interactive)

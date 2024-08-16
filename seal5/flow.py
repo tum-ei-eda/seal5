@@ -23,7 +23,7 @@ import time
 import glob
 import tarfile
 from pathlib import Path
-from typing import Optional, List, Dict, Tuple
+from typing import Optional, List, Dict, Tuple, Union
 
 import git
 
@@ -31,7 +31,7 @@ from seal5.logging import get_logger, set_log_file, set_log_level
 from seal5.types import Seal5State, PatchStage
 from seal5.settings import Seal5Settings, PatchSettings, DEFAULT_SETTINGS, LLVMConfig, LLVMVersion
 
-from seal5.dependencies import cdsl2llvm_dependency
+from seal5.dependencies import CDSL2LLVMDependency
 from seal5 import utils
 from seal5.tools import llvm, cdsl2llvm, inject_patches
 from seal5.resources.resources import get_patches, get_test_cfg
@@ -67,6 +67,24 @@ def handle_directory(directory: Optional[Path]):
     return directory.resolve()
 
 
+def handle_meta_dir(meta_dir: Optional[Union[str, Path]], directory: Union[str, Path], name: str):
+    # TODO: handle environment vars
+    if meta_dir is None:
+        meta_dir = "default"
+    if meta_dir == "default":
+        if not isinstance(directory, Path):
+            assert isinstance(directory, str)
+            directory = Path(directory)
+        meta_dir = directory / ".seal5"
+    elif meta_dir == "user":
+        # config_dir = get_seal5_user_config_dir()
+        raise NotImplementedError("store meta dirs in .config/seal5/meta")
+    if not isinstance(meta_dir, Path):
+        assert isinstance(meta_dir, str)
+        meta_dir = Path(meta_dir)
+    return meta_dir
+
+
 def create_seal5_directories(path: Path, directories: list):
     logger.debug("Creating Seal5 directories")
     if not isinstance(path, Path):
@@ -85,17 +103,22 @@ def add_test_cfg(tests_dir: Path):
 
 
 class Seal5Flow:
-    def __init__(self, directory: Optional[Path] = None, name: Optional[str] = None):
+    def __init__(
+        self, directory: Optional[Path] = None, meta_dir: Optional[Union[str, Path]] = None, name: Optional[str] = None
+    ):
         self.directory: Path = handle_directory(directory)
+        self.meta_dir: Path = handle_meta_dir(meta_dir, directory, name)
+        self.name: str = name
         self.state: Seal5State = Seal5State.UNKNOWN
         self.passes: List[Seal5Pass] = []
         self.repo: Optional[git.Repo] = git.Repo(self.directory) if self.directory.is_dir() else None
         self.check()
-        self.settings = Seal5Settings.from_dict(DEFAULT_SETTINGS)
+        self.settings = Seal5Settings.from_dict({"meta_dir": str(self.meta_dir), **DEFAULT_SETTINGS})
         # self.settings: Seal5Settings = Seal5Settings(directory=self.directory)
         self.settings.directory = str(self.directory)
         if self.settings.settings_file.is_file():
             self.settings = Seal5Settings.from_yaml_file(self.settings.settings_file)
+            self.meta_dir = self.settings._meta_dir
         if self.settings.logs_dir.is_dir():
             set_log_file(self.settings.log_file_path)
             if self.settings:
@@ -103,6 +126,7 @@ class Seal5Flow:
                     console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level
                 )
         self.name = self.settings.name if name is None else name
+        self.settings.name = self.name
         self.settings.name = self.settings.name if name is None else name
         self.reset_passes()
         self.create_passes()
@@ -219,6 +243,8 @@ class Seal5Flow:
         clone: bool = False,
         clone_url: Optional[str] = None,
         clone_ref: Optional[str] = None,
+        clone_depth: Optional[int] = None,
+        progress: bool = False,
         force: bool = False,
         verbose: bool = False,
     ):
@@ -231,11 +257,19 @@ class Seal5Flow:
             if clone is False and not utils.ask_user("Clone LLVM repository?", default=False, interactive=interactive):
                 logger.error("Target directory does not exist! Aborting...")
                 sys.exit(1)
+            logger.info("Cloning LLVM Repository")
             self.repo, sha, version_info = llvm.clone_llvm_repo(
-                self.directory, clone_url, ref=clone_ref, label=self.name, git_settings=self.settings.git
+                self.directory,
+                clone_url,
+                ref=clone_ref,
+                label=self.name,
+                git_settings=self.settings.git,
+                depth=int(clone_depth) if clone_depth is not None else self.settings.llvm.clone_depth,
+                progress=progress,
             )
         else:
             if force:
+                logger.info("Updating LLVM Repository")
                 self.repo, sha, version_info = llvm.clone_llvm_repo(
                     self.directory,
                     clone_url,
@@ -243,16 +277,17 @@ class Seal5Flow:
                     refresh=True,
                     label=self.name,
                     git_settings=self.settings.git,
+                    depth=clone_depth or self.settings.llvm.clone_depth,
                 )
-        if self.settings.meta_dir.is_dir():
+        if self.meta_dir.is_dir():
             if force is False and not utils.ask_user(
                 "Overwrite existing .seal5 diretcory?", default=False, interactive=interactive
             ):
-                logger.error(f"Directory {self.settings.meta_dir} already exists! Aborting...")
+                logger.error(f"Directory {self.meta_dir} already exists! Aborting...")
                 sys.exit(1)
-        self.settings.meta_dir.mkdir(exist_ok=True)
+        self.meta_dir.mkdir(exist_ok=True)
         create_seal5_directories(
-            self.settings.meta_dir,
+            self.meta_dir,
             ["deps", "models", "logs", "build", "install", "temp", "inputs", "gen", "patches", "tests"],
         )
         add_test_cfg(self.settings.tests_dir)
@@ -275,6 +310,7 @@ class Seal5Flow:
         self,
         interactive: bool = False,
         force: bool = False,
+        progress: bool = False,
         verbose: bool = False,
     ):
         logger.info("Installing Seal5 dependencies")
@@ -282,7 +318,20 @@ class Seal5Flow:
         metrics = {}
         logger.info("Cloning CDSL2LLVM")
         # cdsl2llvm_dependency.clone(self.settings.deps_dir / "cdsl2llvm", overwrite=force, depth=1)
-        cdsl2llvm_dependency.clone(self.settings.deps_dir / "cdsl2llvm", overwrite=force)
+        pattern_gen_settings = self.settings.tools.pattern_gen
+        kwargs = {}
+        if pattern_gen_settings.clone_url is not None:
+            kwargs["clone_url"] = pattern_gen_settings.clone_url
+        if pattern_gen_settings.ref is not None:
+            kwargs["ref"] = pattern_gen_settings.ref
+        cdsl2llvm_dependency = CDSL2LLVMDependency(**kwargs)
+        cdsl2llvm_dependency.clone(
+            self.settings.deps_dir / "cdsl2llvm",
+            overwrite=force,
+            depth=pattern_gen_settings.clone_depth,
+            sparse=pattern_gen_settings.sparse_checkout,
+            progress=progress,
+        )
         integrated_pattern_gen = self.settings.tools.pattern_gen.integrated
         if integrated_pattern_gen:
             logger.info("Adding PatternGen to target LLVM")
@@ -432,6 +481,37 @@ class Seal5Flow:
         self.settings.metrics.append({"build": metrics})
         self.settings.save()
         logger.info("Completed build of Seal5 LLVM (%s)", target)
+
+    def install(self, dest: Optional[Union[str, Path]] = None, config=None, verbose: bool = False):
+        # TODO: implement compress?
+        if dest is None:
+            dest = self.settings.install_dir / config
+        if not isinstance(dest, Path):
+            dest = Path(dest)
+        dest.mkdir(exist_ok=True)
+        logger.info("Installing Seal5 LLVM to: %s", dest)
+        start = time.time()
+        metrics = {}
+        if config is None:
+            config = self.settings.llvm.default_config
+        llvm_config = self.settings.llvm.configs.get(config, None)
+        assert llvm_config is not None, f"Invalid llvm config: {config}"
+        cmake_options = llvm_config.options
+        llvm.build_llvm(
+            Path(self.settings.directory),
+            self.settings.build_dir / config,
+            cmake_options=cmake_options,
+            use_ninja=self.settings.llvm.ninja,
+            target=None,
+            install=True,
+            install_dir=dest,
+        )
+        end = time.time()
+        diff = end - start
+        metrics["time_s"] = diff
+        self.settings.metrics.append({"build": metrics})
+        self.settings.save()
+        logger.info("Completed install of Seal5 LLVM")
 
     def transform(self, verbose: bool = False, skip: Optional[List[str]] = None, only: Optional[List[str]] = None):
         logger.info("Tranforming Seal5 models")
@@ -676,10 +756,15 @@ class Seal5Flow:
         self.settings.save()
         logger.info("Completed test of Seal5 LLVM")
 
-    def deploy(self, verbose: bool = False):
+    def deploy(self, dest: Path, verbose: bool = False, stage: PatchStage = PatchStage.PHASE_5):
+        assert dest is not None
+        # Archive source files
         logger.info("Deploying Seal5 LLVM")
         start = time.time()
         metrics = {}
+        # TODO: move to different file
+        tag_name = f"seal5-{self.name}-stage{int(stage)}"
+        self.repo.git.archive(tag_name, "-o", dest)
         end = time.time()
         diff = end - start
         metrics["time_s"] = diff
@@ -691,6 +776,7 @@ class Seal5Flow:
         logger.info("Exporting Seal5 artifacts")
         start = time.time()
         metrics = {}
+        assert dest is not None
         if isinstance(dest, str):
             dest = Path(dest)
         suffix = dest.suffix
@@ -709,8 +795,8 @@ class Seal5Flow:
         with tarfile.open(dest, mode="w:gz") as archive:
             for artifact in artifacts:
                 name = str(artifact)
-                assert str(self.settings.meta_dir) in name
-                name = name.replace(f"{self.settings.meta_dir}/", "")
+                assert str(self.meta_dir) in name
+                name = name.replace(f"{self.meta_dir}/", "")
                 if artifact.is_file():
                     archive.add(artifact, arcname=name)
                 elif artifact.is_dir():
@@ -735,7 +821,7 @@ class Seal5Flow:
         diff = end - start
         metrics["time_s"] = diff
         self.settings.metrics.append({"reset": metrics})
-        if self.settings.meta_dir.is_dir():
+        if self.meta_dir.is_dir():
             self.settings.save()
         logger.info("Completed clean of Seal5 settings")
 
@@ -781,6 +867,6 @@ class Seal5Flow:
         diff = end - start
         metrics["time_s"] = diff
         self.settings.metrics.append({"clean": metrics})
-        if self.settings.meta_dir.is_dir():
+        if self.meta_dir.is_dir():
             self.settings.save()
         logger.info("Completed clean of Seal5 directories")

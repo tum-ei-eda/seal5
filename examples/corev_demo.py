@@ -31,16 +31,22 @@ set_log_level(console_level="DEBUG", file_level="DEBUG")
 
 EXAMPLES_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
 VERBOSE = bool(int(os.environ.get("VERBOSE", 0)))
-FAST = bool(int(os.environ.get("FAST", 1)))
 SKIP_PATTERNS = bool(int(os.environ.get("SKIP_PATTERNS", 0)))
 INTERACTIVE = bool(int(os.environ.get("INTERACTIVE", 0)))
 PREPATCHED = bool(int(os.environ.get("PREPATCHED", 0)))
 BUILD_CONFIG = os.environ.get("BUILD_CONFIG", "release")
 IGNORE_ERROR = bool(int(os.environ.get("IGNORE_ERROR", 1)))
-DEST = os.environ.get("DEST", "/tmp/seal5_llvm_corev")
+TEST = bool(int(os.environ.get("TEST", 1)))
+INSTALL = bool(int(os.environ.get("INSTALL", 1)))
+DEPLOY = bool(int(os.environ.get("DEPLOY", 1)))
+EXPORT = bool(int(os.environ.get("EXPORT", 1)))
+CLEANUP = bool(int(os.environ.get("CLEANUP", 0)))
+PROGRESS = bool(int(os.environ.get("PROGRESS", 1)))
+CLONE_DEPTH = bool(int(os.environ.get("CLONE_DEPTH", 1)))
+DEST = os.environ.get("DEST", "/tmp/seal5_llvm_corev").rstrip("/")
 NAME = os.environ.get("NAME", "corev")
 
-seal5_flow = Seal5Flow(DEST, NAME)
+seal5_flow = Seal5Flow(DEST, name=NAME)
 
 # Optional: clean existing settings/models for fresh run
 seal5_flow.reset(settings=True, interactive=False)
@@ -56,6 +62,8 @@ seal5_flow.initialize(
     clone_url="https://github.com/llvm/llvm-project.git",
     # clone_ref="llvmorg-17.0.6",
     clone_ref="seal5-corev-stage0" if PREPATCHED else "llvmorg-18.1.0-rc3",
+    clone_depth=CLONE_DEPTH,
+    progress=PROGRESS,
     force=True,
     verbose=VERBOSE,
 )
@@ -102,15 +110,14 @@ seal5_flow.settings.llvm.default_config = BUILD_CONFIG
 
 # Clone & install Seal5 dependencies
 # 1. CDSL2LLVM (add PHASE_0 patches)
-seal5_flow.setup(force=True, verbose=VERBOSE)
+seal5_flow.setup(force=True, progress=PROGRESS, verbose=VERBOSE)
 
 # Apply initial patches
 if not PREPATCHED:
     seal5_flow.patch(verbose=VERBOSE, stages=[PatchStage.PHASE_0])
 
-if not FAST:
-    # Build initial LLVM
-    seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG)
+# Build initial LLVM
+seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG)
 
 # Transform inputs
 #   1. Create M2-ISA-R metamodel
@@ -124,9 +131,9 @@ seal5_flow.generate(verbose=VERBOSE, skip=["pattern_gen"])
 # Apply next patches
 seal5_flow.patch(verbose=VERBOSE, stages=[PatchStage.PHASE_1, PatchStage.PHASE_2])
 
-if not FAST:
-    # Build patched LLVM
-    seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG)
+# Build patched LLVM
+seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG)
+
 if not SKIP_PATTERNS:
     # Build PatternGen & llc
     seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG, target="pattern-gen")
@@ -141,14 +148,23 @@ if not SKIP_PATTERNS:
 # Build patched LLVM
 seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG)
 
-# Test patched LLVM
-seal5_flow.test(verbose=VERBOSE, ignore_error=IGNORE_ERROR)
+if TEST:
+    # Test patched LLVM
+    seal5_flow.test(verbose=VERBOSE, ignore_error=IGNORE_ERROR)
 
-# Deploy patched LLVM (combine commits and create tag)
-seal5_flow.deploy(verbose=VERBOSE)
+if INSTALL:
+    # Install final LLVM
+    seal5_flow.install(verbose=VERBOSE, config=BUILD_CONFIG)
 
-# Export patches, logs, reports
-seal5_flow.export(f"{DEST}.tar.gz", verbose=VERBOSE)
+if DEPLOY:
+    # Deploy patched LLVM (export sources)
+    # TODO: combine commits and create tag
+    seal5_flow.deploy(f"{DEST}_source.zip", verbose=VERBOSE)
 
-# Optional: cleanup temorary files, build dirs,...
-# seal5.clean(temp=True, build=True, deps=True, interactive=INTERACTIVE)
+if EXPORT:
+    # Export patches, logs, reports
+    seal5_flow.export(f"{DEST}.tar.gz", verbose=VERBOSE)
+
+if CLEANUP:
+    # Optional: cleanup temorary files, build dirs,...
+    seal5_flow.clean(temp=True, patches=True, models=True, inputs=True, interactive=INTERACTIVE)

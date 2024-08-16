@@ -18,56 +18,45 @@
 ##
 
 # Seal5 demonstration (also serves as end-to-end testj
-name: Usage Demo (Manual)
+name: Usage Demo (Weekly)
 
 on:
   workflow_dispatch:
-    inputs:
-      script:
-        description: "Script"
-        required: true
-        default: "demo.py"
-      verbose:
-        description: "Verbose (0/1)"
-        required: true
-        default: "0"
-      progress:
-        description: "Enable progress bars (0/1)"
-        required: true
-        default: "1"
-      clone_depth:
-        description: "Set (-1 for full clone)"
-        required: true
-        default: "1"
-      # fast:
-      #   description: "Fast (0/1)"
-      #   required: true
-      #   default: "0"
-      ignore_error:
-        description: "Ignore Errors in TEST stage (0/1)"
-        required: true
-        default: "1"
-      build_config:
-        description: "Build Config (debug/release/...)"
-        required: true
-        default: "release"
-      test:
-        description: "Run LLVM tests"
-        required: true
-        default: "1"
-      install:
-        description: "Install LLVM (and upload as artifact)"
-        required: true
-        default: "1"
-      deploy:
-        description: "Install LLVM Sources (and upload as artifact)"
-        required: true
-        default: "1"
-      export:
-        description: "Install Seal5 Artifacts (and upload as artifact)"
-        required: true
-        default: "1"
-      # TODO: maybe add Python/OS version here?
+  schedule:
+    - cron: "0 0 * * 6"
+
+strategy:
+  matrix:
+    os:
+    - ubuntu-latest
+    python-version:
+    - 3.10
+    script:
+    - demo.py
+    - demo.sh
+    verbose:
+    - "0"
+    progress:
+    - "1"
+    clone_depth:
+    - 1
+    # fast:
+    # - "0"
+    ignore_error:
+    - "1"
+    build_config:
+    - release
+    - release_assertions
+    test:
+    - "1"
+    install:
+    - "1"
+    deploy:
+    - "1"
+    export:
+    - "1"
+
+
 # push:
 #   branches:
 #     - main
@@ -77,10 +66,7 @@ on:
 
 jobs:
   demo:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.10"]
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
       with:
@@ -107,10 +93,10 @@ jobs:
     - name: Determine program
       id: ctx
       run: |
-        if [[ "${{ github.event.inputs.script }}" == *.py ]]
+        if [[ "${{ matrix.script }}" == *.py ]]
         then
             echo "program=python3" >> $GITHUB_OUTPUT
-        elif [[ "${{ github.event.inputs.script }}" == *.sh ]]
+        elif [[ "${{ matrix.script }}" == *.sh ]]
         then
             echo "program=bash" >> $GITHUB_OUTPUT
         else
@@ -120,19 +106,19 @@ jobs:
     - name: Run the demo
       run: |
         source .venv/bin/activate
-        VERBOSE=${{ github.event.inputs.verbose }} PROGESS=${{ github.event.inputs.progress }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ github.event.inputs.test }} INSTALL=${{ github.event.inputs.install }} DEPLOY=${{ github.event.inputs.deploy }} EXPORT=${{ github.event.inputs.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
+        VERBOSE=${{ matrix.verbose }} PROGRES=${{ matrix.progress }} CLONE_DEPTH=${{ matrix.clone_depth }} BUILD_CONFIG=${{ matrix.build_config }} IGNORE_ERROR=${{ matrix.ignore_error }} TEST=${{ matrix.test }} INSTALL=${{ matrix.install }} DEPLOY=${{ matrix.deploy }} EXPORT=${{ matrix.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ matrix.script }}
     - uses: actions/upload-artifact@v4
-      if: "${{ github.event.inputs.export == '1' }}"
+      if: "${{ matrix.export == '1' }}"
       with:
         name: demo-export
         path: /tmp/seal5_llvm.tar.gz
     - uses: actions/upload-artifact@v4
-      if: "${{ github.event.inputs.install == '1' }}"
+      if: "${{ matrix.install == '1' }}"
       with:
         name: demo-install
-        path: /tmp/seal5_llvm/.seal5/install/${{ github.event.inputs.build_config }}
+        path: /tmp/seal5_llvm/.seal5/install/${{ matrix.build_config }}
     - uses: actions/upload-artifact@v4
-      if: "${{ github.event.inputs.deploy == '1' }}"
+      if: "${{ matrix.deploy == '1' }}"
       with:
         name: demo-source
         path: /tmp/seal5_llvm_source.zip

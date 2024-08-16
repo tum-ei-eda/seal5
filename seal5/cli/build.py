@@ -17,10 +17,10 @@
 # limitations under the License.
 #
 """Command line subcommand for building Seal5 LLVM."""
+from os import getenv
 
 from seal5.flow import Seal5Flow
 from seal5.logging import get_logger
-from os import getenv
 
 
 logger = get_logger()
@@ -36,7 +36,7 @@ def add_build_options(parser):
     )
     build_parser.add_argument(
         "--config",
-        default="release",
+        default=None,
         help="Choose build Config in Settings.yml",
     )
 
@@ -57,7 +57,7 @@ def handle(args):
             args.dir = home_dir
         else:
             logger.error("Seal5_HOME Env var not specified !!!")
-    seal5_flow = Seal5Flow(args.dir, args.name)
+    seal5_flow = Seal5Flow(args.dir, name=args.name)
     seal5_flow.build(
         config=args.config,
         target=args.target,

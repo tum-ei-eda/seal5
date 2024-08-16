@@ -7,3 +7,4 @@ m2isar @ git+https://github.com/PhilippvK/M2-ISA-R.git@seal5_new
 importlib_resources
 dacite
 mako
+tqdm

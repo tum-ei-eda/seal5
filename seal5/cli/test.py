@@ -35,7 +35,7 @@ def add_test_options(parser):
         help="Debug?",
     )
     test_parser.add_argument(
-        "--ignore_error",
+        "--ignore-error",
         default=False,
         action="store_true",
         help="Ignore failed tests?",
@@ -65,7 +65,7 @@ def handle(args):
             args.dir = home_dir
         else:
             logger.error("Seal5_HOME Env var not specified !!!")
-    seal5_flow = Seal5Flow(args.dir, args.name)
+    seal5_flow = Seal5Flow(args.dir, name=args.name)
     seal5_flow.test(
         debug=args.debug,
         verbose=args.verbose,

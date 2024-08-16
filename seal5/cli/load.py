@@ -54,6 +54,6 @@ def handle(args):
             args.dir = home_dir
         else:
             logger.error("Seal5_HOME Env var not specified !!!")
-    seal5_flow = Seal5Flow(args.dir, args.name)
+    seal5_flow = Seal5Flow(args.dir, name=args.name)
     logger.warning(args.files)
     seal5_flow.load(files=list(args.files), overwrite=args.overwrite, verbose=args.verbose)

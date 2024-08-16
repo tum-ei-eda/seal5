@@ -2,6 +2,7 @@ llvm:
   ninja: true  # TODO: move to configs
   num_threads: -1  # TODO: move to configs
   default_config: release
+  clone_depth: 1
   configs:
     release:
       options:
@@ -21,6 +22,7 @@ llvm:
         LLVM_ENABLE_PROJECTS: [clang, lld]
         # LLVM_TARGETS_TO_BUILD: [X86, RISCV]
         LLVM_TARGETS_TO_BUILD: [RISCV]
+        LLVM_FORCE_ENABLE_STATS: true
     debug:
       options:
         CMAKE_BUILD_TYPE: Debug
@@ -30,5 +32,8 @@ llvm:
         LLVM_ENABLE_PROJECTS: [clang, lld]
         # LLVM_TARGETS_TO_BUILD: [X86, RISCV]
         LLVM_TARGETS_TO_BUILD: [RISCV]
+        # LLVM_PARALLEL_COMPILE_JOBS: ?
         LLVM_PARALLEL_LINK_JOBS: 8
+        # LLVM_PARALLEL_TABLEGEN_JOBS: ?
         # LLVM_USE_LINKER: lld
+        LLVM_FORCE_ENABLE_STATS: true

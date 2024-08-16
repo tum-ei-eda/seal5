@@ -150,6 +150,8 @@ def main():
                     predicate = ext_settings.get_predicate(name=set_name)
                     arch_ = ext_settings.get_arch(name=set_name)
                     mattr = ",".join([*mattr.split(","), f"+{arch_}"])
+                if xlen == 64 and "+64bit" not in mattr:
+                    mattr = ",".join([*mattr.split(","), "+64bit"])
 
                 assert install_dir is not None
                 install_dir = pathlib.Path(install_dir)

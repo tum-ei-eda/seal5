@@ -1,13 +1,13 @@
 # Seal5
 
-> [!NOTE]  
+> [!NOTE]
 > Starting **July 11, 2024** we will be offering (monthly) Seal5 Development/User meetings.
 >
 > Next call: **Sep 12, 2024, 11:00**
-> 
+>
 > Click [here](https://github.com/tum-ei-eda/seal5/discussions/104) for details, if you are interested!
 
-> [!NOTE]  
+> [!NOTE]
 > Seal5 was recently presented at the RISC-V Summit Europe 2024. Click [here](https://github.com/tum-ei-eda/seal5/discussions/107) to access the poster, slides & recording.
 
 [![pypi package](https://badge.fury.io/py/seal5.svg)](https://pypi.org/project/seal5)
@@ -18,7 +18,7 @@
 
 ## Overview
 
-The RISC-V instruction set architecture (ISA) is popular for its extensibility. However, a quick exploration of instruction candidates fails due to the lack of tools to auto-generate embedded software toolchain support. Seal5 work establishes a semi-automated flow to generate LLVM compiler support for custom instructions based on the CoreDSL2 ISA description language. Seal5 is capable of generating support for functionalities ranging from baseline assembler-level support, over builtin functions to compiler code generation patterns for scalar as well as vector instructions, while requiring no deeper compiler know-how. 
+The RISC-V instruction set architecture (ISA) is popular for its extensibility. However, a quick exploration of instruction candidates fails due to the lack of tools to auto-generate embedded software toolchain support. Seal5 work establishes a semi-automated flow to generate LLVM compiler support for custom instructions based on the CoreDSL2 ISA description language. Seal5 is capable of generating support for functionalities ranging from baseline assembler-level support, over builtin functions to compiler code generation patterns for scalar as well as vector instructions, while requiring no deeper compiler know-how.
 
 Eliminating manual efforts for Retargeting is crutial for the automated exploration of custom RISC-V instructions as depicted in the following image. Seal5's code-generation support allows to make use of custom instructions without needing to make changes to the programs/benchmarks source code (i.e. adding inline-assembly calls).
 
@@ -44,13 +44,17 @@ sudo apt install python3-pip python3-venv cmake make ninja-build
 
 First, setup a virtual environment with Python v3.8 or newer.
 
-Install all required python packages using the follow8n* command:
+Install all required python packages using the following command:
 
 `pip install -r requirements.txt`.
 
 For development (linting, packaging,...) there are a few more dependencies which can be installed via:
 
 `pip install -r requirements_dev.txt`.
+
+### System Requirements
+
+The initial cloning of the `llvm-project` repo will take a long time, hence a good internet connection is recommended. To run the demo, make sure to have at least 20GB (>40GB for debug builds) of disk space available in the destination (`/tmp/seal5_llvm_demo`) directory. The target directory can be changed as follows: `DEST=$HOME/seal5_demo`.
 
 ### Installation
 

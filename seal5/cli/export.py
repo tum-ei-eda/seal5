@@ -17,10 +17,10 @@
 # limitations under the License.
 #
 """Command line subcommand for Exporting Seal5 artifacts"""
+from os import getenv
 
 from seal5.flow import Seal5Flow
 from seal5.logging import get_logger
-from os import getenv
 
 
 logger = get_logger()
@@ -30,9 +30,8 @@ def add_export_options(parser):
     export_parser = parser.add_argument_group("export options")
     export_parser.add_argument(
         "--dest",
-        nargs="?",
         type=str,
-        default="~/.config/seal5/demo/seal5artifact.tar.gz",
+        default=None,
         help="Path to which compressed artifacts should go",
     )
 
@@ -53,5 +52,5 @@ def handle(args):
             args.dir = home_dir
         else:
             logger.error("Seal5_HOME Env var not specified !!!")
-    seal5_flow = Seal5Flow(args.dir, args.name)
+    seal5_flow = Seal5Flow(args.dir, name=args.name)
     seal5_flow.export(dest=args.dest, verbose=args.verbose)

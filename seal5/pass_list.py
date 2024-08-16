@@ -1280,16 +1280,29 @@ def convert_llvmir_to_gmir(
     # for input_file in input_files:
     #     name = input_file.name
     #     sub = name.replace(".seal5model", "")
+    default_mattr = "+m,+fast-unaligned-access"
+    if settings:
+        riscv_settings = settings.riscv
+        if riscv_settings:
+            xlen = riscv_settings.xlen
+            features = riscv_settings.features
+            if features is None:
+                pass
+            else:
+                default_mattr = ",".join([f"+{f}" for f in features])
+            if xlen == 64 and "+64bit" not in default_mattr:
+                default_mattr = ",".join([*default_mattr.split(","), "+64bit"])
     for _ in [None]:
         set_names = list(settings.extensions.keys())
         assert len(set_names) > 0, "No sets found"
         for set_name in set_names:
-            insn_names = settings.extensions[set_name].instructions
+            ext_settings = settings.extensions[set_name]
+            insn_names = ext_settings.instructions
             if insn_names is None:
                 logger.warning("Skipping empty set %s", set_name)
                 continue
             assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
-            sub = settings.extensions[set_name].model
+            sub = ext_settings.model
             if sub != input_model:
                 continue
             # TODO: populate model in yaml backend!
@@ -1312,11 +1325,19 @@ def convert_llvmir_to_gmir(
                         cdsl2llvm_build_dir = str(settings.build_dir / config)
                     else:
                         cdsl2llvm_build_dir = str(settings.deps_dir / "cdsl2llvm" / "llvm" / "build")
+                    mattr = default_mattr
+                    if ext_settings is not None:
+                        # predicate = ext_settings.get_predicate(name=set_name)
+                        arch_ = ext_settings.get_arch(name=set_name)
+                        mattr = ",".join([*mattr.split(","), f"+{arch_}"])
+                    # TODO: migrate with pass to cmdline backend
                     cdsl2llvm.convert_ll_to_gmir(
                         # settings.deps_dir / "cdsl2llvm" / "llvm" / "build", ll_file, output_file
                         cdsl2llvm_build_dir,
                         ll_file,
                         output_file,
+                        mattr=mattr,
+                        xlen=xlen,
                     )
                 except AssertionError:
                     pass

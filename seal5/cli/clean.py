@@ -18,9 +18,10 @@
 #
 """Command line subcommand for cleaning seal5 environment."""
 
+from os import getenv
+
 from seal5.flow import Seal5Flow
 from seal5.logging import get_logger
-from os import getenv
 
 
 logger = get_logger()
@@ -30,55 +31,46 @@ def add_clean_options(parser):
     clean_parser = parser.add_argument_group("clean options")
     clean_parser.add_argument(
         "--temp",
-        default=False,
         action="store_true",
         help="Delete temp folder folder?",
     )
     clean_parser.add_argument(
         "--patches",
-        default=False,
         action="store_true",
         help="Delete patches folder folder?",
     )
     clean_parser.add_argument(
         "--models",
-        default=False,
         action="store_true",
         help="Delete models folder folder?",
     )
     clean_parser.add_argument(
         "--inputs",
-        default=False,
         action="store_true",
         help="Delete inputs folder folder?",
     )
     clean_parser.add_argument(
         "--logs",
-        default=False,
         action="store_true",
         help="Delete logs folder folder?",
     )
     clean_parser.add_argument(
         "--install",
-        default=False,
         action="store_true",
         help="Delete install folder folder?",
     )
     clean_parser.add_argument(
         "--build",
-        default=False,
         action="store_true",
         help="Delete build folder folder?",
     )
     clean_parser.add_argument(
         "--deps",
-        default=False,
         action="store_true",
         help="Delete deps folder folder?",
     )
     clean_parser.add_argument(
         "--non-interactive",
-        dest="non_interactive",
         default=True,
         action="store_true",
         help="Do not ask questions interactively",
@@ -101,7 +93,7 @@ def handle(args):
             args.dir = home_dir
         else:
             logger.error("Seal5_HOME Env var not specified !!!")
-    seal5_flow = Seal5Flow(args.dir, args.name)
+    seal5_flow = Seal5Flow(args.dir, name=args.name)
     seal5_flow.clean(
         temp=args.temp,
         patches=args.patches,

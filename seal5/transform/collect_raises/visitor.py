@@ -137,7 +137,11 @@ def conditional(self: behav.Conditional, context):
                 stmt = behav.Block([])  # Replace with empty block
                 context.found_raise = False
             else:
-                raise NotImplementedError
+                assert isinstance(stmt, behav.ProcedureCall), "Nesting raises not allowed"
+                assert isinstance(stmt.ref_or_name, arch.Function), "Expected function"
+                assert stmt.ref_or_name.name == "raise", "Expected raise operation"
+                stmt = behav.Block([])  # Replace with empty block
+                context.found_raise = False
             # input("aaaa")
         self.stmts[i] = stmt
         # print("after", context.cond_stack)

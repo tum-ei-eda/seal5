@@ -258,9 +258,22 @@ def convert_ll_to_gmir(
     build_dir: Path,
     src: Path,
     dest: Path,
+    mattr=None,
+    xlen=None,
     verbose: bool = False,
 ):
-    llc_args = [src, "-mtriple=riscv32-unknown-elf", "-stop-after=irtranslator", "-global-isel", "-O3"]
+    if mattr is None:
+        attrs = ["+m", "+fast-unaligned-access"]
+        if xlen == 64 and "+64bit" not in attrs:
+            attrs.append("+64bit")
+        mattr = ",".join(attrs)
+
+    assert xlen is not None, "Needs XLEN"
+
+    llc_args = [src, f"-mtriple=riscv{xlen}-unknown-elf", "-stop-after=irtranslator", "-global-isel", "-O3"]
+
+    if mattr:
+        llc_args.extend(["--mattr2", mattr])
 
     if not isinstance(build_dir, Path):
         build_dir = Path(build_dir)
