@@ -67,21 +67,21 @@ def handle_directory(directory: Optional[Path]):
     return directory.resolve()
 
 
-def handle_meta_dir(meta_dir: Optional[Union[str, Path]], directory: Path, name: str):
+def handle_meta_dir(meta_dir: Optional[Union[str, Path]], directory: Union[str, Path], name: str):
     # TODO: handle environment vars
-    if not isinstance(meta_dir, Path):
-        assert isinstance(meta_dir, str)
-        meta_dir = Path(meta_dir)
     if meta_dir is None:
         meta_dir = "default"
     if meta_dir == "default":
+        if not isinstance(directory, Path):
+            assert isinstance(directory, str)
+            directory = Path(directory)
         meta_dir = directory / ".seal5"
     elif meta_dir == "user":
         # config_dir = get_seal5_user_config_dir()
         raise NotImplementedError("store meta dirs in .config/seal5/meta")
-    if isinstance(meta_dir, str):
+    if not isinstance(meta_dir, Path):
+        assert isinstance(meta_dir, str)
         meta_dir = Path(meta_dir)
-    # assert meta_dir.parent.is_dir()
     return meta_dir
 
 
