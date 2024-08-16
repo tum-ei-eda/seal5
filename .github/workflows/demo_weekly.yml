@@ -43,6 +43,15 @@ jobs:
         script:
         - demo.py
         - demo.sh
+        - corev_demo.py
+        - gen_demo.py
+        - gpr32_demo.py
+        - openasip_demo.py
+        - rv64_demo.py
+        - rvc_demo.py
+        - rvp_demo.py
+        - s4e_demo.py
+        - tumeda_demo.py
         verbose:
         - "0"
         progress:
@@ -54,7 +63,7 @@ jobs:
         ignore_error:
         - "1"
         build_config:
-        - release
+        # - release
         - release_assertions
         test:
         - "1"
