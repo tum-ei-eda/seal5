@@ -17,5 +17,6 @@ seal5.backends
    riscv_gisel_legalizer
    riscv_instr_info
    riscv_isa_info
+   riscv_register_info
    viewer_seal5
    yaml

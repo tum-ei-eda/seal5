@@ -1,0 +1,6 @@
+seal5.backends.riscv\_register\_info
+====================================
+
+.. automodule:: seal5.backends.riscv_register_info
+
+   
