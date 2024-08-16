@@ -82,7 +82,7 @@ def handle_meta_dir(meta_dir: Optional[Union[str, Path]], directory: Union[str, 
     if not isinstance(meta_dir, Path):
         assert isinstance(meta_dir, str)
         meta_dir = Path(meta_dir)
-    return meta_dir
+    return meta_dir.resolve()
 
 
 def create_seal5_directories(path: Path, directories: list):
