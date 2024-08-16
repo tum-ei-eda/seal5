@@ -18,7 +18,7 @@
 ##
 
 # Seal5 demonstration (also serves as end-to-end testj
-name: Usage Demo
+name: Usage Demo (Manual)
 
 on:
   workflow_dispatch:
@@ -43,6 +43,23 @@ on:
         description: "Build Config (debug/release/...)"
         required: true
         default: "release"
+      test:
+        description: "Run LLVM tests"
+        required: true
+        default: "1"
+      install:
+        description: "Install LLVM (and upload as artifact)"
+        required: true
+        default: "1"
+      deploy:
+        description: "Install LLVM Sources (and upload as artifact)"
+        required: true
+        default: "1"
+      export:
+        description: "Install Seal5 Artifacts (and upload as artifact)"
+        required: true
+        default: "1"
+      # TODO: maybe add Python/OS version here?
 # push:
 #   branches:
 #     - main
@@ -82,8 +99,19 @@ jobs:
     - name: Run the demo
       run: |
         source .venv/bin/activate
-        VERBOSE=${{ github.event.inputs.verbose }} FAST=${{ github.event.inputs.fast }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} DEST=/tmp/seal5_llvm python examples/${{ github.event.inputs.script }}
+        VERBOSE=${{ github.event.inputs.verbose }} FAST=${{ github.event.inputs.fast }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ github.event.inputs.test }} INSTALL=${{ github.event.inputs.install }} DEPLOY=${{ github.event.inputs.deploy }} EXPORT=${{ github.event.inputs.export }} DEST=/tmp/seal5_llvm python examples/${{ github.event.inputs.script }}
     - uses: actions/upload-artifact@v4
+      if: ${{ github.event.inputs.export == "1" }}
       with:
         name: demo-export
         path: /tmp/seal5_llvm.tar.gz
+    - uses: actions/upload-artifact@v4
+      if: ${{ github.event.inputs.install == "1" }}
+      with:
+        name: demo-install
+        path: /tmp/seal5_llvm/.seal5/install/${{ github.event.inputs.build_config }}
+    - uses: actions/upload-artifact@v4
+      if: ${{ github.event.inputs.deploy == "1" }}
+      with:
+        name: demo-source
+        path: /tmp/seal5_llvm_source.zip
