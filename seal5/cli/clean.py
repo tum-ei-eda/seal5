@@ -18,9 +18,10 @@
 #
 """Command line subcommand for cleaning seal5 environment."""
 
+from os import getenv
+
 from seal5.flow import Seal5Flow
 from seal5.logging import get_logger
-from os import getenv
 
 
 logger = get_logger()
@@ -30,49 +31,41 @@ def add_clean_options(parser):
     clean_parser = parser.add_argument_group("clean options")
     clean_parser.add_argument(
         "--temp",
-        default=False,
         action="store_true",
         help="Delete temp folder folder?",
     )
     clean_parser.add_argument(
         "--patches",
-        default=False,
         action="store_true",
         help="Delete patches folder folder?",
     )
     clean_parser.add_argument(
         "--models",
-        default=False,
         action="store_true",
         help="Delete models folder folder?",
     )
     clean_parser.add_argument(
         "--inputs",
-        default=False,
         action="store_true",
         help="Delete inputs folder folder?",
     )
     clean_parser.add_argument(
         "--logs",
-        default=False,
         action="store_true",
         help="Delete logs folder folder?",
     )
     clean_parser.add_argument(
         "--install",
-        default=False,
         action="store_true",
         help="Delete install folder folder?",
     )
     clean_parser.add_argument(
         "--build",
-        default=False,
         action="store_true",
         help="Delete build folder folder?",
     )
     clean_parser.add_argument(
         "--deps",
-        default=False,
         action="store_true",
         help="Delete deps folder folder?",
     )

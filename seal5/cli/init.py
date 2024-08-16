@@ -17,10 +17,10 @@
 # limitations under the License.
 #
 """Command line subcommand for initializing Seal5 environment."""
+from os import getenv
 
 from seal5.flow import Seal5Flow
 from seal5.logging import get_logger
-from os import getenv
 
 
 logger = get_logger()
@@ -30,14 +30,12 @@ def add_init_options(parser):
     init_parser = parser.add_argument_group("init options")
     init_parser.add_argument(
         "--non-interactive",
-        default=False,
         action="store_true",
         help="Do not ask questions interactively",
     )
     init_parser.add_argument(
         "--clone",
         "-c",
-        default=False,
         action="store_true",
         help="Clone LLVM repository",
     )
@@ -65,7 +63,6 @@ def add_init_options(parser):
     init_parser.add_argument(
         "--force",
         "-f",
-        default=False,
         action="store_true",
         help="Allow overwriting an existing seal5 directory",
     )

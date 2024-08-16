@@ -17,10 +17,10 @@
 # limitations under the License.
 #
 """Command line subcommand for building Seal5 LLVM."""
+from os import getenv
 
 from seal5.flow import Seal5Flow
 from seal5.logging import get_logger
-from os import getenv
 
 
 logger = get_logger()

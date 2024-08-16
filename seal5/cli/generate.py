@@ -17,10 +17,10 @@
 # limitations under the License.
 #
 """Generating Seal5 patches"""
+from os import getenv
 
 from seal5.flow import Seal5Flow
 from seal5.logging import get_logger
-from os import getenv
 
 
 logger = get_logger()
