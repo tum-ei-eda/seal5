@@ -114,17 +114,17 @@ jobs:
         source .venv/bin/activate
         VERBOSE=${{ github.event.inputs.verbose }} FAST=${{ github.event.inputs.fast }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ github.event.inputs.test }} INSTALL=${{ github.event.inputs.install }} DEPLOY=${{ github.event.inputs.deploy }} EXPORT=${{ github.event.inputs.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
     - uses: actions/upload-artifact@v4
-      if: ${{ github.event.inputs.export == "1" }}
+      if: "${{ github.event.inputs.export == '1' }}"
       with:
         name: demo-export
         path: /tmp/seal5_llvm.tar.gz
     - uses: actions/upload-artifact@v4
-      if: ${{ github.event.inputs.install == "1" }}
+      if: "${{ github.event.inputs.install == 1' }}"
       with:
         name: demo-install
         path: /tmp/seal5_llvm/.seal5/install/${{ github.event.inputs.build_config }}
     - uses: actions/upload-artifact@v4
-      if: ${{ github.event.inputs.deploy == "1" }}
+      if: "${{ github.event.inputs.deploy == '1' }}"
       with:
         name: demo-source
         path: /tmp/seal5_llvm_source.zip
