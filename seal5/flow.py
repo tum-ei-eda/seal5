@@ -264,7 +264,7 @@ class Seal5Flow:
                 ref=clone_ref,
                 label=self.name,
                 git_settings=self.settings.git,
-                depth=clone_depth or self.settings.llvm.clone_depth,
+                depth=int(clone_depth) if clone_depth is not None else self.settings.llvm.clone_depth,
                 progress=progress,
             )
         else:
