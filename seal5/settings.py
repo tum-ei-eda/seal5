@@ -155,6 +155,7 @@ DEFAULT_SETTINGS = {
             "ref": None,
             # "clone_depth": None,
             "clone_depth": 1,
+            "sparse_checkout": True,
         },
     },
 }
@@ -524,6 +525,7 @@ class PatternGenSettings(YAMLSettings):
     clone_url: Optional[str] = None
     ref: Optional[str] = None
     clone_depth: Optional[int] = None
+    sparse_checkout: Optional[bool] = None
 
 
 @dataclass

@@ -320,7 +320,10 @@ class Seal5Flow:
             kwargs["ref"] = pattern_gen_settings.ref
         cdsl2llvm_dependency = CDSL2LLVMDependency(**kwargs)
         cdsl2llvm_dependency.clone(
-            self.settings.deps_dir / "cdsl2llvm", overwrite=force, depth=pattern_gen_settings.clone_depth
+            self.settings.deps_dir / "cdsl2llvm",
+            overwrite=force,
+            depth=pattern_gen_settings.clone_depth,
+            sparse=pattern_gen_settings.sparse_checkout,
         )
         integrated_pattern_gen = self.settings.tools.pattern_gen.integrated
         if integrated_pattern_gen:
