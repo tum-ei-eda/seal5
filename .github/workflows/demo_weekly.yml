@@ -104,9 +104,11 @@ jobs:
         if [[ "${{ matrix.script }}" == *.py ]]
         then
             echo "program=python3" >> $GITHUB_OUTPUT
+            echo "name=$(basename ${{ matrix.script}} .py)-py" >> $GITHUB_OUTPUT
         elif [[ "${{ matrix.script }}" == *.sh ]]
         then
             echo "program=bash" >> $GITHUB_OUTPUT
+            echo "name=$(basename ${{ matrix.script}} .sh)-sh" >> $GITHUB_OUTPUT
         else
             echo "Invalid file extension!"
             exit 1
@@ -118,15 +120,15 @@ jobs:
     - uses: actions/upload-artifact@v4
       if: "${{ matrix.export == '1' }}"
       with:
-        name: demo-export
+        name: demo-${{ steps.ctx.name }}-export
         path: /tmp/seal5_llvm.tar.gz
     - uses: actions/upload-artifact@v4
       if: "${{ matrix.install == '1' }}"
       with:
-        name: demo-install
+        name: demo-${{ steps.ctx.name }}-install
         path: /tmp/seal5_llvm/.seal5/install/${{ matrix.build_config }}
     - uses: actions/upload-artifact@v4
       if: "${{ matrix.deploy == '1' }}"
       with:
-        name: demo-source
+        name: demo-${{ steps.ctx.name }}-source
         path: /tmp/seal5_llvm_source.zip
