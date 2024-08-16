@@ -25,38 +25,6 @@ on:
   schedule:
     - cron: "0 0 * * 6"
 
-strategy:
-  matrix:
-    os:
-    - ubuntu-latest
-    python-version:
-    - 3.10
-    script:
-    - demo.py
-    - demo.sh
-    verbose:
-    - "0"
-    progress:
-    - "1"
-    clone_depth:
-    - 1
-    # fast:
-    # - "0"
-    ignore_error:
-    - "1"
-    build_config:
-    - release
-    - release_assertions
-    test:
-    - "1"
-    install:
-    - "1"
-    deploy:
-    - "1"
-    export:
-    - "1"
-
-
 # push:
 #   branches:
 #     - main
@@ -66,6 +34,36 @@ strategy:
 
 jobs:
   demo:
+    strategy:
+      matrix:
+        os:
+        - ubuntu-latest
+        python-version:
+        - 3.10
+        script:
+        - demo.py
+        - demo.sh
+        verbose:
+        - "0"
+        progress:
+        - "1"
+        clone_depth:
+        - 1
+        # fast:
+        # - "0"
+        ignore_error:
+        - "1"
+        build_config:
+        - release
+        - release_assertions
+        test:
+        - "1"
+        install:
+        - "1"
+        deploy:
+        - "1"
+        export:
+        - "1"
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
