@@ -53,6 +53,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#ubuntu-packages">Ubuntu Packages</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#python-requirements">Python Requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#system-requirements">System Requirements</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#installation">Installation</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#from-pypi">From PyPI</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#local-development-version">Local Development Version</a></li>
@@ -138,10 +139,14 @@ Seal5 was recently presented at the RISC-V Summit Europe 2024. Click <a class="r
 <section id="python-requirements">
 <h3>Python Requirements<a class="headerlink" href="#python-requirements" title="Link to this heading"></a></h3>
 <p>First, setup a virtual environment with Python v3.8 or newer.</p>
-<p>Install all required python packages using the follow8n* command:</p>
+<p>Install all required python packages using the following command:</p>
 <p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-r</span> <span class="pre">requirements.txt</span></code>.</p>
 <p>For development (linting, packaging,…) there are a few more dependencies which can be installed via:</p>
 <p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-r</span> <span class="pre">requirements_dev.txt</span></code>.</p>
+</section>
+<section id="system-requirements">
+<h3>System Requirements<a class="headerlink" href="#system-requirements" title="Link to this heading"></a></h3>
+<p>The initial cloning of the <code class="docutils literal notranslate"><span class="pre">llvm-project</span></code> repo will take a long time, hence a good internet connection is recommended. To run the demo, make sure to have at least 20GB (&gt;40GB for debug builds) of disk space available in the destination (<code class="docutils literal notranslate"><span class="pre">/tmp/seal5_llvm_demo</span></code>) directory. The target directory can be changed as follows: <code class="docutils literal notranslate"><span class="pre">DEST=$HOME/seal5_demo</span></code>.</p>
 </section>
 <section id="installation">
 <h3>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h3>

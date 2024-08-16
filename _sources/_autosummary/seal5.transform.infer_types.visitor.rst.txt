@@ -20,6 +20,7 @@ seal5.transform.infer\_types.visitor
       named_reference
       number_literal
       operation
+      procedure_call
       return_
       scalar_definition
       slice_operation

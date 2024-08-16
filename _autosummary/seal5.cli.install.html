@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>seal5.cli.test &mdash; Seal5 v0.1.2 documentation</title>
+  <title>seal5.cli.install &mdash; Seal5 v0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -21,8 +21,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="seal5.cli.transform" href="seal5.cli.transform.html" />
-    <link rel="prev" title="seal5.cli.setup" href="seal5.cli.setup.html" /> 
+    <link rel="next" title="seal5.cli.load" href="seal5.cli.load.html" />
+    <link rel="prev" title="seal5.cli.init" href="seal5.cli.init.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -55,13 +55,13 @@
 <li class="toctree-l3"><a class="reference internal" href="seal5.cli.export.html">seal5.cli.export</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.cli.generate.html">seal5.cli.generate</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.cli.init.html">seal5.cli.init</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.cli.install.html">seal5.cli.install</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">seal5.cli.install</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.cli.load.html">seal5.cli.load</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.cli.main.html">seal5.cli.main</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.cli.patch.html">seal5.cli.patch</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.cli.reset.html">seal5.cli.reset</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.cli.setup.html">seal5.cli.setup</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">seal5.cli.test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.cli.test.html">seal5.cli.test</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.cli.transform.html">seal5.cli.transform</a></li>
 </ul>
 </li>
@@ -103,9 +103,9 @@
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="seal5.html">seal5</a></li>
           <li class="breadcrumb-item"><a href="seal5.cli.html">seal5.cli</a></li>
-      <li class="breadcrumb-item active">seal5.cli.test</li>
+      <li class="breadcrumb-item active">seal5.cli.install</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/_autosummary/seal5.cli.test.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/_autosummary/seal5.cli.install.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -113,20 +113,20 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-seal5.cli.test">
-<span id="seal5-cli-test"></span><h1>seal5.cli.test<a class="headerlink" href="#module-seal5.cli.test" title="Link to this heading"></a></h1>
-<p>Command line subcommand for Testing seal5 environment.</p>
+  <section id="module-seal5.cli.install">
+<span id="seal5-cli-install"></span><h1>seal5.cli.install<a class="headerlink" href="#module-seal5.cli.install" title="Link to this heading"></a></h1>
+<p>Command line subcommand for installing Seal5 LLVM.</p>
 <p class="rubric">Functions</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_test_options</span></code>(parser)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_install_options</span></code>(parser)</p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parser</span></code>(subparsers)</p></td>
-<td><p>&quot;Define and return a subparser for the test subcommand.</p></td>
+<td><p>&quot;Define and return a subparser for the install subcommand.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">handle</span></code>(args)</p></td>
-<td><p>Callback function which will be called to process the test subcommand</p></td>
+<td><p>Callback function which will be called to process the install subcommand</p></td>
 </tr>
 </tbody>
 </table>
@@ -136,8 +136,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="seal5.cli.setup.html" class="btn btn-neutral float-left" title="seal5.cli.setup" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="seal5.cli.transform.html" class="btn btn-neutral float-right" title="seal5.cli.transform" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="seal5.cli.init.html" class="btn btn-neutral float-left" title="seal5.cli.init" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="seal5.cli.load.html" class="btn btn-neutral float-right" title="seal5.cli.load" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

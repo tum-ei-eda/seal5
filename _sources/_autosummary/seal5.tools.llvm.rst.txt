@@ -13,3 +13,9 @@ seal5.tools.llvm
       clone_llvm_repo
       test_llvm
    
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CloneProgress
+   

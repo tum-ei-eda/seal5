@@ -17,6 +17,7 @@ seal5.cli
    export
    generate
    init
+   install
    load
    main
    patch

@@ -1,0 +1,14 @@
+seal5.cli.install
+=================
+
+.. automodule:: seal5.cli.install
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      add_install_options
+      get_parser
+      handle
+   
