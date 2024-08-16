@@ -110,7 +110,7 @@ class Seal5Flow:
         self.passes: List[Seal5Pass] = []
         self.repo: Optional[git.Repo] = git.Repo(self.directory) if self.directory.is_dir() else None
         self.check()
-        self.settings = Seal5Settings.from_dict({"meta_dir": self.meta_dir, **DEFAULT_SETTINGS})
+        self.settings = Seal5Settings.from_dict({"meta_dir": str(self.meta_dir), **DEFAULT_SETTINGS})
         # self.settings: Seal5Settings = Seal5Settings(directory=self.directory)
         self.settings.directory = str(self.directory)
         if self.settings.settings_file.is_file():
