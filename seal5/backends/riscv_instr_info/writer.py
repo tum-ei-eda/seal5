@@ -191,28 +191,7 @@ def gen_riscv_instr_info_str(instr, set_def):
     print("fields")
     encoding = instr.encoding
     print("encoding")
-<<<<<<< HEAD
     attrs = instr.llvm_attributes
-=======
-    # input(">")
-    attrs = {}
-    if Seal5InstrAttribute.HAS_SIDE_EFFECTS in attributes:
-        attrs["hasSideEffects"] = 1
-    else:
-        attrs["hasSideEffects"] = 0
-    if Seal5InstrAttribute.MAY_LOAD in attributes:
-        attrs["mayLoad"] = 1
-    else:
-        attrs["mayLoad"] = 0
-    if Seal5InstrAttribute.MAY_STORE in attributes:
-        attrs["mayStore"] = 1
-    else:
-        attrs["mayStore"] = 0
-    if Seal5InstrAttribute.IS_TERMINATOR in attributes:
-        attrs["isTerminator"] = 1
-    else:
-        attrs["isTerminator"] = 0
->>>>>>> riscv_instr_info: emit Uses/Defs attrs
     # constraints = instr.constraints
     # if len(constraints) > 0:
     #     raise NotImplementedError
