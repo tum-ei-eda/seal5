@@ -97,22 +97,22 @@ jobs:
         source .venv/bin/activate
         pip install -e .
     - name: Determine program
-        id: context
-        run: |
-          if [[ "${{github.event.inputs.script}}" == "*.py" ]]
-          then
-              echo "program=python3" >> $GITHUB_OUTPUT
-          elif [[ "${{github.event.inputs.script}}" == "*.sh" ]]
-          then
-              echo "program=bash" >> $GITHUB_OUTPUT
-          else
-              echo "Invalid file extension!"
-              exit 1
-          fi
+      id: ctx
+      run: |
+        if [[ "${{github.event.inputs.script}}" == "*.py" ]]
+        then
+            echo "program=python3" >> $GITHUB_OUTPUT
+        elif [[ "${{github.event.inputs.script}}" == "*.sh" ]]
+        then
+            echo "program=bash" >> $GITHUB_OUTPUT
+        else
+            echo "Invalid file extension!"
+            exit 1
+        fi
     - name: Run the demo
       run: |
         source .venv/bin/activate
-        VERBOSE=${{ github.event.inputs.verbose }} FAST=${{ github.event.inputs.fast }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ github.event.inputs.test }} INSTALL=${{ github.event.inputs.install }} DEPLOY=${{ github.event.inputs.deploy }} EXPORT=${{ github.event.inputs.export }} DEST=/tmp/seal5_llvm ${{ steps.context.outputs.program }} examples/${{ github.event.inputs.script }}
+        VERBOSE=${{ github.event.inputs.verbose }} FAST=${{ github.event.inputs.fast }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ github.event.inputs.test }} INSTALL=${{ github.event.inputs.install }} DEPLOY=${{ github.event.inputs.deploy }} EXPORT=${{ github.event.inputs.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
     - uses: actions/upload-artifact@v4
       if: ${{ github.event.inputs.export == "1" }}
       with:
