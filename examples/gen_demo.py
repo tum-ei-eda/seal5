@@ -38,6 +38,11 @@ INTERACTIVE = bool(int(os.environ.get("INTERACTIVE", 0)))
 PREPATCHED = bool(int(os.environ.get("PREPATCHED", 0)))
 BUILD_CONFIG = os.environ.get("BUILD_CONFIG", "release")
 IGNORE_ERROR = bool(int(os.environ.get("IGNORE_ERROR", 1)))
+TEST = bool(int(os.environ.get("TEST", 1)))
+INSTALL = bool(int(os.environ.get("INSTALL", 1)))
+DEPLOY = bool(int(os.environ.get("DEPLOY", 1)))
+EXPORT = bool(int(os.environ.get("EXPORT", 1)))
+CLEANUP = bool(int(os.environ.get("CLEANUP", 0)))
 DEST = os.environ.get("DEST", "/tmp/seal5_llvm_gen").rstrip("/")
 NAME = os.environ.get("NAME", "gen")
 
@@ -133,14 +138,23 @@ if not SKIP_PATTERNS:
 # Build patched LLVM
 seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG)
 
-# Test patched LLVM
-seal5_flow.test(verbose=VERBOSE, ignore_error=IGNORE_ERROR)
+if TEST:
+    # Test patched LLVM
+    seal5_flow.test(verbose=VERBOSE, ignore_error=IGNORE_ERROR)
 
-# Deploy patched LLVM (combine commits and create tag)
-seal5_flow.deploy(verbose=VERBOSE)
+if INSTALL:
+    # Install final LLVM
+    seal5_flow.install(verbose=VERBOSE, config=BUILD_CONFIG)
 
-# Export patches, logs, reports
-seal5_flow.export(f"{DEST}.tar.gz", verbose=VERBOSE)
+if DEPLOY:
+    # Deploy patched LLVM (export sources)
+    # TODO: combine commits and create tag
+    seal5_flow.deploy(f"{DEST}_source.zip", verbose=VERBOSE)
 
-# Optional: cleanup temorary files, build dirs,...
-# seal5.clean(temp=True, build=True, deps=True, interactive=INTERACTIVE)
+if EXPORT:
+    # Export patches, logs, reports
+    seal5_flow.export(f"{DEST}.tar.gz", verbose=VERBOSE)
+
+if CLEANUP:
+    # Optional: cleanup temorary files, build dirs,...
+    seal5_flow.clean(temp=True, patches=True, models=True, inputs=True, interactive=INTERACTIVE)
