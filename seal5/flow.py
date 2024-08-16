@@ -69,6 +69,9 @@ def handle_directory(directory: Optional[Path]):
 
 def handle_meta_dir(meta_dir: Optional[Union[str, Path]], directory: Path, name: str):
     # TODO: handle environment vars
+    if not isinstance(meta_dir, Path):
+        assert isinstance(meta_dir, str)
+        meta_dir = Path(meta_dir)
     if meta_dir is None:
         meta_dir = "default"
     if meta_dir == "default":
