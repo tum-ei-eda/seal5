@@ -241,6 +241,7 @@ class Seal5Flow:
         clone_url: Optional[str] = None,
         clone_ref: Optional[str] = None,
         clone_depth: Optional[int] = None,
+        progress: bool = False,
         force: bool = False,
         verbose: bool = False,
     ):
@@ -261,6 +262,7 @@ class Seal5Flow:
                 label=self.name,
                 git_settings=self.settings.git,
                 depth=clone_depth or self.settings.llvm.clone_depth,
+                progress=progress,
             )
         else:
             if force:
@@ -305,6 +307,7 @@ class Seal5Flow:
         self,
         interactive: bool = False,
         force: bool = False,
+        progress: bool = False,
         verbose: bool = False,
     ):
         logger.info("Installing Seal5 dependencies")
@@ -324,6 +327,7 @@ class Seal5Flow:
             overwrite=force,
             depth=pattern_gen_settings.clone_depth,
             sparse=pattern_gen_settings.sparse_checkout,
+            progress=progress,
         )
         integrated_pattern_gen = self.settings.tools.pattern_gen.integrated
         if integrated_pattern_gen:

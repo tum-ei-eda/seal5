@@ -34,6 +34,11 @@ def add_setup_options(parser):
         action="store_true",
         help="Do not ask questions interactively",
     )
+    setup_parser.add_argument(
+        "--progress",
+        action="store_true",
+        help="Show progress bar during clones",
+    )
     setup_parser.add_argument("--force", "-f", default=False, action="store_true", help="Overwrite Seal5 deps")
 
 
@@ -57,5 +62,6 @@ def handle(args):
     seal5_flow.setup(
         interactive=not args.non_interactive,
         force=args.force,
+        progress=args.progress,
         verbose=args.verbose,
     )

@@ -58,6 +58,11 @@ def add_init_options(parser):
         help="LLVM clone depth (use 1 for shallow clone)",
     )
     init_parser.add_argument(
+        "--progress",
+        action="store_true",
+        help="Show progress bar during LLVM clone",
+    )
+    init_parser.add_argument(
         "--force",
         "-f",
         default=False,
@@ -89,6 +94,7 @@ def handle(args):
         clone_url=args.clone_url,
         clone_ref=args.clone_ref,
         clone_depth=args.clone_depth if isinstance(args.clone_depth, int) and args.clone_depth > 0 else None,
+        progress=args.progress,
         force=args.force,
         verbose=args.verbose,
     )
