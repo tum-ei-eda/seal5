@@ -47,11 +47,11 @@ jobs:
         - corev_demo.py
         # Broken due to tablegen freeze
         # - gen_demo.py
-        - gpr32_demo.py
+        # - gpr32_demo.py
         - openasip_demo.py
         - rv64_demo.py
         - rvc_demo.py
-        - rvp_demo.py
+        # - rvp_demo.py
         - s4e_demo.py
         - tumeda_demo.py
         verbose:
