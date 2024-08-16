@@ -63,8 +63,8 @@ def handle_directory(directory: Optional[Path]):
     if directory is None:
         assert NotImplementedError
     if not isinstance(directory, Path):
-        path = Path(directory)
-    return path
+        directory = Path(directory)
+    return directory.resolve()
 
 
 def handle_meta_dir(meta_dir: Optional[Union[str, Path]], directory: Path, name: str):
@@ -545,6 +545,7 @@ class Seal5Flow:
                     target = patch_settings.target
                     key = (target, name)
                     dest = self.settings.patches_dir / target
+                    dest.mkdir(exist_ok=True)
                     patch_settings.to_yaml_file(dest / f"{name}.yml")
                     # assert key not in temp
                     if key in temp:

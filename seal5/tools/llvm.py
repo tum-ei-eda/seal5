@@ -60,6 +60,7 @@ def clone_llvm_repo(
     label: str = "default",
     git_settings: GitSettings = None,
     depth: Optional[int] = None,
+    default_major_version: int = 18,
 ):
     sha = None
     version_info = {}
@@ -93,7 +94,10 @@ def clone_llvm_repo(
     # repo.create_tag(f"seal5-{label}-base", "-f", author=author)
     repo.create_tag(f"seal5-{label}-base", "-f")
     # git describe --tags --match "llvmorg-[0-9]*.[0-9]*.[0-9]*"
-    describe = repo.git.describe("--tags", "--match", "llvmorg-[0-9]*.[0-9]*.[0-9]*")
+    try:
+        describe = repo.git.describe("--tags", "--match", "llvmorg-[0-9]*.[0-9]*.[0-9]*")
+    except git.GitCommandError:
+        describe = None
     if describe:
         splitted = describe.split("-", 3)
         base = splitted[0]
@@ -107,6 +111,9 @@ def clone_llvm_repo(
         if "rc" in rest:
             rc = rest.split("-", 1)[0][2:]
             version_info["rc"] = int(rc)
+    else:
+        if default_major_version is not None:
+            version_info["major"] = default_major_version
 
     sha = repo.head.commit.hexsha
     return repo, sha, version_info
