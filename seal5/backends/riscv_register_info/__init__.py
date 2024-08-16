@@ -16,8 +16,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""MAKO templates for RISCVISAInfo.tf patches"""
-
-import pathlib
-
-template_dir = pathlib.Path(__file__).parent.resolve()
+"""Seal5 RISCVRegisterInfo.td backend"""
