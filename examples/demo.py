@@ -44,6 +44,7 @@ DEPLOY = bool(int(os.environ.get("DEPLOY", 1)))
 EXPORT = bool(int(os.environ.get("EXPORT", 1)))
 CLEANUP = bool(int(os.environ.get("CLEANUP", 0)))
 PROGRESS = bool(int(os.environ.get("PROGRESS", 1)))
+CLONE_DEPTH = bool(int(os.environ.get("CLONE_DEPTH", 1)))
 DEST = os.environ.get("DEST", "/tmp/seal5_llvm_demo").rstrip("/")
 NAME = os.environ.get("NAME", "demo")
 
@@ -63,6 +64,7 @@ seal5_flow.initialize(
     clone_url="https://github.com/llvm/llvm-project.git",
     # clone_ref="llvmorg-17.0.6",
     clone_ref="seal5-demo-stage0" if PREPATCHED else "llvmorg-18.1.0-rc3",
+    clone_depth=CLONE_DEPTH,
     progress=PROGRESS,
     force=True,
     verbose=VERBOSE,
