@@ -115,6 +115,7 @@ class Seal5Flow:
         self.settings.directory = str(self.directory)
         if self.settings.settings_file.is_file():
             self.settings = Seal5Settings.from_yaml_file(self.settings.settings_file)
+            self.meta_dir = self.settings._meta_dir
         if self.settings.logs_dir.is_dir():
             set_log_file(self.settings.log_file_path)
             if self.settings:
@@ -273,15 +274,15 @@ class Seal5Flow:
                     git_settings=self.settings.git,
                     depth=clone_depth or self.settings.llvm.clone_depth,
                 )
-        if self.settings.meta_dir.is_dir():
+        if self.meta_dir.is_dir():
             if force is False and not utils.ask_user(
                 "Overwrite existing .seal5 diretcory?", default=False, interactive=interactive
             ):
-                logger.error(f"Directory {self.settings.meta_dir} already exists! Aborting...")
+                logger.error(f"Directory {self.meta_dir} already exists! Aborting...")
                 sys.exit(1)
-        self.settings.meta_dir.mkdir(exist_ok=True)
+        self.meta_dir.mkdir(exist_ok=True)
         create_seal5_directories(
-            self.settings.meta_dir,
+            self.meta_dir,
             ["deps", "models", "logs", "build", "install", "temp", "inputs", "gen", "patches", "tests"],
         )
         add_test_cfg(self.settings.tests_dir)
@@ -784,8 +785,8 @@ class Seal5Flow:
         with tarfile.open(dest, mode="w:gz") as archive:
             for artifact in artifacts:
                 name = str(artifact)
-                assert str(self.settings.meta_dir) in name
-                name = name.replace(f"{self.settings.meta_dir}/", "")
+                assert str(self.meta_dir) in name
+                name = name.replace(f"{self.meta_dir}/", "")
                 if artifact.is_file():
                     archive.add(artifact, arcname=name)
                 elif artifact.is_dir():
@@ -810,7 +811,7 @@ class Seal5Flow:
         diff = end - start
         metrics["time_s"] = diff
         self.settings.metrics.append({"reset": metrics})
-        if self.settings.meta_dir.is_dir():
+        if self.meta_dir.is_dir():
             self.settings.save()
         logger.info("Completed clean of Seal5 settings")
 
@@ -856,6 +857,6 @@ class Seal5Flow:
         diff = end - start
         metrics["time_s"] = diff
         self.settings.metrics.append({"clean": metrics})
-        if self.settings.meta_dir.is_dir():
+        if self.meta_dir.is_dir():
             self.settings.save()
         logger.info("Completed clean of Seal5 directories")
