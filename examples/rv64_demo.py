@@ -48,7 +48,7 @@ CLONE_DEPTH = bool(int(os.environ.get("CLONE_DEPTH", 1)))
 DEST = os.environ.get("DEST", "/tmp/seal5_llvm_rv64").rstrip("/")
 NAME = os.environ.get("NAME", "rv64")
 
-seal5_flow = Seal5Flow(DEST, NAME)
+seal5_flow = Seal5Flow(DEST, name=NAME)
 
 # Optional: clean existing settings/models for fresh run
 seal5_flow.reset(settings=True, interactive=False)
