@@ -99,10 +99,10 @@ jobs:
     - name: Determine program
       id: ctx
       run: |
-        if [[ "${{github.event.inputs.script}}" == "*.py" ]]
+        if [[ "${{ github.event.inputs.script }}" == *.py ]]
         then
             echo "program=python3" >> $GITHUB_OUTPUT
-        elif [[ "${{github.event.inputs.script}}" == "*.sh" ]]
+        elif [[ "${{ github.event.inputs.script }}" == *.sh ]]
         then
             echo "program=bash" >> $GITHUB_OUTPUT
         else
