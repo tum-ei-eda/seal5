@@ -43,6 +43,7 @@ INSTALL = bool(int(os.environ.get("INSTALL", 1)))
 DEPLOY = bool(int(os.environ.get("DEPLOY", 1)))
 EXPORT = bool(int(os.environ.get("EXPORT", 1)))
 CLEANUP = bool(int(os.environ.get("CLEANUP", 0)))
+PROGRESS = bool(int(os.environ.get("PROGRESS", 1)))
 DEST = os.environ.get("DEST", "/tmp/seal5_llvm_rvc").rstrip("/")
 NAME = os.environ.get("NAME", "rvc")
 
@@ -62,6 +63,7 @@ seal5_flow.initialize(
     clone_url="https://github.com/llvm/llvm-project.git",
     # clone_ref="llvmorg-17.0.6",
     clone_ref="seal5-rvc-stage0" if PREPATCHED else "llvmorg-18.1.0-rc3",
+    progress=PROGRESS,
     force=True,
     verbose=VERBOSE,
 )
@@ -99,7 +101,7 @@ seal5_flow.settings.llvm.default_config = BUILD_CONFIG
 
 # Clone & install Seal5 dependencies
 # 1. CDSL2LLVM (add PHASE_0 patches)
-seal5_flow.setup(force=True, verbose=VERBOSE)
+seal5_flow.setup(force=True, progress=PROGRESS, verbose=VERBOSE)
 
 # Apply initial patches
 if not PREPATCHED:
