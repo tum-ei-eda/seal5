@@ -95,7 +95,7 @@ fi
 
 if [[ $INSTALL -eq 1 ]]
 then
-    seal5 --verbose install
+    seal5 --verbose install --config $BUILD_CONFIG
 fi
 
 if [[ $DEPLOY -eq 1 ]]
