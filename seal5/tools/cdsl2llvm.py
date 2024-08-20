@@ -182,7 +182,7 @@ def run_pattern_gen(
                 f.write(out)
         return code
 
-    pattern_gen_exe = build_dir / "bin" / "pattern-gen",
+    pattern_gen_exe = build_dir / "bin" / "pattern-gen"
     assert pattern_gen_exe.is_file(), "pattern-gen not found"
 
     try:
@@ -281,7 +281,7 @@ def convert_ll_to_gmir(
     if not isinstance(build_dir, Path):
         build_dir = Path(build_dir)
 
-    llc_exe = build_dir / "bin" / "llc",
+    llc_exe = build_dir / "bin" / "llc"
     assert llc_exe.is_file(), "llc  not found"
 
     assert dest is not None
