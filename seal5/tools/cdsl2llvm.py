@@ -276,7 +276,7 @@ def convert_ll_to_gmir(
     llc_args = [src, f"-mtriple=riscv{xlen}-unknown-elf", "-stop-after=irtranslator", "-global-isel", "-O3"]
 
     if mattr:
-        llc_args.extend(["--mattr2", mattr])
+        llc_args.extend(["--mattr", mattr])
 
     if not isinstance(build_dir, Path):
         build_dir = Path(build_dir)
