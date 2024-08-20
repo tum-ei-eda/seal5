@@ -58,7 +58,7 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
     ],
-    description="Seal5 Project",
+    description="Seal5 - Semi-automated LLVM Support for RISC-V Extensions including Autovectorization",
     entry_points={
         "console_scripts": [
             "seal5=seal5.cli.main:main",
