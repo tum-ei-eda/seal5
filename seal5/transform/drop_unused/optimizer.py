@@ -99,7 +99,7 @@ def run(args):
             set_def.constants = {
                 const_name: const
                 for const_name, const in set_def.constants.items()
-                if const_name not in context.to_drop
+                if const_name not in context.to_drop or const_name == "XLEN"
             }
             # print("AFTER", len(set_def.constants))
         # input("CONT1")

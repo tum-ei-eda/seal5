@@ -8,6 +8,7 @@ from seal5.index import File, NamedPatch, write_index_yaml
 from seal5.passes import Seal5Pass, PassType, PassScope, PassManager, PassResult
 from seal5.types import PatchStage
 from seal5.settings import Seal5Settings, PatchSettings
+from seal5.riscv_utils import build_mattr, get_riscv_defaults
 
 logger = get_logger()
 
@@ -1280,24 +1281,27 @@ def convert_llvmir_to_gmir(
     # for input_file in input_files:
     #     name = input_file.name
     #     sub = name.replace(".seal5model", "")
-    default_mattr = "+m,+fast-unaligned-access"
     if settings:
         riscv_settings = settings.riscv
-        if riscv_settings:
-            xlen = riscv_settings.xlen
-            features = riscv_settings.features
-            if features is None:
-                pass
-            else:
-                default_mattr = ",".join([f"+{f}" for f in features])
-            if xlen == 64 and "+64bit" not in default_mattr:
-                default_mattr = ",".join([*default_mattr.split(","), "+64bit"])
+    else:
+        riscv_settings = None
+    default_features, default_xlen = get_riscv_defaults(riscv_settings)
+
     for _ in [None]:
         set_names = list(settings.extensions.keys())
         assert len(set_names) > 0, "No sets found"
         for set_name in set_names:
             ext_settings = settings.extensions[set_name]
             insn_names = ext_settings.instructions
+            xlen = ext_settings.xlen
+            if xlen is None and default_xlen is not None:
+                xlen = default_xlen
+            features = [*default_features]
+            arch_ = ext_settings.get_arch(name=set_name)
+            features = [*default_features]
+            if arch_ is not None:
+                features.append(arch_)
+            mattr = build_mattr(default_features, xlen)
             if insn_names is None:
                 logger.warning("Skipping empty set %s", set_name)
                 continue
@@ -1325,11 +1329,6 @@ def convert_llvmir_to_gmir(
                         cdsl2llvm_build_dir = str(settings.build_dir / config)
                     else:
                         cdsl2llvm_build_dir = str(settings.deps_dir / "cdsl2llvm" / "llvm" / "build")
-                    mattr = default_mattr
-                    if ext_settings is not None:
-                        # predicate = ext_settings.get_predicate(name=set_name)
-                        arch_ = ext_settings.get_arch(name=set_name)
-                        mattr = ",".join([*mattr.split(","), f"+{arch_}"])
                     # TODO: migrate with pass to cmdline backend
                     cdsl2llvm.convert_ll_to_gmir(
                         # settings.deps_dir / "cdsl2llvm" / "llvm" / "build", ll_file, output_file

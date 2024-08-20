@@ -368,6 +368,7 @@ class ExtensionsSettings(YAMLSettings):
     description: Optional[str] = None
     requires: Optional[List[str]] = None
     instructions: Optional[List[str]] = None
+    xlen: Optional[int] = None  # TODO: support multiple?
     # patches
 
     def get_version(self):

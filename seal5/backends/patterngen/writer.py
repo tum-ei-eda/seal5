@@ -21,6 +21,7 @@ from m2isar.metamodel import arch
 from seal5.tools import cdsl2llvm
 from seal5.index import write_index_yaml, File, NamedPatch
 from seal5.model import Seal5InstrAttribute
+from seal5.riscv_utils import build_mattr, get_riscv_defaults
 
 logger = logging.getLogger("patterngen_tablegen_writer")
 
@@ -98,26 +99,34 @@ def main():
     if args.splitted:
         # errs = []
         # model_includes = []
-        default_mattr = "+m,+fast-unaligned-access"
         if settings:
             riscv_settings = settings.riscv
-            if riscv_settings:
-                features = riscv_settings.features
-                if features is None:
-                    pass
-                else:
-                    default_mattr = ",".join([f"+{f}" for f in features])
+        else:
+            riscv_settings = None
+        default_features, default_xlen = get_riscv_defaults(riscv_settings)
 
         assert out_path.is_dir(), "Expecting output directory when using --splitted"
         for set_name, set_def in model["sets"].items():
             xlen = set_def.xlen
+            if xlen is None and default_xlen is not None:
+                xlen = default_xlen
             artifacts[set_name] = []
             metrics["n_sets"] += 1
             ext_settings = set_def.settings
             set_dir = out_path / set_name
-            includes = []
 
-            def process_instrunction(instr_def):
+            predicate = None
+            features = [*default_features]
+            if ext_settings is not None:
+                predicate = ext_settings.get_predicate(name=set_name)
+                arch_ = ext_settings.get_arch(name=set_name)
+                if arch_ is not None:
+                    features.append(arch_)
+
+            mattr = build_mattr(features, xlen)
+
+            def process_instrunction(instr_def, set_name, set_dir, mattr, predicate, xlen):
+                includes_ = []
                 metrics["n_instructions"] += 1
                 input_file = out_path / set_name / f"{instr_def.name}.core_desc"
                 attrs = instr_def.attributes
@@ -144,14 +153,6 @@ def main():
                     out_name_fmt = f"{instr_def.name}InstrFormat.{args.ext}"
                     output_file_fmt = set_dir / out_name_fmt
                 install_dir = os.getenv("CDSL2LLVM_DIR", None)
-                predicate = None
-                mattr = default_mattr
-                if ext_settings is not None:
-                    predicate = ext_settings.get_predicate(name=set_name)
-                    arch_ = ext_settings.get_arch(name=set_name)
-                    mattr = ",".join([*mattr.split(","), f"+{arch_}"])
-                if xlen == 64 and "+64bit" not in mattr:
-                    mattr = ",".join([*mattr.split(","), "+64bit"])
 
                 assert install_dir is not None
                 install_dir = pathlib.Path(install_dir)
@@ -174,29 +175,31 @@ def main():
                             file_artifact_fmt = File(file_artifact_fmt_dest, src_path=output_file_fmt)
                             artifacts[set_name].append(file_artifact_fmt)
                             include_path_fmt = f"{set_name}/{out_name_fmt}"
-                            includes.append(include_path_fmt)
+                            includes_.append(include_path_fmt)
                         if args.patterns:
                             file_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}/{out_name}"
                             file_artifact = File(file_artifact_dest, src_path=output_file)
                             artifacts[set_name].append(file_artifact)
                             include_path = f"{set_name}/{out_name}"
-                            includes.append(include_path)
+                            includes_.append(include_path)
                     else:
                         metrics["n_failed"] += 1
                 except AssertionError:
                     metrics["n_failed"] += 1
                     # errs.append((insn_name, str(ex)))
-                return True
+                return True, includes_
 
+            includes = []
             with ThreadPoolExecutor(args.parallel) as executor:
                 futures = []
                 for instr_def in set_def.instructions.values():
-                    future = executor.submit(process_instrunction, instr_def)
+                    future = executor.submit(process_instrunction, instr_def, set_name, set_dir, mattr, predicate, xlen)
                     futures.append(future)
                 results = []
                 for future in as_completed(futures):
-                    result = future.result
+                    result, includes_ = future.result
                     results.append(result)
+                    includes.extend(includes_)
             if len(includes) > 0:
                 set_includes_str = "\n".join([f'include "seal5/{inc}"' for inc in includes])
                 set_includes_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}.td"
@@ -229,7 +232,7 @@ def main():
             f.write(",".join(map(str, metrics.values())))
             f.write("\n")
     if args.index:
-        if sum(map(lambda x: len(x), artifacts.values())) > 0:
+        if sum(map(len, artifacts.values())) > 0:
             global_artifacts = artifacts.get(None, [])
             set_artifacts = {key: value for key, value in artifacts.items() if key is not None}
             index_file = args.index
