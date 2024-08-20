@@ -1270,6 +1270,7 @@ def convert_llvmir_to_gmir(
     verbose: bool = False,
     split: bool = True,
     inplace: bool = True,
+    allow_errors: bool = False,
     use_subprocess: bool = False,
     **kwargs,
 ):
@@ -1337,15 +1338,18 @@ def convert_llvmir_to_gmir(
                         output_file,
                         mattr=mattr,
                         xlen=xlen,
+                        verbose=verbose,
                     )
-                except AssertionError:
-                    pass
-                    # errs.append((insn_name, str(ex)))
+                except AssertionError as ex:
+                    if allow_errors:
+                        errs.append((insn_name, str(ex)))
+                    else:
+                        raise ex
     if len(errs) > 0:
         # print("errs", errs)
+        logger.warning("Ignored Errors:")
         for insn_name, err_str in errs:
-            print("Err:", insn_name, err_str)
-            input("!")
+            logger.warning("%s: %s", insn_name, err_str)
 
 
 def gen_seal5_td(
