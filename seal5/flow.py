@@ -82,7 +82,7 @@ def handle_meta_dir(meta_dir: Optional[Union[str, Path]], directory: Union[str, 
     if not isinstance(meta_dir, Path):
         assert isinstance(meta_dir, str)
         meta_dir = Path(meta_dir)
-    return meta_dir
+    return meta_dir.resolve()
 
 
 def create_seal5_directories(path: Path, directories: list):
@@ -182,12 +182,12 @@ class Seal5Flow:
             ("process_settings", passes.process_settings, {}),
             ("write_yaml", passes.write_yaml, {}),
             ("detect_behavior_constraints", passes.detect_behavior_constraints, {}),
+            ("detect_registers", passes.detect_registers, {}),
             ("collect_register_operands", passes.collect_register_operands, {}),
             ("collect_immediate_operands", passes.collect_immediate_operands, {}),
             ("collect_operand_types", passes.collect_operand_types, {}),
             ("detect_side_effects", passes.detect_side_effects, {}),
             ("detect_inouts", passes.detect_inouts, {}),
-            ("detect_registers", passes.detect_registers, {}),
             ("write_cdsl_full", passes.write_cdsl, {"split": False, "compat": False}),
             # TODO: determine static constraints (xlen,...) -> subtargetvmap
             # detect memory adressing modes
@@ -210,6 +210,7 @@ class Seal5Flow:
             ("riscv_features", passes.gen_riscv_features_patch, {}),
             ("riscv_isa_infos", passes.gen_riscv_isa_info_patch, {}),
             # ("riscv_instr_formats", passes.gen_riscv_instr_formats_patch, {}),
+            ("riscv_register_info", passes.gen_riscv_register_info_patch, {}),
             ("riscv_instr_info", passes.gen_riscv_instr_info_patch, {}),
             # subtarget_tests
             # register_types
@@ -399,11 +400,20 @@ class Seal5Flow:
         cdsl2llvm_build_dir = None
         integrated_pattern_gen = self.settings.tools.pattern_gen.integrated
         if integrated_pattern_gen:
-            config = self.settings.llvm.default_config
-            cdsl2llvm_build_dir = str(self.settings.build_dir / config)
+            default_config_name = self.settings.llvm.default_config
+            non_default_config_names = [
+                config_name for config_name in self.settings.llvm.configs.keys() if config_name != default_config_name
+            ]
+            config_names = [default_config_name, *non_default_config_names]
+            for config_name in config_names:
+                cdsl2llvm_build_dir = self.settings.build_dir / config_name
+                if cdsl2llvm_build_dir.is_dir():
+                    break
         else:
-            cdsl2llvm_build_dir = str(self.settings.deps_dir / "cdsl2llvm" / "llvm" / "build")
-        env["CDSL2LLVM_DIR"] = cdsl2llvm_build_dir
+            cdsl2llvm_build_dir = self.settings.deps_dir / "cdsl2llvm" / "llvm" / "build"
+        if cdsl2llvm_build_dir.is_dir():
+            cdsl2llvm_build_dir = str(cdsl2llvm_build_dir)
+            env["CDSL2LLVM_DIR"] = cdsl2llvm_build_dir
         return env
 
     def parse_coredsl(self, file, out_dir, verbose: bool = False):

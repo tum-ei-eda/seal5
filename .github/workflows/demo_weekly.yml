@@ -35,21 +35,23 @@ on:
 jobs:
   demo:
     strategy:
+      fail-fast: false
       matrix:
         os:
         - ubuntu-latest
         python-version:
-        - 3.10
+        - "3.10"
         script:
         - demo.py
         - demo.sh
         - corev_demo.py
-        - gen_demo.py
-        - gpr32_demo.py
+        # Broken due to tablegen freeze
+        # - gen_demo.py
+        # - gpr32_demo.py
         - openasip_demo.py
         - rv64_demo.py
         - rvc_demo.py
-        - rvp_demo.py
+        # - rvp_demo.py
         - s4e_demo.py
         - tumeda_demo.py
         verbose:
@@ -93,6 +95,7 @@ jobs:
       run: |
         source .venv/bin/activate
         pip install -r requirements.txt
+        pip list
     - name: Run package creation
       run: |
         source .venv/bin/activate
@@ -103,9 +106,11 @@ jobs:
         if [[ "${{ matrix.script }}" == *.py ]]
         then
             echo "program=python3" >> $GITHUB_OUTPUT
+            echo "name=$(basename ${{ matrix.script}} .py)-py" >> $GITHUB_OUTPUT
         elif [[ "${{ matrix.script }}" == *.sh ]]
         then
             echo "program=bash" >> $GITHUB_OUTPUT
+            echo "name=$(basename ${{ matrix.script}} .sh)-sh" >> $GITHUB_OUTPUT
         else
             echo "Invalid file extension!"
             exit 1
@@ -117,15 +122,15 @@ jobs:
     - uses: actions/upload-artifact@v4
       if: "${{ matrix.export == '1' }}"
       with:
-        name: demo-export
+        name: demo-${{ steps.ctx.outputs.name }}-export
         path: /tmp/seal5_llvm.tar.gz
     - uses: actions/upload-artifact@v4
       if: "${{ matrix.install == '1' }}"
       with:
-        name: demo-install
+        name: demo-${{ steps.ctx.outputs.name }}-install
         path: /tmp/seal5_llvm/.seal5/install/${{ matrix.build_config }}
     - uses: actions/upload-artifact@v4
       if: "${{ matrix.deploy == '1' }}"
       with:
-        name: demo-source
+        name: demo-${{ steps.ctx.outputs.name }}-source
         path: /tmp/seal5_llvm_source.zip

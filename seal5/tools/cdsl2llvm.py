@@ -182,9 +182,12 @@ def run_pattern_gen(
                 f.write(out)
         return code
 
+    pattern_gen_exe = build_dir / "bin" / "pattern-gen"
+    assert pattern_gen_exe.is_file(), "pattern-gen not found"
+
     try:
         out = utils.exec_getout(
-            build_dir / "bin" / "pattern-gen",
+            pattern_gen_exe,
             *pattern_gen_args,
             # cwd=dest,
             print_func=logger.info if verbose else logger.debug,
@@ -273,16 +276,19 @@ def convert_ll_to_gmir(
     llc_args = [src, f"-mtriple=riscv{xlen}-unknown-elf", "-stop-after=irtranslator", "-global-isel", "-O3"]
 
     if mattr:
-        llc_args.extend(["--mattr2", mattr])
+        llc_args.extend(["--mattr", mattr])
 
     if not isinstance(build_dir, Path):
         build_dir = Path(build_dir)
+
+    llc_exe = build_dir / "bin" / "llc"
+    assert llc_exe.is_file(), "llc  not found"
 
     assert dest is not None
     llc_args.extend(["-o", str(dest)])
 
     _ = utils.exec_getout(
-        build_dir / "bin" / "llc",
+        llc_exe,
         *llc_args,
         # cwd=dest,
         print_func=logger.info if verbose else logger.debug,

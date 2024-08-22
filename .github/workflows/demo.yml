@@ -100,6 +100,7 @@ jobs:
       run: |
         source .venv/bin/activate
         pip install -r requirements.txt
+        pip list
     - name: Run package creation
       run: |
         source .venv/bin/activate
