@@ -80,23 +80,35 @@ class Seal5RegisterClass(IntEnum):
 
 
 class Seal5Register:
-    def __init__(self, name: str, size: int, width: int, reg_class: Seal5RegisterClass):
+    def __init__(self, name: str, size: int, width: int, signed: bool, reg_class: Seal5RegisterClass):
         self.name = name
         self.size = size
         self.width = width
+        self.signed = signed  # TODO: use
         self.reg_class = reg_class
+        # TODO: attributes
+
+    def __repr__(self):
+        return f"{type(self)}({self.name}, size={self.size}, width={self.width}, signed={self.signed}, reg_class={self.reg_class})"
 
 
 class Seal5RegisterGroup:
-    def __init__(self, names: List[str], size: int, width: int, reg_class: Seal5RegisterClass):
+    def __init__(self, names: List[str], size: int, width: int, signed: bool, reg_class: Seal5RegisterClass):
         self.names = names
         self.size = size
         self.width = width
+        self.signed = signed  # TODO: use
         self.reg_class = reg_class
+
+    def __repr__(self):
+        return f"{type(self)}({self.names}, size={self.size}, width={self.width}, signed={self.signed}, reg_class={self.reg_class})"
 
     @property
     def registers(self):
-        return [Seal5Register(name, size=self.size, width=self.width, reg_class=self.reg_class) for name in self.names]
+        return [
+            Seal5Register(name, size=self.size, width=self.width, signed=self.signed, reg_class=self.reg_class)
+            for name in self.names
+        ]
 
     def __len__(self):
         return len(self.names)
@@ -128,6 +140,8 @@ class Seal5InstrAttribute(Enum):
     IS_TERMINATOR = auto()
     IS_BRANCH = auto()
     COMPRESSED = auto()
+    USES = auto()
+    DEFS = auto()
 
 
 class Seal5OperandAttribute(Enum):
@@ -500,6 +514,12 @@ class Seal5Instruction(Instruction):
             attrs["isTerminator"] = 1
         else:
             attrs["isTerminator"] = 0
+        uses = self.attributes.get(Seal5InstrAttribute.USES, [])
+        if uses:
+            attrs["Uses"] = "[" + ", ".join(uses) + "]"
+        defs = self.attributes.get(Seal5InstrAttribute.DEFS, [])
+        if defs:
+            attrs["Defs"] = "[" + ", ".join(defs) + "]"
         return attrs
 
     def llvm_get_compressed_pat(self, set_def):
