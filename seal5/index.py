@@ -1,4 +1,5 @@
 """Classes for managing index fiels used to summarize patches."""
+
 from typing import List, Dict, Optional
 from pathlib import Path
 import yaml

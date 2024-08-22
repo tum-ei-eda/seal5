@@ -31,8 +31,7 @@ logger = get_logger()
 
 def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=None, msg=None, append=None):
     """Generate patch contents based on index file."""
-    if append:
-        raise NotImplementedError("append arg")
+    del append  # unused
     # base_dir = os.path.dirname(index_file)
     if msg:
         if not isinstance(msg, str):
