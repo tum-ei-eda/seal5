@@ -220,3 +220,7 @@ def ask_user(text, default: bool, yes_keys=["y", "j"], no_keys=["n"], interactiv
         return answer.lower() not in no_keys and answer.upper() not in no_keys
     else:
         return not (answer.lower() not in yes_keys and answer.upper() not in yes_keys)
+
+
+def is_power_of_two(n):
+    return (n & (n - 1) == 0) and n != 0

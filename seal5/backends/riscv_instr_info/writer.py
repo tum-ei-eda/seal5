@@ -19,6 +19,7 @@ from mako.template import Template
 from m2isar.metamodel import arch
 
 from seal5.index import NamedPatch, File, write_index_yaml
+from seal5.utils import is_power_of_two
 
 # from seal5.settings import ExtensionsSettings
 
@@ -290,6 +291,7 @@ def main():
             artifacts[set_name] = []
             xlen = set_def.xlen
             assert xlen is not None
+            assert is_power_of_two(xlen)
             assert xlen % 8 == 0
             includes = []
             set_dir = out_path / set_name
