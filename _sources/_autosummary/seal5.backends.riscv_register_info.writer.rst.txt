@@ -1,0 +1,14 @@
+seal5.backends.riscv\_register\_info.writer
+===========================================
+
+.. automodule:: seal5.backends.riscv_register_info.writer
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      gen_riscv_register_info_str
+      main
+      write_riscv_register_info
+   

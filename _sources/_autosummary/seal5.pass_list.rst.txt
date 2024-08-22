@@ -29,6 +29,7 @@ seal5.pass\_list
       gen_riscv_gisel_legalizer_patch
       gen_riscv_instr_info_patch
       gen_riscv_isa_info_patch
+      gen_riscv_register_info_patch
       gen_seal5_td
       gen_set_td
       infer_types

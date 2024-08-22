@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>seal5.backends.viewer_seal5 &mdash; Seal5 v0.1.2 documentation</title>
+  <title>seal5.backends.riscv_register_info.writer &mdash; Seal5 v0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -21,8 +21,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="seal5.backends.yaml" href="seal5.backends.yaml.html" />
-    <link rel="prev" title="seal5.backends.riscv_register_info.writer" href="seal5.backends.riscv_register_info.writer.html" /> 
+    <link rel="next" title="seal5.backends.viewer_seal5" href="seal5.backends.viewer_seal5.html" />
+    <link rel="prev" title="seal5.backends.riscv_register_info.templates" href="seal5.backends.riscv_register_info.templates.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -54,8 +54,12 @@
 <li class="toctree-l3"><a class="reference internal" href="seal5.backends.riscv_gisel_legalizer.html">seal5.backends.riscv_gisel_legalizer</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.backends.riscv_instr_info.html">seal5.backends.riscv_instr_info</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.backends.riscv_isa_info.html">seal5.backends.riscv_isa_info</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.backends.riscv_register_info.html">seal5.backends.riscv_register_info</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">seal5.backends.viewer_seal5</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="seal5.backends.riscv_register_info.html">seal5.backends.riscv_register_info</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="seal5.backends.riscv_register_info.templates.html">seal5.backends.riscv_register_info.templates</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">seal5.backends.riscv_register_info.writer</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.backends.viewer_seal5.html">seal5.backends.viewer_seal5</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.backends.yaml.html">seal5.backends.yaml</a></li>
 </ul>
 </li>
@@ -98,9 +102,10 @@
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="seal5.html">seal5</a></li>
           <li class="breadcrumb-item"><a href="seal5.backends.html">seal5.backends</a></li>
-      <li class="breadcrumb-item active">seal5.backends.viewer_seal5</li>
+          <li class="breadcrumb-item"><a href="seal5.backends.riscv_register_info.html">seal5.backends.riscv_register_info</a></li>
+      <li class="breadcrumb-item active">seal5.backends.riscv_register_info.writer</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/_autosummary/seal5.backends.viewer_seal5.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/_autosummary/seal5.backends.riscv_register_info.writer.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -108,12 +113,21 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-seal5.backends.viewer_seal5">
-<span id="seal5-backends-viewer-seal5"></span><h1>seal5.backends.viewer_seal5<a class="headerlink" href="#module-seal5.backends.viewer_seal5" title="Link to this heading"></a></h1>
-<p>This module contains the graphical M2-ISA-R module viewer.</p>
-<p class="rubric">Modules</p>
+  <section id="module-seal5.backends.riscv_register_info.writer">
+<span id="seal5-backends-riscv-register-info-writer"></span><h1>seal5.backends.riscv_register_info.writer<a class="headerlink" href="#module-seal5.backends.riscv_register_info.writer" title="Link to this heading"></a></h1>
+<p>Generate Patches for RISCVRegisterInfo.td.</p>
+<p class="rubric">Functions</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gen_riscv_register_info_str</span></code>(set_def)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code>()</p></td>
+<td><p>Main app entrypoint.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_riscv_register_info</span></code>(reg)</p></td>
+<td><p></p></td>
+</tr>
 </tbody>
 </table>
 </section>
@@ -122,8 +136,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="seal5.backends.riscv_register_info.writer.html" class="btn btn-neutral float-left" title="seal5.backends.riscv_register_info.writer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="seal5.backends.yaml.html" class="btn btn-neutral float-right" title="seal5.backends.yaml" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="seal5.backends.riscv_register_info.templates.html" class="btn btn-neutral float-left" title="seal5.backends.riscv_register_info.templates" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="seal5.backends.viewer_seal5.html" class="btn btn-neutral float-right" title="seal5.backends.viewer_seal5" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
