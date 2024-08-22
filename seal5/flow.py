@@ -82,7 +82,7 @@ def handle_meta_dir(meta_dir: Optional[Union[str, Path]], directory: Union[str, 
     if not isinstance(meta_dir, Path):
         assert isinstance(meta_dir, str)
         meta_dir = Path(meta_dir)
-    return meta_dir
+    return meta_dir.resolve()
 
 
 def create_seal5_directories(path: Path, directories: list):
@@ -400,11 +400,20 @@ class Seal5Flow:
         cdsl2llvm_build_dir = None
         integrated_pattern_gen = self.settings.tools.pattern_gen.integrated
         if integrated_pattern_gen:
-            config = self.settings.llvm.default_config
-            cdsl2llvm_build_dir = str(self.settings.build_dir / config)
+            default_config_name = self.settings.llvm.default_config
+            non_default_config_names = [
+                config_name for config_name in self.settings.llvm.configs.keys() if config_name != default_config_name
+            ]
+            config_names = [default_config_name, *non_default_config_names]
+            for config_name in config_names:
+                cdsl2llvm_build_dir = self.settings.build_dir / config_name
+                if cdsl2llvm_build_dir.is_dir():
+                    break
         else:
-            cdsl2llvm_build_dir = str(self.settings.deps_dir / "cdsl2llvm" / "llvm" / "build")
-        env["CDSL2LLVM_DIR"] = cdsl2llvm_build_dir
+            cdsl2llvm_build_dir = self.settings.deps_dir / "cdsl2llvm" / "llvm" / "build"
+        if cdsl2llvm_build_dir.is_dir():
+            cdsl2llvm_build_dir = str(cdsl2llvm_build_dir)
+            env["CDSL2LLVM_DIR"] = cdsl2llvm_build_dir
         return env
 
     def parse_coredsl(self, file, out_dir, verbose: bool = False):

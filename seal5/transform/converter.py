@@ -22,7 +22,7 @@ logger = logging.getLogger("seal5_converter")
 
 
 def convert_attrs(attrs):
-    print("convert_attrs", attrs)
+    # print("convert_attrs", attrs)
     ret = {}
     for attr, attr_val in attrs.items():
         if isinstance(attr, str):

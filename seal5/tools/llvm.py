@@ -100,15 +100,6 @@ def clone_llvm_repo(
         if depth is not None and ref is not None:
             assert "llvmorg" in ref  # Needs to be a valid branch name, not a tag
             branch = ref
-        print(
-            "git.Repo.clone_from",
-            clone_url,
-            dest,
-            no_checkout,
-            branch,
-            depth,
-            clone_progress,
-        )
         repo = git.Repo.clone_from(
             clone_url, dest, no_checkout=no_checkout, branch=branch, depth=depth, progress=clone_progress
         )
