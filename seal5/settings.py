@@ -155,7 +155,7 @@ DEFAULT_SETTINGS = {
             "ref": None,
             # "clone_depth": None,
             "clone_depth": 1,
-            "sparse_checkout": True,
+            "sparse_checkout": False,
         },
     },
 }
