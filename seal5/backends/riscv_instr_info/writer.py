@@ -289,6 +289,8 @@ def main():
             set_name_lower = set_name.lower()
             artifacts[set_name] = []
             xlen = set_def.xlen
+            assert xlen is not None
+            assert xlen % 8 == 0
             includes = []
             set_dir = out_path / set_name
             set_dir.mkdir(exist_ok=True)
