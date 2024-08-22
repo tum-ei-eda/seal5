@@ -18,6 +18,7 @@
 #
 """PatternGen utils for seal5."""
 from pathlib import Path
+from typing import Optional
 
 from seal5.logging import get_logger
 from seal5.settings import PatchSettings
@@ -29,8 +30,16 @@ logger = get_logger()
 
 
 def build_pattern_gen(
-    src: Path, dest: Path, debug: bool = False, use_ninja: bool = False, verbose: bool = False, cmake_options: dict = {}
+    src: Path,
+    dest: Path,
+    # debug: bool = False,
+    use_ninja: bool = False,
+    verbose: bool = False,
+    cmake_options: Optional[dict] = None,
 ):
+    """Build PatternGen tool."""
+    if cmake_options is None:
+        cmake_options = {}
     cmake_args = utils.get_cmake_args(cmake_options)
     dest.mkdir(exist_ok=True)
     utils.cmake(
@@ -49,8 +58,9 @@ def build_pattern_gen(
 def get_pattern_gen_patches(
     src: Path,
     temp_dir: Path,
-    verbose: bool = False,
+    # verbose: bool = False,
 ):
+    """Generate patches for PatternGen integration."""
     # TODO: copy!
     artifacts = []
     directory_artifact = Directory(
@@ -102,8 +112,16 @@ def get_pattern_gen_patches(
 
 
 def build_llc(
-    src: Path, dest: Path, debug: bool = False, use_ninja: bool = False, verbose: bool = False, cmake_options: dict = {}
+    src: Path,
+    dest: Path,
+    # debug: bool = False,
+    use_ninja: bool = False,
+    verbose: bool = False,
+    cmake_options: Optional[dict] = None,
 ):
+    """Build llc tool."""
+    if cmake_options is None:
+        cmake_options = {}
     cmake_args = utils.get_cmake_args(cmake_options)
     dest.mkdir(exist_ok=True)
     utils.cmake(
@@ -130,6 +148,7 @@ def run_pattern_gen(
     skip_verify=True,
     debug=False,
 ):
+    """Excute pattern-gen executable."""
     if not isinstance(build_dir, Path):
         build_dir = Path(build_dir)
     pattern_gen_args = [src]
@@ -178,7 +197,7 @@ def run_pattern_gen(
     def handle_exit(code=None, out=None):
         if code is not None and code != 0:
             err_file = str(dest) + ".err"
-            with open(err_file, "w") as f:
+            with open(err_file, "w", encoding="utf-8") as f:
                 f.write(out)
         return code
 
@@ -198,7 +217,7 @@ def run_pattern_gen(
         if break_on_err:
             input("^^^ERR^^^")
         if dest.is_file():
-            with open(dest, "r") as f:
+            with open(dest, "r", encoding="utf-8") as f:
                 content = f.read()
             if len(content) == 0:
                 dest.unlink()
@@ -230,7 +249,7 @@ def run_pattern_gen(
         if len(pat) > 0:
             pat = "\n".join(pat)
             pat_file = str(dest) + ".pat"
-            with open(pat_file, "w") as f:
+            with open(pat_file, "w", encoding="utf-8") as f:
                 f.write(pat)
         else:
             is_err = True
@@ -244,7 +263,7 @@ def run_pattern_gen(
                 input("^^^ERROR^^^")
             dest.unlink()
         out_file = str(dest) + (".err" if is_err else ".out")
-        with open(out_file, "w") as f:
+        with open(out_file, "w", encoding="utf-8") as f:
             f.write(out)
         # if len(rest) > 0:
         #     rest = "\n".join(rest)
@@ -265,6 +284,7 @@ def convert_ll_to_gmir(
     xlen=None,
     verbose: bool = False,
 ):
+    """Convert LLVM-IR file to GMIR file."""
     if mattr is None:
         attrs = ["+m", "+fast-unaligned-access"]
         if xlen == 64 and "+64bit" not in attrs:

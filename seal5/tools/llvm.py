@@ -42,11 +42,10 @@ def check_llvm_repo(path: Path):
         lines = out.split("\n")
         dirty = []
         for line in lines:
-            mode, file = line.strip().split(" ", 1)
+            _, file = line.strip().split(" ", 1)
             if file == ".seal5/":
                 continue
-            else:
-                dirty.append(file)
+            dirty.append(file)
         if len(dirty) > 0:
             logger.debug("Dirty files in LLVM repository: %s", ", ".join(dirty))
             return False
@@ -146,7 +145,7 @@ def build_llvm(
     debug: Optional[bool] = None,
     use_ninja: Optional[bool] = None,
     verbose: bool = False,
-    cmake_options: dict = {},
+    cmake_options: Optional[dict] = None,
     install: bool = False,
     install_dir: Optional[Union[str, Path]] = None,
 ):
@@ -154,6 +153,8 @@ def build_llvm(
         assert install_dir is not None
         assert Path(install_dir).parent.is_dir()
         cmake_options["CMAKE_INSTALL_PREFIX"] = str(install_dir)
+    if cmake_options is None:
+        cmake_options = {}
     cmake_args = utils.get_cmake_args(cmake_options)
     dest.mkdir(exist_ok=True)
     utils.cmake(
@@ -173,7 +174,9 @@ def build_llvm(
     )
 
 
-def test_llvm(base: Path, build_dir: Path, test_paths: List[str] = [], verbose: bool = False):
+def test_llvm(base: Path, build_dir: Path, test_paths: Optional[List[str]] = None, verbose: bool = False):
+    if test_paths is None:
+        test_paths = []
     env = os.environ.copy()
     old_path = env["PATH"]
     env["PATH"] = f"{build_dir}/bin:{old_path}"
@@ -181,7 +184,7 @@ def test_llvm(base: Path, build_dir: Path, test_paths: List[str] = [], verbose: 
     failing_tests = []
     for test_path in test_paths:
 
-        def handler(code, out):
+        def handler(_code, _out):
             return 0
 
         out = utils.exec_getout(

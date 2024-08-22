@@ -26,7 +26,7 @@ def convert_models(
     use_subprocess: bool = False,
     prefix: Optional[str] = None,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert not inplace
     input_file = settings.models_dir / f"{input_model}.m2isarmodel"
@@ -71,7 +71,7 @@ def optimize_model(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -107,7 +107,7 @@ def infer_types(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -143,7 +143,7 @@ def simplify_trivial_slices(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -179,7 +179,7 @@ def explicit_truncations(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -215,7 +215,7 @@ def process_settings(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -253,7 +253,7 @@ def filter_model(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -316,7 +316,7 @@ def drop_unused(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -352,7 +352,7 @@ def detect_registers(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -388,7 +388,7 @@ def detect_behavior_constraints(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -424,7 +424,7 @@ def detect_side_effects(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -460,7 +460,7 @@ def detect_inouts(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -496,7 +496,7 @@ def collect_operand_types(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -534,7 +534,7 @@ def collect_register_operands(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -570,7 +570,7 @@ def collect_immediate_operands(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -606,7 +606,7 @@ def eliminate_rd_cmp_zero(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -642,7 +642,7 @@ def eliminate_mod_rfs(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -678,8 +678,10 @@ def write_yaml(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
+    if not use_subprocess:
+        raise NotImplementedError("use_subprocess=False")
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
@@ -715,9 +717,11 @@ def write_cdsl(
     split: bool = False,
     compat: bool = False,
     log_level: str = "debug",
-    **kargs,
+    **_kwargs,
 ):
     assert inplace
+    if not use_subprocess:
+        raise NotImplementedError("use_subprocess=False")
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
     name = input_file.name
@@ -855,7 +859,7 @@ def convert_behav_to_llvmir(
     verbose: bool = False,
     split: bool = True,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert split, "TODO"
     gen_metrics_file = True
@@ -901,7 +905,7 @@ def convert_behav_to_tablegen(
     patterns: bool = True,
     parallel: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert split, "TODO"
     gen_metrics_file = True
@@ -972,7 +976,7 @@ def gen_riscv_features_patch(
     verbose: bool = False,
     split: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert not split, "TODO"
     # formats = True
@@ -1033,7 +1037,7 @@ def gen_riscv_isa_info_patch(
     verbose: bool = False,
     split: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert not split, "TODO"
     # formats = True
@@ -1094,7 +1098,7 @@ def gen_riscv_instr_info_patch(
     verbose: bool = False,
     split: bool = True,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     # assert not split, "TODO"
     assert split, "TODO"
@@ -1160,7 +1164,7 @@ def gen_riscv_register_info_patch(
     env: Optional[dict] = None,
     verbose: bool = False,
     split: bool = False,
-    **kwargs,
+    **_kwargs,
 ):
     assert not split, "TODO"
     gen_metrics_file = False
@@ -1225,7 +1229,7 @@ def gen_riscv_gisel_legalizer_patch(
     env: Optional[dict] = None,
     verbose: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     gen_metrics_file = False  # TODO
     gen_index_file = True
@@ -1337,10 +1341,13 @@ def convert_llvmir_to_gmir(
     inplace: bool = True,
     allow_errors: bool = False,
     use_subprocess: bool = False,
-    **kwargs,
+    **_kwargs,
 ):
+    del env  # unused
     assert inplace
     assert split
+    if use_subprocess:
+        raise NotImplementedError("use_subprocess=True")
     # input_files = list(settings.models_dir.glob("*.seal5model"))
     # assert len(input_files) > 0, "No Seal5 models found!"
     errs = []
@@ -1422,8 +1429,10 @@ def gen_seal5_td(
     settings: Optional[Seal5Settings] = None,
     env: Optional[dict] = None,
     verbose: bool = False,
-    **kwargs,
+    **_kwargs,
 ):
+    del env  # unused
+    del verbose  # unused
     assert input_model is None
     patch_name = "seal5_td"
     dest = "llvm/lib/Target/RISCV/seal5.td"
@@ -1466,8 +1475,10 @@ def gen_model_td(
     settings: Optional[Seal5Settings] = None,
     env: Optional[dict] = None,
     verbose: bool = False,
-    **kwargs,
+    **_kwargs,
 ):
+    del env  # unused
+    del verbose  # unused
     assert input_model is not None
     patch_name = f"model_td_{input_model}"
     dest = f"llvm/lib/Target/RISCV/seal5/{input_model}.td"
@@ -1510,8 +1521,10 @@ def gen_set_td(
     settings: Optional[Seal5Settings] = None,
     env: Optional[dict] = None,
     verbose: bool = False,
-    **kwargs,
+    **_kwargs,
 ):
+    del env  # unused
+    del verbose  # unused
     assert input_model is not None
     artifacts = []
     includes = []
@@ -1568,7 +1581,7 @@ def pattern_gen_pass(
     assert llvm_version is not None
     if llvm_version.major < 18:
         raise RuntimeError("PatternGen needs LLVM version 18 or higher")
-    PATTERN_GEN_PASSES = [
+    pattern_gen_passes = [
         ("write_cdsl_compat", write_cdsl, {"split": split, "compat": True}),
         ("behav_to_llvmir", convert_behav_to_llvmir, {"split": split}),
         ("llvmir_to_gmir", convert_llvmir_to_gmir, {"split": split}),
@@ -1576,7 +1589,7 @@ def pattern_gen_pass(
         ("behav_to_pat", convert_behav_to_tablegen, {"split": split, "formats": False, "patterns": True}),
     ]
     pass_list = []
-    for pass_name, pass_handler, pass_options in PATTERN_GEN_PASSES:
+    for pass_name, pass_handler, pass_options in pattern_gen_passes:
         pass_list.append(Seal5Pass(pass_name, PassType.GENERATE, PassScope.MODEL, pass_handler, options=pass_options))
     # TODO: get parent pass context automatically
     parent = kwargs.get("parent", None)

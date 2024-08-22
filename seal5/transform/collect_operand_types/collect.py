@@ -74,7 +74,7 @@ def run(args):
             else:
                 assert False
 
-    for set_name, set_def in model["sets"].items():
+    for _, set_def in model["sets"].items():
         logger.debug("collecting operand types for set %s", set_def.name)
         patch_model(visitor)
         for _, instr_def in set_def.instructions.items():

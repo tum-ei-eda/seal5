@@ -111,9 +111,9 @@ def exec_getout(
                 exit_code, " ".join(list(map(str, args)))
             )
     else:
-        p = subprocess.Popen([i for i in args], **kwargs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        out_str = p.communicate()[0].decode(errors="replace")
-        exit_code = p.poll()
+        with subprocess.Popen(args, **kwargs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as p:
+            out_str = p.communicate()[0].decode(errors="replace")
+            exit_code = p.poll()
         print_func(out_str)
         if handle_exit is not None:
             exit_code = handle_exit(exit_code, out_str)
@@ -144,29 +144,30 @@ def cmake(src, *args, debug: Optional[bool] = None, use_ninja: Optional[bool] = 
         raise RuntimeError("Please always pass a cwd to cmake()")
     if isinstance(cwd, Path):
         cwd = str(cwd.resolve())
-    extraArgs = []
+    extra_args = []
     if not any("CMAKE_BUILD_TYPE" in x for x in args):
         if debug is not None:
-            buildType = "Debug" if debug else "Release"
-        extraArgs.append("-DCMAKE_BUILD_TYPE=" + buildType)
+            build_type = "Debug" if debug else "Release"
+        extra_args.append("-DCMAKE_BUILD_TYPE=" + build_type)
     if use_ninja:
-        extraArgs.append("-GNinja")
-    cmd = ["cmake", "-B", cwd, "-S", str(src)] + extraArgs + list(args)
+        extra_args.append("-GNinja")
+    cmd = ["cmake", "-B", cwd, "-S", str(src)] + extra_args + list(args)
     return exec_getout(*cmd, cwd=cwd, **kwargs)
 
 
 def make(*args, target=None, threads=multiprocessing.cpu_count(), use_ninja=False, cwd=None, verbose=False, **kwargs):
+    del verbose  # unused
     if cwd is None:
         raise RuntimeError("Please always pass a cwd to make()")
     if isinstance(cwd, Path):
         cwd = str(cwd.resolve())
     # TODO: make sure that ninja is installed?
-    extraArgs = []
+    extra_args = []
     if target:
-        extraArgs.append(target)
+        extra_args.append(target)
     tool = "ninja" if use_ninja else "make"
-    extraArgs.append("-j" + str(threads))
-    cmd = [tool] + extraArgs + list(args)
+    extra_args.append("-j" + str(threads))
+    cmd = [tool] + extra_args + list(args)
     return exec_getout(*cmd, cwd=cwd, **kwargs)
 
 
@@ -180,10 +181,7 @@ def clean_path(path: Path, interactive: bool = False):
         answer = input(f"Remove '{path}' [Y|n]")
         if len(answer) == 0:
             answer = "Y"
-        if answer.lower() in ["j", "y"]:
-            allow = True
-        else:
-            allow = False
+        allow = answer.lower() in ["j", "y"]
     else:
         allow = True
     if not path.is_dir():
@@ -193,7 +191,9 @@ def clean_path(path: Path, interactive: bool = False):
         shutil.rmtree(path)
 
 
-def merge_dicts(a: dict, b: dict, path=[]):
+def merge_dicts(a: dict, b: dict, path: Optional[list] = None):
+    if path is None:
+        path = []
     for key in b:
         if key in a:
             if isinstance(a[key], dict) and isinstance(b[key], dict):
@@ -206,7 +206,14 @@ def merge_dicts(a: dict, b: dict, path=[]):
     return a
 
 
-def ask_user(text, default: bool, yes_keys=["y", "j"], no_keys=["n"], interactive=True):
+def ask_user(
+    text, default: bool, yes_keys: Optional[list] = None, no_keys: Optional[list] = None, interactive: bool = True
+):
+    if yes_keys is None:
+        yes_keys = ["y", "j"]
+    if no_keys is None:
+        no_keys = ["n"]
+
     assert len(yes_keys) > 0 and len(no_keys) > 0
     if not interactive:
         return default
@@ -218,8 +225,7 @@ def ask_user(text, default: bool, yes_keys=["y", "j"], no_keys=["n"], interactiv
     answer = input(message)
     if default:
         return answer.lower() not in no_keys and answer.upper() not in no_keys
-    else:
-        return not (answer.lower() not in yes_keys and answer.upper() not in yes_keys)
+    return not (answer.lower() not in yes_keys and answer.upper() not in yes_keys)
 
 
 def is_power_of_two(n):

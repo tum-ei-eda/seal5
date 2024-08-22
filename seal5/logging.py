@@ -28,7 +28,7 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-initialized = False
+INITIALIZED = False
 
 
 def get_formatter(minimal=False):
@@ -43,7 +43,7 @@ def get_formatter(minimal=False):
 
 def get_logger():
     """Helper function which return the main seal5 logger while ensuring that is is properly initialized."""
-    global initialized
+    global INITIALIZED
     # root_logger = logging.getLogger()
     # root_logger.setLevel(logging.DEBUG)
     # root_logger.setLevel(logging.INFO)
@@ -55,7 +55,7 @@ def get_logger():
         # stream_handler.setLevel(logging.DEBUG)
         logger.addHandler(stream_handler)
         logger.propagate = False
-        initialized = True
+        INITIALIZED = True
     return logger
 
 
@@ -80,6 +80,7 @@ def set_log_level(console_level=None, file_level=None):
 def set_log_file(path, level=logging.DEBUG, rotate=False):
     """Enable logging to a file."""
     # print("set_log_file", level)
+    del level  # TODO: use level
     logger = logging.getLogger("seal5")
     logger.setLevel(logging.DEBUG)
     if rotate:

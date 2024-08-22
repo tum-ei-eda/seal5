@@ -12,7 +12,7 @@ import argparse
 import logging
 import pathlib
 import pickle
-from typing import Union
+from typing import Union, Optional
 
 from mako.template import Template
 
@@ -115,11 +115,15 @@ def write_riscv_instruction_info(
     # operands,
     size,
     details_str,
-    attrs={},
-    constraints=[],
+    attrs: Optional[dict] = None,
+    constraints: Optional[list] = None,
     formats=False,
     compressed_pat=None,
 ):
+    if attrs is None:
+        attrs = {}
+    if constraints is None:
+        constraints = []
     if formats:
         instr_template = Template(filename=str(template_dir / "instr_tablegen2.mako"))
     else:
@@ -244,13 +248,12 @@ def main():
     # print("suffix", top_level.suffix)
     if top_level.suffix == ".seal5model":
         is_seal5_model = True
-    if args.output is None:
-        assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
-        raise NotImplementedError
-
-        # out_path = top_level.parent / (top_level.stem + ".core_desc")
-    else:
+    if args.output is not None:
         out_path = pathlib.Path(args.output)
+    else:
+        assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
+        # out_path = top_level.parent / (top_level.stem + ".core_desc")
+        raise NotImplementedError
 
     logger.info("loading models")
     if not is_seal5_model:
@@ -304,7 +307,7 @@ def main():
             # TODO: check for GPRC and require HasStdExtCOrZca?
             # TODO: check for GPR32Pair and require HasGPR32Pair
             # TODO: check for GPR32V2/GPR32V4 and require HasGPR32V
-            for instr_name, instr_def in set_def.instructions.items():
+            for _, instr_def in set_def.instructions.items():
                 metrics["n_success"] += 1
                 out_name = f"{instr_def.name}InstrInfo.{args.ext}"
                 output_file = set_dir / out_name
@@ -313,7 +316,7 @@ def main():
                     assert pred is not None
                     predicate_str = f"Predicates = [{pred}, IsRV{xlen}]"
                     content = f"let {predicate_str} in {{\n{content}\n}}"
-                    with open(output_file, "w") as f:
+                    with open(output_file, "w", encoding="utf-8") as f:
                         f.write(content)
                     instr_info_patch = File(
                         f"llvm/lib/Target/RISCV/seal5/{set_name}/{output_file.name}",
@@ -334,13 +337,13 @@ def main():
         raise NotImplementedError
     if args.metrics:
         metrics_file = args.metrics
-        with open(metrics_file, "w") as f:
+        with open(metrics_file, "w", encoding="utf-8") as f:
             f.write(",".join(metrics.keys()))
             f.write("\n")
             f.write(",".join(map(str, metrics.values())))
             f.write("\n")
     if args.index:
-        if sum(map(lambda x: len(x), artifacts.values())) > 0:
+        if sum(map(len, artifacts.values())) > 0:
             global_artifacts = artifacts.get(None, [])
             set_artifacts = {key: value for key, value in artifacts.items() if key is not None}
             index_file = args.index

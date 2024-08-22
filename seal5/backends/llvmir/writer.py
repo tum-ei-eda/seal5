@@ -49,13 +49,12 @@ def main():
     # print("suffix", top_level.suffix)
     if top_level.suffix == ".seal5model":
         is_seal5_model = True
-    if args.output is None:
-        assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
-        raise NotImplementedError
-
-        # out_path = top_level.parent / (top_level.stem + ".core_desc")
-    else:
+    if args.output is not None:
         out_path = pathlib.Path(args.output)
+    else:
+        assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
+        # out_path = top_level.parent / (top_level.stem + ".core_desc")
+        raise NotImplementedError
 
     logger.info("loading models")
     if not is_seal5_model:
@@ -163,7 +162,7 @@ def main():
         raise NotImplementedError
     if args.metrics:
         metrics_file = args.metrics
-        with open(metrics_file, "w") as f:
+        with open(metrics_file, "w", encoding="utf-8") as f:
             f.write(",".join(metrics.keys()))
             f.write("\n")
             f.write(",".join(map(str, metrics.values())))

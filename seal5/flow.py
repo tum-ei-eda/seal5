@@ -40,6 +40,64 @@ import seal5.pass_list as passes
 
 logger = get_logger()
 
+TRANSFORM_PASS_MAP = [
+    # TODO: Global -> Model
+    ("convert_models", passes.convert_models, {}),
+    ("filter_models", passes.filter_model, {}),
+    ("drop_unused", passes.drop_unused, {}),
+    ("eliminate_rd_cmp_zero", passes.eliminate_rd_cmp_zero, {}),
+    ("eliminate_mod_rfs", passes.eliminate_mod_rfs, {}),
+    ("drop_unused2", passes.drop_unused, {}),
+    ("optimize_model", passes.optimize_model, {}),
+    ("infer_types", passes.infer_types, {}),
+    ("simplify_trivial_slices", passes.simplify_trivial_slices, {}),
+    ("explicit_truncations", passes.explicit_truncations, {}),
+    ("process_settings", passes.process_settings, {}),
+    ("write_yaml", passes.write_yaml, {}),
+    ("detect_behavior_constraints", passes.detect_behavior_constraints, {}),
+    ("detect_registers", passes.detect_registers, {}),
+    ("collect_register_operands", passes.collect_register_operands, {}),
+    ("collect_immediate_operands", passes.collect_immediate_operands, {}),
+    ("collect_operand_types", passes.collect_operand_types, {}),
+    ("detect_side_effects", passes.detect_side_effects, {}),
+    ("detect_inouts", passes.detect_inouts, {}),
+    ("write_cdsl_full", passes.write_cdsl, {"split": False, "compat": False}),
+    # TODO: determine static constraints (xlen,...) -> subtargetvmap
+    # detect memory adressing modes
+    # self.detect_adressing_modes(verbose)  # TODO
+    # detect legal GMIR ops (and map to selectiondag?)
+    # self.detect_legal_ops(verbose=verbose)  # TODO
+    # extract costs/heuristics
+    # self.extract_costs_and_heuristics(verbose)  # TODO
+    # ("split_models", passes.split_models, {"by_set": False, "by_instr": False}),
+]
+
+GENERATE_PASS_MAP = [
+    ("seal5_td", passes.gen_seal5_td, {}),
+    # ("model_td", passes.gen_model_td, {}),
+    ("set_td", passes.gen_set_td, {}),
+    ("riscv_features", passes.gen_riscv_features_patch, {}),
+    ("riscv_isa_infos", passes.gen_riscv_isa_info_patch, {}),
+    # ("riscv_instr_formats", passes.gen_riscv_instr_formats_patch, {}),
+    ("riscv_register_info", passes.gen_riscv_register_info_patch, {}),
+    ("riscv_instr_info", passes.gen_riscv_instr_info_patch, {}),
+    # subtarget_tests
+    # register_types
+    # operand_types
+    # instruction_formats
+    # instruction_infos
+    # disassembler
+    # mc_tests
+    # selection_dag_legalizer
+    # scalar_costs
+    # simd_costs
+    # isel_patterns
+    # codegen_test
+    ("riscv_gisel_legalizer", passes.gen_riscv_gisel_legalizer_patch, {}),
+    # TODO: nested pass lists?
+    ("pattern_gen", passes.pattern_gen_pass, {}),
+]
+
 
 def lookup_manual_patch(patch: PatchSettings, allow_missing=False):
     patches = get_patches(patch_name=patch.name, target=patch.target, allow_empty=allow_missing)
@@ -67,7 +125,7 @@ def handle_directory(directory: Optional[Path]):
     return directory.resolve()
 
 
-def handle_meta_dir(meta_dir: Optional[Union[str, Path]], directory: Union[str, Path], name: str):
+def handle_meta_dir(meta_dir: Optional[Union[str, Path]], directory: Union[str, Path], _name: str):
     # TODO: handle environment vars
     if meta_dir is None:
         meta_dir = "default"
@@ -113,7 +171,7 @@ class Seal5Flow:
         self.passes: List[Seal5Pass] = []
         self.repo: Optional[git.Repo] = git.Repo(self.directory) if self.directory.is_dir() else None
         self.check()
-        self.settings = Seal5Settings.from_dict({"meta_dir": str(self.meta_dir), **DEFAULT_SETTINGS})
+        self.settings: Seal5Settings = Seal5Settings.from_dict({"meta_dir": str(self.meta_dir), **DEFAULT_SETTINGS})
         # self.settings: Seal5Settings = Seal5Settings(directory=self.directory)
         self.settings.directory = str(self.directory)
         if self.settings.settings_file.is_file():
@@ -167,67 +225,11 @@ class Seal5Flow:
 
     def create_passes(self):
         # Transforms
-        TRANSFORM_PASS_MAP = [
-            # TODO: Global -> Model
-            ("convert_models", passes.convert_models, {}),
-            ("filter_models", passes.filter_model, {}),
-            ("drop_unused", passes.drop_unused, {}),
-            ("eliminate_rd_cmp_zero", passes.eliminate_rd_cmp_zero, {}),
-            ("eliminate_mod_rfs", passes.eliminate_mod_rfs, {}),
-            ("drop_unused2", passes.drop_unused, {}),
-            ("optimize_model", passes.optimize_model, {}),
-            ("infer_types", passes.infer_types, {}),
-            ("simplify_trivial_slices", passes.simplify_trivial_slices, {}),
-            ("explicit_truncations", passes.explicit_truncations, {}),
-            ("process_settings", passes.process_settings, {}),
-            ("write_yaml", passes.write_yaml, {}),
-            ("detect_behavior_constraints", passes.detect_behavior_constraints, {}),
-            ("detect_registers", passes.detect_registers, {}),
-            ("collect_register_operands", passes.collect_register_operands, {}),
-            ("collect_immediate_operands", passes.collect_immediate_operands, {}),
-            ("collect_operand_types", passes.collect_operand_types, {}),
-            ("detect_side_effects", passes.detect_side_effects, {}),
-            ("detect_inouts", passes.detect_inouts, {}),
-            ("write_cdsl_full", passes.write_cdsl, {"split": False, "compat": False}),
-            # TODO: determine static constraints (xlen,...) -> subtargetvmap
-            # detect memory adressing modes
-            # self.detect_adressing_modes(verbose)  # TODO
-            # detect legal GMIR ops (and map to selectiondag?)
-            # self.detect_legal_ops(verbose=verbose)  # TODO
-            # extract costs/heuristics
-            # self.extract_costs_and_heuristics(verbose)  # TODO
-            # ("split_models", passes.split_models, {"by_set": False, "by_instr": False}),
-        ]
         for pass_name, pass_handler, pass_options in TRANSFORM_PASS_MAP:
             pass_scope = PassScope.MODEL
             self.add_pass(Seal5Pass(pass_name, PassType.TRANSFORM, pass_scope, pass_handler, options=pass_options))
 
         # Generates
-        GENERATE_PASS_MAP = [
-            ("seal5_td", passes.gen_seal5_td, {}),
-            # ("model_td", passes.gen_model_td, {}),
-            ("set_td", passes.gen_set_td, {}),
-            ("riscv_features", passes.gen_riscv_features_patch, {}),
-            ("riscv_isa_infos", passes.gen_riscv_isa_info_patch, {}),
-            # ("riscv_instr_formats", passes.gen_riscv_instr_formats_patch, {}),
-            ("riscv_register_info", passes.gen_riscv_register_info_patch, {}),
-            ("riscv_instr_info", passes.gen_riscv_instr_info_patch, {}),
-            # subtarget_tests
-            # register_types
-            # operand_types
-            # instruction_formats
-            # instruction_infos
-            # disassembler
-            # mc_tests
-            # selection_dag_legalizer
-            # scalar_costs
-            # simd_costs
-            # isel_patterns
-            # codegen_test
-            ("riscv_gisel_legalizer", passes.gen_riscv_gisel_legalizer_patch, {}),
-            # TODO: nested pass lists?
-            ("pattern_gen", passes.pattern_gen_pass, {}),
-        ]
         for pass_name, pass_handler, pass_options in GENERATE_PASS_MAP:
             if pass_name in ["seal5_td", "riscv_gisel_legalizer"]:
                 pass_scope = PassScope.GLOBAL
@@ -249,6 +251,7 @@ class Seal5Flow:
         force: bool = False,
         verbose: bool = False,
     ):
+        del verbose  # unused
         logger.info("Initializing Seal5")
         start = time.time()
         metrics = {}
@@ -284,7 +287,7 @@ class Seal5Flow:
             if force is False and not utils.ask_user(
                 "Overwrite existing .seal5 diretcory?", default=False, interactive=interactive
             ):
-                logger.error(f"Directory {self.meta_dir} already exists! Aborting...")
+                logger.error("Directory %s already exists! Aborting...", self._meta_dir)
                 sys.exit(1)
         self.meta_dir.mkdir(exist_ok=True)
         create_seal5_directories(
@@ -314,6 +317,8 @@ class Seal5Flow:
         progress: bool = False,
         verbose: bool = False,
     ):
+        del interactive  # unused
+        del verbose  # unused
         logger.info("Installing Seal5 dependencies")
         start = time.time()
         metrics = {}
@@ -470,6 +475,7 @@ class Seal5Flow:
         logger.info("Completed load of Seal5 inputs")
 
     def build(self, config=None, target="all", verbose: bool = False):
+        del verbose  # unused
         logger.info("Building Seal5 LLVM (%s)", target)
         start = time.time()
         metrics = {}
@@ -493,6 +499,7 @@ class Seal5Flow:
         logger.info("Completed build of Seal5 LLVM (%s)", target)
 
     def install(self, dest: Optional[Union[str, Path]] = None, config=None, verbose: bool = False):
+        del verbose  # unused
         # TODO: implement compress?
         if dest is None:
             dest = self.settings.install_dir / config
@@ -714,6 +721,7 @@ class Seal5Flow:
         # TODO: commit
 
     def patch(self, verbose: bool = False, stages: List[PatchStage] = None, force: bool = False):
+        del verbose  # unused
         logger.info("Applying Seal5 patches")
         start = time.time()
         metrics = {}
@@ -746,6 +754,7 @@ class Seal5Flow:
     def test(
         self, debug: bool = False, verbose: bool = False, ignore_error: bool = False, config: Optional[str] = None
     ):
+        del debug  # unused
         logger.info("Testing Seal5 LLVM")
         start = time.time()
         metrics = {}
@@ -767,6 +776,7 @@ class Seal5Flow:
         logger.info("Completed test of Seal5 LLVM")
 
     def deploy(self, dest: Path, verbose: bool = False, stage: PatchStage = PatchStage.PHASE_5):
+        del verbose  # unused
         assert dest is not None
         # Archive source files
         logger.info("Deploying Seal5 LLVM")
@@ -783,6 +793,7 @@ class Seal5Flow:
         logger.info("Completed deployment of Seal5 LLVM")
 
     def export(self, dest: Path, verbose: bool = False):
+        del verbose  # unused
         logger.info("Exporting Seal5 artifacts")
         start = time.time()
         metrics = {}
@@ -820,6 +831,7 @@ class Seal5Flow:
         logger.info("Completed export of Seal5 artifacts")
 
     def reset(self, settings: bool = True, verbose: bool = False, interactive: bool = False):
+        del verbose  # unused
         logger.info("Cleaning Seal5 state")
         start = time.time()
         metrics = {}
@@ -848,6 +860,7 @@ class Seal5Flow:
         verbose: bool = False,
         interactive: bool = False,
     ):
+        del verbose  # unused
         logger.info("Cleaning Seal5 directories")
         start = time.time()
         metrics = {}

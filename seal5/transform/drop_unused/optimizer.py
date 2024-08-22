@@ -15,8 +15,9 @@ import pathlib
 import pickle
 from typing import Union
 
-from . import track_uses
 from m2isar.metamodel import arch, patch_model
+
+from . import track_uses
 
 logger = logging.getLogger("drop_unused")
 
@@ -85,11 +86,11 @@ def run(args):
 
     # preprocess model
     # print("model", model["sets"]["XCoreVMac"].keys())
-    for set_name, set_def in model["sets"].items():
+    for _, set_def in model["sets"].items():
         logger.debug("tracking use of constants for set %s", set_def.name)
         context = DropUnusedContext(list(set_def.constants.keys()))
         patch_model(track_uses)
-        for instr_name, instr_def in set_def.instructions.items():
+        for _, instr_def in set_def.instructions.items():
             logger.debug("tracking use of constants for instr %s", instr_def.name)
             instr_def.operation.generate(context)
         # print("context.to_keep", context.to_keep)
@@ -104,7 +105,7 @@ def run(args):
             # print("AFTER", len(set_def.constants))
         # input("CONT1")
         context = DropUnusedContext(list(set_def.memories.keys()))
-        for instr_name, instr_def in set_def.instructions.items():
+        for _, instr_def in set_def.instructions.items():
             logger.debug("tracking use of memories for instr %s", instr_def.name)
             instr_def.operation.generate(context)
         # print("context.to_keep", context.to_keep)
@@ -117,7 +118,7 @@ def run(args):
             # print("AFTER", len(set_def.memories))
         # input("CONT1")
         context = DropUnusedContext(list(set_def.functions.keys()))
-        for instr_name, instr_def in set_def.instructions.items():
+        for _, instr_def in set_def.instructions.items():
             logger.debug("tracking use of functions for instr %s", instr_def.name)
             instr_def.operation.generate(context)
         # print("context.to_keep", context.to_keep)

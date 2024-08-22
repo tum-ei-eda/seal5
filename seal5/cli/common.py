@@ -16,17 +16,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""Common Seal5 CLI code."""
 from seal5.logging import get_logger, set_log_level
 
 logger = get_logger()
 
 
 def handle_logging_flags(args):
+    """Handler for logging-related flags."""
     level = args.log.upper()
     set_log_level(level)
 
 
 def add_common_options(parser):
+    """Defines options used by multiple cmdline parsers."""
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument(
         "-v",

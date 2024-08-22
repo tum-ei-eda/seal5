@@ -27,11 +27,10 @@ logger = logging.getLogger("riscv_features")
 
 
 def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings):
-    print("name", name)
-    print("ext_settings", ext_settings)
+    """Generate features string for LLVM patch."""
     requires = ext_settings.requires
     feature = ext_settings.get_feature(name=name)
-    arch = ext_settings.get_arch(name=name)
+    arch_ = ext_settings.get_arch(name=name)
     description = ext_settings.get_description(name=name)
     predicate = ext_settings.get_predicate(name=name)
 
@@ -39,7 +38,7 @@ def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings):
         raise NotImplementedError
 
     content_template = Template(filename=str(template_dir / "riscv_features.mako"))
-    content_text = content_template.render(predicate=predicate, feature=feature, arch=arch, description=description)
+    content_text = content_template.render(predicate=predicate, feature=feature, arch=arch_, description=description)
     return content_text + "\n"
 
 
@@ -72,11 +71,10 @@ def main():
         is_seal5_model = True
     if args.output is None:
         assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
+        # out_path = top_level.parent / (top_level.stem + ".core_desc")
         raise NotImplementedError
 
-        # out_path = top_level.parent / (top_level.stem + ".core_desc")
-    else:
-        out_path = pathlib.Path(args.output)
+    out_path = pathlib.Path(args.output)
 
     logger.info("loading models")
     if not is_seal5_model:
@@ -108,9 +106,7 @@ def main():
     # print("model", model)
     artifacts = {}
     artifacts[None] = []  # used for global artifacts
-    if args.splitted:
-        raise NotImplementedError
-    else:
+    if not args.splitted:
         content = ""
         # errs = []
         for set_name, set_def in model["sets"].items():
@@ -124,21 +120,23 @@ def main():
             content += gen_riscv_features_str(set_name, ext_settings)
         content = content.rstrip()
         if len(content) > 0:
-            with open(out_path, "w") as f:
+            with open(out_path, "w", encoding="utf-8") as f:
                 f.write(content)
             riscv_features_patch = NamedPatch(
                 "llvm/lib/Target/RISCV/RISCVFeatures.td", key="riscv_features", src_path=out_path
             )
             artifacts[None].append(riscv_features_patch)
+    else:
+        raise NotImplementedError
     if args.metrics:
         metrics_file = args.metrics
-        with open(metrics_file, "w") as f:
+        with open(metrics_file, "w", encoding="utf-8") as f:
             f.write(",".join(metrics.keys()))
             f.write("\n")
             f.write(",".join(map(str, metrics.values())))
             f.write("\n")
     if args.index:
-        if sum(map(lambda x: len(x), artifacts.values())) > 0:
+        if sum(map(len, artifacts.values())) > 0:
             global_artifacts = artifacts.get(None, [])
             set_artifacts = {key: value for key, value in artifacts.items() if key is not None}
             index_file = args.index

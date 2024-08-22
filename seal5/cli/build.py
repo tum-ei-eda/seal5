@@ -27,6 +27,7 @@ logger = get_logger()
 
 
 def add_build_options(parser):
+    """Setup parser for build argument group."""
     build_parser = parser.add_argument_group("build options")
     build_parser.add_argument(
         "--target",
