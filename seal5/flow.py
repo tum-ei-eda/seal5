@@ -792,7 +792,7 @@ class Seal5Flow:
         self.settings.save()
         logger.info("Completed deployment of Seal5 LLVM")
 
-    def export(self, dest: Path, verbose: bool = False):
+    def export(self, dest: Path, verbose: bool = False, temp: bool = False):
         del verbose  # unused
         logger.info("Exporting Seal5 artifacts")
         start = time.time()
@@ -813,6 +813,8 @@ class Seal5Flow:
             self.settings.logs_dir,
             self.settings.settings_file,
         ]
+        if temp:
+            artifacts.append(self.settings.temp_dir)
         with tarfile.open(dest, mode="w:gz") as archive:
             for artifact in artifacts:
                 name = str(artifact)
