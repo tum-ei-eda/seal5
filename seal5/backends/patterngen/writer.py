@@ -142,10 +142,10 @@ def main():
                         skip = True
                     if skip:
                         metrics["n_skipped"] += 1
-                        return False
+                        return False, includes_
                 if not input_file.is_file():
                     metrics["n_skipped"] += 1
-                    return False
+                    return False, includes_
                 # if args.patterns:
                 out_name = f"{instr_def.name}.{args.ext}"
                 output_file = set_dir / out_name
@@ -186,6 +186,7 @@ def main():
                         metrics["n_failed"] += 1
                 except AssertionError:
                     metrics["n_failed"] += 1
+                    return False, includes_
                     # errs.append((insn_name, str(ex)))
                 return True, includes_
 
@@ -197,9 +198,10 @@ def main():
                     futures.append(future)
                 results = []
                 for future in as_completed(futures):
-                    result, includes_ = future.result
-                    results.append(result)
-                    includes.extend(includes_)
+                    result_, includes_ = future.result
+                    results.append(result_)
+                    if result_:
+                        includes.extend(includes_)
             if len(includes) > 0:
                 set_includes_str = "\n".join([f'include "seal5/{inc}"' for inc in includes])
                 set_includes_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}.td"
