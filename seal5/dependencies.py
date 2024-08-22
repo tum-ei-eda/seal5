@@ -94,7 +94,12 @@ class M2ISARDependency(GitDependency):
         super().__init__("m2isar", clone_url, ref=ref)
 
 
-DEFAULT_CDSL2LLVM_DIRS = ["llvm/tools/pattern-gen", "llvm/lib/CodeGen", "llvm/include/llvm/CodeGen", "llvm/lib/Target/RISCV"]
+DEFAULT_CDSL2LLVM_DIRS = [
+    "llvm/tools/pattern-gen",
+    "llvm/lib/CodeGen",
+    "llvm/include/llvm/CodeGen",
+    "llvm/lib/Target/RISCV",
+]
 
 
 class CDSL2LLVMDependency(GitDependency):
