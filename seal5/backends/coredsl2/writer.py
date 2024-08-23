@@ -142,14 +142,19 @@ class CoreDSL2Writer:
             self.write("static ")
         if function.extern:
             self.write("extern ")
-        self.write_type(function.data_type, None)  # TODO: size?
+        self.write_type(function.data_type, None)
+        if function.size is not None:
+            self.write("<")
+            self.write(f"{function.size}")
+            self.write(">")
         self.write(" ")
         self.write(function.name)
         self.write("(")
         for i, param in enumerate(function.args.values()):
             self.write_type(param.data_type, param.size)
-            self.write(" ")
-            self.write(param.name)
+            if param.name is not None:
+                self.write(" ")
+                self.write(param.name)
             if i < len(function.args) - 1:
                 self.write(", ")
         self.write(")")
