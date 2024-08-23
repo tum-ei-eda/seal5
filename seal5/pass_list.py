@@ -680,8 +680,9 @@ def write_yaml(
     log_level: str = "debug",
     **_kwargs,
 ):
-    if not use_subprocess:
-        raise NotImplementedError("use_subprocess=False")
+    del use_subprocess  # unused
+    # if not use_subprocess:
+    #     raise NotImplementedError("use_subprocess=False")
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
@@ -719,9 +720,10 @@ def write_cdsl(
     log_level: str = "debug",
     **_kwargs,
 ):
+    del use_subprocess  # unused
+    # if not use_subprocess:
+    #     raise NotImplementedError("use_subprocess=False")
     assert inplace
-    if not use_subprocess:
-        raise NotImplementedError("use_subprocess=False")
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
     name = input_file.name
