@@ -293,9 +293,7 @@ class Seal5Instruction(Instruction):
         operands: "dict[str, Seal5Operand]",
     ):
         del operands  # TODO: use
-        # super().__init__(name, attributes, encoding, mnemonic, assembly, operation)
-        super().__init__(name, attributes, encoding, mnemonic, assembly, operation, None)
-        # print("name", name)
+        super().__init__(name, attributes, encoding, mnemonic, assembly, operation)
         self.constraints = constraints
         self.operands = {}
         self._llvm_asm_str = None

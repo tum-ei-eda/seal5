@@ -81,7 +81,7 @@ def main():
                 s = [s]
             print("s", s)
         except M2Error as e:
-            logger.critical("Error building architecture model of core: %s", e)
+            logger.critical("Error building architecture model of core", e)
 
         for orig, overwritten in arch_builder._overwritten_instrs:
             logger.warning(
