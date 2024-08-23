@@ -19,7 +19,7 @@ from m2isar.metamodel import arch
 
 from seal5.tools import cdsl2llvm
 from seal5.model import Seal5InstrAttribute
-from seal5.riscv_utils import build_mattr, get_riscv_defaults
+from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 
 logger = logging.getLogger("llvmir_behavior_writer")
 
@@ -130,7 +130,7 @@ def main():
                     arch_ = ext_settings.get_arch(name=set_name)
                     if arch is not None:
                         features.append(arch_)
-                mattr = build_mattr(features, xlen)
+                mattr = build_riscv_mattr(features, xlen)
 
                 install_dir = os.getenv("CDSL2LLVM_DIR", None)
                 assert install_dir is not None

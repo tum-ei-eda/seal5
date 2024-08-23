@@ -8,7 +8,7 @@ from seal5.index import File, NamedPatch, write_index_yaml
 from seal5.passes import Seal5Pass, PassType, PassScope, PassManager, PassResult
 from seal5.types import PatchStage
 from seal5.settings import Seal5Settings, PatchSettings
-from seal5.riscv_utils import build_mattr, get_riscv_defaults
+from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 
 logger = get_logger()
 
@@ -1376,7 +1376,7 @@ def convert_llvmir_to_gmir(
             features = [*default_features]
             if arch_ is not None:
                 features.append(arch_)
-            mattr = build_mattr(default_features, xlen)
+            mattr = build_riscv_mattr(default_features, xlen)
             if insn_names is None:
                 logger.warning("Skipping empty set %s", set_name)
                 continue

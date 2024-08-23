@@ -21,7 +21,7 @@ from m2isar.metamodel import arch
 from seal5.tools import cdsl2llvm
 from seal5.index import write_index_yaml, File, NamedPatch
 from seal5.model import Seal5InstrAttribute
-from seal5.riscv_utils import build_mattr, get_riscv_defaults
+from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 
 logger = logging.getLogger("patterngen_tablegen_writer")
 
@@ -122,7 +122,7 @@ def main():
                 if arch_ is not None:
                     features.append(arch_)
 
-            mattr = build_mattr(features, xlen)
+            mattr = build_riscv_mattr(features, xlen)
 
             def process_instrunction(instr_def, set_name, set_dir, mattr, predicate, xlen):
                 includes_ = []

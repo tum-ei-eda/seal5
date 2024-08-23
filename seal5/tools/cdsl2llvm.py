@@ -24,6 +24,7 @@ from seal5.logging import get_logger
 from seal5.settings import PatchSettings
 from seal5.types import PatchStage
 from seal5.index import File, Directory, NamedPatch, write_index_yaml
+from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 from seal5 import utils
 
 logger = get_logger()
@@ -164,12 +165,12 @@ def run_pattern_gen(
         pattern_gen_args.extend(["-p", preds_str])
 
     if mattr is None:
-        attrs = ["+m", "+fast-unaligned-access"]
+        features, _ = get_riscv_defaults()
         if ext:
             ext_ = ext.lower()
             ext_ = ext_.replace("std", "").replace("vendor", "").replace("ext", "")
-            attrs.append(f"+{ext_}")
-        mattr = ",".join(attrs)
+            features.append(f"+{ext_}")
+        mattr = build_riscv_mattr(features, xlen=xlen)
 
     if mattr:
         pattern_gen_args.extend(["--mattr2", mattr])
@@ -286,10 +287,9 @@ def convert_ll_to_gmir(
 ):
     """Convert LLVM-IR file to GMIR file."""
     if mattr is None:
-        attrs = ["+m", "+fast-unaligned-access"]
-        if xlen == 64 and "+64bit" not in attrs:
-            attrs.append("+64bit")
-        mattr = ",".join(attrs)
+        input(">>>")
+        features, _ = get_riscv_defaults()
+        mattr = build_riscv_mattr(features, xlen=xlen)
 
     assert xlen is not None, "Needs XLEN"
 

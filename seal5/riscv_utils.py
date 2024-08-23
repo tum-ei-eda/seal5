@@ -1,7 +1,9 @@
 from typing import Optional
 
+from seal5.settings import RISCVSettings
 
-def get_riscv_defaults(riscv_settings):
+
+def get_riscv_defaults(riscv_settings: Optional[RISCVSettings] = None):
     default_features = ["+m", "+fast-unaligned-access"]
     default_xlen = None
     if riscv_settings:
@@ -14,7 +16,7 @@ def get_riscv_defaults(riscv_settings):
     return default_features, default_xlen
 
 
-def build_mattr(features, xlen: Optional[int] = None):
+def build_riscv_mattr(features, xlen: Optional[int] = None):
     mattrs = []
 
     def fix_prefix(x):
