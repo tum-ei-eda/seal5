@@ -197,7 +197,7 @@ def main():
                     futures.append(future)
                 results = []
                 for future in as_completed(futures):
-                    result_, includes_ = future.result
+                    result_, includes_ = future.result()
                     results.append(result_)
                     if result_:
                         includes.extend(includes_)
