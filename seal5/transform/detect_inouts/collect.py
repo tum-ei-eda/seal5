@@ -97,6 +97,8 @@ def run(args):
             # print("---")
             # print("instr_def.scalars.keys()", instr_def.scalars.keys())
             for reg_name in context.reads:
+                if reg_name == "PC":
+                    continue
                 # print("reg_name1", reg_name)
                 if reg_name in instr_def.operands.keys():
                     continue
@@ -111,6 +113,8 @@ def run(args):
                 instr_def.attributes[seal5.model.Seal5InstrAttribute.USES] = uses
             for reg_name in context.writes:
                 # print("reg_name2", reg_name)
+                if reg_name == "PC":
+                    continue
                 if reg_name in instr_def.operands.keys():
                     continue
                 if reg_name in instr_def.scalars.keys():
