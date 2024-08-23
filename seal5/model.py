@@ -373,7 +373,7 @@ class Seal5Instruction(Instruction):
         asm_order = self.llvm_asm_order
         operands = self.operands
         # check that number of operands is equal
-        assert len(asm_order) == len(operands), "Number of operands does not match (asm vs. CDSL)"
+        assert len(asm_order) == len(operands), f"Number of operands does not match ({asm_order} vs. {list(operands.keys())})"
         # check that order of operands matches asm syntax
         # for op_idx, op_name in enumerate(operands.keys()):
         #     asm_idx = asm_order.index(f"${op_name}")
