@@ -64,7 +64,7 @@ seal5_flow.initialize(
 
 # Load CoreDSL inputs
 cdsl_files = [
-    EXAMPLES_DIR / "cdsl" / "riscv-scalar-efficiency" / "insts" / "out_encoded.core_desc",
+    EXAMPLES_DIR / "cdsl" / "riscv-scalar-efficiency" / "insts" / "out_encoded_etiss.core_desc",
 ]
 seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
