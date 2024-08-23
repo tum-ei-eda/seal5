@@ -38,8 +38,8 @@ def gen_riscv_register_info_str(set_def):
     """Generate full code for RISCVRegisterInfo.td patch for a set."""
     registers = set_def.registers
     register_groups = set_def.register_groups
-    print("registers", registers)
-    print("register_groups", register_groups)
+    # print("registers", registers)
+    # print("register_groups", register_groups)
     group_regs = {group_name: group.names for group_name, group in register_groups.items()}
     all_group_regs = [name for names in group_regs.values() for name in names]
     ret = []
@@ -67,7 +67,7 @@ def gen_riscv_register_info_str(set_def):
             raise ValueError(f"Unhandled case: {reg.reg_class}")
             # width = reg.width
             # TODO: use width?
-    print("ret", ret)
+    # print("ret", ret)
     return "\n".join(ret)
 
 

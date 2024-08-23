@@ -97,8 +97,8 @@ def run(args):
             continue
         logger.info("processing set %s", set_name)
         detect_registers(set_def)
-        print("set_def.register", set_def.registers)
-        print("set_def.register_groups", set_def.register_groups)
+        # print("set_def.register", set_def.registers)
+        # print("set_def.register_groups", set_def.register_groups)
         # input("@")
 
     logger.info("dumping model")

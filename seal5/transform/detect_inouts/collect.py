@@ -94,10 +94,10 @@ def run(args):
                 elif op_name in context.writes:
                     if seal5.model.Seal5OperandAttribute.OUT not in instr_def.attributes:
                         op_def.attributes[seal5.model.Seal5OperandAttribute.OUT] = []
-            print("---")
-            print("instr_def.scalars.keys()", instr_def.scalars.keys())
+            # print("---")
+            # print("instr_def.scalars.keys()", instr_def.scalars.keys())
             for reg_name in context.reads:
-                print("reg_name1", reg_name)
+                # print("reg_name1", reg_name)
                 if reg_name in instr_def.operands.keys():
                     continue
                 if reg_name in instr_def.scalars.keys():
@@ -110,7 +110,7 @@ def run(args):
                 # TODO: drop duplicates?
                 instr_def.attributes[seal5.model.Seal5InstrAttribute.USES] = uses
             for reg_name in context.writes:
-                print("reg_name2", reg_name)
+                # print("reg_name2", reg_name)
                 if reg_name in instr_def.operands.keys():
                     continue
                 if reg_name in instr_def.scalars.keys():
@@ -122,8 +122,8 @@ def run(args):
                 defs.append(reg_name)
                 # TODO: drop duplicates?
                 instr_def.attributes[seal5.model.Seal5InstrAttribute.DEFS] = defs
-            print("instr_def.operands_", instr_def.operands)
-            print("instr_def.attributes", instr_def.attributes)
+            # print("instr_def.operands_", instr_def.operands)
+            # print("instr_def.attributes", instr_def.attributes)
             # input("999")
 
     logger.info("dumping model")
