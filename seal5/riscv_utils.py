@@ -26,10 +26,10 @@ def build_riscv_mattr(features, xlen: Optional[int] = None):
         return f"+{x}"
 
     if features is not None:
-        mattrs += [f"+{f}" for f in features]
+        mattrs += list(features)
     if xlen is not None:
         if xlen == 64:
-            mattrs += ["+64bit"]
+            mattrs += ["64bit"]
     mattrs = list(set(map(fix_prefix, mattrs)))
     mattr = ",".join(mattrs)
     return mattr
