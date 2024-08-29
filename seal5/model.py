@@ -303,6 +303,7 @@ class Seal5Instruction(Instruction):
         self._llvm_writes = None
         self._llvm_ins_str = None
         self._llvm_outs_str = None
+        self._llvm_imm_types = None
         self._process_fields()
 
     def _process_fields(self):
