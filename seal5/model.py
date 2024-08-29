@@ -388,6 +388,7 @@ class Seal5Instruction(Instruction):
         writes = []
         constraints = []
         self._llvm_check_operands()
+        imm_types = set()
         for op_name, op in operands.items():
             if len(op.constraints) > 0:
                 raise NotImplementedError
@@ -402,6 +403,7 @@ class Seal5Instruction(Instruction):
                 assert ty[0] in ["u", "s"]
                 sz = int(ty[1:])
                 pre = f"{ty[0]}imm{sz}"
+                imm_types.add(pre)
 
             if Seal5OperandAttribute.INOUT in op.attributes or (
                 Seal5OperandAttribute.OUT in op.attributes and Seal5OperandAttribute.IN in op.attributes
@@ -422,6 +424,7 @@ class Seal5Instruction(Instruction):
         self._llvm_constraints = constraints
         self._llvm_reads = reads
         self._llvm_writes = writes
+        self._llvm_imm_types = imm_types
 
     def _llvm_process_assembly(self):
         asm_str = self.assembly
