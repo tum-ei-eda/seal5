@@ -157,7 +157,7 @@ DEFAULT_SETTINGS = {
             "clone_depth": 1,
             "sparse_checkout": False,
         },
-   },
+    },
     "intrinsics": {
     },
  }
@@ -572,10 +572,12 @@ class ToolsSettings(YAMLSettings):
 
     pattern_gen: Optional[PatternGenSettings] = None
 
+
 @dataclass
 class IntrinsicArg(YAMLSettings):
     arg_name: str
     arg_type: str
+
 
 @dataclass
 class IntrinsicDefn(YAMLSettings):
@@ -583,6 +585,7 @@ class IntrinsicDefn(YAMLSettings):
     intrinsic_name: str
     ret_type: Optional[str] = None
     args: Optional[List[IntrinsicArg]] = None
+
 
 @dataclass
 class IntrinsicsSettings(YAMLSettings):

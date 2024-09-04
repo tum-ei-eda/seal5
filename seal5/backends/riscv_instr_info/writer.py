@@ -241,7 +241,7 @@ def main():
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
     parser.add_argument("--index", default=None, help="Output index to file")
     parser.add_argument("--ext", type=str, default="td", help="Default file extension (if using --splitted)")
-    parser.add_argument("--add-intrinsics", type=bool, default=True, action=argparse.BooleanOptionalAction, help="Include patterns for intrinsic functions")
+    parser.add_argument("--no-add-intrinsics", dest='add_intrinsics', default=True, action='store_false', help="Suppress patterns for intrinsic functions")
     args = parser.parse_args()
 
     # initialize logging

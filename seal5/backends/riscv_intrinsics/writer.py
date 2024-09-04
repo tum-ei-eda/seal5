@@ -45,16 +45,16 @@ def build_target(arch: str, intrinsic: IntrinsicDefn):
     target = f'TARGET_BUILTIN(__builtin_{arch}_{intrinsic.intrinsic_name}, "{arg_str}", "nc", "{arch}")'
     return target
 
+
 def ir_type_to_pattern(ir_type: str):
     # needs fleshing out with all likely types
-    match ir_type:
-        case 'i32':
-            return 'llvm_i32_ty'
+    if ir_type == 'i32':
+        return 'llvm_i32_ty'
     raise NotImplementedError(f'Unhandled ir_type "{ir_type}"')
 
+
 def build_attr(arch: str, intrinsic: IntrinsicDefn):
-    uses_mem = False  #@todo
-    ret_types = '(unsupported)' # how to spec void intrinsic?
+    uses_mem = False  # @todo
     attr = f'  def int_riscv_{intrinsic.intrinsic_name} : Intrinsic<\n    ['
     if intrinsic.ret_type:
         attr += f'{ir_type_to_pattern(intrinsic.ret_type)}'
@@ -77,9 +77,11 @@ def build_emit(arch: str, intrinsic: IntrinsicDefn):
 
 @dataclass
 class PatchFrag:
-   patchee: str
-   tag: str
-   contents: str = ""
+    """Pairs patch contents to location to apply it"""
+    patchee: str
+    tag: str
+    contents: str = ""
+
 
 def main():
     """Main app entrypoint."""
@@ -113,7 +115,7 @@ def main():
     else:
         out_path = pathlib.Path(args.output)
 
-    logger.info("loading models")
+    logger.info("intrinsics/writer - loading models")
     if not is_seal5_model:
         raise NotImplementedError
 
@@ -157,7 +159,7 @@ def main():
             if llvm_settings:
                 llvm_state = llvm_settings.state
                 if llvm_state:
-                    llvm_version = llvm_state.version
+                    llvm_version = llvm_state.version   # unused today, but needed very soon
         patch_frags = {
             'target': PatchFrag(patchee='clang/include/clang/Basic/BuiltinsRISCV.def', tag='builtins_riscv'),
             'attr': PatchFrag(patchee='llvm/include/llvm/IR/IntrinsicsRISCV.td', tag='intrinsics_riscv'),

@@ -1076,7 +1076,6 @@ def gen_riscv_isa_info_patch(
         print_func=logger.info if verbose else logger.debug,
         live=True,
     )
-#    breakpoint()
     if gen_index_file:
         if index_file.is_file():
             patch_name = f"riscv_isa_info_{input_file.stem}"
@@ -1138,7 +1137,6 @@ def gen_riscv_intrinsics(
         print_func=logger.info if verbose else logger.debug,
         live=True,
     )
-#    breakpoint()
     if gen_index_file:
         if index_file.is_file():
             patch_base = f"riscv_intrinsics_target_{input_file.stem}"
@@ -1166,7 +1164,6 @@ def gen_riscv_instr_info_patch(
     **_kwargs,
 ):
     # assert not split, "TODO"
-#    breakpoint()
     assert split, "TODO"
     # formats = True
     gen_metrics_file = True
