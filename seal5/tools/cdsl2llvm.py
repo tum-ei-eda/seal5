@@ -287,6 +287,7 @@ def convert_ll_to_gmir(
     dest: Path,
     mattr=None,
     xlen=None,
+    optimize=3,
     verbose: bool = False,
 ):
     """Convert LLVM-IR file to GMIR file."""
@@ -296,7 +297,7 @@ def convert_ll_to_gmir(
 
     assert xlen is not None, "Needs XLEN"
 
-    llc_args = [src, f"-mtriple=riscv{xlen}-unknown-elf", "-stop-after=irtranslator", "-global-isel", "-O3"]
+    llc_args = [src, f"-mtriple=riscv{xlen}-unknown-elf", "-stop-after=irtranslator", "-global-isel", f"-O{optimize}"]
 
     if mattr:
         llc_args.extend(["--mattr", mattr])
