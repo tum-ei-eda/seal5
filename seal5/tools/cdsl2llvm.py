@@ -147,6 +147,7 @@ def run_pattern_gen(
     skip_formats=False,
     skip_patterns=False,
     skip_verify=True,
+    no_extend=False,
     debug=False,
 ):
     """Excute pattern-gen executable."""
@@ -190,6 +191,9 @@ def run_pattern_gen(
 
     if debug:
         pattern_gen_args.append("--debug")
+
+    if no_extend:
+        pattern_gen_args.append("--no-extend")
 
     # break_on_err = True
     break_on_err = False
