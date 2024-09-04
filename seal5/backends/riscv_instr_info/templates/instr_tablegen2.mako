@@ -1,4 +1,3 @@
-// class RVInst_${name}<dag outs, dag ins> : RVInst<outs, ins, "cv.add.h", "$rd, $rs1, $rs2", [], InstFormatOther> {
 class RVInst_${name}<dag outs, dag ins> : Instruction, Sched<${sched_str}> {
     // General
     let Namespace = "RISCV";
