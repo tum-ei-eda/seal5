@@ -48,6 +48,7 @@ TRANSFORM_PASS_MAP = [
     ("eliminate_rd_cmp_zero", passes.eliminate_rd_cmp_zero, {}),
     ("eliminate_mod_rfs", passes.eliminate_mod_rfs, {}),
     ("drop_unused2", passes.drop_unused, {}),
+    ("inline_functions", passes.inline_functions, {}),
     ("optimize_model", passes.optimize_model, {}),
     ("infer_types", passes.infer_types, {}),
     ("simplify_trivial_slices", passes.simplify_trivial_slices, {}),
