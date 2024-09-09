@@ -19,6 +19,7 @@ from m2isar.metamodel.arch import (
     Function,
     BaseNode,
     InstrAttribute,
+    FunctionAttribute,
     MemoryAttribute,
     BitField,
     BitVal,
@@ -142,6 +143,10 @@ class Seal5InstrAttribute(Enum):
     COMPRESSED = auto()
     USES = auto()
     DEFS = auto()
+
+
+class Seal5FunctionAttribute(Enum):
+    INLINE = auto()
 
 
 class Seal5OperandAttribute(Enum):
