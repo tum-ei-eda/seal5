@@ -147,7 +147,7 @@ def run_pattern_gen(
     skip_formats=False,
     skip_patterns=False,
     skip_verify=True,
-    no_extend=False,
+    no_extend=True,
     debug=False,
 ):
     """Excute pattern-gen executable."""
