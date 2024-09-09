@@ -174,7 +174,7 @@ def run_pattern_gen(
         mattr = build_riscv_mattr(features, xlen=xlen)
 
     if mattr:
-        pattern_gen_args.extend(["--mattr2", mattr])
+        pattern_gen_args.extend(["--mattr", mattr])
 
     if xlen:
         assert xlen in [32, 64]
