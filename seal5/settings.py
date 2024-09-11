@@ -400,14 +400,16 @@ class ExtensionsSettings(YAMLSettings):
 
     def get_arch(self, name: Optional[str] = None):
         """Get extension arch."""
-        if self.arch is None:
+        arch = self.arch
+        if arch is None:
             feature = self.get_feature(name=name)
             assert feature is not None
             arch = feature.lower()
-            if self.experimental:
-                arch = "experimental-" + arch
-            return arch
-        return self.arch
+            arch = f"x{arch}"
+            # if self.experimental:
+            #     arch = "experimental-" + arch
+        assert arch[0] in ["z", "x"], "Arch needs to be start with z/x"
+        return arch
 
     def get_feature(self, name: Optional[str] = None):
         """Get extension feature."""
