@@ -1076,6 +1076,7 @@ def gen_riscv_isa_info_patch(
         print_func=logger.info if verbose else logger.debug,
         live=True,
     )
+#    breakpoint()
     if gen_index_file:
         if index_file.is_file():
             patch_name = f"riscv_isa_info_{input_file.stem}"
@@ -1083,6 +1084,68 @@ def gen_riscv_isa_info_patch(
                 name=patch_name,
                 stage=int(PatchStage.PHASE_1),
                 comment=f"Generated RISCVISAInfo.cpp patch for {input_file.name}",
+                index=str(index_file),
+                generated=True,
+                target="llvm",
+            )
+            settings.add_patch(patch_settings)
+            settings.to_yaml_file(settings.settings_file)
+        else:
+            logger.warning("No patches found!")
+
+
+def gen_riscv_intrinsics(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    split: bool = False,
+    log_level: str = "debug",
+    **kwargs,
+):
+    assert not split, "TODO"
+    # formats = True
+    gen_metrics_file = True
+    gen_index_file = True
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    new_name = name.replace(".seal5model", "")
+    logger.info("Writing intrinsics patches patch for %s", name)
+    out_dir = settings.patches_dir / new_name
+    out_dir.mkdir(exist_ok=True)
+
+    args = [
+        settings.models_dir / name,
+        "--log",
+        log_level,
+        "--output",
+        out_dir / "riscv_intrinsics_info.patch",
+    ]
+    if split:
+        args.append("--splitted")
+    if gen_metrics_file:
+        metrics_file = out_dir / ("riscv_intrinsics_info_metrics.csv")
+        args.extend(["--metrics", metrics_file])
+    if gen_index_file:
+        index_file = out_dir / ("riscv_intrinsics_index.yml")
+        args.extend(["--index", index_file])
+    utils.python(
+        "-m",
+        "seal5.backends.riscv_intrinsics.writer",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+#    breakpoint()
+    if gen_index_file:
+        if index_file.is_file():
+            patch_base = f"riscv_intrinsics_target_{input_file.stem}"
+            patch_settings = PatchSettings(
+                name=patch_base,
+                stage=int(PatchStage.PHASE_1),
+                comment=f"Generated RISCV Intrinsics patch for {input_file.name}",
                 index=str(index_file),
                 generated=True,
                 target="llvm",
@@ -1103,6 +1166,7 @@ def gen_riscv_instr_info_patch(
     **_kwargs,
 ):
     # assert not split, "TODO"
+#    breakpoint()
     assert split, "TODO"
     # formats = True
     gen_metrics_file = True

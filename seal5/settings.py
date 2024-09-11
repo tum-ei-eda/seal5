@@ -157,8 +157,10 @@ DEFAULT_SETTINGS = {
             "clone_depth": 1,
             "sparse_checkout": False,
         },
+   },
+    "intrinsics": {
     },
-}
+ }
 
 ALLOWED_YAML_TYPES = (int, float, str, bool)
 
@@ -570,6 +572,22 @@ class ToolsSettings(YAMLSettings):
 
     pattern_gen: Optional[PatternGenSettings] = None
 
+@dataclass
+class IntrinsicArg(YAMLSettings):
+    arg_name: str
+    arg_type: str
+
+@dataclass
+class IntrinsicDefn(YAMLSettings):
+    instr_name: str
+    intrinsic_name: str
+    ret_type: Optional[str] = None
+    args: Optional[List[IntrinsicArg]] = None
+
+@dataclass
+class IntrinsicsSettings(YAMLSettings):
+    intrinsics: Optional[List[IntrinsicDefn]] = None
+
 
 @dataclass
 class Seal5Settings(YAMLSettings):
@@ -592,6 +610,7 @@ class Seal5Settings(YAMLSettings):
     riscv: Optional[RISCVSettings] = None
     tools: Optional[ToolsSettings] = None
     metrics: list = field(default_factory=list)
+    intrinsics: Optional[IntrinsicsSettings] = None
 
     def reset(self):
         """Reset Seal5 seetings."""
@@ -623,6 +642,7 @@ class Seal5Settings(YAMLSettings):
             transform_info=None,
             legalization=None,
         )
+        self.intrinsics = IntrinsicsSettings()
 
     def save(self, dest: Optional[Path] = None):
         """Save Seal5 settings to file."""
