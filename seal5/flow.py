@@ -508,7 +508,8 @@ class Seal5Flow:
             self.settings.build_dir / config,
             cmake_options=cmake_options,
             target=target,
-            use_ninja=self.settings.llvm.ninja,
+            use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
+            enable_ccache=self.settings.llvm.ccache or kwargs.get("enable_ccache", False),
         )
         end = time.time()
         diff = end - start
@@ -517,7 +518,7 @@ class Seal5Flow:
         self.settings.save()
         logger.info("Completed build of Seal5 LLVM (%s)", target)
 
-    def install(self, dest: Optional[Union[str, Path]] = None, config=None, verbose: bool = False):
+    def install(self, dest: Optional[Union[str, Path]] = None, config=None, verbose: bool = False, **kwargs):
         """Install Seal5 LLVM."""
         del verbose  # unused
         # TODO: implement compress?
@@ -538,7 +539,8 @@ class Seal5Flow:
             Path(self.settings.directory),
             self.settings.build_dir / config,
             cmake_options=cmake_options,
-            use_ninja=self.settings.llvm.ninja,
+            use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
+            enable_ccache=self.settings.llvm.ccache or kwargs.get("enable_ccache", False),
             target=None,
             install=True,
             install_dir=dest,

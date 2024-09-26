@@ -99,6 +99,7 @@ DEFAULT_SETTINGS = {
     "llvm": {
         "state": {"version": "auto", "base_commit": "unknown"},
         "ninja": True,
+        "ccache": False,
         "default_config": "release",
         "clone_depth": None,
         "configs": {
@@ -515,6 +516,7 @@ class LLVMSettings(YAMLSettings):
     """Seal5 llvm settings."""
 
     ninja: Optional[bool] = None
+    ccache: Optional[bool] = None
     clone_depth: Optional[int] = None
     default_config: Optional[str] = None
     configs: Optional[Dict[str, LLVMConfig]] = None

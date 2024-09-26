@@ -148,13 +148,17 @@ def build_llvm(
     cmake_options: Optional[dict] = None,
     install: bool = False,
     install_dir: Optional[Union[str, Path]] = None,
+    enable_ccache: bool = False,
 ):
+    if cmake_options is None:
+        cmake_options = {}
     if install:
         assert install_dir is not None
         assert Path(install_dir).parent.is_dir()
         cmake_options["CMAKE_INSTALL_PREFIX"] = str(install_dir)
-    if cmake_options is None:
-        cmake_options = {}
+    if enable_ccache:
+        cmake_options["-DCMAKE_C_COMPILER_LAUNCHER"] = "sccache"  # TODO: choose between sccache/ccache
+        cmake_options["-DCMAKE_CXX_COMPILER_LAUNCHER"] = "sccache"  # TODO: choose between sccache/ccache
     cmake_args = utils.get_cmake_args(cmake_options)
     dest.mkdir(exist_ok=True)
     utils.cmake(

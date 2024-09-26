@@ -77,14 +77,21 @@ on:
 
 jobs:
   demo:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         python-version: ["3.10"]
+        os: ["ubuntu-latest"]
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        max-size: 2G
+        key: ${{ matrix.os }}-${{ github.event.inputs.script }}-${{ github.event.build_config }}
+        variant: sccache
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
