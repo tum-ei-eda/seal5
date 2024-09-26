@@ -35,6 +35,10 @@ on:
         description: "Enable progress bars (0/1)"
         required: true
         default: "1"
+      ccache:
+        description: "Enable ccache (0/1)"
+        required: true
+        default: "0"
       clone_depth:
         description: "Clone Depth (-1 for full clone)"
         required: true
