@@ -35,10 +35,10 @@ on:
         description: "Enable progress bars (0/1)"
         required: true
         default: "1"
-      ccache:
-        description: "Enable ccache (0/1)"
-        required: true
-        default: "0"
+      # ccache:
+      #   description: "Enable ccache (0/1)"
+      #   required: true
+      #   default: "0"
       clone_depth:
         description: "Clone Depth (-1 for full clone)"
         required: true
@@ -86,11 +86,13 @@ jobs:
       matrix:
         python-version: ["3.10"]
         os: ["ubuntu-latest"]
+        ccache: ["1"]
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
     - name: Setup ccache
+      if: ${{ matrix.ccache == '1' }}
       uses: hendrikmuhs/ccache-action@v1
       with:
         max-size: 2G
@@ -132,7 +134,7 @@ jobs:
     - name: Run the demo
       run: |
         source .venv/bin/activate
-        VERBOSE=${{ github.event.inputs.verbose }} PROGRESS=${{ github.event.inputs.progress }} CCACHE=${{ github.event.inputs.ccache }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ github.event.inputs.test }} INSTALL=${{ github.event.inputs.install }} DEPLOY=${{ github.event.inputs.deploy }} EXPORT=${{ github.event.inputs.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
+        VERBOSE=${{ github.event.inputs.verbose }} PROGRESS=${{ github.event.inputs.progress }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ github.event.inputs.test }} INSTALL=${{ github.event.inputs.install }} DEPLOY=${{ github.event.inputs.deploy }} EXPORT=${{ github.event.inputs.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
     - uses: actions/upload-artifact@v4
       if: "${{ github.event.inputs.export == '1' }}"
       with:
