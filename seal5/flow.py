@@ -492,7 +492,7 @@ class Seal5Flow:
         # TODO: only allow single instr set for now and track inputs in settings
         logger.info("Completed load of Seal5 inputs")
 
-    def build(self, config=None, target="all", verbose: bool = False):
+    def build(self, config=None, target="all", verbose: bool = False, **kwargs):
         """Build Seal5 LLVM."""
         del verbose  # unused
         logger.info("Building Seal5 LLVM (%s)", target)
