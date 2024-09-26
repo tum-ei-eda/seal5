@@ -75,11 +75,20 @@ jobs:
         - "1"
         export:
         - "1"
+        ccache:
+        - ["1"]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
+    - name: Setup ccache
+      if: ${{ matrix.ccache == '1' }}
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        max-size: 2G
+        key: ${{ matrix.os }}-${{ github.event.inputs.script }}-${{ github.event.build_config }}
+        variant: sccache
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
@@ -118,7 +127,7 @@ jobs:
     - name: Run the demo
       run: |
         source .venv/bin/activate
-        VERBOSE=${{ matrix.verbose }} PROGRESS=${{ matrix.progress }} CLONE_DEPTH=${{ matrix.clone_depth }} BUILD_CONFIG=${{ matrix.build_config }} IGNORE_ERROR=${{ matrix.ignore_error }} TEST=${{ matrix.test }} INSTALL=${{ matrix.install }} DEPLOY=${{ matrix.deploy }} EXPORT=${{ matrix.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ matrix.script }}
+        VERBOSE=${{ matrix.verbose }} PROGRESS=${{ matrix.progress }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ matrix.clone_depth }} BUILD_CONFIG=${{ matrix.build_config }} IGNORE_ERROR=${{ matrix.ignore_error }} TEST=${{ matrix.test }} INSTALL=${{ matrix.install }} DEPLOY=${{ matrix.deploy }} EXPORT=${{ matrix.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ matrix.script }}
     - uses: actions/upload-artifact@v4
       if: "${{ matrix.export == '1' }}"
       with:
