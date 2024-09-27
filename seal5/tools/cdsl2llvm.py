@@ -287,7 +287,6 @@ def convert_ll_to_gmir(
 ):
     """Convert LLVM-IR file to GMIR file."""
     if mattr is None:
-        input(">>>")
         features, _ = get_riscv_defaults()
         mattr = build_riscv_mattr(features, xlen=xlen)
 
