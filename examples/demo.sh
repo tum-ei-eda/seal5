@@ -64,7 +64,7 @@ fi
 
 seal5 --verbose --dir ${SEAL5_HOME} reset  --settings
 seal5 --verbose --dir ${SEAL5_HOME} clean --temp --patches --models --inputs
-seal5 --verbose --dir ${SEAL5_HOME} init $INTERACTIVE_ARGS -c --clone-depth $CLONE_DEPTH $PROGRESS_ARGS
+seal5 --verbose --dir ${SEAL5_HOME} init $INTERACTIVE_ARGS -c --clone-depth $CLONE_DEPTH $PROGRESS_ARGS -f
 seal5 --verbose load --files ${Example_files}
 seal5 --verbose load --files ${Config_files[@]}
 seal5 --verbose setup $PROGRESS_ARGS
