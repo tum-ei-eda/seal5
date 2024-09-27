@@ -76,7 +76,7 @@ jobs:
         export:
         - "1"
         ccache:
-        - ["1"]
+        - "1"
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
