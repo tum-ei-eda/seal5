@@ -27,6 +27,7 @@ logger = get_logger()
 
 
 def add_generate_options(parser):
+    """Setup parser for generate argument group."""
     generate_parser = parser.add_argument_group("generate options")
     generate_parser.add_argument(
         "--skip",

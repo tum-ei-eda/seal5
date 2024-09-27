@@ -12,13 +12,15 @@ import argparse
 import logging
 import pathlib
 import pickle
-from typing import Union
+from typing import Union, Optional
 
 from mako.template import Template
 
 from m2isar.metamodel import arch
 
 from seal5.index import NamedPatch, File, write_index_yaml
+from seal5.utils import is_power_of_two
+from seal5.settings import ExtensionsSettings, IntrinsicDefn
 
 # from seal5.settings import ExtensionsSettings
 
@@ -114,11 +116,15 @@ def write_riscv_instruction_info(
     # operands,
     size,
     details_str,
-    attrs={},
-    constraints=[],
+    attrs: Optional[dict] = None,
+    constraints: Optional[list] = None,
     formats=False,
     compressed_pat=None,
 ):
+    if attrs is None:
+        attrs = {}
+    if constraints is None:
+        constraints = []
     if formats:
         instr_template = Template(filename=str(template_dir / "instr_tablegen2.mako"))
     else:
@@ -216,6 +222,13 @@ def gen_riscv_instr_info_str(instr, set_def):
     return tablegen_str
 
 
+def gen_intrinsic_pattern(instr, intrinsic: IntrinsicDefn):
+    pat = f"""class Pat_{instr.name}<SDPatternOperator OpNode, Instruction Inst>
+: Pat<(OpNode {instr.llvm_ins_str}), (Inst {instr.llvm_ins_str})>;
+def : Pat_{instr.name}<int_riscv_{intrinsic.intrinsic_name}, {instr.name}>;"""
+    return pat
+
+
 def main():
     """Main app entrypoint."""
 
@@ -229,6 +242,13 @@ def main():
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
     parser.add_argument("--index", default=None, help="Output index to file")
     parser.add_argument("--ext", type=str, default="td", help="Default file extension (if using --splitted)")
+    parser.add_argument(
+        "--no-add-intrinsics",
+        dest="add_intrinsics",
+        default=True,
+        action="store_false",
+        help="Suppress patterns for intrinsic functions",
+    )
     args = parser.parse_args()
 
     # initialize logging
@@ -243,13 +263,12 @@ def main():
     # print("suffix", top_level.suffix)
     if top_level.suffix == ".seal5model":
         is_seal5_model = True
-    if args.output is None:
-        assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
-        raise NotImplementedError
-
-        # out_path = top_level.parent / (top_level.stem + ".core_desc")
-    else:
+    if args.output is not None:
         out_path = pathlib.Path(args.output)
+    else:
+        assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
+        # out_path = top_level.parent / (top_level.stem + ".core_desc")
+        raise NotImplementedError
 
     logger.info("loading models")
     if not is_seal5_model:
@@ -279,7 +298,7 @@ def main():
     }
     # preprocess model
     # print("model", model)
-    # settings = model.get("settings", None)
+    settings = model.get("settings", None)
     artifacts = {}
     artifacts[None] = []  # used for global artifacts
     if args.splitted:
@@ -289,6 +308,9 @@ def main():
             set_name_lower = set_name.lower()
             artifacts[set_name] = []
             xlen = set_def.xlen
+            assert xlen is not None
+            assert is_power_of_two(xlen)
+            assert xlen % 8 == 0
             includes = []
             set_dir = out_path / set_name
             set_dir.mkdir(exist_ok=True)
@@ -300,16 +322,21 @@ def main():
             # TODO: check for GPRC and require HasStdExtCOrZca?
             # TODO: check for GPR32Pair and require HasGPR32Pair
             # TODO: check for GPR32V2/GPR32V4 and require HasGPR32V
-            for instr_name, instr_def in set_def.instructions.items():
+            for _, instr_def in set_def.instructions.items():
                 metrics["n_success"] += 1
                 out_name = f"{instr_def.name}InstrInfo.{args.ext}"
                 output_file = set_dir / out_name
                 content = gen_riscv_instr_info_str(instr_def, set_def)
                 if len(content) > 0:
+                    if args.add_intrinsics and settings.intrinsics.intrinsics:
+                        # TODO: intrinsics should be dict keyed by instr name
+                        for intrinsic in settings.intrinsics.intrinsics:
+                            if intrinsic.instr_name.casefold() == instr_def.mnemonic.casefold():
+                                content += gen_intrinsic_pattern(instr_def, intrinsic)
                     assert pred is not None
                     predicate_str = f"Predicates = [{pred}, IsRV{xlen}]"
                     content = f"let {predicate_str} in {{\n{content}\n}}"
-                    with open(output_file, "w") as f:
+                    with open(output_file, "w", encoding="utf-8") as f:
                         f.write(content)
                     instr_info_patch = File(
                         f"llvm/lib/Target/RISCV/seal5/{set_name}/{output_file.name}",
@@ -318,7 +345,6 @@ def main():
                     artifacts[set_name].append(instr_info_patch)
                     inc = f"seal5/{set_name}/{output_file.name}"
                     includes.append(inc)
-
             includes_str = "\n".join([f'include "{inc}"' for inc in includes])
             set_td_includes_patch = NamedPatch(
                 f"llvm/lib/Target/RISCV/seal5/{set_name}.td",
@@ -330,13 +356,13 @@ def main():
         raise NotImplementedError
     if args.metrics:
         metrics_file = args.metrics
-        with open(metrics_file, "w") as f:
+        with open(metrics_file, "w", encoding="utf-8") as f:
             f.write(",".join(metrics.keys()))
             f.write("\n")
             f.write(",".join(map(str, metrics.values())))
             f.write("\n")
     if args.index:
-        if sum(map(lambda x: len(x), artifacts.values())) > 0:
+        if sum(map(len, artifacts.values())) > 0:
             global_artifacts = artifacts.get(None, [])
             set_artifacts = {key: value for key, value in artifacts.items() if key is not None}
             index_file = args.index

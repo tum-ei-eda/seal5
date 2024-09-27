@@ -18,15 +18,17 @@
 #
 """Command line subcommand for loading Seal5 inputs (CoreDesc,yml, ll,.c ...) ."""
 
+from os import getenv
+
 from seal5.flow import Seal5Flow
 from seal5.logging import get_logger
-from os import getenv
 
 
 logger = get_logger()
 
 
 def add_load_options(parser):
+    """Setup parser for load argument group."""
     load_parser = parser.add_argument_group("load options")
     load_parser.add_argument(
         "--files",

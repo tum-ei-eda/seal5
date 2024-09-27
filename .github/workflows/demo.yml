@@ -35,6 +35,10 @@ on:
         description: "Enable progress bars (0/1)"
         required: true
         default: "1"
+      # ccache:
+      #   description: "Enable ccache (0/1)"
+      #   required: true
+      #   default: "0"
       clone_depth:
         description: "Clone Depth (-1 for full clone)"
         required: true
@@ -50,7 +54,7 @@ on:
       build_config:
         description: "Build Config (debug/release/...)"
         required: true
-        default: "release"
+        default: "release_assertions"
       test:
         description: "Run LLVM tests"
         required: true
@@ -77,16 +81,25 @@ on:
 
 jobs:
   demo:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         python-version: ["3.10"]
+        os: ["ubuntu-latest"]
+        ccache: ["1"]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
+    - name: Setup ccache
+      if: ${{ matrix.ccache == '1' }}
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        max-size: 2G
+        key: ${{ matrix.os }}-${{ github.event.inputs.script }}-${{ github.event.inputs.build_config }}
+        variant: sccache
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install APT packages
@@ -121,7 +134,7 @@ jobs:
     - name: Run the demo
       run: |
         source .venv/bin/activate
-        VERBOSE=${{ github.event.inputs.verbose }} PROGESS=${{ github.event.inputs.progress }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ github.event.inputs.test }} INSTALL=${{ github.event.inputs.install }} DEPLOY=${{ github.event.inputs.deploy }} EXPORT=${{ github.event.inputs.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
+        VERBOSE=${{ github.event.inputs.verbose }} PROGRESS=${{ github.event.inputs.progress }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ github.event.inputs.test }} INSTALL=${{ github.event.inputs.install }} DEPLOY=${{ github.event.inputs.deploy }} EXPORT=${{ github.event.inputs.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
     - uses: actions/upload-artifact@v4
       if: "${{ github.event.inputs.export == '1' }}"
       with:

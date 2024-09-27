@@ -26,17 +26,23 @@ from seal5.logging import get_logger
 logger = get_logger()
 
 
-def get_parser(subparsers):
-    """ "Define and return a subparser for the deploy subcommand."""
-    deploy_parser = subparsers.add_parser("deploy", description="Deploy Seal5 LLVM.")
+def add_deploy_options(parser):
+    """Setup parser for deploy argument group."""
+    deploy_parser = parser.add_argument_group("deploy options")
     deploy_parser.add_argument(
         "--dest",
         type=str,
         default=None,
         help="Path to which compressed artifacts should go",
     )
-    deploy_parser.set_defaults(func=handle)
-    return deploy_parser
+
+
+def get_parser(subparsers):
+    """ "Define and return a subparser for the deploy subcommand."""
+    parser = subparsers.add_parser("deploy", description="Deploy Seal5 LLVM.")
+    parser.set_defaults(func=handle)
+    add_deploy_options(parser)
+    return parser
 
 
 def handle(args):

@@ -27,6 +27,7 @@ logger = get_logger()
 
 
 def add_init_options(parser):
+    """Setup parser for init argument group."""
     init_parser = parser.add_argument_group("init options")
     init_parser.add_argument(
         "--non-interactive",

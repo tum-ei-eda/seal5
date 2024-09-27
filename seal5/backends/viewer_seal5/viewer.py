@@ -180,7 +180,7 @@ def main():
                 _ = Node("Throws", parent=fn_node, value=fn_def.throws)
             else:
                 tree.insert(fn_id, tk.END, text="Return", values=(return_str,))
-                tree.insert(fn_id, tk.END, text="Throws", values=(fn_def.throws))
+                tree.insert(fn_id, tk.END, text="Throws", values=(fn_def.throws,))
 
             # generate and add attributes
             if args.text:
@@ -276,7 +276,7 @@ def main():
                 else:
                     tree.insert(instr_id, tk.END, text="Encoding", values=(" ".join(enc_str),))
                     tree.insert(instr_id, tk.END, text="Assembly", values=(instr_def.assembly,))
-                    tree.insert(instr_id, tk.END, text="Throws", values=(instr_def.throws))
+                    tree.insert(instr_id, tk.END, text="Throws", values=(instr_def.throws,))
                     attrs_id = tree.insert(instr_id, tk.END, text="Attributes")
 
                 # generate attributes
@@ -305,12 +305,12 @@ def main():
     if args.text:
         print("============================")
         # text = ""
-        for pre, fill, node in RenderTree(root):
+        for pre, _, node in RenderTree(root):
             suffix = ""
             if hasattr(node, "value"):
                 if node.value is not None:
                     suffix = f" [{node.value}]"
-            print("%s%s%s" % (pre, node.name, suffix))
+            print(f"{pre}{node.name}{suffix}")
         print("============================")
 
     else:

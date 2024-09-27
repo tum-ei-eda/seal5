@@ -16,22 +16,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""Command line subcommand for transforming Seal5 inputs .
-    Transform inputs
-      1. Create M2-ISA-R metamodel
-      2. Convert to Seal5 metamodel (including aliases, builtins,...)
-      3. Analyse/optimize instructions
-"""
+"""Command line subcommand for transforming seal5 environment."""
+from os import getenv
 
 from seal5.flow import Seal5Flow
 from seal5.logging import get_logger
-from os import getenv
 
 
 logger = get_logger()
 
 
 def add_transform_options(parser):
+    """Setup parser for transform argument group."""
     transform_parser = parser.add_argument_group("transform options")
     transform_parser.add_argument(
         "--skip",

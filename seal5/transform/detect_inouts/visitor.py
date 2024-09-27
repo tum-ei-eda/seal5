@@ -26,7 +26,7 @@ def operation(self: behav.Operation, context):
     for stmt in self.statements:
         temp = stmt.generate(context)
         if isinstance(temp, list):
-            for t in temp:
+            for _t in temp:
                 pass
                 # print("t", t, type(t), dir(t))
             statements.extend(temp)

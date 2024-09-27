@@ -27,6 +27,7 @@ logger = get_logger()
 
 
 def add_export_options(parser):
+    """Setup parser for export argument group."""
     export_parser = parser.add_argument_group("export options")
     export_parser.add_argument(
         "--dest",

@@ -102,7 +102,7 @@ def conditional(self: behav.Conditional, writer):
             writer.write("if (")
             self.conds[i].generate(writer)
             writer.write(")")
-        elif i > 0 and i < len(self.conds):
+        elif 0 < i < len(self.conds):
             writer.write("else if(")
             self.conds[i].generate(writer)
             writer.write(")")

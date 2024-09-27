@@ -85,7 +85,7 @@ class Seal5Pass:
     def skip(self):
         self.status = PassStatus.SKIPPED
 
-    def run(self, inputs: List[str], *args, settings: Optional[Seal5Settings] = None, **kwargs):
+    def run(self, inputs: List[str], *_args, settings: Optional[Seal5Settings] = None, **kwargs):
         logger.debug("Running pass: %s", self)
         self.status = PassStatus.RUNNING
         assert settings is not None

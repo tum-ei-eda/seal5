@@ -21,27 +21,26 @@ logger = logging.getLogger("riscv_gisel_legalizer")
 
 
 def type_helper(ty):
-    print("type_helper", ty)
+    """Converts seal5-specific types into LLVMs LLT/VTs."""
     ty_ = ty.replace("seal5_", "")
     if ty_.startswith("p"):
         sz = ty_[1:]
         sz = int(sz)
         return f"const LLT {ty} = LLT::pointer({sz}, XLen);"
-    elif ty_.startswith("s"):
+    if ty_.startswith("s"):
         sz = ty_[1:]
         sz = int(sz)
         return f"const LLT {ty} = LLT::scalar({sz});"
-    elif ty_.startswith("v"):
+    if ty_.startswith("v"):
         n, sz = ty_[1:].split("i", 1)
         n = int(n)
         sz = int(sz)
         return f"const LLT {ty} = LLT::fixed_vector({n}, LLT::scalar({sz}));"
-    else:
-        raise RuntimeError(f"Unsupported: {ty}")
+    raise RuntimeError(f"Unsupported: {ty}")
 
 
 def gen_riscv_gisel_legalizer_str(legalizer_settings: RISCVLegalizerSettings):
-    print("legalizer_settings", legalizer_settings)
+    """Generate GISel legalizer code."""
     ops = legalizer_settings.ops
     used_types = []
     types_lines = []
@@ -75,8 +74,8 @@ def gen_riscv_gisel_legalizer_str(legalizer_settings: RISCVLegalizerSettings):
         if len(names) == 1:
             names_str = names[0]
         else:  # TODO: iterate over ops!
+            # names_str = "{" + ", ".join(names) + "}"
             raise NotImplementedError
-            names_str = "{" + ", ".join(names) + "}"
         line = ""
         if onlyif:
             cond = " && ".join(["ST." + pred[0].lower() + pred[1:] + "()" for pred in onlyif])
@@ -150,7 +149,7 @@ def main():
                 if gisel_settings:
                     content = gen_riscv_gisel_legalizer_str(gisel_settings)
                     if len(content) > 0:
-                        with open(out_path, "w") as f:
+                        with open(out_path, "w", encoding="utf-8") as f:
                             f.write(content)
                         riscv_gisel_legalizer_patch = NamedPatch(
                             "llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp",
@@ -167,7 +166,7 @@ def main():
         #     f.write(",".join(map(str, metrics.values())))
         #     f.write("\n")
     if args.index:
-        if sum(map(lambda x: len(x), artifacts.values())) > 0:
+        if sum(map(len, artifacts.values())) > 0:
             global_artifacts = artifacts.get(None, [])
             set_artifacts = {key: value for key, value in artifacts.items() if key is not None}
             index_file = args.index

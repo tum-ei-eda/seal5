@@ -15,8 +15,9 @@ import pathlib
 import pickle
 
 from m2isar.metamodel import arch
-import seal5.model as seal5_model
 from m2isar.metamodel.utils.expr_preprocessor import process_attributes, process_functions, process_instructions
+
+import seal5.model as seal5_model
 
 logger = logging.getLogger("seal5_converter")
 

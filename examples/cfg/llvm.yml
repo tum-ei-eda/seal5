@@ -12,6 +12,7 @@ llvm:
         LLVM_OPTIMIZED_TABLEGEN: true
         LLVM_ENABLE_PROJECTS: [clang, lld]
         # LLVM_TARGETS_TO_BUILD: [X86, RISCV]
+        LLVM_DEFAULT_TARGET_TRIPLE: "riscv32-unknown-elf"
         LLVM_TARGETS_TO_BUILD: [RISCV]
     release_assertions:
       options:
@@ -21,6 +22,7 @@ llvm:
         LLVM_OPTIMIZED_TABLEGEN: true
         LLVM_ENABLE_PROJECTS: [clang, lld]
         # LLVM_TARGETS_TO_BUILD: [X86, RISCV]
+        LLVM_DEFAULT_TARGET_TRIPLE: "riscv32-unknown-elf"
         LLVM_TARGETS_TO_BUILD: [RISCV]
         LLVM_FORCE_ENABLE_STATS: true
     debug:
@@ -32,6 +34,7 @@ llvm:
         LLVM_ENABLE_PROJECTS: [clang, lld]
         # LLVM_TARGETS_TO_BUILD: [X86, RISCV]
         LLVM_TARGETS_TO_BUILD: [RISCV]
+        LLVM_DEFAULT_TARGET_TRIPLE: "riscv32-unknown-elf"
         # LLVM_PARALLEL_COMPILE_JOBS: ?
         LLVM_PARALLEL_LINK_JOBS: 8
         # LLVM_PARALLEL_TABLEGEN_JOBS: ?

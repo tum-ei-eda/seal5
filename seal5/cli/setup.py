@@ -17,16 +17,17 @@
 # limitations under the License.
 #
 """Command line subcommand for Installing Seal5 dependencies"""
+from os import getenv
 
 from seal5.flow import Seal5Flow
 from seal5.logging import get_logger
-from os import getenv
 
 
 logger = get_logger()
 
 
 def add_setup_options(parser):
+    """Setup parser for setup argument group."""
     setup_parser = parser.add_argument_group("setup options")
     setup_parser.add_argument(
         "--non-interactive",

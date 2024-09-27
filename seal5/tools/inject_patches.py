@@ -19,9 +19,10 @@
 """Patch utils for seal5."""
 import os
 import argparse
-import yaml
 from pathlib import Path
+
 from email.utils import formatdate
+import yaml
 
 from seal5.logging import get_logger
 
@@ -29,6 +30,8 @@ logger = get_logger()
 
 
 def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=None, msg=None, append=None):
+    """Generate patch contents based on index file."""
+    del append  # unused
     # base_dir = os.path.dirname(index_file)
     if msg:
         if not isinstance(msg, str):
@@ -38,7 +41,7 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
     else:
         msg = "Placeholder"
 
-    with open(index_file) as file:
+    with open(index_file, "r", encoding="utf-8") as file:
         index = yaml.safe_load(file)
 
     global_artifacts = index["artifacts"]
@@ -46,53 +49,52 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
     def generate_patch_set(fragments):
         ps = ""
         # Build minimal patch header for 'git am'
-        userName = author
-        userEmail = mail
-        ps += "From: {0} <{1}>\n".format(userName, userEmail)
-        ps += "Date: {0}\n".format(formatdate())
-        ps += "Subject: {0}\n\n\n".format(msg)
+        user_name = author
+        user_email = mail
+        ps += f"From: {user_name} <{user_email}>\n"
+        ps += f"Date: {formatdate()}\n"
+        ps += f"Subject: {msg}\n\n\n"
         for fragment in fragments:
             ps += fragment
         return ps
 
     def find_site(path, key):
         # print("find_site", path, key)
-        # startMark = key + ' - INSERTION_START'
-        # endMark = key + ' - INSERTION_END'
+        # start_mark = key + ' - INSERTION_START'
+        # enc_mark = key + ' - INSERTION_END'
         if key:
-            startMark_ = path.split("/")[-1] + " - " + key + " - INSERTION_START"
-            endMark_ = path.split("/")[-1] + " - " + key + " - INSERTION_END"
+            start_mark_ = path.split("/")[-1] + " - " + key + " - INSERTION_START"
+            end_mark_ = path.split("/")[-1] + " - " + key + " - INSERTION_END"
         else:
-            startMark_ = path.split("/")[-1] + " - INSERTION_START"
-            endMark_ = path.split("/")[-1] + " - INSERTION_END"
-        # print("start", startMark_)
-        # print("end", endMark_)
-        siteLine = -1
-        siteLen = 0
-        startMark = None
+            start_mark_ = path.split("/")[-1] + " - INSERTION_START"
+            end_mark_ = path.split("/")[-1] + " - INSERTION_END"
+        # print("start", start_mark_)
+        # print("end", end_mark_)
+        site_line = -1
+        site_len = 0
+        start_mark = None
         fullpath = path if llvm_dir is None else os.path.join(llvm_dir, path)
-        with open(fullpath, "r") as src:
+        with open(fullpath, "r", encoding="utf-8") as src:
             lines = src.readlines()
             for line in lines:
-                if line.find(startMark_) != -1:
-                    startMark = line
-                    siteLine = lines.index(line)
-                elif line.find(endMark_) != -1:
-                    endMark = line.rstrip("\n")
-                    siteLen = lines.index(line) - siteLine + 1
+                if line.find(start_mark_) != -1:
+                    start_mark = line
+                    site_line = lines.index(line)
+                elif line.find(end_mark_) != -1:
+                    end_mark = line.rstrip("\n")
+                    site_len = lines.index(line) - site_line + 1
                     break
-                elif siteLine >= 0:
+                elif site_line >= 0:
                     # Accumulate all lines between the start mark and the end
                     # as part of the mark, so the new lines get injected just
                     # before the end mark
-                    startMark += line
-        if startMark is None:
+                    start_mark += line
+        if start_mark is None:
             # fallback
             if key:
                 return find_site(path, None)
-            else:
-                assert False, "Marker not found!"
-        return siteLine, siteLen, startMark, endMark
+            assert False, "Marker not found!"
+        return site_line, site_len, start_mark, end_mark
 
     def generate_patch_fragment(artifact):
         dest_path = artifact.get("dest_path", None)
@@ -127,7 +129,7 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
             assert isinstance(content_, str)
         else:
             if is_patch or is_file:
-                with open(src_path, "r") as f:
+                with open(src_path, "r", encoding="utf-8") as f:
                     content_ = f.read()
             elif is_dir:
                 files = Path(src_path).rglob("*")
@@ -157,34 +159,32 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
         content = "+" + content_.replace("\n", "\n+")
         if is_patch:
             # Updating existing file
-            origFile = "a/" + dest_path
-            newFile = "b/" + dest_path
-            siteLine, siteLen, startMark, endMark = find_site(dest_path, key)
-            newStart = siteLine + 1
-            newLen = content_.count("\n") + 1 + siteLen
+            orig_file = "a/" + dest_path
+            new_file = "b/" + dest_path
+            site_line, site_len, start_mark, end_mark = find_site(dest_path, key)
+            new_start = site_line + 1
+            new_len = content_.count("\n") + 1 + site_len
             # ensure all existing lines in the match prefixed by a space
-            # if siteLen > 2 and startMark[-1] == "\n":
-            if False:
-                startMark = startMark.rstrip("\n").replace("\n", "\n ")
-            else:
-                startMark = startMark.rstrip("\n").replace("\n", "\n ")
-            content = " {0}\n{1}\n {2}".format(startMark, content, endMark)
+            # if site_len > 2 and start_mark[-1] == "\n":
+            # if False:
+            #     start_mark = start_mark.rstrip("\n").replace("\n", "\n ")
+            # else:
+            start_mark = start_mark.rstrip("\n").replace("\n", "\n ")
+            content = f" {start_mark}\n{content}\n {end_mark}"
         else:
             assert is_file
             # Adding new file
-            origFile = "/dev/null"
-            newFile = "b/" + dest_path
-            newStart = 1
-            siteLen = 0
-            siteLine = -1
-            newLen = content_.count("\n") + 1
-        return """--- {0}
-+++ {1}
-@@ -{2},{3} +{4},{5} @@
-{6}
-""".format(
-            origFile, newFile, siteLine + 1, siteLen, newStart, newLen, content
-        )
+            orig_file = "/dev/null"
+            new_file = "b/" + dest_path
+            new_start = 1
+            site_len = 0
+            site_line = -1
+            new_len = content_.count("\n") + 1
+        return f"""--- {orig_file}
++++ {new_file}
+@@ -{site_line + 1},{site_len} +{new_start},{new_len} @@
+{content}
+"""
 
     fragments = []
 
@@ -203,13 +203,14 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
     patch_set = generate_patch_set(fragments)
 
     if out_file:
-        with open(out_file, "w") as f:
+        with open(out_file, "w", encoding="utf-8") as f:
             f.write(patch_set)
     else:
         print(patch_set)
 
 
 def process_arguments():
+    """Progress cmdline arguments."""
     parser = argparse.ArgumentParser(description="Generate patch file for adding extension to LLVM")
     parser.add_argument("index_file", help="list of code fragments to inject")
     parser.add_argument("--llvm-dir", type=str, default=None, help="path to llvm repo (default: cwd)")
@@ -230,6 +231,7 @@ def process_arguments():
 
 
 def main():
+    """Main entry point."""
     args = process_arguments()
     generate_patch(
         args.index_file,

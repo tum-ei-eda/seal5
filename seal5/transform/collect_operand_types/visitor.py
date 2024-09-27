@@ -184,7 +184,7 @@ def type_conv(self: behav.TypeConv, context):
                             if self.size < width:  # trunc!
                                 return self
                                 # assert False, "truncation not allowed here"
-                            elif self.size > width:  # zext/sext!
+                            if self.size > width:  # zext/sext!
                                 assert False, "sign/zero extension not allowed here"
                     context.operands[op_name] = op
 

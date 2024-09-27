@@ -68,10 +68,10 @@ def run(args):
             else:
                 assert False
 
-    for set_name, set_def in model["sets"].items():
+    for _, set_def in model["sets"].items():
         logger.debug("eliminating rd != 0 for set %s", set_def.name)
         patch_model(visitor)
-        for instr_name, instr_def in set_def.instructions.items():
+        for _, instr_def in set_def.instructions.items():
             logger.debug("collecting raises for instr %s", instr_def.name)
             instr_def.operation.generate(None)
 

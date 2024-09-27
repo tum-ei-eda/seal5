@@ -90,9 +90,9 @@ def assignment(self: behav.Assignment, context):
         if target_width < expr_width:  # implicit truncation
             ty = self.expr.inferred_type
             ty._width = target_width
-            group = behav.Group(self.expr)
-            group.inferred_type = ty
-            self.expr = behav.SliceOperation(group, behav.IntLiteral(target_width - 1), behav.IntLiteral(0))
+            group_ = behav.Group(self.expr)
+            group_.inferred_type = ty
+            self.expr = behav.SliceOperation(group_, behav.IntLiteral(target_width - 1), behav.IntLiteral(0))
             self.expr.inferred_type = ty
     self.target = self.target.generate(context)
     self.expr = self.expr.generate(context)

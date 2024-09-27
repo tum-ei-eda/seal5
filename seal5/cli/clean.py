@@ -28,6 +28,7 @@ logger = get_logger()
 
 
 def add_clean_options(parser):
+    """Setup parser for clean argument group."""
     clean_parser = parser.add_argument_group("clean options")
     clean_parser.add_argument(
         "--temp",
