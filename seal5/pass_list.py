@@ -1461,8 +1461,7 @@ def convert_llvmir_to_gmir(
                     cdsl2llvm_build_dir = None
                     integrated_pattern_gen = settings.tools.pattern_gen.integrated
                     if integrated_pattern_gen:
-                        config = settings.llvm.default_config
-                        cdsl2llvm_build_dir = str(settings.build_dir / config)
+                        cdsl2llvm_build_dir = str(settings.get_llvm_build_dir(fallback=True, check=True))
                     else:
                         cdsl2llvm_build_dir = str(settings.deps_dir / "cdsl2llvm" / "llvm" / "build")
                     # TODO: migrate with pass to cmdline backend

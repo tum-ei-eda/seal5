@@ -687,6 +687,26 @@ class Seal5Settings(YAMLSettings):
         """Seal5 build_dir getter."""
         return self._meta_dir / "build"
 
+    def get_llvm_build_dir(self, config: Optional[str] = None, fallback: bool = True, check: bool = False):
+        if config is None:
+            # check if default_exists
+            assert self.llvm is not None
+            config = self.llvm.default_config
+
+        assert config is not None, "Could not resolve LLVM build dir"
+
+        llvm_build_dir = self.build_dir / config
+
+        if not llvm_build_dir.is_dir():
+            assert fallback, f"LLVM build dir {llvm_build_dir} does not exist and fallback is disabled."
+            # Look for non-empty subdirs for .seal5/build
+            candidates = [f for f in self.build_dir.iterdir() if f.is_dir() and any(f.iterdir())]
+            if len(candidates) > 0:
+                llvm_build_dir = candidates[0]
+        if check:
+            assert llvm_build_dir.is_dir(), f"LLVM build dir does not exist: {llvm_build_dir}"
+        return llvm_build_dir
+
     @property
     def install_dir(self):
         """Seal5 install_dir getter."""

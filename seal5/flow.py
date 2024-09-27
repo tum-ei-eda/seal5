@@ -421,15 +421,7 @@ class Seal5Flow:
         cdsl2llvm_build_dir = None
         integrated_pattern_gen = self.settings.tools.pattern_gen.integrated
         if integrated_pattern_gen:
-            default_config_name = self.settings.llvm.default_config
-            non_default_config_names = [
-                config_name for config_name in self.settings.llvm.configs.keys() if config_name != default_config_name
-            ]
-            config_names = [default_config_name, *non_default_config_names]
-            for config_name in config_names:
-                cdsl2llvm_build_dir = self.settings.build_dir / config_name
-                if cdsl2llvm_build_dir.is_dir():
-                    break
+            cdsl2llvm_build_dir = self.settings.get_llvm_build_dir(fallback=True, check=False)
         else:
             cdsl2llvm_build_dir = self.settings.deps_dir / "cdsl2llvm" / "llvm" / "build"
         if cdsl2llvm_build_dir.is_dir():
@@ -506,7 +498,7 @@ class Seal5Flow:
         cmake_options = llvm_config.options
         llvm.build_llvm(
             Path(self.settings.directory),
-            self.settings.build_dir / config,
+            self.settings.get_llvm_build_dir(config=config, fallback=True, check=False),
             cmake_options=cmake_options,
             target=target,
             use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
@@ -538,7 +530,7 @@ class Seal5Flow:
         cmake_options = llvm_config.options
         llvm.build_llvm(
             Path(self.settings.directory),
-            self.settings.build_dir / config,
+            self.settings.get_llvm_build_dir(config=config, fallback=True, check=True),
             cmake_options=cmake_options,
             use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
             enable_ccache=self.settings.llvm.ccache or kwargs.get("enable_ccache", False),
@@ -792,7 +784,10 @@ class Seal5Flow:
             config = self.settings.llvm.default_config
         test_paths = self.settings.test.paths
         failing_tests = llvm.test_llvm(
-            self.directory / "llvm" / "test", self.settings.build_dir / config, test_paths, verbose=verbose
+            self.directory / "llvm" / "test",
+            self.settings.get_llvm_build_dir(config=config, fallback=True, check=True),
+            test_paths,
+            verbose=verbose
         )
         if len(failing_tests) > 0:
             logger.error("%d tests failed: %s", len(failing_tests), ", ".join(failing_tests))
