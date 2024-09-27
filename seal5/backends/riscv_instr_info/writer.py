@@ -20,6 +20,7 @@ from m2isar.metamodel import arch
 
 from seal5.index import NamedPatch, File, write_index_yaml
 from seal5.utils import is_power_of_two
+from seal5.settings import ExtensionsSettings, IntrinsicDefn
 
 # from seal5.settings import ExtensionsSettings
 
@@ -220,6 +221,12 @@ def gen_riscv_instr_info_str(instr, set_def):
     )
     return tablegen_str
 
+def gen_intrinsic_pattern(instr, intrinsic: IntrinsicDefn):
+    pat = f"""class Pat_{instr.name}<SDPatternOperator OpNode, Instruction Inst>
+: Pat<(OpNode {instr.llvm_ins_str}), (Inst {instr.llvm_ins_str})>;
+def : Pat_{instr.name}<int_riscv_{intrinsic.intrinsic_name}, {instr.name}>;"""
+    return pat
+
 
 def main():
     """Main app entrypoint."""
@@ -234,6 +241,7 @@ def main():
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
     parser.add_argument("--index", default=None, help="Output index to file")
     parser.add_argument("--ext", type=str, default="td", help="Default file extension (if using --splitted)")
+    parser.add_argument("--no-add-intrinsics", dest='add_intrinsics', default=True, action='store_false', help="Suppress patterns for intrinsic functions")
     args = parser.parse_args()
 
     # initialize logging
@@ -283,7 +291,7 @@ def main():
     }
     # preprocess model
     # print("model", model)
-    # settings = model.get("settings", None)
+    settings = model.get("settings", None)
     artifacts = {}
     artifacts[None] = []  # used for global artifacts
     if args.splitted:
@@ -313,6 +321,11 @@ def main():
                 output_file = set_dir / out_name
                 content = gen_riscv_instr_info_str(instr_def, set_def)
                 if len(content) > 0:
+                    if args.add_intrinsics and settings.intrinsics.intrinsics:
+                        # TODO: intrinsics should be dict keyed by instr name
+                        for intrinsic in settings.intrinsics.intrinsics:
+                            if intrinsic.instr_name.casefold() == instr_def.mnemonic.casefold():
+                                content += gen_intrinsic_pattern(instr_def, intrinsic)
                     assert pred is not None
                     predicate_str = f"Predicates = [{pred}, IsRV{xlen}]"
                     content = f"let {predicate_str} in {{\n{content}\n}}"
@@ -325,7 +338,6 @@ def main():
                     artifacts[set_name].append(instr_info_patch)
                     inc = f"seal5/{set_name}/{output_file.name}"
                     includes.append(inc)
-
             includes_str = "\n".join([f'include "{inc}"' for inc in includes])
             set_td_includes_patch = NamedPatch(
                 f"llvm/lib/Target/RISCV/seal5/{set_name}.td",

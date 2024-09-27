@@ -81,6 +81,7 @@ GENERATE_PASS_MAP = [
     # ("riscv_instr_formats", passes.gen_riscv_instr_formats_patch, {}),
     ("riscv_register_info", passes.gen_riscv_register_info_patch, {}),
     ("riscv_instr_info", passes.gen_riscv_instr_info_patch, {}),
+    ("riscv_intrinsics", passes.gen_riscv_intrinsics, {}),
     # subtarget_tests
     # register_types
     # operand_types
