@@ -299,7 +299,7 @@ class Seal5Flow:
             if force is False and not utils.ask_user(
                 "Overwrite existing .seal5 diretcory?", default=False, interactive=interactive
             ):
-                logger.error("Directory %s already exists! Aborting...", self._meta_dir)
+                logger.error("Directory %s already exists! Aborting...", self.meta_dir)
                 sys.exit(1)
         self.meta_dir.mkdir(exist_ok=True)
         create_seal5_directories(
