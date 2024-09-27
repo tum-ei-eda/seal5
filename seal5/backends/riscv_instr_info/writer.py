@@ -221,6 +221,7 @@ def gen_riscv_instr_info_str(instr, set_def):
     )
     return tablegen_str
 
+
 def gen_intrinsic_pattern(instr, intrinsic: IntrinsicDefn):
     pat = f"""class Pat_{instr.name}<SDPatternOperator OpNode, Instruction Inst>
 : Pat<(OpNode {instr.llvm_ins_str}), (Inst {instr.llvm_ins_str})>;
@@ -241,7 +242,13 @@ def main():
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
     parser.add_argument("--index", default=None, help="Output index to file")
     parser.add_argument("--ext", type=str, default="td", help="Default file extension (if using --splitted)")
-    parser.add_argument("--no-add-intrinsics", dest='add_intrinsics', default=True, action='store_false', help="Suppress patterns for intrinsic functions")
+    parser.add_argument(
+        "--no-add-intrinsics",
+        dest="add_intrinsics",
+        default=True,
+        action="store_false",
+        help="Suppress patterns for intrinsic functions",
+    )
     args = parser.parse_args()
 
     # initialize logging

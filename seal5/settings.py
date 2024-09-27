@@ -159,9 +159,8 @@ DEFAULT_SETTINGS = {
             "sparse_checkout": False,
         },
     },
-    "intrinsics": {
-    },
- }
+    "intrinsics": {},
+}
 
 ALLOWED_YAML_TYPES = (int, float, str, bool)
 

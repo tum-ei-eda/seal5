@@ -27,16 +27,15 @@ logger = logging.getLogger("riscv_intrinsics")
 def ir_type_to_text(ir_type: str):
     # needs fleshing out with all likely types
     # probably needs to take into account RISC-V bit width, e.g. does "Li" means 32 bit integer on a 128-bit platform?
-    if ir_type == 'i32':
-        return 'Li'
+    if ir_type == "i32":
+        return "Li"
     raise NotImplementedError(f'Unhandled ir_type "{ir_type}"')
 
 
 def build_target(arch: str, intrinsic: IntrinsicDefn):
-
     # Target couples intrinsic name to argument types and function behaviour
     # Start with return type if not void
-    arg_str = ''
+    arg_str = ""
     if intrinsic.ret_type:
         arg_str += ir_type_to_text(intrinsic.ret_type)
     for arg in intrinsic.args:
@@ -48,36 +47,39 @@ def build_target(arch: str, intrinsic: IntrinsicDefn):
 
 def ir_type_to_pattern(ir_type: str):
     # needs fleshing out with all likely types
-    if ir_type == 'i32':
-        return 'llvm_i32_ty'
+    if ir_type == "i32":
+        return "llvm_i32_ty"
     raise NotImplementedError(f'Unhandled ir_type "{ir_type}"')
 
 
 def build_attr(arch: str, intrinsic: IntrinsicDefn):
     uses_mem = False  # @todo
-    attr = f'  def int_riscv_{intrinsic.intrinsic_name} : Intrinsic<\n    ['
+    attr = f"  def int_riscv_{intrinsic.intrinsic_name} : Intrinsic<\n    ["
     if intrinsic.ret_type:
-        attr += f'{ir_type_to_pattern(intrinsic.ret_type)}'
-    attr += '],\n    ['
+        attr += f"{ir_type_to_pattern(intrinsic.ret_type)}"
+    attr += "],\n    ["
     for idx, arg in enumerate(intrinsic.args):
         if idx:
-            attr += ', '
+            attr += ", "
         attr += ir_type_to_pattern(arg.arg_type)
-    attr += '],\n'
-    attr += '    [IntrNoMem, IntrSpeculatable, IntrWillReturn]>;'
+    attr += "],\n"
+    attr += "    [IntrNoMem, IntrSpeculatable, IntrWillReturn]>;"
     return attr
 
 
 def build_emit(arch: str, intrinsic: IntrinsicDefn):
-    emit = (f'  case RISCV::BI__builtin_{arch}_{intrinsic.intrinsic_name}:\n'
-            f'    ID = Intrinsic::riscv_{intrinsic.intrinsic_name};\n'
-            f'    break;')
+    emit = (
+        f"  case RISCV::BI__builtin_{arch}_{intrinsic.intrinsic_name}:\n"
+        f"    ID = Intrinsic::riscv_{intrinsic.intrinsic_name};\n"
+        f"    break;"
+    )
     return emit
 
 
 @dataclass
 class PatchFrag:
     """Pairs patch contents to location to apply it"""
+
     patchee: str
     tag: str
     contents: str = ""
@@ -159,12 +161,12 @@ def main():
             if llvm_settings:
                 llvm_state = llvm_settings.state
                 if llvm_state:
-                    llvm_version = llvm_state.version   # unused today, but needed very soon
+                    llvm_version = llvm_state.version  # unused today, but needed very soon
         patch_frags = {
-            'target': PatchFrag(patchee='clang/include/clang/Basic/BuiltinsRISCV.def', tag='builtins_riscv'),
-            'attr': PatchFrag(patchee='llvm/include/llvm/IR/IntrinsicsRISCV.td', tag='intrinsics_riscv'),
-            'emit': PatchFrag(patchee='clang/lib/CodeGen/CGBuiltin.cpp', tag='cg_builtin')
-                      }
+            "target": PatchFrag(patchee="clang/include/clang/Basic/BuiltinsRISCV.def", tag="builtins_riscv"),
+            "attr": PatchFrag(patchee="llvm/include/llvm/IR/IntrinsicsRISCV.td", tag="intrinsics_riscv"),
+            "emit": PatchFrag(patchee="clang/lib/CodeGen/CGBuiltin.cpp", tag="cg_builtin"),
+        }
         for set_name, set_def in model["sets"].items():
             artifacts[set_name] = []
             metrics["n_sets"] += 1
@@ -175,19 +177,19 @@ def main():
             for intrinsic in settings.intrinsics.intrinsics:
                 metrics["n_success"] += 1
 
-                patch_frags['target'].contents += build_target(arch=ext_settings.get_arch(), intrinsic=intrinsic)
-                patch_frags['attr'].contents += build_attr(arch=ext_settings.get_arch(), intrinsic=intrinsic)
-                patch_frags['emit'].contents += build_emit(arch=ext_settings.get_arch(), intrinsic=intrinsic)
+                patch_frags["target"].contents += build_target(arch=ext_settings.get_arch(), intrinsic=intrinsic)
+                patch_frags["attr"].contents += build_attr(arch=ext_settings.get_arch(), intrinsic=intrinsic)
+                patch_frags["emit"].contents += build_emit(arch=ext_settings.get_arch(), intrinsic=intrinsic)
 
         for id, frag in patch_frags.items():
             contents = frag.contents
             if len(contents) > 0:
-                if id == 'target':
-                    contents = f'// {ext_settings.get_arch()}\n{contents}\n'
-                elif id == 'attr':
+                if id == "target":
+                    contents = f"// {ext_settings.get_arch()}\n{contents}\n"
+                elif id == "attr":
                     contents = f'let TargetPrefix = "riscv" in {{\n{contents}\n}}'
                 (root, ext) = os.path.splitext(out_path)
-                patch_path = root + '_' + id + ext
+                patch_path = root + "_" + id + ext
                 with open(patch_path, "w") as f:
                     f.write(contents)
                 key = frag.tag

@@ -168,6 +168,7 @@ def add_test_cfg(tests_dir: Path):
 
 class Seal5Flow:
     """Seal5 Flow."""
+
     def __init__(
         self, directory: Optional[Path] = None, meta_dir: Optional[Union[str, Path]] = None, name: Optional[str] = None
     ):
@@ -787,7 +788,7 @@ class Seal5Flow:
             self.directory / "llvm" / "test",
             self.settings.get_llvm_build_dir(config=config, fallback=True, check=True),
             test_paths,
-            verbose=verbose
+            verbose=verbose,
         )
         if len(failing_tests) > 0:
             logger.error("%d tests failed: %s", len(failing_tests), ", ".join(failing_tests))
