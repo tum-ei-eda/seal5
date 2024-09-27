@@ -54,7 +54,7 @@ on:
       build_config:
         description: "Build Config (debug/release/...)"
         required: true
-        default: "release"
+        default: "release_assertions"
       test:
         description: "Run LLVM tests"
         required: true
@@ -96,7 +96,7 @@ jobs:
       uses: hendrikmuhs/ccache-action@v1
       with:
         max-size: 2G
-        key: ${{ matrix.os }}-${{ github.event.inputs.script }}-${{ github.event.build_config }}
+        key: ${{ matrix.os }}-${{ github.event.inputs.script }}-${{ github.event.inputs.build_config }}
         variant: sccache
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5

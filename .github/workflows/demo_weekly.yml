@@ -87,7 +87,7 @@ jobs:
       uses: hendrikmuhs/ccache-action@v1
       with:
         max-size: 2G
-        key: ${{ matrix.os }}-${{ github.event.inputs.script }}-${{ github.event.build_config }}
+        key: ${{ matrix.os }}-${{ matrix.script }}-${{ matrix.build_config }}
         variant: sccache
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
