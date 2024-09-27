@@ -34,6 +34,7 @@ DEPLOY=${DEPLOY:-1}
 EXPORT=${EXPORT:-1}
 CLEANUP=${CLEANUP:-0}
 PROGRESS=${PROGRESS:-1}
+CCACHE=${PROGRESS:-0}
 CLONE_DEPTH=${CLONE_DEPTH:-1}
 DEST=${DEST:-"/tmp/seal5_llvm_cli_demo"}
 NAME=${NAME:-"cli_demo"}
@@ -58,7 +59,13 @@ fi
 INTERACTIVE_ARGS=""
 if [[ $INTERACTIVE -eq 0 ]]
 then
-    PROGRESS_ARGS="--non-interactive"
+    INTERACTIVE_ARGS="--non-interactive"
+fi
+
+CCACHE_ARGS=""
+if [[ $CCACHE -eq 1 ]]
+then
+    CCACHE_ARGS="--ccache"
 fi
 
 
@@ -69,19 +76,19 @@ seal5 --verbose load --files ${Example_files}
 seal5 --verbose load --files ${Config_files[@]}
 seal5 --verbose setup $PROGRESS_ARGS
 seal5 --verbose patch -s 0
-seal5 --verbose build --config $BUILD_CONFIG
+seal5 --verbose build --config $BUILD_CONFIG $CCACHE_ARGS
 seal5 --verbose transform
 seal5 --verbose generate --skip pattern_gen
 seal5 --verbose patch -s 1 2
 if [[ $SKIP_PATTERNS -eq 0 ]]
 then
-    seal5 --verbose build --config $BUILD_CONFIG
-    seal5 --verbose build --config $BUILD_CONFIG -t pattern-gen
-    seal5 --verbose build --config $BUILD_CONFIG -t llc
+    seal5 --verbose build --config $BUILD_CONFIG $CCACHE_ARGS
+    seal5 --verbose build --config $BUILD_CONFIG -t pattern-gen $CCACHE_ARGS
+    seal5 --verbose build --config $BUILD_CONFIG -t llc $CCACHE_ARGS
     seal5 --verbose generate --only pattern_gen
 fi
 seal5 --verbose patch -s 3 4 5
-seal5 --verbose build --config $BUILD_CONFIG
+seal5 --verbose build --config $BUILD_CONFIG $CCACHE_ARGS
 
 if [[ $TEST -eq 1 ]]
 then
@@ -95,7 +102,7 @@ fi
 
 if [[ $INSTALL -eq 1 ]]
 then
-    seal5 --verbose install --config $BUILD_CONFIG
+    seal5 --verbose install --config $BUILD_CONFIG $CCACHE_ARGS
 fi
 
 if [[ $DEPLOY -eq 1 ]]
