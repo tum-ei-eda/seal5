@@ -39,6 +39,11 @@ def add_install_options(parser):
         default=None,
         help="Choose destination. If not defined, installed to .seal5/install/$config.",
     )
+    install_parser.add_argument(
+        "--ccache",
+        action="store_true",
+        help="Enable CCache to speedup compilation.",
+    )
 
 
 def get_parser(subparsers):
@@ -62,4 +67,5 @@ def handle(args):
         dest=args.dest,
         config=args.config,
         verbose=args.verbose,
+        enable_ccache=args.ccache,
     )

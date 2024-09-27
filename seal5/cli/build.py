@@ -40,6 +40,11 @@ def add_build_options(parser):
         default=None,
         help="Choose build Config in Settings.yml",
     )
+    build_parser.add_argument(
+        "--ccache",
+        action="store_true",
+        help="Enable CCache to speedup compilation.",
+    )
 
 
 def get_parser(subparsers):
@@ -63,4 +68,5 @@ def handle(args):
         config=args.config,
         target=args.target,
         verbose=args.verbose,
+        enable_ccache=args.ccache,
     )
