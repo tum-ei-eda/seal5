@@ -109,24 +109,10 @@ jobs:
       run: |
         source .venv/bin/activate
         pip install -e .
-    - name: Determine program
-      id: ctx
-      run: |
-        if [[ "${{ github.event.inputs.script }}" == *.py ]]
-        then
-            echo "program=python3" >> $GITHUB_OUTPUT
-        elif [[ "${{ github.event.inputs.script }}" == *.sh ]]
-        then
-            echo "program=bash" >> $GITHUB_OUTPUT
-        else
-            echo "Invalid file extension!"
-            exit 1
-        fi         
     - name: Run the demo
       run: |
         source .venv/bin/activate
-        VERBOSE=0 PROGESS=1 CLONE_DEPTH=1 BUILD_CONFIG=release IGNORE_ERROR=1 TEST=1 INSTALL=1 DEPLOY=1 EXPORT=1 DEST=/tmp/seal5_llvm python3 examples/s4e_demo.py
-        VERBOSE=${{ github.event.inputs.verbose }} PROGRESS=${{ github.event.inputs.progress }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ github.event.inputs.test }} INSTALL=${{ github.event.inputs.install }} DEPLOY=${{ github.event.inputs.deploy }} EXPORT=${{ github.event.inputs.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
+        VERBOSE=0 PROGESS=1 CLONE_DEPTH=1 CCACHE=${{ matrix.ccache }} BUILD_CONFIG=release IGNORE_ERROR=1 TEST=1 INSTALL=1 DEPLOY=1 EXPORT=1 DEST=/tmp/seal5_llvm python3 examples/s4e_demo.py
 
     - uses: actions/upload-artifact@v4
       if: "${{ github.event.inputs.export == '1'  ||  github.event_name == 'repository_dispatch' }}"
