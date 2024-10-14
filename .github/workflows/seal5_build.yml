@@ -130,7 +130,7 @@ jobs:
       with:
         name: etiss-run-id
         github-token: ${{ secrets.REPO_ACCESS_TOKEN }}
-        repository: bkebianyor/seal5
+        repository: kebi-be/seal5
         path: /home/runner/work/
         workflow: sync_etiss_build.yml
         workflow_conclusion: success
