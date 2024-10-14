@@ -104,19 +104,19 @@ jobs:
     - name: Run the demo
       run: |
         source .venv/bin/activate
-        VERBOSE=0 PROGESS=1 CLONE_DEPTH=1 BUILD_CONFIG=release IGNORE_ERROR=1 TEST=1 INSTALL=1 DEPLOY=1 EXPORT=1 DEST=/tmp/seal5_llvm python3 examples/s4e_demo.py
+   #     VERBOSE=0 PROGESS=1 CLONE_DEPTH=1 BUILD_CONFIG=release IGNORE_ERROR=1 TEST=1 INSTALL=1 DEPLOY=1 EXPORT=1 DEST=/tmp/seal5_llvm python3 examples/s4e_demo.py
     
-    - uses: actions/upload-artifact@v4
-      if: "${{ github.event.inputs.export == '1'  ||  github.event_name == 'repository_dispatch' }}"
-      with:
-        name: demo-export
-        path: /tmp/seal5_llvm.tar.gz
+  #  - uses: actions/upload-artifact@v4
+    #  if: "${{ github.event.inputs.export == '1'  ||  github.event_name == 'repository_dispatch' }}"
+     # with:
+      #  name: demo-export
+       # path: /tmp/seal5_llvm.tar.gz
     
-    - uses: actions/upload-artifact@v4
-      if: "${{ github.event.inputs.install == '1'  ||  github.event_name == 'repository_dispatch' }}"
-      with:
-        name: demo-install
-        path: /tmp/seal5_llvm/.seal5/install/${{ github.event.inputs.build_config }}
+   # - uses: actions/upload-artifact@v4
+    #  if: "${{ github.event.inputs.install == '1'  ||  github.event_name == 'repository_dispatch' }}"
+     # with:
+      #  name: demo-install
+       # path: /tmp/seal5_llvm/.seal5/install/${{ github.event.inputs.build_config }}
 
   # Trigger ETISS RISCV Example to build example using SEAL5 and test on custom ETISS
   trigger_etiss_example_build:
