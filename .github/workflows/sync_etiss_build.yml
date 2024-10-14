@@ -2,7 +2,7 @@ name: Sync ETISS Build
 
 on:
   repository_dispatch:
-    types: [ etiss-event]
+    types: [ etiss-event ]
  
 jobs:
   Get-ETISS-Build-Status:
