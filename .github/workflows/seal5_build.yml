@@ -147,7 +147,7 @@ jobs:
       #if: ${{ github.event_name != 'repository_dispatch' }}    
       with:
          token: ${{ secrets.REPO_ACCESS_TOKEN }}
-         repository: bkebianyor/etiss_riscv_examples
+         repository: kebi-be/etiss_riscv_examples
          event-type: seal5-event
          client-payload: '{"triggered_run_id": "${{ github.run_id }}", "etiss_run_id": "${{ env.ETISS_RUN_ID }}"}'
         # client-payload: '{"github": ${{ toJson(github) }}}'    
