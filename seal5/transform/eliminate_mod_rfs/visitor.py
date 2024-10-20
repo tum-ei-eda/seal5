@@ -12,6 +12,8 @@ from m2isar.metamodel import behav
 
 # pylint: disable=unused-argument
 
+RFS = 32  # TODO: do not hardcode
+
 
 def operation(self: behav.Operation, context):
     statements = []
@@ -28,7 +30,6 @@ def operation(self: behav.Operation, context):
 
 def binary_operation(self: behav.BinaryOperation, context):
     # TODO: figure out rfs from symbols!
-    RFS = 32
     # TODO: support swapped operand order
     if self.op.value == "%":
         if isinstance(self.left, behav.NamedReference):

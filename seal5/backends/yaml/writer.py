@@ -91,10 +91,11 @@ def main():
         # print("set", set_def)
         set_data = {"instructions": []}
         set_data["model"] = top_level.stem
+        set_data["xlen"] = set_def.xlen
         for instr in set_def.instructions.values():
             set_data["instructions"].append(instr.name)
         data["extensions"][set_name] = set_data
-    with open(out_path, "w") as f:
+    with open(out_path, "w", encoding="utf-8") as f:
         yaml.dump(data, f)
 
 

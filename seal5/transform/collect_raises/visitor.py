@@ -30,7 +30,6 @@ def operation(self: behav.Operation, context):
             # print("t", t, type(t), dir(t))
             statements.extend(temp)
         else:
-            pass
             # print("temp", temp, type(temp), dir(temp))
             statements.append(temp)
     # input("eeeee")

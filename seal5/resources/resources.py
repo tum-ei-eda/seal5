@@ -17,12 +17,14 @@
 # limitations under the License.
 #
 """Utilities for handling Seal5 resources."""
-import importlib_resources
 from typing import Optional
+
+import importlib_resources
 
 
 # def get_patches(patch_name: str, target: Optional[str] = None, allow_missing: bool = False):
 def get_patches(patch_name: Optional[str] = None, target: Optional[str] = None, allow_empty: bool = False):
+    """Collect Seal5 patches."""
     ret = []
     for entry in importlib_resources.files("seal5.resources.patches").iterdir():
         # print("entry", entry.name)
@@ -46,6 +48,7 @@ def get_patches(patch_name: Optional[str] = None, target: Optional[str] = None, 
 
 
 def get_test_cfg():
+    """Get LLVM lit.cfg.py file from Seal5 resources directory."""
     ret = importlib_resources.files("seal5.resources").joinpath("lit.cfg.py")
     assert ret.is_file(), f"Test cfg not found: {ret}"
     return ret

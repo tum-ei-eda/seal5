@@ -99,6 +99,7 @@ DEFAULT_SETTINGS = {
     "llvm": {
         "state": {"version": "auto", "base_commit": "unknown"},
         "ninja": True,
+        "ccache": False,
         "default_config": "release",
         "clone_depth": None,
         "configs": {
@@ -155,14 +156,17 @@ DEFAULT_SETTINGS = {
             "ref": None,
             # "clone_depth": None,
             "clone_depth": 1,
-            "sparse_checkout": True,
+            "sparse_checkout": False,
         },
     },
+    "intrinsics": {},
 }
+
+ALLOWED_YAML_TYPES = (int, float, str, bool)
 
 
 def check_supported_types(data):
-    ALLOWED_TYPES = (int, float, str, bool)
+    """Assert that now unsupported types are written into YAML file."""
     if isinstance(data, dict):
         for value in data.values():
             check_supported_types(value)
@@ -171,57 +175,54 @@ def check_supported_types(data):
             check_supported_types(x)
     else:
         if data is not None:
-            assert isinstance(data, ALLOWED_TYPES), f"Unsupported type: {type(data)}"
+            assert isinstance(data, ALLOWED_YAML_TYPES), f"Unsupported type: {type(data)}"
 
 
-class YAMLSettings:
+class YAMLSettings:  # TODO: make abstract
+    """Generic YAMLSettings."""
+
     @classmethod
     def from_dict(cls, data: dict):
-        # print("from_dict", data)
+        """Convert dict into instance of YAMLSettings."""
         return from_dict(data_class=cls, data=data)
 
     @classmethod
     def from_yaml(cls, text: str):
+        """Write settings to YAML file."""
         data = yaml.safe_load(text)
         return cls.from_dict(data)
 
     @classmethod
     def from_yaml_file(cls, path: Path):
-        with open(path, "r") as file:
+        """Parse settings from YAML file."""
+        with open(path, "r", encoding="utf-8") as file:
             data = yaml.safe_load(file)
         return cls.from_dict(data=data)
 
     def to_yaml(self):
+        """Convert settings to YAML string."""
         data = asdict(self)
         check_supported_types(data)
         text = yaml.dump(data)
         return text
 
     def to_yaml_file(self, path: Path):
+        """Write settings to YAML file."""
         text = self.to_yaml()
-        with open(path, "w") as file:
+        with open(path, "w", encoding="utf-8") as file:
             file.write(text)
 
     def merge(self, other: "YAMLSettings", overwrite: bool = False):
-        # print("merge", type(self), type(other))
+        """Merge two instances of YAMLSettings."""
         for f1 in fields(other):
             k1 = f1.name
-            # if k1 == "prefix":
-            #     input("1 PREFIX")
             v1 = getattr(other, k1)
             if v1 is None:
-                # print("cont1")
                 continue
             t1 = type(v1)
-            # print("f1", f1.name, f1, type(f1))
-            # print("other", k1, v1)
             found = False
             for f2 in fields(self):
                 k2 = f2.name
-                # if k2 == "prefix":
-                #     print("f1", f1)
-                #     print("f2", f2)
-                #     input("2 PREFIX")
                 v2 = getattr(self, k2)
                 if k2 == k1:
                     found = True
@@ -247,7 +248,6 @@ class YAMLSettings:
                         elif isinstance(v1, list):
                             if overwrite:
                                 v2.clear()
-                            # duplicates are dropped here
                             new = [x for x in v1 if x not in v2]
                             v2.extend(new)
                         else:
@@ -256,8 +256,6 @@ class YAMLSettings:
                             ), f"Unsupported field type for merge {t1}"
                             setattr(self, k1, v1)
                     break
-                # print("f2", f2.name, f2, type(f2))
-                # print("self", k2, v2)
             assert found
 
         # input("123")
@@ -305,11 +303,15 @@ class YAMLSettings:
 
 @dataclass
 class TestSettings(YAMLSettings):
+    """Seal5 test settings."""
+
     paths: Optional[List[Union[Path, str]]] = None
 
 
 @dataclass
 class GitSettings(YAMLSettings):
+    """Seal5 git settings."""
+
     author: str = "Seal5"
     mail: str = "example@example.com"
     prefix: Optional[str] = "[Seal5]"
@@ -317,6 +319,8 @@ class GitSettings(YAMLSettings):
 
 @dataclass
 class PatchSettings(YAMLSettings):
+    """Seal5 patch settings."""
+
     name: str
     target: Optional[str] = None
     stage: Optional[Union[PatchStage, int]] = None  # TODO: default to 0? Allow int with union?
@@ -344,6 +348,8 @@ class PatchSettings(YAMLSettings):
 
 @dataclass
 class PassesSetting(YAMLSettings):
+    """Seal5 model-specific passes settings."""
+
     skip: Optional[List[str]] = None
     only: Optional[List[str]] = None
     overrides: Optional[dict] = None
@@ -351,12 +357,16 @@ class PassesSetting(YAMLSettings):
 
 @dataclass
 class PassesSettings(YAMLSettings):
+    """Seal5 passes settings."""
+
     defaults: Optional[PassesSetting] = None
     per_model: Optional[Dict[str, PassesSetting]] = None
 
 
 @dataclass
 class ExtensionsSettings(YAMLSettings):
+    """Seal5 extensions settings."""
+
     feature: Optional[str] = None
     predicate: Optional[str] = None
     arch: Optional[str] = None
@@ -368,15 +378,17 @@ class ExtensionsSettings(YAMLSettings):
     description: Optional[str] = None
     requires: Optional[List[str]] = None
     instructions: Optional[List[str]] = None
+    xlen: Optional[int] = None  # TODO: support multiple?
     # patches
 
     def get_version(self):
+        """Get extension version."""
         if self.version:
             return self.version
-        else:
-            return "1.0"
+        return "1.0"
 
     def get_description(self, name: Optional[str] = None):
+        """Get extension description."""
         if self.description is None:
             if name:
                 description = name
@@ -384,10 +396,10 @@ class ExtensionsSettings(YAMLSettings):
                 description = "RISC-V"
             description += " Extension"
             return description
-        else:
-            return self.description
+        return self.description
 
     def get_arch(self, name: Optional[str] = None):
+        """Get extension arch."""
         if self.arch is None:
             feature = self.get_feature(name=name)
             assert feature is not None
@@ -398,14 +410,15 @@ class ExtensionsSettings(YAMLSettings):
         return self.arch
 
     def get_feature(self, name: Optional[str] = None):
+        """Get extension feature."""
         if self.feature is None:
             assert name is not None
             feature = name.replace("_", "")
             return feature
-        else:
-            return self.feature
+        return self.feature
 
     def get_predicate(self, name: Optional[str] = None, with_has: bool = False):
+        """Get extension predicate."""
         if self.predicate is None:
             feature = self.get_feature(name=name)
             assert feature is not None
@@ -419,24 +432,27 @@ class ExtensionsSettings(YAMLSettings):
             if with_has:
                 prefix = "Has" + prefix
             return prefix + feature
-        else:
-            if with_has:
-                assert "has" in self.predicate.lower()
-            return self.predicate
+        if with_has:
+            assert "has" in self.predicate.lower()
+        return self.predicate
 
 
 @dataclass
 class GroupsSettings(YAMLSettings):
-    pass
+    """Seal5 groups settings."""
 
 
 @dataclass
 class ConsoleLoggingSettings(YAMLSettings):
+    """Seal5 console logging settings."""
+
     level: Union[int, str] = logging.INFO
 
 
 @dataclass
 class FileLoggingSettings(YAMLSettings):
+    """Seal5 file logging settings."""
+
     level: Union[int, str] = logging.INFO
     limit: Optional[int] = None  # TODO: implement
     rotate: bool = False  # TODO: implement
@@ -444,18 +460,24 @@ class FileLoggingSettings(YAMLSettings):
 
 @dataclass
 class LoggingSettings(YAMLSettings):
+    """Seal5 logging settings."""
+
     console: ConsoleLoggingSettings
     file: FileLoggingSettings
 
 
 @dataclass
 class FilterSetting(YAMLSettings):
+    """Seal5 set/instr/alias/instrinsic/opcode/enc-specific filter settings."""
+
     keep: List[Union[str, int]] = field(default_factory=list)
     drop: List[Union[str, int]] = field(default_factory=list)
 
 
 @dataclass
 class FilterSettings(YAMLSettings):
+    """Seal5 filter settings."""
+
     sets: Optional[FilterSetting] = None
     instructions: Optional[FilterSetting] = None
     aliases: Optional[FilterSetting] = None
@@ -467,6 +489,8 @@ class FilterSettings(YAMLSettings):
 
 @dataclass
 class LLVMVersion(YAMLSettings):
+    """Seal5 llvm version settings."""
+
     major: Optional[int] = None
     minor: Optional[int] = None
     patch: Optional[int] = None
@@ -475,18 +499,25 @@ class LLVMVersion(YAMLSettings):
 
 @dataclass
 class LLVMState(YAMLSettings):
+    """Seal5 llvm state settings."""
+
     base_commit: Optional[str] = None
     version: Optional[Union[str, LLVMVersion]] = None
 
 
 @dataclass
 class LLVMConfig(YAMLSettings):
+    """Seal5 llvm config settings."""
+
     options: dict = field(default_factory=dict)
 
 
 @dataclass
 class LLVMSettings(YAMLSettings):
+    """Seal5 llvm settings."""
+
     ninja: Optional[bool] = None
+    ccache: Optional[bool] = None
     clone_depth: Optional[int] = None
     default_config: Optional[str] = None
     configs: Optional[Dict[str, LLVMConfig]] = None
@@ -495,6 +526,8 @@ class LLVMSettings(YAMLSettings):
 
 @dataclass
 class RISCVLegalizerSetting(YAMLSettings):
+    """Seal5 riscv legalizer single settings."""
+
     name: Optional[Union[str, List[str]]] = None
     types: Optional[Union[str, List[str]]] = None
     onlyif: Optional[Union[str, List[str]]] = None
@@ -502,11 +535,15 @@ class RISCVLegalizerSetting(YAMLSettings):
 
 @dataclass
 class RISCVLegalizerSettings(YAMLSettings):
+    """Seal5 riscv legalizer settings."""
+
     ops: Optional[List[RISCVLegalizerSetting]] = None
 
 
 @dataclass
 class RISCVSettings(YAMLSettings):
+    """Seal5 riscv settings."""
+
     xlen: Optional[int] = None
     features: Optional[List[str]] = None
     # Used for  baseline extensions, tune and legalizer + pattern gen
@@ -521,6 +558,8 @@ class RISCVSettings(YAMLSettings):
 
 @dataclass
 class PatternGenSettings(YAMLSettings):
+    """Seal5 pattern-gen settings."""
+
     integrated: Optional[bool] = None
     clone_url: Optional[str] = None
     ref: Optional[str] = None
@@ -530,11 +569,34 @@ class PatternGenSettings(YAMLSettings):
 
 @dataclass
 class ToolsSettings(YAMLSettings):
+    """Seal5 tools settings."""
+
     pattern_gen: Optional[PatternGenSettings] = None
 
 
 @dataclass
+class IntrinsicArg(YAMLSettings):
+    arg_name: str
+    arg_type: str
+
+
+@dataclass
+class IntrinsicDefn(YAMLSettings):
+    instr_name: str
+    intrinsic_name: str
+    ret_type: Optional[str] = None
+    args: Optional[List[IntrinsicArg]] = None
+
+
+@dataclass
+class IntrinsicsSettings(YAMLSettings):
+    intrinsics: Optional[List[IntrinsicDefn]] = None
+
+
+@dataclass
 class Seal5Settings(YAMLSettings):
+    """Seal5 settings."""
+
     directory: Optional[str] = None
     name: Optional[str] = None
     meta_dir: Optional[str] = None
@@ -552,8 +614,10 @@ class Seal5Settings(YAMLSettings):
     riscv: Optional[RISCVSettings] = None
     tools: Optional[ToolsSettings] = None
     metrics: list = field(default_factory=list)
+    intrinsics: Optional[IntrinsicsSettings] = None
 
     def reset(self):
+        """Reset Seal5 seetings."""
         self.extensions = {}
         self.patches = []
         self.name = "default"
@@ -582,13 +646,16 @@ class Seal5Settings(YAMLSettings):
             transform_info=None,
             legalization=None,
         )
+        self.intrinsics = IntrinsicsSettings()
 
     def save(self, dest: Optional[Path] = None):
+        """Save Seal5 settings to file."""
         if dest is None:
             dest = self.settings_file
         self.to_yaml_file(dest)
 
     def add_patch(self, patch_settings: PatchSettings):
+        """Add patch to Seal5 seetings."""
         for ps in self.patches:
             if ps.name == patch_settings.name:
                 raise RuntimeError(f"Duplicate patch '{ps.name}'. Either clean patches or rename patch.")
@@ -596,56 +663,90 @@ class Seal5Settings(YAMLSettings):
 
     @property
     def model_names(self):
+        """Seal5 model_names getter."""
         return [Path(path).stem for path in self.inputs]
 
     @property
     def _meta_dir(self):
+        """Seal5 _meta_dir getter."""
         return Path(self.meta_dir)
 
     @property
     def settings_file(self):
+        """Seal5 settings_file getter."""
         return self._meta_dir / "settings.yml"
 
     @property
     def deps_dir(self):
+        """Seal5 deps_dir getter."""
         return self._meta_dir / "deps"
 
     @property
     def build_dir(self):
+        """Seal5 build_dir getter."""
         return self._meta_dir / "build"
+
+    def get_llvm_build_dir(self, config: Optional[str] = None, fallback: bool = True, check: bool = False):
+        if config is None:
+            # check if default_exists
+            assert self.llvm is not None
+            config = self.llvm.default_config
+
+        assert config is not None, "Could not resolve LLVM build dir"
+
+        llvm_build_dir = self.build_dir / config
+
+        if not llvm_build_dir.is_dir():
+            assert fallback, f"LLVM build dir {llvm_build_dir} does not exist and fallback is disabled."
+            # Look for non-empty subdirs for .seal5/build
+            candidates = [f for f in self.build_dir.iterdir() if f.is_dir() and any(f.iterdir())]
+            if len(candidates) > 0:
+                llvm_build_dir = candidates[0]
+        if check:
+            assert llvm_build_dir.is_dir(), f"LLVM build dir does not exist: {llvm_build_dir}"
+        return llvm_build_dir
 
     @property
     def install_dir(self):
+        """Seal5 install_dir getter."""
         return self._meta_dir / "install"
 
     @property
     def logs_dir(self):
+        """Seal5 logs_dir getter."""
         return self._meta_dir / "logs"
 
     @property
     def models_dir(self):
+        """Seal5 models_dir getter."""
         return self._meta_dir / "models"
 
     @property
     def inputs_dir(self):
+        """Seal5 inputs_dir getter."""
         return self._meta_dir / "inputs"
 
     @property
     def temp_dir(self):
+        """Seal5 temp_dir getter."""
         return self._meta_dir / "temp"
 
     @property
     def gen_dir(self):
+        """Seal5 gen_dir getter."""
         return self._meta_dir / "gen"
 
     @property
     def tests_dir(self):
+        """Seal5 tests_dir getter."""
         return self._meta_dir / "tests"
 
     @property
     def patches_dir(self):  # TODO: maybe merge with gen_dir
+        """Seal5 patches_dir getter."""
         return self._meta_dir / "patches"
 
     @property
     def log_file_path(self):
+        """Seal5 log_file_path getter."""
         return self.logs_dir / "seal5.log"

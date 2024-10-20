@@ -76,10 +76,10 @@ def run(args):
             else:
                 assert False
 
-    for set_name, set_def in model["sets"].items():
+    for _, set_def in model["sets"].items():
         logger.debug("collecting raises for set %s", set_def.name)
         patch_model(visitor)
-        for instr_name, instr_def in set_def.instructions.items():
+        for _, instr_def in set_def.instructions.items():
             context = VisitorContext()
             logger.debug("collecting raises for instr %s", instr_def.name)
             instr_def.operation.generate(context)
@@ -88,10 +88,10 @@ def run(args):
             constraints = []
             for x in context.raises:
                 # print("x", x, type(x), dir(x))
-                MODE_MAP = ["Exception", "Interrupt"]
-                mode = MODE_MAP[x[1][0]]
+                mode_map = ["Exception", "Interrupt"]
+                mode = mode_map[x[1][0]]
                 assert mode != "Interrupt", "Interrupts not supported"
-                EXEC_MAP = [
+                exec_map = [
                     "Instruction address misaligned",
                     "Instruction_access_fault",
                     "Illegal instruction",
@@ -110,8 +110,8 @@ def run(args):
                     "Store/AMO page fault",
                 ]
                 code = x[1][1]
-                assert code < len(EXEC_MAP), "Out of bounds"
-                text = EXEC_MAP[code]
+                assert code < len(exec_map), "Out of bounds"
+                text = exec_map[code]
                 description = f"{mode}({code}): {text}"
                 # print("description", description)
                 # input("qqq2")

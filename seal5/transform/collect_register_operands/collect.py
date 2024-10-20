@@ -74,10 +74,10 @@ def run(args):
             else:
                 assert False
 
-    for set_name, set_def in model["sets"].items():
+    for _, set_def in model["sets"].items():
         logger.debug("collecting register operands for set %s", set_def.name)
         patch_model(visitor)
-        for instr_name, instr_def in set_def.instructions.items():
+        for _, instr_def in set_def.instructions.items():
             context = VisitorContext(instr_def.operands)
             logger.debug("collecting register operands for instr %s", instr_def.name)
             instr_def.operation.generate(context)

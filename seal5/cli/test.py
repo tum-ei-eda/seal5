@@ -17,16 +17,17 @@
 # limitations under the License.
 #
 """Command line subcommand for Testing seal5 environment."""
+from os import getenv
 
 from seal5.flow import Seal5Flow
 from seal5.logging import get_logger
-from os import getenv
 
 
 logger = get_logger()
 
 
 def add_test_options(parser):
+    """Setup parser for test argument group."""
     test_parser = parser.add_argument_group("test options")
     test_parser.add_argument(
         "--debug",

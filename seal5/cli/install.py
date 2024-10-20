@@ -17,16 +17,17 @@
 # limitations under the License.
 #
 """Command line subcommand for installing Seal5 LLVM."""
+from os import getenv
 
 from seal5.flow import Seal5Flow
 from seal5.logging import get_logger
-from os import getenv
 
 
 logger = get_logger()
 
 
 def add_install_options(parser):
+    """Setup parser for install argument group."""
     install_parser = parser.add_argument_group("install options")
     install_parser.add_argument(
         "--config",
@@ -37,6 +38,11 @@ def add_install_options(parser):
         "--dest",
         default=None,
         help="Choose destination. If not defined, installed to .seal5/install/$config.",
+    )
+    install_parser.add_argument(
+        "--ccache",
+        action="store_true",
+        help="Enable CCache to speedup compilation.",
     )
 
 
@@ -61,4 +67,5 @@ def handle(args):
         dest=args.dest,
         config=args.config,
         verbose=args.verbose,
+        enable_ccache=args.ccache,
     )

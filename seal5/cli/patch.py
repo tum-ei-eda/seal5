@@ -17,17 +17,18 @@
 # limitations under the License.
 #
 """Command line subcommand for Applying Seal5 patches."""
+from os import getenv
 
 from seal5.flow import Seal5Flow
 from seal5.logging import get_logger
 from seal5.types import PatchStage
-from os import getenv
 
 
 logger = get_logger()
 
 
 def add_patch_options(parser):
+    """Setup parser for patch argument group."""
     patch_parser = parser.add_argument_group("patch options")
     patch_parser.add_argument(
         "--stages",
