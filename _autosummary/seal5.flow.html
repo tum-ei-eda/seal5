@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../">
 <head>
@@ -6,18 +8,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>seal5.flow &mdash; Seal5 v0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=69c7a37b"></script>
-        <script src="../_static/doctools.js?v=9a2dae69"></script>
-        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=69c7a37b"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -56,6 +54,7 @@
 <li class="toctree-l2"><a class="reference internal" href="seal5.pass_list.html">seal5.pass_list</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.passes.html">seal5.passes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.resources.html">seal5.resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="seal5.riscv_utils.html">seal5.riscv_utils</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.settings.html">seal5.settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.tools.html">seal5.tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.transform.html">seal5.transform</a></li>
@@ -102,19 +101,19 @@
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_test_cfg</span></code>(tests_dir)</p></td>
-<td><p></p></td>
+<td><p>Add LLVM lit testing config.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_seal5_directories</span></code>(path, directories)</p></td>
-<td><p></p></td>
+<td><p>Create Seal5 directories.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">handle_directory</span></code>(directory)</p></td>
-<td><p></p></td>
+<td><p>Process passed directory.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">handle_meta_dir</span></code>(meta_dir, directory, name)</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">handle_meta_dir</span></code>(meta_dir, directory, _name)</p></td>
+<td><p>Handle selection of meta directory.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">lookup_manual_patch</span></code>(patch[, allow_missing])</p></td>
-<td><p></p></td>
+<td><p>Lookup manual Seal5 patch.</p></td>
 </tr>
 </tbody>
 </table>
@@ -122,7 +121,7 @@
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Seal5Flow</span></code>([directory, meta_dir, name])</p></td>
-<td><p></p></td>
+<td><p>Seal5 Flow.</p></td>
 </tr>
 </tbody>
 </table>

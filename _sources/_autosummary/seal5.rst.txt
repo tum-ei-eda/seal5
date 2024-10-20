@@ -20,6 +20,7 @@
    pass_list
    passes
    resources
+   riscv_utils
    settings
    tools
    transform

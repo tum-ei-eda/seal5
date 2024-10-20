@@ -8,6 +8,7 @@ seal5.cli.deploy
 
    .. autosummary::
    
+      add_deploy_options
       get_parser
       handle
    

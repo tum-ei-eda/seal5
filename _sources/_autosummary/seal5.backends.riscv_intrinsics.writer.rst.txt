@@ -1,0 +1,23 @@
+seal5.backends.riscv\_intrinsics.writer
+=======================================
+
+.. automodule:: seal5.backends.riscv_intrinsics.writer
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      build_attr
+      build_emit
+      build_target
+      ir_type_to_pattern
+      ir_type_to_text
+      main
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      PatchFrag
+   

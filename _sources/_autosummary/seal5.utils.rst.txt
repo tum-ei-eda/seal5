@@ -15,6 +15,7 @@ seal5.utils
       exec_getout
       get_cmake_args
       is_populated
+      is_power_of_two
       make
       merge_dicts
       python

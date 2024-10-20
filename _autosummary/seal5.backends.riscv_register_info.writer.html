@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../">
 <head>
@@ -6,23 +8,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>seal5.backends.riscv_register_info.writer &mdash; Seal5 v0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=69c7a37b"></script>
-        <script src="../_static/doctools.js?v=9a2dae69"></script>
-        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=69c7a37b"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="seal5.backends.viewer_seal5" href="seal5.backends.viewer_seal5.html" />
-    <link rel="prev" title="seal5.backends.riscv_register_info.templates" href="seal5.backends.riscv_register_info.templates.html" /> 
+    <link rel="prev" title="seal5.backends.riscv_register_info" href="seal5.backends.riscv_register_info.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -53,9 +51,9 @@
 <li class="toctree-l3"><a class="reference internal" href="seal5.backends.riscv_features.html">seal5.backends.riscv_features</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.backends.riscv_gisel_legalizer.html">seal5.backends.riscv_gisel_legalizer</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.backends.riscv_instr_info.html">seal5.backends.riscv_instr_info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.backends.riscv_intrinsics.html">seal5.backends.riscv_intrinsics</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.backends.riscv_isa_info.html">seal5.backends.riscv_isa_info</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="seal5.backends.riscv_register_info.html">seal5.backends.riscv_register_info</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="seal5.backends.riscv_register_info.templates.html">seal5.backends.riscv_register_info.templates</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">seal5.backends.riscv_register_info.writer</a></li>
 </ul>
 </li>
@@ -72,6 +70,7 @@
 <li class="toctree-l2"><a class="reference internal" href="seal5.pass_list.html">seal5.pass_list</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.passes.html">seal5.passes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.resources.html">seal5.resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="seal5.riscv_utils.html">seal5.riscv_utils</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.settings.html">seal5.settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.tools.html">seal5.tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.transform.html">seal5.transform</a></li>
@@ -120,13 +119,13 @@
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">gen_riscv_register_info_str</span></code>(set_def)</p></td>
-<td><p></p></td>
+<td><p>Generate full code for RISCVRegisterInfo.td patch for a set.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code>()</p></td>
 <td><p>Main app entrypoint.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_riscv_register_info</span></code>(reg)</p></td>
-<td><p></p></td>
+<td><p>Generate code for RISCVRegisterInfo.td LLVM patch.</p></td>
 </tr>
 </tbody>
 </table>
@@ -136,7 +135,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="seal5.backends.riscv_register_info.templates.html" class="btn btn-neutral float-left" title="seal5.backends.riscv_register_info.templates" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="seal5.backends.riscv_register_info.html" class="btn btn-neutral float-left" title="seal5.backends.riscv_register_info" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="seal5.backends.viewer_seal5.html" class="btn btn-neutral float-right" title="seal5.backends.viewer_seal5" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

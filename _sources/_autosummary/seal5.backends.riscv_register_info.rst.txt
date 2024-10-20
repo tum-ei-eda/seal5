@@ -10,5 +10,4 @@ seal5.backends.riscv\_register\_info
    :toctree:
    :recursive:
 
-   templates
    writer

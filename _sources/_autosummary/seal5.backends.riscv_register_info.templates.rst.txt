@@ -1,6 +1,0 @@
-seal5.backends.riscv\_register\_info.templates
-==============================================
-
-.. automodule:: seal5.backends.riscv_register_info.templates
-
-   

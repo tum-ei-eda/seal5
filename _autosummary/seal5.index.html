@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../">
 <head>
@@ -6,18 +8,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>seal5.index &mdash; Seal5 v0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=69c7a37b"></script>
-        <script src="../_static/doctools.js?v=9a2dae69"></script>
-        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=69c7a37b"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -56,6 +54,7 @@
 <li class="toctree-l2"><a class="reference internal" href="seal5.pass_list.html">seal5.pass_list</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.passes.html">seal5.passes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.resources.html">seal5.resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="seal5.riscv_utils.html">seal5.riscv_utils</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.settings.html">seal5.settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.tools.html">seal5.tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.transform.html">seal5.transform</a></li>
@@ -97,11 +96,12 @@
              
   <section id="module-seal5.index">
 <span id="seal5-index"></span><h1>seal5.index<a class="headerlink" href="#module-seal5.index" title="Link to this heading"></a></h1>
+<p>Classes for managing index fiels used to summarize patches.</p>
 <p class="rubric">Functions</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_index_yaml</span></code>(out_path, global_artifacts, ...)</p></td>
-<td><p></p></td>
+<td><p>Export full index to YAML file.</p></td>
 </tr>
 </tbody>
 </table>
@@ -109,28 +109,28 @@
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Artifact</span></code>(dest_path[, src_path, content, append])</p></td>
-<td><p></p></td>
+<td><p>Abstract class for artifacts used in patching procedures.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Directory</span></code>(dest_path[, src_path, content, append])</p></td>
-<td><p></p></td>
+<td><p>Directory artifact class.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">File</span></code>(dest_path[, src_path, content, append])</p></td>
-<td><p></p></td>
+<td><p>File artifact class.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">GitPatch</span></code>(dest_path[, src_path, content, ...])</p></td>
-<td><p></p></td>
+<td><p>GitPatch Artifact class.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">IndexedPatch</span></code>(dest_path, line[, src_path, ...])</p></td>
-<td><p></p></td>
+<td><p>IndexedPatch artifact class.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">NamedPatch</span></code>(dest_path, key[, src_path, ...])</p></td>
-<td><p></p></td>
+<td><p>NamedPatch artifact class.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Patch</span></code>(dest_path[, src_path, content, append])</p></td>
-<td><p></p></td>
+<td><p>Generic Patch artifact class.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">RangedPatch</span></code>(dest_path, start, end[, ...])</p></td>
-<td><p></p></td>
+<td><p>RangedPatch artifact class.</p></td>
 </tr>
 </tbody>
 </table>

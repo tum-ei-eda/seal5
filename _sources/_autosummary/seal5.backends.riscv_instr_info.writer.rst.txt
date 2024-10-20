@@ -8,6 +8,7 @@ seal5.backends.riscv\_instr\_info.writer
 
    .. autosummary::
    
+      gen_intrinsic_pattern
       gen_riscv_instr_info_str
       main
       process_encoding

@@ -21,6 +21,9 @@ seal5.settings
       FilterSettings
       GitSettings
       GroupsSettings
+      IntrinsicArg
+      IntrinsicDefn
+      IntrinsicsSettings
       LLVMConfig
       LLVMSettings
       LLVMState

@@ -1,0 +1,13 @@
+seal5.riscv\_utils
+==================
+
+.. automodule:: seal5.riscv_utils
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      build_riscv_mattr
+      get_riscv_defaults
+   

@@ -1,0 +1,13 @@
+seal5.backends.riscv\_intrinsics
+================================
+
+.. automodule:: seal5.backends.riscv_intrinsics
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   writer

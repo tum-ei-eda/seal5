@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../">
 <head>
@@ -6,23 +8,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>seal5.settings &mdash; Seal5 v0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=69c7a37b"></script>
-        <script src="../_static/doctools.js?v=9a2dae69"></script>
-        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=69c7a37b"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="seal5.tools" href="seal5.tools.html" />
-    <link rel="prev" title="seal5.resources.resources" href="seal5.resources.resources.html" /> 
+    <link rel="prev" title="seal5.riscv_utils" href="seal5.riscv_utils.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -56,6 +54,7 @@
 <li class="toctree-l2"><a class="reference internal" href="seal5.pass_list.html">seal5.pass_list</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.passes.html">seal5.passes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.resources.html">seal5.resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="seal5.riscv_utils.html">seal5.riscv_utils</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">seal5.settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.tools.html">seal5.tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.transform.html">seal5.transform</a></li>
@@ -102,7 +101,7 @@
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_supported_types</span></code>(data)</p></td>
-<td><p></p></td>
+<td><p>Assert that now unsupported types are written into YAML file.</p></td>
 </tr>
 </tbody>
 </table>
@@ -110,73 +109,82 @@
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConsoleLoggingSettings</span></code>([level])</p></td>
-<td><p></p></td>
+<td><p>Seal5 console logging settings.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ExtensionsSettings</span></code>([feature, predicate, ...])</p></td>
-<td><p></p></td>
+<td><p>Seal5 extensions settings.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">FileLoggingSettings</span></code>([level, limit, rotate])</p></td>
-<td><p></p></td>
+<td><p>Seal5 file logging settings.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">FilterSetting</span></code>(keep, int]] =, drop, int]] =)</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">FilterSetting</span></code>(keep, drop)</p></td>
+<td><p>Seal5 set/instr/alias/instrinsic/opcode/enc-specific filter settings.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">FilterSettings</span></code>([sets, instructions, ...])</p></td>
-<td><p></p></td>
+<td><p>Seal5 filter settings.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">GitSettings</span></code>([author, mail, prefix])</p></td>
-<td><p></p></td>
+<td><p>Seal5 git settings.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">GroupsSettings</span></code>()</p></td>
+<td><p>Seal5 groups settings.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">IntrinsicArg</span></code>(arg_name, arg_type)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">LLVMConfig</span></code>(options)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">IntrinsicDefn</span></code>(instr_name, intrinsic_name[, ...])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">LLVMSettings</span></code>([ninja, clone_depth, ...])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">IntrinsicsSettings</span></code>([intrinsics])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">LLVMState</span></code>([base_commit, version])</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">LLVMConfig</span></code>(options)</p></td>
+<td><p>Seal5 llvm config settings.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">LLVMVersion</span></code>([major, minor, patch, rc])</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">LLVMSettings</span></code>([ninja, ccache, clone_depth, ...])</p></td>
+<td><p>Seal5 llvm settings.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">LoggingSettings</span></code>(console, file)</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">LLVMState</span></code>([base_commit, version])</p></td>
+<td><p>Seal5 llvm state settings.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">PassesSetting</span></code>([skip, only, overrides])</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">LLVMVersion</span></code>([major, minor, patch, rc])</p></td>
+<td><p>Seal5 llvm version settings.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">PassesSettings</span></code>([defaults, per_model])</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">LoggingSettings</span></code>(console, file)</p></td>
+<td><p>Seal5 logging settings.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">PatchSettings</span></code>(name[, target, stage, ...])</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">PassesSetting</span></code>([skip, only, overrides])</p></td>
+<td><p>Seal5 model-specific passes settings.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">PatternGenSettings</span></code>([integrated, clone_url, ...])</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">PassesSettings</span></code>([defaults, per_model])</p></td>
+<td><p>Seal5 passes settings.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">RISCVLegalizerSetting</span></code>([name, types, onlyif])</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">PatchSettings</span></code>(name[, target, stage, ...])</p></td>
+<td><p>Seal5 patch settings.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">RISCVLegalizerSettings</span></code>([ops])</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">PatternGenSettings</span></code>([integrated, clone_url, ...])</p></td>
+<td><p>Seal5 pattern-gen settings.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">RISCVSettings</span></code>([xlen, features, ...])</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">RISCVLegalizerSetting</span></code>([name, types, onlyif])</p></td>
+<td><p>Seal5 riscv legalizer single settings.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Seal5Settings</span></code>(directory, name, meta_dir, ...)</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">RISCVLegalizerSettings</span></code>([ops])</p></td>
+<td><p>Seal5 riscv legalizer settings.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">TestSettings</span></code>([paths])</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">RISCVSettings</span></code>([xlen, features, ...])</p></td>
+<td><p>Seal5 riscv settings.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ToolsSettings</span></code>([pattern_gen])</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Seal5Settings</span></code>(directory, name, meta_dir, ...)</p></td>
+<td><p>Seal5 settings.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">YAMLSettings</span></code>()</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">TestSettings</span></code>([paths])</p></td>
+<td><p>Seal5 test settings.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ToolsSettings</span></code>([pattern_gen])</p></td>
+<td><p>Seal5 tools settings.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">YAMLSettings</span></code>()</p></td>
+<td><p>Generic YAMLSettings.</p></td>
 </tr>
 </tbody>
 </table>
@@ -186,7 +194,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="seal5.resources.resources.html" class="btn btn-neutral float-left" title="seal5.resources.resources" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="seal5.riscv_utils.html" class="btn btn-neutral float-left" title="seal5.riscv_utils" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="seal5.tools.html" class="btn btn-neutral float-right" title="seal5.tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
