@@ -16,6 +16,8 @@ import pickle
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Union
 
+import pandas as pd
+
 from m2isar.metamodel import arch
 
 from seal5.tools import cdsl2llvm
@@ -227,11 +229,8 @@ def main():
         raise NotImplementedError
     if args.metrics:
         metrics_file = args.metrics
-        with open(metrics_file, "w", encoding="utf-8") as f:
-            f.write(",".join(metrics.keys()))
-            f.write("\n")
-            f.write(",".join(map(str, metrics.values())))
-            f.write("\n")
+        metrics_df = pd.DataFrame({key: [val] for key, val in metrics.items()})
+        metrics_df.to_csv(metrics_file, index=False)
     if args.index:
         if sum(map(len, artifacts.values())) > 0:
             global_artifacts = artifacts.get(None, [])
