@@ -45,6 +45,7 @@ def main():
     if top_level.suffix == ".seal5model":
         is_seal5_model = True
     assert args.output is not None
+    out_file = pathlib.Path(args.output)
 
     logger.info("loading models")
     if not is_seal5_model:
@@ -147,7 +148,7 @@ def main():
             }
             properties_data.append(data)
     properties_df = pd.DataFrame(properties_data)
-    properties_df.to_csv(args.output, index=False)
+    properties_df.to_csv(out_file, index=False)
 
 
 if __name__ == "__main__":
