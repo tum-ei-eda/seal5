@@ -86,6 +86,9 @@ def main():
         "n_skipped": 0,
         "n_failed": 0,
         "n_success": 0,
+        "skipped_instructions": [],
+        "failed_instructions": [],
+        "success_instructions": [],
     }
     settings = model.get("settings", None)
     if args.splitted:
@@ -120,10 +123,12 @@ def main():
                         skip = True
                     if skip:
                         metrics["n_skipped"] += 1
+                        metrics["skipped_instructions"].append(instr_def.name)
                         continue
                 input_file = out_path / set_name / f"{instr_def.name}.core_desc"
                 if not input_file.is_file():
                     metrics["n_skipped"] += 1
+                    metrics["skipped_instructions"].append(instr_def.name)
                     # errs.append(TODO)
                 output_file = out_path / set_name / f"{instr_def.name}.{args.ext}"
 
@@ -149,8 +154,10 @@ def main():
                         xlen=xlen,
                     )
                     metrics["n_success"] += 1
+                    metrics["success_instructions"].append(instr_def.name)
                 except AssertionError:
                     metrics["n_failed"] += 1
+                    metrics["failed_instructions"].append(instr_def.name)
                     # errs.append((insn_name, str(ex)))
         # if len(errs) > 0:
         #     # print("errs", errs)

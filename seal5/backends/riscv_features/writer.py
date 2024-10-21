@@ -103,6 +103,9 @@ def main():
         "n_skipped": 0,
         "n_failed": 0,
         "n_success": 0,
+        "skipped_sets": [],
+        "failed_sets": [],
+        "success_sets": [],
     }
     # preprocess model
     # print("model", model)
@@ -117,8 +120,10 @@ def main():
             ext_settings = set_def.settings
             if ext_settings is None:
                 metrics["n_skipped"] += 1
+                metrics["skipped_sets"].append(set_name)
                 continue
             metrics["n_success"] += 1
+            metrics["success_sets"].append(set_name)
             content += gen_riscv_features_str(set_name, ext_settings)
         content = content.rstrip()
         if len(content) > 0:

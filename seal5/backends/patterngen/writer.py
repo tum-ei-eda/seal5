@@ -91,6 +91,9 @@ def main():
         "n_skipped": 0,
         "n_failed": 0,
         "n_success": 0,
+        "skipped_instructions": [],
+        "failed_instructions": [],
+        "success_instructions": [],
     }
     # preprocess model
     # print("model", model)
@@ -143,9 +146,11 @@ def main():
                         skip = True
                     if skip:
                         metrics["n_skipped"] += 1
+                        metrics["skipped_instructions"].append(instr_def.name)
                         return False, includes_
                 if not input_file.is_file():
                     metrics["n_skipped"] += 1
+                    metrics["skipped_instructions"].append(instr_def.name)
                     return False, includes_
                 # if args.patterns:
                 out_name = f"{instr_def.name}.{args.ext}"
@@ -171,6 +176,7 @@ def main():
                     )
                     if output_file.is_file():
                         metrics["n_success"] += 1
+                        metrics["success_instructions"].append(instr_def.name)
                         if args.formats:
                             file_artifact_fmt_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}/{out_name_fmt}"
                             file_artifact_fmt = File(file_artifact_fmt_dest, src_path=output_file_fmt)
@@ -185,8 +191,10 @@ def main():
                             includes_.append(include_path)
                     else:
                         metrics["n_failed"] += 1
+                        metrics["failed_instructions"].append(instr_def.name)
                 except AssertionError:
                     metrics["n_failed"] += 1
+                    metrics["failed_instructions"].append(instr_def.name)
                     return False, includes_
                     # errs.append((insn_name, str(ex)))
                 return True, includes_
