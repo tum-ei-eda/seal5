@@ -17,6 +17,8 @@ from typing import Union
 
 from m2isar.metamodel import arch
 
+import pandas as pd
+
 from seal5.tools import cdsl2llvm
 from seal5.model import Seal5InstrAttribute
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
@@ -162,11 +164,8 @@ def main():
         raise NotImplementedError
     if args.metrics:
         metrics_file = args.metrics
-        with open(metrics_file, "w", encoding="utf-8") as f:
-            f.write(",".join(metrics.keys()))
-            f.write("\n")
-            f.write(",".join(map(str, metrics.values())))
-            f.write("\n")
+        metrics_df = pd.DataFrame({key: [val] for key, val in metrics.items()})
+        metrics_df.to_csv(metrics_file, index=False)
 
 
 if __name__ == "__main__":
