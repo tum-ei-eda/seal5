@@ -52,7 +52,7 @@ on:
       build_config:
         description: "Build Config (debug/release/...)"
         required: true
-        default: "release"
+        default: "release_assertions"
       test:
         description: "Run LLVM tests"
         required: true
@@ -72,17 +72,26 @@ on:
 
 jobs:            
   build_demo:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         python-version: ["3.10"]
+        os: ["ubuntu-latest"]
+        ccache: ["1"]                             
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
         ref: develop
+    - name: Setup ccache
+      if: ${{ matrix.ccache == '1' }}
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        max-size: 2G
+        key: ${{ matrix.os }}-${{ github.event.inputs.script }}-${{ github.event.inputs.build_config }}
+        variant: sccache                        
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install APT packages
@@ -96,28 +105,27 @@ jobs:
       run: |
         source .venv/bin/activate
         pip install -r requirements.txt
+        pip list
     - name: Run package creation
       run: |
         source .venv/bin/activate
         pip install -e .
-        
     - name: Run the demo
       run: |
         source .venv/bin/activate
-        sleep 12m 50s
-   #     VERBOSE=0 PROGESS=1 CLONE_DEPTH=1 BUILD_CONFIG=release IGNORE_ERROR=1 TEST=1 INSTALL=1 DEPLOY=1 EXPORT=1 DEST=/tmp/seal5_llvm python3 examples/s4e_demo.py
+        VERBOSE=0 PROGESS=1 CLONE_DEPTH=1 CCACHE=${{ matrix.ccache }} BUILD_CONFIG=release IGNORE_ERROR=1 TEST=1 INSTALL=1 DEPLOY=1 EXPORT=1 DEST=/tmp/seal5_llvm python3 examples/s4e_demo.py
+
+    - uses: actions/upload-artifact@v4
+      if: "${{ github.event.inputs.export == '1'  ||  github.event_name == 'repository_dispatch' }}"
+      with:
+        name: demo-export
+        path: /tmp/seal5_llvm.tar.gz
     
-  #  - uses: actions/upload-artifact@v4
-    #  if: "${{ github.event.inputs.export == '1'  ||  github.event_name == 'repository_dispatch' }}"
-     # with:
-      #  name: demo-export
-       # path: /tmp/seal5_llvm.tar.gz
-    
-   # - uses: actions/upload-artifact@v4
-    #  if: "${{ github.event.inputs.install == '1'  ||  github.event_name == 'repository_dispatch' }}"
-     # with:
-      #  name: demo-install
-       # path: /tmp/seal5_llvm/.seal5/install/${{ github.event.inputs.build_config }}
+    - uses: actions/upload-artifact@v4
+      if: "${{ github.event.inputs.install == '1'  ||  github.event_name == 'repository_dispatch' }}"
+      with:
+        name: demo-install
+        path: /tmp/seal5_llvm/.seal5/install/${{ github.event.inputs.build_config }}
 
   # Trigger ETISS RISCV Example to build example using SEAL5 and test on custom ETISS
   trigger_etiss_example_build:
@@ -145,13 +153,11 @@ jobs:
       
     - name: Trigger ETISS-RISCV-EXAMPLE Build
       uses: peter-evans/repository-dispatch@v3
-      #if: ${{ github.event_name != 'repository_dispatch' }}    
       with:
          token: ${{ secrets.REPO_ACCESS_TOKEN }}
          repository: kebi-be/etiss_riscv_examples
          event-type: seal5-event
          client-payload: '{"triggered_run_id": "${{ github.run_id }}", "etiss_run_id": "${{ env.ETISS_RUN_ID }}"}'
-        # client-payload: '{"github": ${{ toJson(github) }}}'    
     
         
         
