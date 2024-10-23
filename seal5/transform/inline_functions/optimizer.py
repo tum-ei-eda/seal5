@@ -88,7 +88,6 @@ def run(args):
             for func_name, func_def in set_def.functions.items()
             if Seal5FunctionAttribute.INLINE not in func_def.attributes
         }
-        input(">>>")
 
     logger.info("dumping model")
     with open(model_path, "wb") as f:
