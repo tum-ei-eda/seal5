@@ -43,8 +43,10 @@ DEPLOY = bool(int(os.environ.get("DEPLOY", 1)))
 EXPORT = bool(int(os.environ.get("EXPORT", 1)))
 CLEANUP = bool(int(os.environ.get("CLEANUP", 0)))
 PROGRESS = bool(int(os.environ.get("PROGRESS", 1)))
+CCACHE = bool(int(os.environ.get("CCACHE", 0)))
 CLONE_DEPTH = bool(int(os.environ.get("CLONE_DEPTH", 1)))
-DEST = os.environ.get("DEST", "/tmp/seal5_llvm_rv64").rstrip("/")
+DEST_DIR = os.environ.get("DEST_DIR", "/tmp")
+DEST = os.environ.get("DEST", DEST_DIR + "/seal5_llvm_rv64").rstrip("/")
 NAME = os.environ.get("NAME", "rv64")
 
 seal5_flow = Seal5Flow(DEST, name=NAME)
@@ -107,7 +109,7 @@ if not PREPATCHED:
     seal5_flow.patch(verbose=VERBOSE, stages=[PatchStage.PHASE_0])
 
 # Build initial LLVM
-seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG)
+seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG, enable_ccache=CCACHE)
 
 # Transform inputs
 #   1. Create M2-ISA-R metamodel
@@ -122,12 +124,12 @@ seal5_flow.generate(verbose=VERBOSE, skip=["pattern_gen"])
 seal5_flow.patch(verbose=VERBOSE, stages=[PatchStage.PHASE_1, PatchStage.PHASE_2])
 
 # Build patched LLVM
-seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG)
+seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG, enable_ccache=CCACHE)
 
 if not SKIP_PATTERNS:
     # Build PatternGen & llc
-    seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG, target="pattern-gen")
-    seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG, target="llc")
+    seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG, target="pattern-gen", enable_ccache=CCACHE)
+    seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG, target="llc", enable_ccache=CCACHE)
 
     # Generate remaining patches
     seal5_flow.generate(verbose=VERBOSE, only=["pattern_gen"])
@@ -136,7 +138,7 @@ if not SKIP_PATTERNS:
     seal5_flow.patch(verbose=VERBOSE, stages=list(range(PatchStage.PHASE_3, PatchStage.PHASE_5 + 1)))
 
 # Build patched LLVM
-seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG)
+seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG, enable_ccache=CCACHE)
 
 if TEST:
     # Test patched LLVM
@@ -144,7 +146,7 @@ if TEST:
 
 if INSTALL:
     # Install final LLVM
-    seal5_flow.install(verbose=VERBOSE, config=BUILD_CONFIG)
+    seal5_flow.install(verbose=VERBOSE, config=BUILD_CONFIG, enable_ccache=CCACHE)
 
 if DEPLOY:
     # Deploy patched LLVM (export sources)

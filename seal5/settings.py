@@ -99,6 +99,7 @@ DEFAULT_SETTINGS = {
     "llvm": {
         "state": {"version": "auto", "base_commit": "unknown"},
         "ninja": True,
+        "ccache": False,
         "default_config": "release",
         "clone_depth": None,
         "configs": {
@@ -158,6 +159,7 @@ DEFAULT_SETTINGS = {
             "sparse_checkout": False,
         },
     },
+    "intrinsics": {},
 }
 
 ALLOWED_YAML_TYPES = (int, float, str, bool)
@@ -517,6 +519,7 @@ class LLVMSettings(YAMLSettings):
     """Seal5 llvm settings."""
 
     ninja: Optional[bool] = None
+    ccache: Optional[bool] = None
     clone_depth: Optional[int] = None
     default_config: Optional[str] = None
     configs: Optional[Dict[str, LLVMConfig]] = None
@@ -574,6 +577,25 @@ class ToolsSettings(YAMLSettings):
 
 
 @dataclass
+class IntrinsicArg(YAMLSettings):
+    arg_name: str
+    arg_type: str
+
+
+@dataclass
+class IntrinsicDefn(YAMLSettings):
+    instr_name: str
+    intrinsic_name: str
+    ret_type: Optional[str] = None
+    args: Optional[List[IntrinsicArg]] = None
+
+
+@dataclass
+class IntrinsicsSettings(YAMLSettings):
+    intrinsics: Optional[List[IntrinsicDefn]] = None
+
+
+@dataclass
 class Seal5Settings(YAMLSettings):
     """Seal5 settings."""
 
@@ -594,6 +616,7 @@ class Seal5Settings(YAMLSettings):
     riscv: Optional[RISCVSettings] = None
     tools: Optional[ToolsSettings] = None
     metrics: list = field(default_factory=list)
+    intrinsics: Optional[IntrinsicsSettings] = None
 
     def reset(self):
         """Reset Seal5 seetings."""
@@ -625,6 +648,7 @@ class Seal5Settings(YAMLSettings):
             transform_info=None,
             legalization=None,
         )
+        self.intrinsics = IntrinsicsSettings()
 
     def save(self, dest: Optional[Path] = None):
         """Save Seal5 settings to file."""
@@ -663,6 +687,26 @@ class Seal5Settings(YAMLSettings):
     def build_dir(self):
         """Seal5 build_dir getter."""
         return self._meta_dir / "build"
+
+    def get_llvm_build_dir(self, config: Optional[str] = None, fallback: bool = True, check: bool = False):
+        if config is None:
+            # check if default_exists
+            assert self.llvm is not None
+            config = self.llvm.default_config
+
+        assert config is not None, "Could not resolve LLVM build dir"
+
+        llvm_build_dir = self.build_dir / config
+
+        if not llvm_build_dir.is_dir():
+            assert fallback, f"LLVM build dir {llvm_build_dir} does not exist and fallback is disabled."
+            # Look for non-empty subdirs for .seal5/build
+            candidates = [f for f in self.build_dir.iterdir() if f.is_dir() and any(f.iterdir())]
+            if len(candidates) > 0:
+                llvm_build_dir = candidates[0]
+        if check:
+            assert llvm_build_dir.is_dir(), f"LLVM build dir does not exist: {llvm_build_dir}"
+        return llvm_build_dir
 
     @property
     def install_dir(self):

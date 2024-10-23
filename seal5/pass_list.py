@@ -9,6 +9,7 @@ from seal5.passes import Seal5Pass, PassType, PassScope, PassManager, PassResult
 from seal5.types import PatchStage
 from seal5.settings import Seal5Settings, PatchSettings
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
+from seal5.metrics import read_metrics
 
 logger = get_logger()
 
@@ -97,6 +98,7 @@ def optimize_model(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    return PassResult(metrics={})
 
 
 def inline_functions(
@@ -206,6 +208,7 @@ def infer_types(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    return PassResult(metrics={})
 
 
 def simplify_trivial_slices(
@@ -242,6 +245,7 @@ def simplify_trivial_slices(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    return PassResult(metrics={})
 
 
 def explicit_truncations(
@@ -316,6 +320,7 @@ def process_settings(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    return PassResult(metrics={})
 
 
 def filter_model(
@@ -379,6 +384,7 @@ def filter_model(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    return PassResult(metrics={})
 
 
 def drop_unused(
@@ -451,6 +457,7 @@ def detect_registers(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    return PassResult(metrics={})
 
 
 def detect_behavior_constraints(
@@ -523,6 +530,7 @@ def detect_side_effects(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    return PassResult(metrics={})
 
 
 def detect_inouts(
@@ -559,6 +567,7 @@ def detect_inouts(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    return PassResult(metrics={})
 
 
 def collect_operand_types(
@@ -633,6 +642,7 @@ def collect_register_operands(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    return PassResult(metrics={})
 
 
 def collect_immediate_operands(
@@ -705,6 +715,7 @@ def eliminate_rd_cmp_zero(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    return PassResult(metrics={})
 
 
 def eliminate_mod_rfs(
@@ -779,6 +790,7 @@ def write_yaml(
     )
     new_settings: Seal5Settings = Seal5Settings.from_yaml_file(settings.temp_dir / new_name)
     settings.merge(new_settings, overwrite=False)
+    return PassResult(metrics={})
 
 
 def write_cdsl(
@@ -844,6 +856,7 @@ def write_cdsl(
     #     print_func=logger.info if verbose else logger.debug,
     #     live=True,
     # )
+    # return PassResult(metrics={})
 
 
 # def write_cdsl_splitted(inplace: bool = True):
@@ -925,6 +938,7 @@ def write_cdsl(
 #                     print_func=logger.info if verbose else logger.debug,
 #                     live=True,
 #                 )
+#    return PassResult(metrics={})
 
 
 def convert_behav_to_llvmir(
@@ -968,6 +982,10 @@ def convert_behav_to_llvmir(
         print_func=logger.info if verbose else logger.debug,
         live=True,
     )
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def convert_behav_to_tablegen(
@@ -1042,6 +1060,10 @@ def convert_behav_to_tablegen(
             settings.to_yaml_file(settings.settings_file)
         else:
             logger.warning("No patches found!")
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def gen_riscv_features_patch(
@@ -1103,6 +1125,10 @@ def gen_riscv_features_patch(
             settings.to_yaml_file(settings.settings_file)
         else:
             logger.warning("No patches found!")
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def gen_riscv_isa_info_patch(
@@ -1164,6 +1190,75 @@ def gen_riscv_isa_info_patch(
             settings.to_yaml_file(settings.settings_file)
         else:
             logger.warning("No patches found!")
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
+
+
+def gen_riscv_intrinsics(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    split: bool = False,
+    log_level: str = "debug",
+    **kwargs,
+):
+    assert not split, "TODO"
+    # formats = True
+    gen_metrics_file = True
+    gen_index_file = True
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    new_name = name.replace(".seal5model", "")
+    logger.info("Writing intrinsics patches patch for %s", name)
+    out_dir = settings.patches_dir / new_name
+    out_dir.mkdir(exist_ok=True)
+
+    args = [
+        settings.models_dir / name,
+        "--log",
+        log_level,
+        "--output",
+        out_dir / "riscv_intrinsics_info.patch",
+    ]
+    if split:
+        args.append("--splitted")
+    if gen_metrics_file:
+        metrics_file = out_dir / ("riscv_intrinsics_info_metrics.csv")
+        args.extend(["--metrics", metrics_file])
+    if gen_index_file:
+        index_file = out_dir / ("riscv_intrinsics_index.yml")
+        args.extend(["--index", index_file])
+    utils.python(
+        "-m",
+        "seal5.backends.riscv_intrinsics.writer",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+    if gen_index_file:
+        if index_file.is_file():
+            patch_base = f"riscv_intrinsics_target_{input_file.stem}"
+            patch_settings = PatchSettings(
+                name=patch_base,
+                stage=int(PatchStage.PHASE_1),
+                comment=f"Generated RISCV Intrinsics patch for {input_file.name}",
+                index=str(index_file),
+                generated=True,
+                target="llvm",
+            )
+            settings.add_patch(patch_settings)
+            settings.to_yaml_file(settings.settings_file)
+        else:
+            logger.warning("No patches found!")
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def gen_riscv_instr_info_patch(
@@ -1231,6 +1326,10 @@ def gen_riscv_instr_info_patch(
             settings.to_yaml_file(settings.settings_file)
         else:
             logger.warning("No patches found!")
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def gen_riscv_register_info_patch(
@@ -1296,6 +1395,10 @@ def gen_riscv_register_info_patch(
             settings.to_yaml_file(settings.settings_file)
         else:
             logger.warning("No patches found!")
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def gen_riscv_gisel_legalizer_patch(
@@ -1356,6 +1459,10 @@ def gen_riscv_gisel_legalizer_patch(
         else:
             logger.warning("No patches found!")
     # TODO: introduce global (model-independed) settings file
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 # def convert_behav_to_tablegen_splitted(inplace: bool = True):
@@ -1405,6 +1512,7 @@ def gen_riscv_gisel_legalizer_patch(
 #         for insn_name, err_str in errs:
 #             print("Err:", insn_name, err_str)
 #             input("!")
+#     return PassResult(metrics={})
 
 
 def convert_llvmir_to_gmir(
@@ -1473,8 +1581,7 @@ def convert_llvmir_to_gmir(
                     cdsl2llvm_build_dir = None
                     integrated_pattern_gen = settings.tools.pattern_gen.integrated
                     if integrated_pattern_gen:
-                        config = settings.llvm.default_config
-                        cdsl2llvm_build_dir = str(settings.build_dir / config)
+                        cdsl2llvm_build_dir = str(settings.get_llvm_build_dir(fallback=True, check=True))
                     else:
                         cdsl2llvm_build_dir = str(settings.deps_dir / "cdsl2llvm" / "llvm" / "build")
                     # TODO: migrate with pass to cmdline backend
@@ -1497,6 +1604,7 @@ def convert_llvmir_to_gmir(
         logger.warning("Ignored Errors:")
         for insn_name, err_str in errs:
             logger.warning("%s: %s", insn_name, err_str)
+    return PassResult(metrics={})
 
 
 def gen_seal5_td(
@@ -1543,6 +1651,7 @@ include "seal5.td"
         target="llvm",
     )
     settings.add_patch(patch_settings)
+    return PassResult(metrics={})
 
 
 def gen_model_td(
@@ -1589,6 +1698,7 @@ include "seal5/{input_model}.td"
         target="llvm",
     )
     settings.add_patch(patch_settings)
+    return PassResult(metrics={})
 
 
 def gen_set_td(
@@ -1641,6 +1751,7 @@ def gen_set_td(
         target="llvm",
     )
     settings.add_patch(patch_settings)
+    return PassResult(metrics={})
 
 
 def pattern_gen_pass(

@@ -23,3 +23,13 @@ __attribute__((naked)) void test_subincacc() {
     // CHECK: ab ba b5 51 xexample.subincacc x21, x11, x27
     asm("xexample.subincacc x21, x11, x27");
 }
+
+void test_intrinsic() {
+    // CHECK: <test_intrinsic>
+    int a = 3;
+    int b = 7;
+    int c = 4;
+    // Can't rely upon specific registers being used but at least instruction should have been used
+    // CHECK: example.subincacc
+    c = __builtin_xexample_subincacc(a, b, c);
+}
