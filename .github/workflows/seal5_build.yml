@@ -66,7 +66,11 @@ on:
         description: "Install Seal5 Artifacts (and upload as artifact)"
         required: true
         default: "1"
-
+        
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+  
 jobs:            
   build_seal5:
     runs-on: ${{ matrix.os }}
