@@ -22,7 +22,7 @@ name: Usage Seal5-Build
 
 on:
   repository_dispatch:
-    types: [s4e-cdl-event]
+    types: [s4e-cdsl-event]
   workflow_dispatch:
     inputs:
       script:
@@ -41,10 +41,7 @@ on:
         description: "Clone Depth (-1 for full clone)"
         required: true
         default: "1"
-      # fast:
-      #   description: "Fast (0/1)"
-      #   required: true
-      #   default: "0"
+
       ignore_error:
         description: "Ignore Errors in TEST stage (0/1)"
         required: true
@@ -71,7 +68,7 @@ on:
         default: "1"
 
 jobs:            
-  build_demo:
+  build_seal5:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -105,7 +102,7 @@ jobs:
         source .venv/bin/activate
         pip install -r requirements.txt
         pip list
-    - name: Run package creation
+    - name: Setup Build Environment
       run: |
         source .venv/bin/activate
         pip install -e .
@@ -126,10 +123,9 @@ jobs:
         name: demo-install
         path: /tmp/seal5_llvm/.seal5/install/${{ github.event.inputs.build_config }}
 
-  # Trigger ETISS RISCV Example to build example using SEAL5 and test on custom ETISS
   trigger_etiss_example_build:
     runs-on: ubuntu-latest
-    needs: build_demo
+    needs: build_seal5
     steps:
     - name: Download ETISS RUN-ID Artifacts
       id: download-artifact
@@ -139,7 +135,7 @@ jobs:
         github-token: ${{ secrets.REPO_ACCESS_TOKEN }}
         repository: kebi-be/seal5
         path: /home/runner/work/
-        workflow: sync_etiss_build.yml
+        workflow: sync_etiss_seal5_build.yml
         workflow_conclusion: success
         
     - name: Set ETISS RUN-ID as Variable
