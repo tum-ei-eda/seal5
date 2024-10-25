@@ -14,6 +14,8 @@ import pathlib
 import pickle
 from typing import Union, Optional
 
+import pandas as pd
+
 from mako.template import Template
 
 from m2isar.metamodel import arch
@@ -137,6 +139,9 @@ def write_riscv_instruction_info(
 
     attrs = {key: attr_helper(value) for key, value in attrs.items()}
     constraints_str = ", ".join(constraints)
+
+    if len(ins_str) == 0 and len(outs_str) == 0:
+        assert len(operands) == 0, "Could not resolve in/out operands"
 
     out_str = instr_template.render(
         name=name,
@@ -292,9 +297,16 @@ def main():
 
     metrics = {
         "n_sets": 0,
+        "n_instructions": 0,
         "n_skipped": 0,
         "n_failed": 0,
         "n_success": 0,
+        "skipped_instructions": [],
+        "failed_instructions": [],
+        "success_instructions": [],
+        "skipped_sets": [],
+        "failed_sets": [],
+        "success_sets": [],
     }
     # preprocess model
     # print("model", model)
@@ -305,6 +317,7 @@ def main():
         content = ""
         # errs = []
         for set_name, set_def in model["sets"].items():
+            metrics["n_sets"] += 1
             set_name_lower = set_name.lower()
             artifacts[set_name] = []
             xlen = set_def.xlen
@@ -318,33 +331,39 @@ def main():
             pred = None
             if ext_settings is not None:
                 pred = "Has" + ext_settings.get_predicate(name=set_name)
-            metrics["n_sets"] += 1
             # TODO: check for GPRC and require HasStdExtCOrZca?
             # TODO: check for GPR32Pair and require HasGPR32Pair
             # TODO: check for GPR32V2/GPR32V4 and require HasGPR32V
             for _, instr_def in set_def.instructions.items():
-                metrics["n_success"] += 1
+                metrics["n_instructions"] += 1
                 out_name = f"{instr_def.name}InstrInfo.{args.ext}"
                 output_file = set_dir / out_name
-                content = gen_riscv_instr_info_str(instr_def, set_def)
-                if len(content) > 0:
-                    if args.add_intrinsics and settings.intrinsics.intrinsics:
-                        # TODO: intrinsics should be dict keyed by instr name
-                        for intrinsic in settings.intrinsics.intrinsics:
-                            if intrinsic.instr_name.casefold() == instr_def.mnemonic.casefold():
-                                content += gen_intrinsic_pattern(instr_def, intrinsic)
-                    assert pred is not None
-                    predicate_str = f"Predicates = [{pred}, IsRV{xlen}]"
-                    content = f"let {predicate_str} in {{\n{content}\n}}"
-                    with open(output_file, "w", encoding="utf-8") as f:
-                        f.write(content)
-                    instr_info_patch = File(
-                        f"llvm/lib/Target/RISCV/seal5/{set_name}/{output_file.name}",
-                        src_path=output_file,
-                    )
-                    artifacts[set_name].append(instr_info_patch)
-                    inc = f"seal5/{set_name}/{output_file.name}"
-                    includes.append(inc)
+                try:
+                    metrics["n_success"] += 1
+                    metrics["success_instructions"].append(instr_def.name)
+                    content = gen_riscv_instr_info_str(instr_def, set_def)
+                    if len(content) > 0:
+                        if args.add_intrinsics and settings.intrinsics.intrinsics:
+                            # TODO: intrinsics should be dict keyed by instr name
+                            for intrinsic in settings.intrinsics.intrinsics:
+                                if intrinsic.instr_name.casefold() == instr_def.mnemonic.casefold():
+                                    content += gen_intrinsic_pattern(instr_def, intrinsic)
+                        assert pred is not None
+                        predicate_str = f"Predicates = [{pred}, IsRV{xlen}]"
+                        content = f"let {predicate_str} in {{\n{content}\n}}"
+                        with open(output_file, "w", encoding="utf-8") as f:
+                            f.write(content)
+                        instr_info_patch = File(
+                            f"llvm/lib/Target/RISCV/seal5/{set_name}/{output_file.name}",
+                            src_path=output_file,
+                        )
+                        artifacts[set_name].append(instr_info_patch)
+                        inc = f"seal5/{set_name}/{output_file.name}"
+                        includes.append(inc)
+                except Exception as ex:
+                    logger.exception(ex)
+                    metrics["n_failed"] += 1
+                    metrics["failed_instructions"].append(instr_def.name)
             includes_str = "\n".join([f'include "{inc}"' for inc in includes])
             set_td_includes_patch = NamedPatch(
                 f"llvm/lib/Target/RISCV/seal5/{set_name}.td",
@@ -356,11 +375,8 @@ def main():
         raise NotImplementedError
     if args.metrics:
         metrics_file = args.metrics
-        with open(metrics_file, "w", encoding="utf-8") as f:
-            f.write(",".join(metrics.keys()))
-            f.write("\n")
-            f.write(",".join(map(str, metrics.values())))
-            f.write("\n")
+        metrics_df = pd.DataFrame({key: [val] for key, val in metrics.items()})
+        metrics_df.to_csv(metrics_file, index=False)
     if args.index:
         if sum(map(len, artifacts.values())) > 0:
             global_artifacts = artifacts.get(None, [])
