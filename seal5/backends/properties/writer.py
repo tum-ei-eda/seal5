@@ -17,7 +17,7 @@ from typing import Union
 import pandas as pd
 
 from m2isar.metamodel import arch
-from seal5.model import Seal5OperandAttribute
+from seal5.model import Seal5OperandAttribute, Seal5InstrAttribute
 
 logger = logging.getLogger("properties_writer")
 
@@ -30,6 +30,7 @@ def main():
     parser.add_argument("top_level", help="A .m2isarmodel or .seal5model file.")
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument("--output", "-o", type=str, default=None)
+    parser.add_argument("--fmt", type=str, choices=["auto", "csv", "pkl", "md"], default="auto")
     args = parser.parse_args()
 
     # initialize logging
@@ -45,7 +46,7 @@ def main():
     if top_level.suffix == ".seal5model":
         is_seal5_model = True
     assert args.output is not None
-    out_file = pathlib.Path(args.output)
+    out_path = pathlib.Path(args.output)
 
     logger.info("loading models")
     if not is_seal5_model:
@@ -71,7 +72,7 @@ def main():
     # print("model", model)
     properties_data = []
     for set_name, set_def in model["sets"].items():
-        print("set_name", set_name)
+        # print("set_name", set_name)
         xlen = set_def.xlen
         model = top_level.stem
 
@@ -87,7 +88,7 @@ def main():
 
         for instr_def in set_def.instructions.values():
             instr_name = instr_def.name
-            print("instr_name", instr_name)
+            # print("instr_name", instr_name)
             operands = instr_def.operands
 
             def get_operands_properties(operands):
@@ -138,17 +139,45 @@ def main():
                     # TODO: num_csrs, num_fprs, num_custom...
                 }
 
+            def get_side_effect_properties(attrs):
+                uses_custom_reg = Seal5InstrAttribute.USES in attrs and len(attrs[Seal5InstrAttribute.USES]) > 0
+                defs_custom_reg = Seal5InstrAttribute.DEFS in attrs and len(attrs[Seal5InstrAttribute.DEFS]) > 0
+                return {
+                    "has_side_effects": Seal5InstrAttribute.HAS_SIDE_EFFECTS in attrs,
+                    "may_load": Seal5InstrAttribute.MAY_LOAD in attrs,
+                    "may_store": Seal5InstrAttribute.MAY_STORE in attrs,
+                    "is_terminator": Seal5InstrAttribute.IS_TERMINATOR in attrs,
+                    "is_branch": Seal5InstrAttribute.IS_BRANCH in attrs,
+                    "uses_custom_reg": uses_custom_reg,
+                    "defs_custom_reg": defs_custom_reg,
+                }
+
             attrs = instr_def.attributes
             data = {
                 "model": model,
                 **get_set_properties(set_name, xlen),
                 "instr": instr_name,
                 **get_operands_properties(operands),
+                **get_side_effect_properties(attrs),
                 # TODO: operations
             }
             properties_data.append(data)
     properties_df = pd.DataFrame(properties_data)
-    properties_df.to_csv(out_file, index=False)
+    fmt = args.fmt
+    if fmt == "auto":
+        fmt = out_path.suffix
+        assert len(fmt) > 1
+        fmt = fmt[1:].lower()
+
+    if fmt == "csv":
+        properties_df.to_csv(out_path, index=False)
+    elif fmt == "pkl":
+        properties_df.to_pickle(out_path)
+    elif fmt == "md":
+        # properties_df.to_markdown(out_path, tablefmt="grid", index=False)
+        properties_df.to_markdown(out_path, index=False)
+    else:
+        raise ValueError(f"Unsupported fmt: {fmt}")
 
 
 if __name__ == "__main__":
