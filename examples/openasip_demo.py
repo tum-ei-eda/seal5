@@ -82,7 +82,12 @@ cdsl_files = [
 seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load test inputs
-test_files = []  # TODO
+test_files = [
+    EXAMPLES_DIR / "tests" / "openasip" / "base" / "*.c",
+    EXAMPLES_DIR / "tests" / "openasip" / "base" / "*.s",
+    EXAMPLES_DIR / "tests" / "openasip" / "base" / "*.ll",
+    EXAMPLES_DIR / "tests" / "openasip" / "base" / "*.mir",
+]
 seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 
 # Load YAML inputs
