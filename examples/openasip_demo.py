@@ -89,6 +89,7 @@ seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 cfg_files = [
     # EXAMPLES_DIR / "cfg" / "openasip" / "OpenASIP.yml",  # TODO: move to other dir
     EXAMPLES_DIR / "cfg" / "openasip" / "OpenASIP_base.yml",
+    EXAMPLES_DIR / "cfg" / "openasip" / "intrinsics.yml",
     EXAMPLES_DIR / "cfg" / "llvm.yml",
     EXAMPLES_DIR / "cfg" / "filter.yml",
     EXAMPLES_DIR / "cfg" / "patches.yml",
