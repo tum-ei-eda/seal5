@@ -16,6 +16,8 @@ import os.path
 from typing import Union
 from dataclasses import dataclass
 
+import pandas as pd
+
 from m2isar.metamodel import arch
 
 from seal5.index import NamedPatch, write_index_yaml
@@ -139,9 +141,20 @@ def main():
 
     metrics = {
         "n_sets": 0,
+        "n_instructions": 0,
+        "n_intrinsics": 0,
         "n_skipped": 0,
         "n_failed": 0,
         "n_success": 0,
+        "skipped_instrinsics": [],
+        "failed_intrinsics": [],
+        "success_intrinsics": [],
+        "skipped_instructions": [],
+        "failed_instructions": [],
+        "success_instructions": [],
+        "skipped_sets": [],
+        "failed_sets": [],
+        "success_sets": [],
     }
     # preprocess model
     # print("model", model)
@@ -171,21 +184,30 @@ def main():
             artifacts[set_name] = []
             metrics["n_sets"] += 1
             ext_settings = set_def.settings
-            if ext_settings is None:
+            if ext_settings is None or len(settings.intrinsics.intrinsics) == 0:
                 metrics["n_skipped"] += 1
+                metrics["skipped_sets"].append(set_name)
                 continue
             for intrinsic in settings.intrinsics.intrinsics:
-                metrics["n_success"] += 1
-
-                patch_frags["target"].contents += build_target(arch=ext_settings.get_arch(), intrinsic=intrinsic)
-                patch_frags["attr"].contents += build_attr(arch=ext_settings.get_arch(), intrinsic=intrinsic)
-                patch_frags["emit"].contents += build_emit(arch=ext_settings.get_arch(), intrinsic=intrinsic)
+                try:
+                    arch = ext_settings.get_arch(name=set_name)
+                    patch_frags["target"].contents += build_target(arch=arch, intrinsic=intrinsic)
+                    patch_frags["attr"].contents += build_attr(arch=arch, intrinsic=intrinsic)
+                    patch_frags["emit"].contents += build_emit(arch=arch, intrinsic=intrinsic)
+                    metrics["n_success"] += 1
+                    metrics["success_instructions"].append(intrinsic.instr_name)
+                except Exception as ex:
+                    logger.exception(ex)
+                    metrics["n_failed"] += 1
+                    metrics["failed_instructions"].append(intrinsic.instr_name)
+                    # metrics["failed_intrinsics"].append(?)
+                metrics["success_sets"].append(set_name)
 
         for id, frag in patch_frags.items():
             contents = frag.contents
             if len(contents) > 0:
                 if id == "target":
-                    contents = f"// {ext_settings.get_arch()}\n{contents}\n"
+                    contents = f"// {arch}\n{contents}\n"
                 elif id == "attr":
                     contents = f'let TargetPrefix = "riscv" in {{\n{contents}\n}}'
                 (root, ext) = os.path.splitext(out_path)
@@ -199,11 +221,8 @@ def main():
                 artifacts[None].append(patch)
     if args.metrics:
         metrics_file = args.metrics
-        with open(metrics_file, "w") as f:
-            f.write(",".join(metrics.keys()))
-            f.write("\n")
-            f.write(",".join(map(str, metrics.values())))
-            f.write("\n")
+        metrics_df = pd.DataFrame({key: [val] for key, val in metrics.items()})
+        metrics_df.to_csv(metrics_file, index=False)
     if args.index:
         if sum(map(lambda x: len(x), artifacts.values())) > 0:
             global_artifacts = artifacts.get(None, [])
