@@ -30,7 +30,9 @@ def main():
     parser.add_argument("top_level", help="A .m2isarmodel or .seal5model file.")
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument("--output", "-o", type=str, default=None)
+    parser.add_argument("--fmt", type=str, choices=["auto", "csv", "pkl", "md"], default="auto")
     parser.add_argument("--yaml", type=str, default=None)
+    parser.add_argument("--cols2rows", action="store_true")
     args = parser.parse_args()
 
     # initialize logging
@@ -133,7 +135,7 @@ def main():
         print("filtered_metrics", filtered_metrics, len(filtered_metrics))
         return filtered_metrics
 
-    def get_status(filtered_metrics, instr_name):
+    def get_status(filtered_metrics, instr_name, invert: bool = False):
         skipped = []
         failed = []
         success = []
@@ -155,19 +157,30 @@ def main():
                 success.append(prefix)
             else:
                 print("else")
-        ret = {
-            "skipped": skipped,
-            "failed": failed,
-            "success": success,
-        }
+        if invert:
+            ret = {}
+            for pass_name in failed:
+                ret[pass_name] = "failed"
+            for pass_name in skipped:
+                if pass_name in ret:
+                    continue
+                ret[pass_name] = "skipped"
+            for pass_name in success:
+                if pass_name in ret:
+                    continue
+                ret[pass_name] = "success"
+        else:
+            ret = {
+                "skipped": skipped,
+                "failed": failed,
+                "success": success,
+            }
         return ret
 
     status_data = []
     for set_name, set_def in model["sets"].items():
-        print("set_name", set_name)
         xlen = set_def.xlen
         model = top_level.stem
-        print("model", model)
         filtered_metrics = process_metrics(settings, model=model)
 
         for instr_def in set_def.instructions.values():
@@ -179,11 +192,31 @@ def main():
                 "set": set_name,
                 "xlen": xlen,
                 "instr": instr_name,
-                **get_status(filtered_metrics, instr_name),
             }
-            status_data.append(data)
-    properties_df = pd.DataFrame(status_data)
-    properties_df.to_csv(out_path, index=False)
+            if args.cols2rows:
+                for pass_name, pass_status in get_status(filtered_metrics, instr_name, invert=True).items():
+                    stage_name, pass_rest = pass_name.split(".", 1)
+                    data_ = {**data, "stage": stage_name, "pass": pass_rest, "status": pass_status}
+                    status_data.append(data_)
+            else:
+                data_ = {**data, **get_status(filtered_metrics, instr_name, invert=False)}
+                status_data.append(data_)
+    status_df = pd.DataFrame(status_data)
+    fmt = args.fmt
+    if fmt == "auto":
+        fmt = out_path.suffix
+        assert len(fmt) > 1
+        fmt = fmt[1:].lower()
+
+    if fmt == "csv":
+        status_df.to_csv(out_path, index=False)
+    elif fmt == "pkl":
+        status_df.to_pickle(out_path)
+    elif fmt == "md":
+        # status_df.to_markdown(out_path, tablefmt="grid", index=False)
+        status_df.to_markdown(out_path, index=False)
+    else:
+        raise ValueError(f"Unsupported fmt: {fmt}")
 
 
 if __name__ == "__main__":
