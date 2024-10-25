@@ -185,6 +185,7 @@ def test_llvm(base: Path, build_dir: Path, test_paths: Optional[List[str]] = Non
     old_path = env["PATH"]
     env["PATH"] = f"{build_dir}/bin:{old_path}"
     lit_exe = build_dir / "bin" / "llvm-lit"
+    passed_tests = []
     failing_tests = []
     for test_path in test_paths:
 
@@ -202,5 +203,8 @@ def test_llvm(base: Path, build_dir: Path, test_paths: Optional[List[str]] = Non
         failing = re.compile(r"FAIL: LLVM :: (.*) \(").findall(out)
         if len(failing) > 0:
             failing_tests.extend(failing)
+        passed = re.compile(r"PASS: LLVM :: (.*) \(").findall(out)
+        if len(passed) > 0:
+            passed_tests.extend(passed)
 
-    return failing_tests
+    return passed_tests, failing_tests

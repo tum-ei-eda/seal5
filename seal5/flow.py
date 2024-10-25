@@ -785,19 +785,36 @@ class Seal5Flow:
         if config is None:
             config = self.settings.llvm.default_config
         test_paths = self.settings.test.paths
-        failing_tests = llvm.test_llvm(
-            self.directory / "llvm" / "test",
-            self.settings.get_llvm_build_dir(config=config, fallback=True, check=True),
-            test_paths,
-            verbose=verbose,
-        )
-        if len(failing_tests) > 0:
-            logger.error("%d tests failed: %s", len(failing_tests), ", ".join(failing_tests))
-            if not ignore_error:
-                raise RuntimeError("Tests failed!")
+        if len(test_paths) == 0:
+            logger.warning("No test paths have been specified!")
+            passed_tests = []
+            failing_tests = []
+            score = None
+        else:
+            passed_tests, failing_tests = llvm.test_llvm(
+                self.directory / "llvm" / "test",
+                self.settings.get_llvm_build_dir(config=config, fallback=True, check=True),
+                test_paths,
+                verbose=verbose,
+            )
+            num_tests = len(passed_tests) + len(failing_tests)
+            if num_tests == 0:
+                logger.warning("No tests have been executed!")
+                score = None
+            else:
+                if len(passed_tests) > 0:
+                    logger.info("%d tests passed: %s", len(passed_tests), ", ".join(passed_tests))
+                if len(failing_tests) > 0:
+                    logger.error("%d tests failed: %s", len(failing_tests), ", ".join(failing_tests))
+                    if not ignore_error:
+                        raise RuntimeError("Tests failed!")
+                score = len(passed_tests) / num_tests
         end = time.time()
         diff = end - start
         metrics["time_s"] = diff
+        metrics["failing"] = failing_tests
+        metrics["passed"] = passed_tests
+        metrics["score"] = f"{score*100:.2f}%"
         self.settings.metrics.append({"test": metrics})
         self.settings.save()
         logger.info("Completed test of Seal5 LLVM")
