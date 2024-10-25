@@ -222,6 +222,7 @@ def simplify_trivial_slices(
     **_kwargs,
 ):
     assert inplace
+    gen_metrics_file = True
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
     name = input_file.name
@@ -231,6 +232,10 @@ def simplify_trivial_slices(
         "--log",
         log_level,
     ]
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (name + "_simplify_trivial_slices_metrics.csv")
+        args.extend(["--metrics", metrics_file])
     if not use_subprocess:
         from seal5.transform.simplify_trivial_slices import SimplifyTrivialSlices
 
@@ -245,7 +250,10 @@ def simplify_trivial_slices(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
-    return PassResult(metrics={})
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def explicit_truncations(
@@ -259,6 +267,7 @@ def explicit_truncations(
     **_kwargs,
 ):
     assert inplace
+    gen_metrics_file = True
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
     name = input_file.name
@@ -268,6 +277,10 @@ def explicit_truncations(
         "--log",
         log_level,
     ]
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (name + "_explicit_truncations_metrics.csv")
+        args.extend(["--metrics", metrics_file])
     if not use_subprocess:
         from seal5.transform.explicit_truncations import ExplicitTruncations
 
@@ -282,6 +295,9 @@ def explicit_truncations(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def process_settings(
@@ -471,6 +487,7 @@ def detect_behavior_constraints(
     **_kwargs,
 ):
     assert inplace
+    gen_metrics_file = True
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
     name = input_file.name
@@ -480,6 +497,10 @@ def detect_behavior_constraints(
         "--log",
         log_level,
     ]
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (name + "_collect_raises_metrics.csv")
+        args.extend(["--metrics", metrics_file])
     if not use_subprocess:
         from seal5.transform.collect_raises import CollectRaises
 
@@ -494,6 +515,10 @@ def detect_behavior_constraints(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def detect_side_effects(
@@ -507,6 +532,7 @@ def detect_side_effects(
     **_kwargs,
 ):
     assert inplace
+    gen_metrics_file = True
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
     name = input_file.name
@@ -516,6 +542,10 @@ def detect_side_effects(
         "--log",
         log_level,
     ]
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (name + "_detect_side_effects_metrics.csv")
+        args.extend(["--metrics", metrics_file])
     if not use_subprocess:
         from seal5.transform.detect_side_effects import DetectSideEffects
 
@@ -530,7 +560,10 @@ def detect_side_effects(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
-    return PassResult(metrics={})
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def detect_inouts(
@@ -544,6 +577,7 @@ def detect_inouts(
     **_kwargs,
 ):
     assert inplace
+    gen_metrics_file = True
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
     name = input_file.name
@@ -553,6 +587,10 @@ def detect_inouts(
         "--log",
         log_level,
     ]
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (name + "_detect_inouts_metrics.csv")
+        args.extend(["--metrics", metrics_file])
     if not use_subprocess:
         from seal5.transform.detect_inouts import DetectInouts
 
@@ -567,7 +605,10 @@ def detect_inouts(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
-    return PassResult(metrics={})
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def collect_operand_types(
@@ -619,6 +660,7 @@ def collect_register_operands(
     **_kwargs,
 ):
     assert inplace
+    gen_metrics_file = True
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
     name = input_file.name
@@ -628,6 +670,10 @@ def collect_register_operands(
         "--log",
         log_level,
     ]
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (name + "_collect_register_operands_metrics.csv")
+        args.extend(["--metrics", metrics_file])
     if not use_subprocess:
         from seal5.transform.collect_register_operands import CollectRegisterOperands
 
@@ -642,7 +688,10 @@ def collect_register_operands(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
-    return PassResult(metrics={})
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def collect_immediate_operands(
@@ -656,6 +705,7 @@ def collect_immediate_operands(
     **_kwargs,
 ):
     assert inplace
+    gen_metrics_file = True
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
     name = input_file.name
@@ -665,6 +715,10 @@ def collect_immediate_operands(
         "--log",
         log_level,
     ]
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (name + "_collect_immediate_operands_metrics.csv")
+        args.extend(["--metrics", metrics_file])
     if not use_subprocess:
         from seal5.transform.collect_immediate_operands import CollectImmediateOperands
 
@@ -679,6 +733,10 @@ def collect_immediate_operands(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def eliminate_rd_cmp_zero(
@@ -806,6 +864,7 @@ def write_cdsl(
     **_kwargs,
 ):
     del use_subprocess  # unused
+    gen_metrics_file = True
     # if not use_subprocess:
     #     raise NotImplementedError("use_subprocess=False")
     assert inplace
@@ -829,6 +888,10 @@ def write_cdsl(
         args.append("--splitted")
     if compat:
         args.append("--compat")
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (new_name + "_coredsl2_writer_metrics.csv")
+        args.extend(["--metrics", metrics_file])
     utils.python(
         "-m",
         "seal5.backends.coredsl2.writer",
