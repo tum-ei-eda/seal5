@@ -84,7 +84,19 @@ seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load test inputs
 test_files = [
-    EXAMPLES_DIR / "tests" / "xcorev" / "*.inline_asm.c",
+    # EXAMPLES_DIR / "tests" / "xcorev" / "alu" / "*.c",
+    EXAMPLES_DIR / "tests" / "xcorev" / "alu" / "*.s",
+    EXAMPLES_DIR / "tests" / "xcorev" / "alu" / "*.ll",
+    # EXAMPLES_DIR / "tests" / "xcorev" / "mac" / "*.s",
+    EXAMPLES_DIR / "tests" / "xcorev" / "mac" / "*.ll",
+    # EXAMPLES_DIR / "tests" / "xcorev" / "bitmanip" / "*.s",
+    EXAMPLES_DIR / "tests" / "xcorev" / "bitmanip" / "*.ll",
+    # EXAMPLES_DIR / "tests" / "xcorev" / "bi" / "*.s",
+    # EXAMPLES_DIR / "tests" / "xcorev" / "bi" / "*.ll",
+    # EXAMPLES_DIR / "tests" / "xcorev" / "simd" / "*.s",
+    # EXAMPLES_DIR / "tests" / "xcorev" / "simd" / "*.ll",
+    # EXAMPLES_DIR / "tests" / "xcorev" / "mem" / "*.s",
+    # EXAMPLES_DIR / "tests" / "xcorev" / "mem" / "*.ll",
 ]
 seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 
