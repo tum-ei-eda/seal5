@@ -319,6 +319,8 @@ class Seal5Flow:
         set_log_level(console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level)
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
         self.settings.metrics.append({"initialize": metrics})
         self.settings.save()
@@ -392,6 +394,8 @@ class Seal5Flow:
         # input("qqqqqq")
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
         self.settings.metrics.append({"setup": metrics})
         self.settings.save()
@@ -508,6 +512,8 @@ class Seal5Flow:
         )
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
         self.settings.metrics.append({"build": metrics})
         self.settings.save()
@@ -542,6 +548,8 @@ class Seal5Flow:
         )
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
         self.settings.metrics.append({"build": metrics})
         self.settings.save()
@@ -576,6 +584,8 @@ class Seal5Flow:
 
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
         self.settings.metrics.append({"transform": metrics})
         self.settings.save()
@@ -598,6 +608,8 @@ class Seal5Flow:
 
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
         self.settings.metrics.append({"generate": metrics})
         self.settings.save()
@@ -769,6 +781,8 @@ class Seal5Flow:
             self.repo.create_tag(tag_name, message=tag_msg, force=True)
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
         self.settings.metrics.append({"patch": metrics})
         self.settings.save()
@@ -811,6 +825,8 @@ class Seal5Flow:
                 score = len(passed_tests) / num_tests
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
         metrics["failing"] = failing_tests
         metrics["passed"] = passed_tests
@@ -832,6 +848,8 @@ class Seal5Flow:
         self.repo.git.archive(tag_name, "-o", dest)
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
         self.settings.metrics.append({"deploy": metrics})
         self.settings.save()
@@ -873,6 +891,8 @@ class Seal5Flow:
 
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
         self.settings.metrics.append({"export": metrics})
         self.settings.save()
@@ -890,6 +910,8 @@ class Seal5Flow:
             self.settings.reset()
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
         self.settings.metrics.append({"reset": metrics})
         if self.meta_dir.is_dir():
@@ -938,6 +960,8 @@ class Seal5Flow:
         # self.reset(verbose=verbose, interactive=interactive)
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
         self.settings.metrics.append({"clean": metrics})
         if self.meta_dir.is_dir():
