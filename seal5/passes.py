@@ -147,6 +147,8 @@ class Seal5Pass:
             end = time.time()
             diff = end - start
             self.status = PassStatus.COMPLETED
+            self.metrics["start"] = start
+            self.metrics["end"] = end
             self.metrics["time_s"] = diff
         except Exception as e:
             self.status = PassStatus.FAILED
@@ -217,6 +219,8 @@ class PassManager:
                     self.metrics["passes"].append({pass_.name: metrics})
         end = time.time()
         diff = end - start
+        self.metrics["start"] = start
+        self.metrics["end"] = end
         self.metrics["time_s"] = diff
         return PassResult(metrics=self.metrics)
 
