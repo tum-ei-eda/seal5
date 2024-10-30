@@ -764,6 +764,7 @@ class Seal5Flow:
             stages = list(map(PatchStage, range(PatchStage.PHASE_5 + 1)))
         assert len(stages) > 0
         patches_per_stage = self.collect_patches()
+        stages_metrics = {}
         for stage in stages:
             logger.info("Current stage: %s", stage)
             patches = patches_per_stage.get(stage, [])
@@ -779,11 +780,23 @@ class Seal5Flow:
             # author = git_.get_author(self.settings.git)
             # self.repo.create_tag(tag_name, message=tag_msg, force=True, author=author)
             self.repo.create_tag(tag_name, message=tag_msg, force=True)
+            base_tag = f"seal5-{self.name}-base"
+            if int(stage) > 0:
+                prev_tag = f"seal5-{self.name}-stage{int(stage)-1}"
+            else:
+                prev_tag = base_tag
+            n_files_changed, n_insertions, n_deletions = inject_patches.analyze_diff(self.repo, cur=tag_name, base=prev_tag)
+            stage_metrics = {}
+            stage_metrics["n_files_changed"] = n_files_changed
+            stage_metrics["n_insertions"] = n_insertions
+            stage_metrics["n_deletions"] = n_deletions
+            stages_metrics[PatchStage(stage).name] = stage_metrics
         end = time.time()
         diff = end - start
         metrics["start"] = start
         metrics["end"] = end
         metrics["time_s"] = diff
+        metrics["stages"] = stages_metrics
         self.settings.metrics.append({"patch": metrics})
         self.settings.save()
         logger.info("Completed application of Seal5 patches")

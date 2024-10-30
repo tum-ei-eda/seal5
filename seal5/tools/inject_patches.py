@@ -20,10 +20,12 @@
 import os
 import argparse
 from pathlib import Path
+from typing import Optional
 
 from email.utils import formatdate
 import yaml
 
+from seal5 import utils
 from seal5.logging import get_logger
 
 logger = get_logger()
@@ -228,6 +230,35 @@ def process_arguments():
     )
     args = parser.parse_args()
     return args
+
+
+def analyze_diff(repo, base: str, cur: Optional[str] = None):
+    args = ["git", "diff", "--shortstat"]
+    args += [base]
+    if cur is not None:
+        args += [cur]
+    out = utils.exec_getout(
+        *args,
+        cwd=repo.working_tree_dir,
+        print_func=lambda *args, **kwargs: None,
+        live=False,
+    )
+    n_files_changed = 0
+    n_insertions = 0
+    n_deletions = 0
+    for x in out.split(","):
+        x = x.strip()
+        if len(x) == 0:
+            continue
+        val, key = x.split(" ", 1)
+        val = int(val)
+        if "files changed" in key:
+            n_files_changed = val
+        elif "insertions" in key:
+            n_insertions = val
+        elif "deletions" in key:
+            n_deletions = val
+    return n_files_changed, n_insertions, n_deletions
 
 
 def main():
