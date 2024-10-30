@@ -857,10 +857,15 @@ class Seal5Flow:
         start = time.time()
         metrics = {}
         # TODO: move to different file
+        base_tag = f"seal5-{self.name}-base"
         tag_name = f"seal5-{self.name}-stage{int(stage)}"
+        n_files_changed, n_insertions, n_deletions = inject_patches.analyze_diff(self.repo, cur=tag_name, base=base_tag)
         self.repo.git.archive(tag_name, "-o", dest)
         end = time.time()
         diff = end - start
+        metrics["n_files_changed"] = n_files_changed
+        metrics["n_insertions"] = n_insertions
+        metrics["n_deletions"] = n_deletions
         metrics["start"] = start
         metrics["end"] = end
         metrics["time_s"] = diff
