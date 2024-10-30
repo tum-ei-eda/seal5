@@ -3,16 +3,16 @@ name: Sync ETISS Build
 on:
   repository_dispatch:
     types: [ etiss-event ]
- 
+
 jobs:
   Get-ETISS-Build-Status:
     runs-on: ubuntu-latest
     steps:
-      
+
     - name: Get ETISS Build Run-ID & Run-Result
       run: |
-        echo ' ETISS RUN-ID:' ${{ github.event.client_payload.etiss_run_id }} 
-        echo ' ETISS PARENT RUN-ID:' ${{ github.event.client_payload.parent_repo_run_id }} 
+        echo ' ETISS RUN-ID:' ${{ github.event.client_payload.etiss_run_id }}
+        echo ' ETISS PARENT RUN-ID:' ${{ github.event.client_payload.parent_repo_run_id }}
         echo ' SEAL5 RUN-ID:' ${{ github.event.client_payload.trigger_repo_run_id }}
         echo ${{ github.event.client_payload.etiss_run_id }} > etiss-run-id.txt
 
@@ -21,15 +21,15 @@ jobs:
       with:
         name: etiss-run-id
         path: etiss-run-id.txt
-   
+
     - name: Download ETISS RISCV Examples Artifact
       uses: actions/download-artifact@v4
       with:
         name: etiss-run-id
-        github-token: ${{ secrets.REPO_ACCESS_TOKEN }}
+        github-token: ${{ secrets.SEAL5_ACCESS_TOKEN }}
         path: /home/runner/work/
 
     - name: Print out ID
-      run: | 
+      run: |
         cat /home/runner/work/etiss-run-id.txt
-    
+

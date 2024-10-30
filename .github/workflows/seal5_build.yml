@@ -66,19 +66,19 @@ on:
         description: "Install Seal5 Artifacts (and upload as artifact)"
         required: true
         default: "1"
-        
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
-  
-jobs:            
+
+jobs:
   build_seal5:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         python-version: ["3.10"]
         os: ["ubuntu-latest"]
-        ccache: ["1"]                             
+        ccache: ["1"]
     steps:
     - uses: actions/checkout@v4
       with:
@@ -89,7 +89,7 @@ jobs:
       with:
         max-size: 2G
         key: ${{ matrix.os }}-${{ github.event.inputs.script }}-${{ github.event.inputs.build_config }}
-        variant: sccache                        
+        variant: sccache
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
@@ -120,7 +120,7 @@ jobs:
       with:
         name: demo-export
         path: /tmp/seal5_llvm.tar.gz
-    
+
     - uses: actions/upload-artifact@v4
       if: "${{ github.event.inputs.install == '1'  ||  github.event_name == 'repository_dispatch' }}"
       with:
@@ -136,28 +136,28 @@ jobs:
       uses: dawidd6/action-download-artifact@v6
       with:
         name: etiss-run-id
-        github-token: ${{ secrets.REPO_ACCESS_TOKEN }}
-        repository: kebi-be/seal5
+        github-token: ${{ secrets.SEAL5_ACCESS_TOKEN }}
+        repository: tum-ei-eda/seal5
         path: /home/runner/work/
         workflow: sync_etiss_seal5_build.yml
         workflow_conclusion: success
-        
+
     - name: Set ETISS RUN-ID as Variable
       shell: bash
       run: |
         ETISS_RUN_ID=$(cat /home/runner/work/etiss-run-id.txt)
         echo "ETISS_RUN_ID=$ETISS_RUN_ID" >> $GITHUB_ENV
         echo ${{ env.ETISS_RUN_ID }}
-        echo $ETISS_RUN_ID 
-      
+        echo $ETISS_RUN_ID
+
     - name: Trigger ETISS-RISCV-EXAMPLE Build
       uses: peter-evans/repository-dispatch@v3
       with:
-         token: ${{ secrets.REPO_ACCESS_TOKEN }}
-         repository: kebi-be/etiss_riscv_examples
+         token: ${{ secrets.SEAL5_ACCESS_TOKEN }}
+         repository: tum-ei-eda/etiss_riscv_examples
          event-type: seal5-event
          client-payload: '{"triggered_run_id": "${{ github.run_id }}", "etiss_run_id": "${{ env.ETISS_RUN_ID }}"}'
-    
-        
-        
- 
+
+
+
+
