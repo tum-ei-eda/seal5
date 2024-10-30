@@ -843,7 +843,7 @@ class Seal5Flow:
         metrics["time_s"] = diff
         metrics["failing"] = failing_tests
         metrics["passed"] = passed_tests
-        metrics["score"] = f"{score*100:.2f}%"
+        metrics["score"] = f"{score*100:.2f}%" if score is not None else None
         self.settings.metrics.append({"test": metrics})
         self.settings.save()
         logger.info("Completed test of Seal5 LLVM")
