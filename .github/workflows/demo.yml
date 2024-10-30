@@ -176,26 +176,27 @@ jobs:
         echo "```mermaid" >> $GITHUB_STEP_SUMMARY
         cat reports/stage_times.mermaid >> $GITHUB_STEP_SUMMARY
         echo "```" >> $GITHUB_STEP_SUMMARY
-
         # TODO: add diff reports!
-
-    - uses: actions/upload-artifact@v4
+    - name: Upload Seal5 Reports
+      uses: actions/upload-artifact@v4
       if: "${{ github.event.inputs.deploy == '1' }}"
       with:
         name: demo-reports
         path: reports/
-
-    - uses: actions/upload-artifact@v4
+    - name: Upload Seal5 Metadata
+      uses: actions/upload-artifact@v4
       if: "${{ github.event.inputs.export == '1' }}"
       with:
         name: demo-export
         path: /tmp/seal5_llvm.tar.gz
-    - uses: actions/upload-artifact@v4
+    - name: Upload Seal5 LLVM Installation
+      uses: actions/upload-artifact@v4
       if: "${{ github.event.inputs.install == '1' }}"
       with:
         name: demo-install
         path: /tmp/seal5_llvm/.seal5/install/${{ github.event.inputs.build_config }}
-    - uses: actions/upload-artifact@v4
+    - name: Upload Seal5 LLVM Sources
+      uses: actions/upload-artifact@v4
       if: "${{ github.event.inputs.deploy == '1' }}"
       with:
         name: demo-source

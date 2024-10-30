@@ -128,17 +128,19 @@ jobs:
       run: |
         source .venv/bin/activate
         VERBOSE=${{ matrix.verbose }} PROGRESS=${{ matrix.progress }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ matrix.clone_depth }} BUILD_CONFIG=${{ matrix.build_config }} IGNORE_ERROR=${{ matrix.ignore_error }} TEST=${{ matrix.test }} INSTALL=${{ matrix.install }} DEPLOY=${{ matrix.deploy }} EXPORT=${{ matrix.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ matrix.script }}
-    - uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4
       if: "${{ matrix.export == '1' }}"
       with:
         name: demo-${{ steps.ctx.outputs.name }}-export
         path: /tmp/seal5_llvm.tar.gz
-    - uses: actions/upload-artifact@v4
+    - name: Upload Seal5 LLVM Installation
+      uses: actions/upload-artifact@v4
       if: "${{ matrix.install == '1' }}"
       with:
         name: demo-${{ steps.ctx.outputs.name }}-install
         path: /tmp/seal5_llvm/.seal5/install/${{ matrix.build_config }}
-    - uses: actions/upload-artifact@v4
+    - name: Upload Seal5 LLVM Sources
+      uses: actions/upload-artifact@v4
       if: "${{ matrix.deploy == '1' }}"
       with:
         name: demo-${{ steps.ctx.outputs.name }}-source
