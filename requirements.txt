@@ -9,3 +9,4 @@ dacite
 mako
 tqdm
 pandas
+tabulate
