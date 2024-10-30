@@ -61,7 +61,7 @@ def main(args=None):
     if hasattr(args, "func"):
         args.func(args)
     else:
-        print("Invalid subcommand for `seal5`!")
+        logger.error("Invalid subcommand for `seal5`!")
         parser.print_help(sys.stderr)
 
     return 0

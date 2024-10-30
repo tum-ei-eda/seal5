@@ -43,8 +43,6 @@ def main():
     # abs_top_level = top_level.resolve()
 
     is_seal5_model = False
-    # # print("top_level", top_level)
-    # # print("suffix", top_level.suffix)
     if top_level.suffix == ".seal5model":
         is_seal5_model = True
     # if args.output is None:
@@ -86,12 +84,10 @@ def main():
         assert isinstance(metrics, list)
 
         def traverse(x, prefix=None):
-            # print("traverse", x, type(x), len(x))
             assert isinstance(x, dict)
             assert len(x) == 1
             name = list(x.keys())[0]
             prefix = name if prefix is None else f"{prefix}.{name}"
-            # print("name", name)
             y = list(x.values())[0]
             assert isinstance(y, dict)
             passes = y.pop("passes", None)
@@ -101,7 +97,6 @@ def main():
             ret = {}
             for pass_ in passes:
                 ret_ = traverse(pass_, prefix=prefix)
-                # print("ret_", ret_)
                 ret.update(ret_)
             models = y.pop("models", None)
             if models is None:
@@ -109,22 +104,15 @@ def main():
             assert isinstance(models, list)
             for model in models:
                 ret2_ = traverse(model, prefix=prefix)
-                # print("ret2_", ret2_)
                 ret.update(ret2_)
-            # print("rest", y)
             for key, value in y.items():
                 ret[f"{prefix}.{key}"] = value
-            # print("ret", ret)
-            # input("!!!123")
             return ret
 
         all_metrics = {}
         for stage_metrics in metrics:
             result = traverse(stage_metrics)
             all_metrics.update(result)
-            # print("result", result)
-            # input("!!!")
-        print("all_metrics", all_metrics, len(all_metrics))
 
         def filter_func(x):
             return x.split(".")[-1] in ["success_instructions", "failed_instructions", "skipped_instructions"]
@@ -132,7 +120,6 @@ def main():
         filtered_metrics = {key: val for key, val in all_metrics.items() if filter_func(key)}
         if model:
             filtered_metrics = {key.replace(f"{model}.", ""): val for key, val in filtered_metrics.items()}
-        print("filtered_metrics", filtered_metrics, len(filtered_metrics))
         return filtered_metrics
 
     def get_status(filtered_metrics, instr_name, invert: bool = False):
@@ -140,13 +127,9 @@ def main():
         failed = []
         success = []
         for key, val in filtered_metrics.items():
-            print("key", key)
-            print("val", val)
             if not isinstance(val, list):
-                print("cont1")
                 continue
             if instr_name not in val:
-                print("cont2")
                 continue
             prefix, metric = key.rsplit(".", 1)
             if metric == "skipped_instructions":
@@ -155,8 +138,6 @@ def main():
                 failed.append(prefix)
             elif metric == "success_instructions":
                 success.append(prefix)
-            else:
-                print("else")
         if invert:
             ret = {}
             for pass_name in failed:
@@ -185,7 +166,6 @@ def main():
 
         for instr_def in set_def.instructions.values():
             instr_name = instr_def.name
-            print("instr_name", instr_name)
 
             data = {
                 "model": model,

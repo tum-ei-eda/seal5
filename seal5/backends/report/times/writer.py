@@ -65,12 +65,10 @@ def main():
         #         pass
 
         def traverse(x, prefix=None):
-            # print("traverse", x, type(x), len(x))
             assert isinstance(x, dict)
             assert len(x) == 1
             name = list(x.keys())[0]
             prefix = name if prefix is None else f"{prefix}.{name}"
-            # print("name", name)
             y = list(x.values())[0]
             assert isinstance(y, dict)
             passes = y.pop("passes", None)
@@ -81,7 +79,6 @@ def main():
             ret = []
             for pass_ in passes:
                 ret_ = traverse(pass_, prefix=prefix)
-                # print("ret_", ret_)
                 # ret.update(ret_)
                 ret.extend(ret_)
             models = y.pop("models", None)
@@ -90,71 +87,14 @@ def main():
             assert isinstance(models, list)
             for model in models:
                 ret2_ = traverse(model, prefix=prefix)
-                # print("ret2_", ret2_)
-                # ret.update(ret2_)
                 ret.extend(ret2_)
-            # print("rest", y)
-            # for key, value in y.items():
-            #     ret[f"{prefix}.{key}"] = value
-            # ret[prefix] = y
             ret.append((prefix, y))
-            # print("ret", ret)
-            # input("!!!123")
             return ret
 
         all_metrics = []
         for stage_metrics in metrics:
             result = traverse(stage_metrics)
-            # all_metrics.update(result)
             all_metrics.extend(result)
-            # print("result", result)
-            # input("!!!")
-        print("all_metrics", all_metrics, len(all_metrics))
-
-        # return stage_times, pass_times
-
-        # def traverse(x, prefix=None):
-        #     # print("traverse", x, type(x), len(x))
-        #     assert isinstance(x, dict)
-        #     assert len(x) == 1
-        #     name = list(x.keys())[0]
-        #     prefix = name if prefix is None else f"{prefix}.{name}"
-        #     # print("name", name)
-        #     y = list(x.values())[0]
-        #     assert isinstance(y, dict)
-        #     passes = y.pop("passes", None)
-        #     if passes is None:
-        #         passes = []
-        #     assert isinstance(passes, list)
-        #     ret = {}
-        #     for pass_ in passes:
-        #         ret_ = traverse(pass_, prefix=prefix)
-        #         # print("ret_", ret_)
-        #         ret.update(ret_)
-        #     models = y.pop("models", None)
-        #     if models is None:
-        #         models = []
-        #     assert isinstance(models, list)
-        #     for model in models:
-        #         ret2_ = traverse(model, prefix=prefix)
-        #         # print("ret2_", ret2_)
-        #         ret.update(ret2_)
-        #     # print("rest", y)
-        #     for key, value in y.items():
-        #         ret[f"{prefix}.{key}"] = value
-        #     # print("ret", ret)
-        #     # input("!!!123")
-        #     return ret
-
-        # all_metrics = {}
-        # for stage_metrics in metrics:
-        #     result = traverse(stage_metrics)
-        #     all_metrics.update(result)
-        #     # print("result", result)
-        #     # input("!!!")
-        # print("all_metrics", all_metrics, len(all_metrics))
-
-        # filtered_metrics = {key: val for key, val in all_metrics.items() if filter_func(key)}
         filtered_metrics = [
             (x, {k: v for k, v in y.items() if k in ["time_s", "start", "end"]}) for x, y in all_metrics
         ]
@@ -162,12 +102,8 @@ def main():
         filtered_metrics = [
             (x, {"time_s": y.get("time_s"), "start": y.get("start"), "end": y.get("end")}) for x, y in filtered_metrics
         ]
-        print("filtered_metrics", filtered_metrics, len(filtered_metrics))
         stage_metrics = [{"stage": x, **y} for x, y in filtered_metrics if "." not in x]
-        print("stage_metrics", stage_metrics, len(stage_metrics))
         pass_metrics = [{"pass": x.split(".", 1)[-1], **y} for x, y in filtered_metrics if "." in x]
-        print("pass_metrics", pass_metrics, len(pass_metrics))
-        # filtered_metrics = {stage_}
         return stage_metrics, pass_metrics
 
     stage_times, pass_times = process_metrics(settings, ignore_passes=not args.pass_times)

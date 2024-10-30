@@ -43,8 +43,6 @@ def main():
     # abs_top_level = top_level.resolve()
 
     is_seal5_model = False
-    # # print("top_level", top_level)
-    # # print("suffix", top_level.suffix)
     if top_level.suffix == ".seal5model":
         is_seal5_model = True
     # if args.output is None:
@@ -141,9 +139,6 @@ def main():
                 ret.extend(ret_)
         return ret
 
-    print("tests", tests)
-    input(">")
-
     results_data = []
     for set_name, set_def in model["sets"].items():
         xlen = set_def.xlen
@@ -151,7 +146,6 @@ def main():
 
         for instr_def in set_def.instructions.values():
             instr_name = instr_def.name
-            print("instr_name", instr_name)
 
             data = {
                 "model": model,
@@ -169,11 +163,7 @@ def main():
                     "result": test_result,
                 }
                 results_data.append(data_)
-    print("results_data", results_data)
-    input(">")
     results_df = pd.DataFrame(results_data)
-    print("results_df", results_df)
-    input(">")
     fmt = args.fmt
     if fmt == "auto":
         fmt = out_path.suffix

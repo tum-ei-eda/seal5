@@ -175,33 +175,33 @@ def write_riscv_instruction_info(
 
 
 def gen_riscv_instr_info_str(instr, set_def):
-    print("instr", instr)
+    # print("instr", instr)
     name = instr.name
     # operands = instr.operands
     size = instr.size
     # print("operands", operands)
-    reads = instr.llvm_reads
-    writes = instr.llvm_writes
+    # reads = instr.llvm_reads
+    # writes = instr.llvm_writes
     constraints = instr.llvm_constraints
-    print("reads", reads)
-    print("writes", writes)
+    # print("reads", reads)
+    # print("writes", writes)
     constraints = instr.llvm_constraints
-    print("constraints", constraints)
+    # print("constraints", constraints)
     # constraints_str = ", ".join(constraints)
-    attributes = instr.attributes
-    print("attributes", attributes)
+    # attributes = instr.attributes
+    # print("attributes", attributes)
     real_name = instr.mnemonic
     asm_str = instr.llvm_asm_str
-    print("asm_str", asm_str)
+    # print("asm_str", asm_str)
     ins_str = instr.llvm_ins_str
-    print("ins_str", ins_str)
+    # print("ins_str", ins_str)
     outs_str = instr.llvm_outs_str
-    print("outs_str", outs_str)
+    # print("outs_str", outs_str)
     details_str = ""
     fields = instr.fields
-    print("fields")
+    # print("fields")
     encoding = instr.encoding
-    print("encoding")
+    # print("encoding")
     attrs = instr.llvm_attributes
     # constraints = instr.constraints
     # if len(constraints) > 0:

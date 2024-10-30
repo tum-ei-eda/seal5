@@ -250,7 +250,7 @@ def run_pattern_gen(
                 elif "Pattern Generation failed for" in line:
                     # reason = line
                     is_err = True
-        print("pat", pat)
+        # print("pat", pat)
         if len(pat) > 0:
             pat = "\n".join(pat)
             pat_file = str(dest) + ".pat"

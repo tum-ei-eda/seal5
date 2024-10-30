@@ -18,7 +18,6 @@ from .utils import TreeGenContext
 
 def operation(self: behav.Operation, context: "TreeGenContext"):
     context.insert("Operation")
-    print("operation", self.statements)
 
     for stmt in self.statements:
         if stmt is None:
