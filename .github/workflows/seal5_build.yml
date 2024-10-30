@@ -1,0 +1,163 @@
+##
+## Copyright (c) 2024 TUM Department of Electrical and Computer Engineering.
+##
+## This file is part of Seal5.
+## See https://github.com/tum-ei-eda/seal5.git for further info.
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##
+##     http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+##
+
+# Seal5 demonstration (also serves as end-to-end testj
+name: Usage Seal5-Build
+
+on:
+  repository_dispatch:
+    types: [s4e-cdsl-event]
+  workflow_dispatch:
+    inputs:
+      script:
+        description: "Script"
+        required: true
+        default: "s4e_demo.py"
+      verbose:
+        description: "Verbose (0/1)"
+        required: true
+        default: "0"
+      progress:
+        description: "Enable progress bars (0/1)"
+        required: true
+        default: "1"
+      clone_depth:
+        description: "Clone Depth (-1 for full clone)"
+        required: true
+        default: "1"
+
+      ignore_error:
+        description: "Ignore Errors in TEST stage (0/1)"
+        required: true
+        default: "1"
+      build_config:
+        description: "Build Config (debug/release/...)"
+        required: true
+        default: "release_assertions"
+      test:
+        description: "Run LLVM tests"
+        required: true
+        default: "1"
+      install:
+        description: "Install LLVM (and upload as artifact)"
+        required: true
+        default: "1"
+      deploy:
+        description: "Install LLVM Sources (and upload as artifact)"
+        required: true
+        default: "1"
+      export:
+        description: "Install Seal5 Artifacts (and upload as artifact)"
+        required: true
+        default: "1"
+        
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+  
+jobs:            
+  build_seal5:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+        os: ["ubuntu-latest"]
+        ccache: ["1"]                             
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Setup ccache
+      if: ${{ matrix.ccache == '1' }}
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        max-size: 2G
+        key: ${{ matrix.os }}-${{ github.event.inputs.script }}-${{ github.event.inputs.build_config }}
+        variant: sccache                        
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install APT packages
+      run: |
+        sudo apt -qq install -y python3-pip python3-venv cmake make ninja-build
+    - name: Initialize Virtualenv
+      run: |
+        python -m pip install --upgrade pip
+        python -m venv .venv
+    - name: Install dependencies
+      run: |
+        source .venv/bin/activate
+        pip install -r requirements.txt
+        pip list
+    - name: Setup Build Environment
+      run: |
+        source .venv/bin/activate
+        pip install -e .
+    - name: Run the demo
+      run: |
+        source .venv/bin/activate
+        VERBOSE=0 PROGESS=1 CLONE_DEPTH=1 CCACHE=${{ matrix.ccache }} BUILD_CONFIG=release IGNORE_ERROR=1 TEST=1 INSTALL=1 DEPLOY=1 EXPORT=1 DEST=/tmp/seal5_llvm python3 examples/s4e_demo.py
+
+    - uses: actions/upload-artifact@v4
+      if: "${{ github.event.inputs.export == '1'  ||  github.event_name == 'repository_dispatch' }}"
+      with:
+        name: demo-export
+        path: /tmp/seal5_llvm.tar.gz
+    
+    - uses: actions/upload-artifact@v4
+      if: "${{ github.event.inputs.install == '1'  ||  github.event_name == 'repository_dispatch' }}"
+      with:
+        name: demo-install
+        path: /tmp/seal5_llvm/.seal5/install/${{ github.event.inputs.build_config }}
+
+  trigger_etiss_example_build:
+    runs-on: ubuntu-latest
+    needs: build_seal5
+    steps:
+    - name: Download ETISS RUN-ID Artifacts
+      id: download-artifact
+      uses: dawidd6/action-download-artifact@v6
+      with:
+        name: etiss-run-id
+        github-token: ${{ secrets.REPO_ACCESS_TOKEN }}
+        repository: kebi-be/seal5
+        path: /home/runner/work/
+        workflow: sync_etiss_seal5_build.yml
+        workflow_conclusion: success
+        
+    - name: Set ETISS RUN-ID as Variable
+      shell: bash
+      run: |
+        ETISS_RUN_ID=$(cat /home/runner/work/etiss-run-id.txt)
+        echo "ETISS_RUN_ID=$ETISS_RUN_ID" >> $GITHUB_ENV
+        echo ${{ env.ETISS_RUN_ID }}
+        echo $ETISS_RUN_ID 
+      
+    - name: Trigger ETISS-RISCV-EXAMPLE Build
+      uses: peter-evans/repository-dispatch@v3
+      with:
+         token: ${{ secrets.REPO_ACCESS_TOKEN }}
+         repository: kebi-be/etiss_riscv_examples
+         event-type: seal5-event
+         client-payload: '{"triggered_run_id": "${{ github.run_id }}", "etiss_run_id": "${{ env.ETISS_RUN_ID }}"}'
+    
+        
+        
+ 
