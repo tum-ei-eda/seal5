@@ -24,7 +24,7 @@ def convert_models(
     env: Optional[dict] = None,
     verbose: bool = False,
     inplace: bool = False,
-    use_subprocess: bool = False,
+    use_subprocess: bool = True,  # This breaks if parallel and called without process
     prefix: Optional[str] = None,
     log_level: str = "debug",
     **_kwargs,
