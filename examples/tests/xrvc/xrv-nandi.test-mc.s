@@ -3,7 +3,7 @@
 # RUN: not llvm-mc -triple riscv32 %s 2>&1 \
 # RUN:     | FileCheck -check-prefix=CHECK-NO-EXT %s
 
-xrv.nand a1, a2, a3
-# CHECK-INSTR: xrv.nand a1, a2, a3
-# CHECK-ENCODING: [0xf1,0x9d,0x00,0x00]
+xrv.nandi a1, a2, 14
+# CHECK-INSTR: xrv.nandi a1, a2, 14
+# CHECK-ENCODING: [0x8b,0x75,0xe6,0x00]
 # CHECK-NO-EXT: instruction requires the following: 'XRVC' (XRVC Extension){{$}}
