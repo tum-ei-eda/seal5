@@ -586,6 +586,7 @@ class IntrinsicArg(YAMLSettings):
 
 @dataclass
 class IntrinsicDefn(YAMLSettings):
+    set_name: str
     instr_name: str
     intrinsic_name: str
     ret_type: Optional[str] = None

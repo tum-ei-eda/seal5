@@ -6,6 +6,7 @@ intrinsics:
       arg_type: i32
     - arg_name: rs2
       arg_type: i32
+    set_name: OpenASIP_base  # TODO: change hierarchy
     instr_name: openasip_base_max
     intrinsic_name: openasip_base_max
     ret_type: i32

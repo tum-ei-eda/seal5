@@ -267,6 +267,8 @@ def main():
                 metrics["skipped_sets"].append(set_name)
                 continue
             for intrinsic in settings.intrinsics.intrinsics:
+                if intrinsic.set_name is not None and intrinsic.set_name != set_name:
+                    continue
                 try:
                     arch = ext_settings.get_arch(name=set_name)
                     patch_frags["target"].contents += build_target(arch=arch, intrinsic=intrinsic)
