@@ -346,7 +346,7 @@ def main():
                         if args.add_intrinsics and settings.intrinsics.intrinsics:
                             # TODO: intrinsics should be dict keyed by instr name
                             for intrinsic in settings.intrinsics.intrinsics:
-                                if intrinsic.instr_name.casefold() == instr_def.mnemonic.casefold():
+                                if intrinsic.instr_name.casefold() in [instr_def.mnemonic.casefold(), instr_def.name.casefold()]:
                                     content += gen_intrinsic_pattern(instr_def, intrinsic)
                         assert pred is not None
                         predicate_str = f"Predicates = [{pred}, IsRV{xlen}]"
