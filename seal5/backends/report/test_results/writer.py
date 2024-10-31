@@ -28,7 +28,7 @@ def main():
 
     # read command line args
     parser = argparse.ArgumentParser()
-    parser.add_argument("top_level", help="A .m2isarmodel or .seal5model file.")
+    parser.add_argument("top_level", nargs="+", help="A .m2isarmodel or .seal5model file.")
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--fmt", type=str, choices=["auto", "csv", "pkl", "md"], default="auto")
