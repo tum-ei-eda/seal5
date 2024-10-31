@@ -26,12 +26,90 @@ from seal5.settings import IntrinsicDefn
 logger = logging.getLogger("riscv_intrinsics")
 
 
+# See https://github.com/llvm-mirror/clang/blob/master/include/clang/Basic/Builtins.def
+# Types:
+#  v -> void
+#  b -> boolean
+#  c -> char
+#  s -> short
+#  i -> int
+#  h -> half
+#  f -> float
+#  d -> double
+#  z -> size_t
+#  w -> wchar_t
+#  F -> constant CFString
+#  G -> id
+#  H -> SEL
+#  M -> struct objc_super
+#  a -> __builtin_va_list
+#  A -> "reference" to __builtin_va_list
+#  V -> Vector, followed by the number of elements and the base type.
+#  E -> ext_vector, followed by the number of elements and the base type.
+#  X -> _Complex, followed by the base type.
+#  Y -> ptrdiff_t
+#  P -> FILE
+#  J -> jmp_buf
+#  SJ -> sigjmp_buf
+#  K -> ucontext_t
+#  p -> pid_t
+#  . -> "...".  This may only occur at the end of the function list.
+# 
+# Types may be prefixed with the following modifiers:
+#  L   -> long (e.g. Li for 'long int', Ld for 'long double')
+#  LL  -> long long (e.g. LLi for 'long long int', LLd for __float128)
+#  LLL -> __int128_t (e.g. LLLi)
+#  Z   -> int32_t (require a native 32-bit integer type on the target)
+#  W   -> int64_t (require a native 64-bit integer type on the target)
+#  N   -> 'int' size if target is LP64, 'L' otherwise.
+#  O   -> long for OpenCL targets, long long otherwise.
+#  S   -> signed
+#  U   -> unsigned
+#  I   -> Required to constant fold to an integer constant expression.
+# 
+# Types may be postfixed with the following modifiers:
+# * -> pointer (optionally followed by an address space number, if no address
+#               space is specified than any address space will be accepted)
+# & -> reference (optionally followed by an address space number)
+# C -> const
+# D -> volatile
+# 
+
+IR_TYPE_LOOKUP_TEXT = {
+    # "i32": "Li",
+    "i1": "b",
+    "i8": "c",
+    "i16": "s",
+    "i32": "Zi",
+    "i64": "Wi",
+    "f16": "h",
+    "f32": "f",
+    "f64": "d",
+    # TODO: sign?
+}
+
+IR_TYPE_LOOKUP_PAT = {
+    # TODO: use f"llvm_{ir_type}_ty" instead?
+    "i1": "llvm_i1_ty",
+    "i8": "llvm_i8_ty",
+    "i16": "llvm_i16_ty",
+    "i32": "llvm_i32_ty",
+    "i64": "llvm_i64_ty",
+    "f16": "llvm_half_ty",
+    "f32": "llvm_float_ty",
+    "f64": "llvm_double_ty",
+    # llvm_anyint_ty?
+    # llvm_anyvector_ty?
+    # llvm_ptr_ty?
+}
+
+
 def ir_type_to_text(ir_type: str):
-    # needs fleshing out with all likely types
-    # probably needs to take into account RISC-V bit width, e.g. does "Li" means 32 bit integer on a 128-bit platform?
-    if ir_type == "i32":
-        return "Li"
-    raise NotImplementedError(f'Unhandled ir_type "{ir_type}"')
+    # TODO: needs fleshing out with all likely types
+    # TODO: probably needs to take into account RISC-V bit width, e.g. does "Li" means 32 bit integer on a 128-bit platform?
+    found = IR_TYPE_LOOKUP_TEXT.get(ir_type, None)
+    assert found is not None, f"Unhandled ir_type '{ir_type}'"
+    return found
 
 
 def build_target(arch: str, intrinsic: IntrinsicDefn):
@@ -49,9 +127,8 @@ def build_target(arch: str, intrinsic: IntrinsicDefn):
 
 def ir_type_to_pattern(ir_type: str):
     # needs fleshing out with all likely types
-    if ir_type == "i32":
-        return "llvm_i32_ty"
-    raise NotImplementedError(f'Unhandled ir_type "{ir_type}"')
+    found = IR_TYPE_LOOKUP_PAT.get(ir_type, None)
+    assert found is not None, f"Unhandled ir_type '{ir_type}'"
 
 
 def build_attr(arch: str, intrinsic: IntrinsicDefn):
