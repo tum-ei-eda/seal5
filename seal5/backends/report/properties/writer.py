@@ -92,6 +92,84 @@ def main():
                     # print("instr_name", instr_name)
                     operands = instr_def.operands
 
+
+                    def get_enc_properties(instr_def):
+                        enc_size = instr_def.size
+                        is_compressed = enc_size == 16
+                        # TODO: opcode
+                        # TODO: format
+
+                        def detect_opcode(instr_def):  # TODO: move to transform and store as attr
+                            OPCODE_LOOKUP = {
+                                "LOAD": 0b00000,
+                                "LOAD-FP": 0b00001,
+                                "custom-0": 0b00010,
+                                "MISC-MEM": 0b00011,
+                                "OP-IMM": 0b00100,
+                                "AUIPC": 0b00101,
+                                "OP-IMM-32": 0b00110,
+                                # "48bit": 0b00111,
+                                "STORE": 0b01000,
+                                "STORE-FP": 0b01001,
+                                "custom-1": 0b01010,
+                                "AMO": 0b01011,
+                                "OP": 0b01100,
+                                "LUI": 0b01101,
+                                "OP-32": 0b01110,
+                                # "64bit": 0b01111,
+                                "MADD": 0b10000,
+                                "MSUB": 0b10001,
+                                "NMADD": 0b10010,
+                                "NMSUB": 0b10011,
+                                "OP-FP": 0b10100,
+                                "OP-V": 0b10101,
+                                "custom-2": 0b10110,  # rv128i
+                                # "48bit2": 0b10111,
+                                "BRANCH": 0b11000,
+                                "JALR": 0b11001,
+                                # "reserved": 0b11010,
+                                "JAL": 0b11011,
+                                "SYSTEM": 0b11100,
+                                "OP-P": 0b11101,
+                                "custom-3": 0b11110,
+                                # "80bit+": 0b11111,
+                            }
+                            OPCODE_LOOKUP_REV = {v: k for k, v in OPCODE_LOOKUP.items()}
+                            size = 0  # TODO: use instr_def.size
+                            for e in reversed(instr_def.encoding):
+                                # print("e", e, dir(e))
+                                if isinstance(e, arch.BitVal):
+                                    length = e.length
+                                    if size == 0:
+                                        if length == 7:
+                                            val = e.value
+                                            opcode = val >> 2
+                                elif isinstance(e, arch.BitField):
+                                    length = e.range.length
+                                else:
+                                    assert False
+                                size += length
+                            if size != 32:  # TODO: support compressed opcodes
+                                assert size == 16
+                                return "COMPRESSED"
+                            assert opcode is not None
+                            found = OPCODE_LOOKUP_REV.get(opcode, None)
+                            assert found is not None, f"Opcode not found: {bin(opcode)}"
+                            return found
+
+                        def detect_format(instr_def):  # TODO: move to transform and store as attr
+                            return "unknown"
+
+                        opcode = detect_opcode(instr_def)
+                        enc_format = detect_format(instr_def)
+
+                        return {
+                            "enc_size": enc_size,
+                            "is_compressed": is_compressed,
+                            "enc_format": enc_format,
+                            "opcode": opcode,
+                        }
+
                     def get_operands_properties(operands):
                         num_operands = len(operands)
                         num_inputs = len([op for op in operands.values() if Seal5OperandAttribute.IN in op.attributes])
@@ -158,6 +236,7 @@ def main():
                         "model": model,
                         **get_set_properties(set_name, xlen),
                         "instr": instr_name,
+                        **get_enc_properties(instr_def),
                         **get_operands_properties(operands),
                         **get_side_effect_properties(attrs),
                         # TODO: operations
