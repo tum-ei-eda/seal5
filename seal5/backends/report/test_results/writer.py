@@ -102,19 +102,31 @@ def main():
     metrics = settings.metrics
     tests = map_tests(metrics)
 
-    def filter_tests(tests, instr_name: str):
+    def filter_tests(tests, instr_def):
+        instr_name = instr_def.name
+        mnemonic = instr_def.mnemonic
         assert isinstance(tests, dict)
         candidates = set()
         candidates.add(instr_name)
         candidates.add(instr_name.lower())
+        candidates.add(mnemonic)
+        candidates.add(mnemonic.lower())
         instr_name_alt = instr_name.replace("seal5.", "").replace("SEAL5.", "")
         instr_name_alt = instr_name_alt.replace("seal5_", "").replace("SEAL5_", "")
         instr_name_alt = instr_name_alt.replace(".", "-")
         candidates.add(instr_name_alt)
         candidates.add(instr_name_alt.lower())
+        mnemonic_alt = mnemonic.replace("seal5.", "").replace("SEAL5.", "")
+        mnemonic_alt = mnemonic_alt.replace("seal5_", "").replace("SEAL5_", "")
+        mnemonic_alt = mnemonic_alt.replace(".", "-")
+        candidates.add(mnemonic_alt)
+        candidates.add(mnemonic_alt.lower())
         instr_name_alt = instr_name_alt.replace("_", "-")
         candidates.add(instr_name_alt)
         candidates.add(instr_name_alt.lower())
+        mnemonic_alt = mnemonic_alt.replace("_", "-")
+        candidates.add(mnemonic_alt)
+        candidates.add(mnemonic_alt.lower())
 
         ret = []
         for candidate_name in candidates:
@@ -169,7 +181,7 @@ def main():
                     "xlen": xlen,
                     "instr": instr_name,
                 }
-                found_tests = filter_tests(tests, instr_name)
+                found_tests = filter_tests(tests, instr_def)
                 for test_kind, test_file, test_fmt, test_result in found_tests:
                     data_ = {
                         **data,
