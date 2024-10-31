@@ -85,7 +85,9 @@ def main():
             if "test" in stages_metrics.keys():
                 test_metrics = stages_metrics["test"]
                 break
-        assert test_metrics is not None, "Could not find test metrics. Make sure to run TEST stage!"
+        if test_metrics is None:
+            logger.warning("Could not find test metrics. Make sure to run TEST stage!")
+            return {}
         ret = defaultdict(list)
         failing = test_metrics.get("failing", None)
         assert failing is not None, "Missing settings.metrics.test.failing"
