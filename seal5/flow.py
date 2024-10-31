@@ -971,6 +971,7 @@ class Seal5Flow:
             to_clean.append(self.settings.build_dir)
         if deps:
             to_clean.append(self.settings.deps_dir)
+        # TODO: cleanup settings.test.paths or self.settings.tests_dir
         # if gen:
         #     to_clean.append(self.settings.gen_dir)
         for path in to_clean:
