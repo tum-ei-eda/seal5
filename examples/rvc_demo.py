@@ -140,6 +140,10 @@ if not SKIP_PATTERNS:
 # Build patched LLVM
 seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG, enable_ccache=CCACHE)
 
+if TEST:
+    # Test patched LLVM
+    seal5_flow.test(verbose=VERBOSE, ignore_error=IGNORE_ERROR)
+
 if INSTALL:
     # Install final LLVM
     seal5_flow.install(verbose=VERBOSE, config=BUILD_CONFIG, enable_ccache=CCACHE)
