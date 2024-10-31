@@ -107,7 +107,7 @@ def main():
                 )
                 num_imms = len([op for op in operands.values() if Seal5OperandAttribute.IS_IMM in op.attributes])
                 imm_types = set(
-                    op.attributes[Seal5OperandAttribute.IS_REG]
+                    op.attributes[Seal5OperandAttribute.TYPE]
                     for op in operands.values()
                     if Seal5OperandAttribute.IS_IMM in op.attributes
                 )
