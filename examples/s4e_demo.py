@@ -79,7 +79,9 @@ seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load test inputs
 test_files = [
-    EXAMPLES_DIR / "cdsl" / "rv_s4e" / "s4e-mac.test.c",
+    EXAMPLES_DIR / "tests" / "xs4e" / "*.s",
+    EXAMPLES_DIR / "tests" / "xs4e" / "*.ll",
+    EXAMPLES_DIR / "tests" / "xs4e" / "*.c",
 ]
 seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 

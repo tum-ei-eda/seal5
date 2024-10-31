@@ -8,28 +8,13 @@
 //   llvm-objdump -d test_subincacc.o --disassembler-options=numeric
 
 // For automated runs by llvm-lit:
-// RUN: clang -c -target riscv32-unknown-elf -march=rv32ixexample -o %t.o %s
+// RUN: clang -c -target riscv64-unknown-elf -march=rv64xexample -o %t.o %s
 // RUN: llvm-objdump --disassembler-options=numeric -d %t.o | FileCheck %s
 
 
-__attribute__((naked)) void test_subincacc() {
-    // Non-ISAX canary instruction, to flag an unwanted case of endian/width/compression/whatever
-    // CHECK: b3 01 52 00 add x3, x4, x5
-    asm("add x3, x4, x5");
-
-    asm("li a0, 11");
-    asm("li a1, 5");
-    asm("li a2, 7");
-    // CHECK: ab ba b5 51 xexample.subincacc x21, x11, x27
-    asm("xexample.subincacc x21, x11, x27");
-}
-
-void test_intrinsic() {
+int test_intrinsic(int a, int b, int c) {
     // CHECK: <test_intrinsic>
-    int a = 3;
-    int b = 7;
-    int c = 4;
     // Can't rely upon specific registers being used but at least instruction should have been used
-    // CHECK: example.subincacc
-    c = __builtin_xexample_subincacc(a, b, c);
+    // CHECK: xexample64.subincacc
+    c = __builtin_xexample64_subincacc(a, b, c);
 }
