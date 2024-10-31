@@ -115,9 +115,9 @@ def main():
                     skip = False
                     if instr_def.size != 32:
                         skip = True
-                    elif: len(attrs.get(Seal5InstrAttribute.USES, [])) > 0:
+                    elif len(attrs.get(Seal5InstrAttribute.USES, [])) > 0:
                         skip = True
-                    elif: len(attrs.get(Seal5InstrAttribute.DEFS, [])) > 0:
+                    elif len(attrs.get(Seal5InstrAttribute.DEFS, [])) > 0:
                         skip = True
                     elif Seal5InstrAttribute.MAY_LOAD in attrs:
                         skip = True
