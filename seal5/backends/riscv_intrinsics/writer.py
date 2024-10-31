@@ -168,7 +168,7 @@ def main():
         llvm_version = None
         if not settings or not settings.intrinsics.intrinsics:
             logger.warning("No intrinsics configured; didn't need to invoke intrinsics writer.")
-            quit()
+            quit()  # TODO: refactor this
         if settings:
             llvm_settings = settings.llvm
             if llvm_settings:
