@@ -129,6 +129,7 @@ def ir_type_to_pattern(ir_type: str):
     # needs fleshing out with all likely types
     found = IR_TYPE_LOOKUP_PAT.get(ir_type, None)
     assert found is not None, f"Unhandled ir_type '{ir_type}'"
+    return found
 
 
 def build_attr(arch: str, intrinsic: IntrinsicDefn):
