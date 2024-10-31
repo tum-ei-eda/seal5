@@ -88,13 +88,13 @@ seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 # Load YAML inputs
 cfg_files = [
     # TODO
-    # EXAMPLES_DIR / "cfg" / "tumeda" / "riscv.yml",
     EXAMPLES_DIR / "cfg" / "llvm.yml",
     EXAMPLES_DIR / "cfg" / "filter.yml",
     EXAMPLES_DIR / "cfg" / "patches.yml",
     EXAMPLES_DIR / "cfg" / "tests.yml",
     EXAMPLES_DIR / "cfg" / "passes.yml",
     EXAMPLES_DIR / "cfg" / "git.yml",
+    EXAMPLES_DIR / "cfg" / "tumeda" / "intrinsics.yml",
 ]
 seal5_flow.load(cfg_files, verbose=VERBOSE, overwrite=False)
 
