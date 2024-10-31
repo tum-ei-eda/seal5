@@ -166,8 +166,8 @@ jobs:
         echo >> $GITHUB_STEP_SUMMARY
 
         # Diff
-        python3 -m seal5.backends.report.diff.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/diff.csv
-        python3 -m seal5.backends.report.diff.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/diff.md
+        python3 -m seal5.backends.report.diff.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/diff.csv
+        python3 -m seal5.backends.report.diff.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/diff.md
         echo "### Diff" >> $GITHUB_STEP_SUMMARY
         echo >> $GITHUB_STEP_SUMMARY
         cat reports/diff.md >> $GITHUB_STEP_SUMMARY
