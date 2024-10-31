@@ -1,4 +1,4 @@
-; RUN: llc -O3 -mtriple=riscv64 -mattr=+xexample64 -verify-machineinstrs < %s \
+; RUN: llc -O3 -mtriple=riscv64 -mattr=+xexample -verify-machineinstrs < %s \
 ; RUN:   | FileCheck %s
 
 declare i64 @llvm.riscv.subincacc(i64, i64, i64)

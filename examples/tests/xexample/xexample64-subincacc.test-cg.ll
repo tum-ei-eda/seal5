@@ -1,4 +1,4 @@
-; RUN: llc -O3 -mtriple=riscv64 -mattr=+xexample64 -verify-machineinstrs -global-isel=1 < %s \
+; RUN: llc -O3 -mtriple=riscv64 -mattr=+xexample -verify-machineinstrs -global-isel=1 < %s \
 ; RUN:   | FileCheck -check-prefix=RV64I %s
 
 define i64 @subincacc(i64 %a, i64 %b, i64 %c) nounwind {
