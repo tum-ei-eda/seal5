@@ -187,7 +187,6 @@ jobs:
         # TODO: add diff reports!
     - name: Upload Seal5 Reports
       uses: actions/upload-artifact@v4
-      if: "${{ github.event.inputs.deploy == '1' }}"
       with:
         name: demo-reports
         path: reports/

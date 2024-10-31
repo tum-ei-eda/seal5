@@ -180,9 +180,8 @@ jobs:
         # TODO: add diff reports!
     - name: Upload Seal5 Reports
       uses: actions/upload-artifact@v4
-      if: "${{ github.event.inputs.deploy == '1' }}"
       with:
-        name: demo-reports
+        name: demo-${{ steps.ctx.outputs.name }}-reports
         path: reports/
     - name: Upload Seal5 Metadata
       uses: actions/upload-artifact@v4
