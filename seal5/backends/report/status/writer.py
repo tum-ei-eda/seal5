@@ -27,7 +27,7 @@ def main():
 
     # read command line args
     parser = argparse.ArgumentParser()
-    parser.add_argument("top_level", help="A .m2isarmodel or .seal5model file.")
+    parser.add_argument("top_level", nargs="+", help="A .m2isarmodel or .seal5model file.")
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--fmt", type=str, choices=["auto", "csv", "pkl", "md"], default="auto")
@@ -38,13 +38,6 @@ def main():
     # initialize logging
     logging.basicConfig(level=getattr(logging, args.log.upper()))
 
-    # resolve model paths
-    top_level = pathlib.Path(args.top_level)
-    # abs_top_level = top_level.resolve()
-
-    is_seal5_model = False
-    if top_level.suffix == ".seal5model":
-        is_seal5_model = True
     # if args.output is None:
     #     assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
     #     raise NotImplementedError
@@ -53,26 +46,6 @@ def main():
     # else:
     assert args.output is not None
     out_path = pathlib.Path(args.output)
-
-    logger.info("loading models")
-    if not is_seal5_model:
-        raise NotImplementedError
-
-    # load models
-    with open(top_level, "rb") as f:
-        # models: "dict[str, arch.CoreDef]" = pickle.load(f)
-        if is_seal5_model:
-            model: "dict[str, Union[arch.InstructionSet, ...]]" = pickle.load(f)
-            model["cores"] = {}
-        else:  # TODO: core vs. set!
-            temp: "dict[str, Union[arch.InstructionSet, arch.CoreDef]]" = pickle.load(f)
-            assert len(temp) > 0, "Empty model!"
-            if isinstance(list(temp.values())[0], arch.CoreDef):
-                model = {"cores": temp, "sets": {}}
-            elif isinstance(list(temp.values())[0], arch.InstructionSet):
-                model = {"sets": temp, "cores": {}}
-            else:
-                assert False
 
     assert args.yaml is not None
     assert pathlib.Path(args.yaml).is_file()
@@ -90,6 +63,7 @@ def main():
             prefix = name if prefix is None else f"{prefix}.{name}"
             y = list(x.values())[0]
             assert isinstance(y, dict)
+            y = y.copy()
             passes = y.pop("passes", None)
             if passes is None:
                 passes = []
@@ -159,28 +133,59 @@ def main():
         return ret
 
     status_data = []
-    for set_name, set_def in model["sets"].items():
-        xlen = set_def.xlen
-        model = top_level.stem
-        filtered_metrics = process_metrics(settings, model=model)
 
-        for instr_def in set_def.instructions.values():
-            instr_name = instr_def.name
+    # resolve model paths
+    top_levels = args.top_level
+    for top_level in top_levels:
+        top_level = pathlib.Path(top_level)
+        # abs_top_level = top_level.resolve()
 
-            data = {
-                "model": model,
-                "set": set_name,
-                "xlen": xlen,
-                "instr": instr_name,
-            }
-            if args.cols2rows:
-                for pass_name, pass_status in get_status(filtered_metrics, instr_name, invert=True).items():
-                    stage_name, pass_rest = pass_name.split(".", 1)
-                    data_ = {**data, "stage": stage_name, "pass": pass_rest, "status": pass_status}
+        is_seal5_model = False
+        if top_level.suffix == ".seal5model":
+            is_seal5_model = True
+
+        logger.info("loading models")
+        if not is_seal5_model:
+            raise NotImplementedError
+
+        # load models
+        with open(top_level, "rb") as f:
+            # models: "dict[str, arch.CoreDef]" = pickle.load(f)
+            if is_seal5_model:
+                model: "dict[str, Union[arch.InstructionSet, ...]]" = pickle.load(f)
+                model["cores"] = {}
+            else:  # TODO: core vs. set!
+                temp: "dict[str, Union[arch.InstructionSet, arch.CoreDef]]" = pickle.load(f)
+                assert len(temp) > 0, "Empty model!"
+                if isinstance(list(temp.values())[0], arch.CoreDef):
+                    model = {"cores": temp, "sets": {}}
+                elif isinstance(list(temp.values())[0], arch.InstructionSet):
+                    model = {"sets": temp, "cores": {}}
+                else:
+                    assert False
+
+        for set_name, set_def in model["sets"].items():
+            xlen = set_def.xlen
+            model = top_level.stem
+            filtered_metrics = process_metrics(settings, model=model)
+
+            for instr_def in set_def.instructions.values():
+                instr_name = instr_def.name
+
+                data = {
+                    "model": model,
+                    "set": set_name,
+                    "xlen": xlen,
+                    "instr": instr_name,
+                }
+                if args.cols2rows:
+                    for pass_name, pass_status in get_status(filtered_metrics, instr_name, invert=True).items():
+                        stage_name, pass_rest = pass_name.split(".", 1)
+                        data_ = {**data, "stage": stage_name, "pass": pass_rest, "status": pass_status}
+                        status_data.append(data_)
+                else:
+                    data_ = {**data, **get_status(filtered_metrics, instr_name, invert=False)}
                     status_data.append(data_)
-            else:
-                data_ = {**data, **get_status(filtered_metrics, instr_name, invert=False)}
-                status_data.append(data_)
     status_df = pd.DataFrame(status_data)
     fmt = args.fmt
     if fmt == "auto":

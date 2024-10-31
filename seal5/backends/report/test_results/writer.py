@@ -38,6 +38,15 @@ def main():
     # initialize logging
     logging.basicConfig(level=getattr(logging, args.log.upper()))
 
+    # if args.output is None:
+    #     assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
+    #     raise NotImplementedError
+
+    #     # out_path = top_level.parent / (top_level.stem + ".core_desc")
+    # else:
+    assert args.output is not None
+    out_path = pathlib.Path(args.output)
+
     assert args.yaml is not None
     assert pathlib.Path(args.yaml).is_file()
     settings = Seal5Settings.from_yaml_file(args.yaml)
@@ -125,14 +134,6 @@ def main():
         is_seal5_model = False
         if top_level.suffix == ".seal5model":
             is_seal5_model = True
-        # if args.output is None:
-        #     assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
-        #     raise NotImplementedError
-
-        #     # out_path = top_level.parent / (top_level.stem + ".core_desc")
-        # else:
-        assert args.output is not None
-        out_path = pathlib.Path(args.output)
 
         logger.info("loading models")
         if not is_seal5_model:
