@@ -67,7 +67,6 @@ def gen_riscv_register_info_str(set_def):
             raise ValueError(f"Unhandled case: {reg.reg_class}")
             # width = reg.width
             # TODO: use width?
-    # print("ret", ret)
     return "\n".join(ret)
 
 
