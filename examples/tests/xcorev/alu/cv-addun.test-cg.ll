@@ -5,7 +5,7 @@
 define i32 @adduN(i32 %a, i32 %b) {
 ; CHECK-LABEL: adduN:
 ; CHECK:       # %bb.0:
-; CHECK-GISEL-NEXT:    seal5.cv.adduN a0, a0, a1, 5
+; CHECK-GISEL-NEXT:    seal5.cv.adduN a0, a1, a0, 5
 ; CHECK-NEXT:    ret
   %1 = add i32 %a, %b
   %2 = lshr i32 %1, 5
