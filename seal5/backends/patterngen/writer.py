@@ -136,7 +136,9 @@ def main():
                 attrs = instr_def.attributes
                 if len(attrs) > 0:
                     skip = False
-                    if Seal5InstrAttribute.MAY_LOAD in attrs:
+                    if instr_def.size != 32:
+                        skip = True
+                    elif Seal5InstrAttribute.MAY_LOAD in attrs:
                         skip = True
                     elif Seal5InstrAttribute.MAY_STORE in attrs:
                         skip = True
