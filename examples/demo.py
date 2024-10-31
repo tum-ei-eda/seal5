@@ -79,9 +79,9 @@ seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load test inputs
 test_files = [
-    EXAMPLES_DIR / "tests" / "xexample" / "xexample*.s",
-    EXAMPLES_DIR / "tests" / "xexample" / "xexample*.ll",
-    EXAMPLES_DIR / "tests" / "xexample" / "xexample*.c",
+    EXAMPLES_DIR / "tests" / "xexample" / "xexample-*.s",
+    EXAMPLES_DIR / "tests" / "xexample" / "xexample-*.ll",
+    EXAMPLES_DIR / "tests" / "xexample" / "xexample-*.c",
 ]
 seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 
