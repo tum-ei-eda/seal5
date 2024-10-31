@@ -405,7 +405,9 @@ class ExtensionsSettings(YAMLSettings):
             feature = self.get_feature(name=name)
             assert feature is not None
             arch = feature.lower()
-            arch = f"x{arch}"
+            assert len(arch) > 0
+            if arch[0] != "x":
+                arch = f"x{arch}"
             # if self.experimental:
             #     arch = "experimental-" + arch
         assert arch[0] in ["z", "x"], "Arch needs to be start with z/x"
