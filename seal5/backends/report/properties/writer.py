@@ -158,7 +158,52 @@ def main():
                             return found
 
                         def detect_format(instr_def):  # TODO: move to transform and store as attr
-                            return "unknown"
+                            enc = instr_def.encoding
+                            operands = instr_def.operands
+                            char_lookup = {}
+                            imm_char = "a"
+                            reg_char = "A"
+                            temp = ""
+                            for e in reversed(instr_def.encoding):
+                                if isinstance(e, arch.BitVal):
+                                    new = bin(e.value)[2:].zfill(e.length)
+                                    temp = f"{new}{temp}"
+                                elif isinstance(e, arch.BitField):
+                                    length = e.range.length
+                                    found = char_lookup.get(e.name, None)
+                                    char = "#"
+                                    if found is not None:
+                                        char = found
+                                    else:
+                                        op = operands.get(e.name, None)
+                                        if op is not None:
+                                            if Seal5OperandAttribute.IS_REG in op.attributes:
+                                                char = reg_char
+                                                reg_char = chr(ord(reg_char) + 1)
+                                            elif Seal5OperandAttribute.IS_IMM in op.attributes:
+                                                char = imm_char
+                                                imm_char = chr(ord(imm_char) + 1)
+                                            else:
+                                                char = "%"
+                                        char_lookup[e.name] = char
+                                    new = char * length
+                                    temp = f"{new}{temp}"
+                                else:
+                                    assert False
+                            FMT_LOOKUP = [  # needs to be sorted by weight (number of non-?)
+                                ("aaaaaaaBBBBBAAAAA???aaaaa???????", "r5-type (binop)"),
+                                ("???????CCCCCBBBBB???AAAAA???????", "r-type (binop)"),
+                                ("????????????BBBBB???AAAAA???????", "r-type (unop)"),
+                            ]
+                            found2 = f"unknown[{temp}]"
+                            for mask, fmt in FMT_LOOKUP:
+                                if len(mask) != len(temp):
+                                    continue
+                                masked = "".join([c if mask[i] != "?" else "?" for i, c in enumerate(temp)])
+                                if masked == mask:
+                                    found2 = fmt
+                                    break
+                            return found2
 
                         opcode = detect_opcode(instr_def)
                         enc_format = detect_format(instr_def)
