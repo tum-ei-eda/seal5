@@ -2,10 +2,10 @@
 ; RUN: llc -O0 -mtriple=riscv32 -mattr=+m,+xcorevalu -verify-machineinstrs -global-isel=1 < %s \
 ; RUN:   | FileCheck %s --check-prefixes=CHECK,CHECK-GISEL
 
-define i1 @sle(i32 %a, i32 %b) {
+define i1 @slet(i32 %a, i32 %b) {
 ; CHECK-LABEL: sle:
 ; CHECK:       # %bb.0:
-; CHECK-GISEL-NEXT:    seal5.cv.sle a0, a0, a1
+; CHECK-GISEL-NEXT:    seal5.cv.slet a0, a0, a1
 ; CHECK-NEXT:    ret
   %1 = icmp sle i32 %a, %b
   ret i1 %1
