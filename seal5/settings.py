@@ -588,7 +588,7 @@ class IntrinsicArg(YAMLSettings):
 class IntrinsicDefn(YAMLSettings):
     instr_name: str
     intrinsic_name: str
-    set_name: str = None
+    set_name: Optional[str] = None
     ret_type: Optional[str] = None
     args: Optional[List[IntrinsicArg]] = None
 
