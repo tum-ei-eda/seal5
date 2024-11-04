@@ -143,7 +143,7 @@ jobs:
 
         # Status
         python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --cols2rows --output reports/status.csv
-        python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --cols2rows --output reports/status.md
+        python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --cols2rows --output reports/status.md --markdown-icons
         echo "### Status" >> $GITHUB_STEP_SUMMARY
         echo >> $GITHUB_STEP_SUMMARY
         cat reports/status.md >> $GITHUB_STEP_SUMMARY
@@ -151,7 +151,7 @@ jobs:
 
         # Test Results
         python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/test_results.csv
-        python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/test_results.md
+        python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/test_results.md --markdown-icons
         echo "### Test Results" >> $GITHUB_STEP_SUMMARY
         echo >> $GITHUB_STEP_SUMMARY
         cat reports/test_results.md >> $GITHUB_STEP_SUMMARY
