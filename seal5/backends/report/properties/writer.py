@@ -240,6 +240,11 @@ def main():
                             for op in operands.values()
                             if Seal5OperandAttribute.IS_IMM in op.attributes
                         )
+                        has_imm_leaf = any(
+                            Seal5OperandAttribute.IS_IMM_LEAF in op.attributes
+                            for op in operands.values()
+                            if Seal5OperandAttribute.IS_IMM in op.attributes
+                        )
                         is_multi_in = num_inputs + num_inouts > 1
                         is_single_in = num_inputs + num_inouts == 1
                         is_multi_out = num_outputs + num_inouts > 1
@@ -265,6 +270,7 @@ def main():
                             "is_miso": is_miso,
                             "is_siso": is_siso,
                             "is_simo": is_simo,
+                            "has_imm_leaf": has_imm_leaf,
                             # TODO: num_csrs, num_fprs, num_custom...
                         }
 
