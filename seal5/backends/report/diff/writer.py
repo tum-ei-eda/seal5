@@ -6,7 +6,7 @@
 # Chair of Electrical Design Automation
 # Technical University of Munich
 
-"""TODO."""
+"""Diff report writer for Seal5."""
 
 import argparse
 import logging

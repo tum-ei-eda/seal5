@@ -6,7 +6,7 @@
 # Chair of Electrical Design Automation
 # Technical University of Munich
 
-"""Clean M2-ISA-R/Seal5 metamodel to .core_desc file."""
+"""Status report writer for Seal5."""
 
 import argparse
 import logging
