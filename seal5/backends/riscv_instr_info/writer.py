@@ -127,8 +127,9 @@ def write_riscv_instruction_info(
         attrs = {}
     if constraints is None:
         constraints = []
-    if formats:
-        instr_template = Template(filename=str(template_dir / "instr_tablegen2.mako"))
+    if not formats:
+        raise NotImplementedError("!InstrFormat")
+        # instr_template = Template(filename=str(template_dir / "instr_tablegen2.mako"))
     else:
         instr_template = Template(filename=str(template_dir / "instr_tablegen.mako"))
 
