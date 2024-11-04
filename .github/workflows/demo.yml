@@ -138,7 +138,6 @@ jobs:
     - name: Generate Reports
       run: |
         source .venv/bin/activate
-        # TODO: support multiple models/inputs
         mkdir reports/
 
         # Properties
@@ -184,7 +183,6 @@ jobs:
         echo "\`\`\`mermaid" >> $GITHUB_STEP_SUMMARY
         cat reports/stage_times.mermaid >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        # TODO: add diff reports!
     - name: Upload Seal5 Reports
       uses: actions/upload-artifact@v4
       with:
