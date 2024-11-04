@@ -157,7 +157,7 @@ def main():
                             return found
 
                         def detect_format(instr_def):  # TODO: move to transform and store as attr
-                            enc = instr_def.encoding
+                            # enc = instr_def.encoding
                             operands = instr_def.operands
                             char_lookup = {}
                             imm_char = "a"

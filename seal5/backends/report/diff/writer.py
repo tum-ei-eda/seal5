@@ -11,12 +11,9 @@
 import argparse
 import logging
 import pathlib
-import pickle
-from typing import Union
 
 import pandas as pd
 
-from m2isar.metamodel import arch
 from seal5.settings import Seal5Settings
 
 logger = logging.getLogger("diff_writer")

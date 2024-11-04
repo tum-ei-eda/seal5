@@ -184,58 +184,6 @@ def callable_(self: behav.Callable, context):
     ret_expr.generate(context)
     return ret_expr
 
-    ### # Process each statement in the function's operation
-    ### new_statements = []
-    ### for stmt in function_def.operation.statements:
-    ###     if isinstance(stmt, behav.NamedReference):
-    ###         # Replace references with the actual arguments
-    ###         if stmt.reference.name in arg_map:
-    ###             new_statements.append(arg_map[stmt.reference.name])
-    ###         else:
-    ###             new_statements.append(stmt)
-    ###     elif isinstance(stmt, behav.Operation):
-    ###         # Recursively inline within operations
-    ###         stmt.statements = [
-    ###             arg_map[s.reference.name] if isinstance(s, behav.NamedReference) and s.reference.name in arg_map else s.generate(context)
-    ###             for s in stmt.statements
-    ###         ]
-    ###         new_statements.append(stmt)
-    ###     elif isinstance(stmt, behav.Conditional):
-    ###         # Inline conditions and statements
-    ###         stmt.conds = [
-    ###             arg_map[cond.reference.name] if isinstance(cond, behav.NamedReference) and cond.reference.name in arg_map else cond.generate(context)
-    ###             for cond in stmt.conds
-    ###         ]
-    ###         stmt.stmts = [
-    ###             arg_map[s.reference.name] if isinstance(s, behav.NamedReference) and s.reference.name in arg_map else s.generate(context)
-    ###             for s in stmt.stmts
-    ###         ]
-    ###         new_statements.append(stmt)
-    ###     elif isinstance(stmt, behav.Loop):
-    ###         # Inline loop conditions and statements
-    ###         stmt.cond = arg_map[stmt.cond.reference.name] if isinstance(stmt.cond, behav.NamedReference) and stmt.cond.reference.name in arg_map else stmt.cond.generate(context)
-    ###         stmt.stmts = [
-    ###             arg_map[s.reference.name] if isinstance(s, behav.NamedReference) and s.reference.name in arg_map else s.generate(context)
-    ###             for s in stmt.stmts
-    ###         ]
-    ###         new_statements.append(stmt)
-    ###     elif isinstance(stmt, behav.BinaryOperation):
-    ###         # Inline within binary operations
-    ###         stmt.left = arg_map[stmt.left.reference.name] if isinstance(stmt.left, behav.NamedReference) and stmt.left.reference.name in arg_map else stmt.left.generate(context)
-    ###         stmt.right = arg_map[stmt.right.reference.name] if isinstance(stmt.right, behav.NamedReference) and stmt.right.reference.name in arg_map else stmt.right.generate(context)
-    ###         new_statements.append(stmt)
-    ###     elif isinstance(stmt, behav.UnaryOperation):
-    ###         # Inline within unary operations
-    ###         stmt.right = arg_map[stmt.right.reference.name] if isinstance(stmt.right, behav.NamedReference) and stmt.right.reference.name in arg_map else stmt.right.generate(context)
-    ###         new_statements.append(stmt)
-    ###     else:
-    ###         # Add any statements that don't require inlining directly
-    ###         new_statements.append(stmt.generate(context))
-
-    # Update the operation's statements to the new inlined statements
-    # self.operation.statements = new_statements
-    # self.operation.statements = new_statements
-
     return self
 
 

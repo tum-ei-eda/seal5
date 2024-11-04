@@ -159,7 +159,7 @@ def ternary(self: behav.Ternary, context):
     then_expr = self.then_expr.generate(context)
     else_expr = self.else_expr.generate(context)
 
-    return cond | then_expr | self_expr
+    return cond | then_expr | else_expr
 
 
 def return_(self: behav.Return, context):

@@ -16,7 +16,6 @@ import pickle
 from typing import Union
 
 from m2isar.metamodel import arch, patch_model
-from m2isar.metamodel.utils.expr_preprocessor import process_instructions
 
 from seal5.model import Seal5FunctionAttribute
 from . import visitor

@@ -19,7 +19,6 @@ from m2isar.metamodel.arch import (
     Function,
     BaseNode,
     InstrAttribute,
-    FunctionAttribute,
     MemoryAttribute,
     BitField,
     BitVal,

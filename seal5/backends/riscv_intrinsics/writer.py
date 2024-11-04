@@ -106,7 +106,8 @@ IR_TYPE_LOOKUP_PAT = {
 
 def ir_type_to_text(ir_type: str):
     # TODO: needs fleshing out with all likely types
-    # TODO: probably needs to take into account RISC-V bit width, e.g. does "Li" means 32 bit integer on a 128-bit platform?
+    # TODO: probably needs to take into account RISC-V bit width, e.g. does "Li"
+    #   means 32 bit integer on a 128-bit platform?
     found = IR_TYPE_LOOKUP_TEXT.get(ir_type, None)
     assert found is not None, f"Unhandled ir_type '{ir_type}'"
     return found
@@ -133,7 +134,7 @@ def ir_type_to_pattern(ir_type: str):
 
 
 def build_attr(arch: str, intrinsic: IntrinsicDefn):
-    uses_mem = False  # @todo
+    # uses_mem = False  # TODO: use
     attr = f"  def int_riscv_{intrinsic.intrinsic_name} : Intrinsic<\n    ["
     if intrinsic.ret_type:
         attr += f"{ir_type_to_pattern(intrinsic.ret_type)}"
@@ -253,6 +254,7 @@ def main():
                 llvm_state = llvm_settings.state
                 if llvm_state:
                     llvm_version = llvm_state.version  # unused today, but needed very soon
+                    assert llvm_version.major >= 17
         patch_frags = {
             "target": PatchFrag(patchee="clang/include/clang/Basic/BuiltinsRISCV.def", tag="builtins_riscv"),
             "attr": PatchFrag(patchee="llvm/include/llvm/IR/IntrinsicsRISCV.td", tag="intrinsics_riscv"),
@@ -270,10 +272,10 @@ def main():
                 if intrinsic.set_name is not None and intrinsic.set_name != set_name:
                     continue
                 try:
-                    arch = ext_settings.get_arch(name=set_name)
-                    patch_frags["target"].contents += build_target(arch=arch, intrinsic=intrinsic)
-                    patch_frags["attr"].contents += build_attr(arch=arch, intrinsic=intrinsic)
-                    patch_frags["emit"].contents += build_emit(arch=arch, intrinsic=intrinsic)
+                    arch_ = ext_settings.get_arch(name=set_name)
+                    patch_frags["target"].contents += build_target(arch=arch_, intrinsic=intrinsic)
+                    patch_frags["attr"].contents += build_attr(arch=arch_, intrinsic=intrinsic)
+                    patch_frags["emit"].contents += build_emit(arch=arch_, intrinsic=intrinsic)
                     metrics["n_success"] += 1
                     metrics["success_instructions"].append(intrinsic.instr_name)
                 except Exception as ex:
@@ -287,7 +289,7 @@ def main():
             contents = frag.contents
             if len(contents) > 0:
                 if id == "target":
-                    contents = f"// {arch}\n{contents}\n"
+                    contents = f"// {arch_}\n{contents}\n"
                 elif id == "attr":
                     contents = f'let TargetPrefix = "riscv" in {{\n{contents}\n}}'
                 (root, ext) = os.path.splitext(out_path)

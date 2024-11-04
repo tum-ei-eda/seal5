@@ -22,7 +22,7 @@ from m2isar.metamodel import arch
 
 from seal5.index import NamedPatch, File, write_index_yaml
 from seal5.utils import is_power_of_two
-from seal5.settings import ExtensionsSettings, IntrinsicDefn
+from seal5.settings import IntrinsicDefn
 
 # from seal5.settings import ExtensionsSettings
 
