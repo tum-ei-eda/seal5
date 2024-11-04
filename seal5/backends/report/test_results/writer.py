@@ -60,8 +60,9 @@ def main():
                 break
         if test_metrics is None:
             logger.warning("Could not find test metrics. Make sure to run TEST stage!")
-            return {}
+            return {}, []
         ret = defaultdict(list)
+        ret2 = []
         failing = test_metrics.get("failing", None)
         assert failing is not None, "Missing settings.metrics.test.failing"
 
@@ -74,15 +75,19 @@ def main():
             if stem.count(".") != 1:
                 return None
             instr_name, rest = stem.split(".", 1)
-            if not rest.startswith("test-"):
+            if not rest.startswith("test"):
                 return None
             test_type = rest[5:]
+            if len(test_type) == 0:
+                test_type = None
             return instr_name, test_type, test_fmt
 
         for test_file in failing:
             parsed = parse_test_filename(test_file)
             if parsed is None:
                 logger.warning("Could no infer instruction from test file name")
+                new = (test_file, "FAIL")
+                ret2.append(new)
                 continue
             instr_name, test_type, test_fmt = parsed
             new = (test_type, test_file, test_fmt, "FAIL")
@@ -93,16 +98,19 @@ def main():
             parsed = parse_test_filename(test_file)
             if parsed is None:
                 logger.warning("Could no infer instruction from test file name")
+                new = (test_file, "PASS")
+                ret2.append(new)
                 continue
             instr_name, test_type, test_fmt = parsed
             new = (test_type, test_file, test_fmt, "PASS")
             ret[instr_name].append(new)
-        return ret
+        return ret, ret2
 
     metrics = settings.metrics
-    tests = map_tests(metrics)
+    instr_tests, other_tests = map_tests(metrics)
+    used_keys = set()
 
-    def filter_tests(tests, instr_def):
+    def filter_tests_by_instr(tests, instr_def):
         instr_name = instr_def.name
         mnemonic = instr_def.mnemonic
         assert isinstance(tests, dict)
@@ -129,12 +137,50 @@ def main():
         candidates.add(mnemonic_alt.lower())
 
         ret = []
+        used = set()
         for candidate_name in candidates:
             ret_ = tests.get(candidate_name, None)
             if ret_ is not None:
                 assert isinstance(ret_, list)
                 ret.extend(ret_)
-        return ret
+                used.add(candidate_name)
+        return ret, used
+
+    def filter_tests_by_set(tests, set_def, settings):
+        set_name = set_def.name
+        assert isinstance(tests, dict)
+        candidates = set()
+        candidates.add(set_name)
+        candidates.add(set_name.lower())
+        set_name_alt = set_name.replace("_", "")
+        candidates.add(set_name_alt)
+        candidates.add(set_name_alt.lower())
+        if settings:
+            extension_settings = settings.extensions.get(set_name)
+            if extension_settings:
+                arch = extension_settings.get_arch(set_name)
+                feature = extension_settings.get_feature(set_name)
+                candidates.add(arch)
+                candidates.add(feature)
+                candidates.add(arch.lower())
+                candidates.add(feature.lower())
+                arch_alt = arch.replace("_", "")
+                feature_alt = feature.replace("_", "")
+                candidates.add(arch_alt)
+                candidates.add(feature_alt)
+                candidates.add(arch_alt.lower())
+                candidates.add(feature_alt.lower())
+
+        ret = []
+        used = set()
+        for candidate_name in candidates:
+            ret_ = tests.get(candidate_name, None)
+            if ret_ is not None:
+                assert isinstance(ret_, list)
+                ret.extend(ret_)
+                used.add(candidate_name)
+        return ret, used
+
 
     results_data = []
     # resolve model paths
@@ -170,18 +216,19 @@ def main():
 
         for set_name, set_def in model["sets"].items():
             xlen = set_def.xlen
-            model = top_level.stem
+            model_name = top_level.stem
 
             for instr_def in set_def.instructions.values():
                 instr_name = instr_def.name
 
                 data = {
-                    "model": model,
+                    "model_name": model_name,
                     "set": set_name,
                     "xlen": xlen,
                     "instr": instr_name,
                 }
-                found_tests = filter_tests(tests, instr_def)
+                found_tests, used = filter_tests_by_instr(instr_tests, instr_def)
+                used_keys.update(used)
                 for test_kind, test_file, test_fmt, test_result in found_tests:
                     data_ = {
                         **data,
@@ -191,6 +238,54 @@ def main():
                         "result": test_result,
                     }
                     results_data.append(data_)
+            found_tests, used = filter_tests_by_set(instr_tests, set_def, settings)
+            used_keys.update(used)
+            data["instr"] = None
+            for test_kind, test_file, test_fmt, test_result in found_tests:
+                data_ = {
+                    **data,
+                    "test_kind": test_kind,
+                    "test_file": test_file,
+                    "test_fmt": test_fmt,
+                    "result": test_result,
+                }
+                results_data.append(data_)
+
+    def get_unused_tests(tests, used_keys):
+        ret = sum([val for key, val in tests.items() if key not in used_keys], [])
+        return ret
+
+    unused_tests = get_unused_tests(instr_tests, used_keys)
+
+    data = {
+        "model": None,
+        "set": None,
+        "xlen": None,
+        "instr": None,
+    }
+
+    for test_kind, test_file, test_fmt, test_result in unused_tests:
+        data_ = {
+            **data,
+            "test_kind": test_kind,
+            "test_file": test_file,
+            "test_fmt": test_fmt,
+            "result": test_result,
+        }
+        results_data.append(data_)
+
+    for test_file, test_result in other_tests:
+        test_fmt = pathlib.Path(test_file).suffix[1:]
+        test_kind = None
+        data_ = {
+            **data,
+            "test_kind": test_kind,
+            "test_file": test_file,
+            "test_fmt": test_fmt,
+            "result": test_result,
+        }
+        results_data.append(data_)
+
     results_df = pd.DataFrame(results_data)
     fmt = args.fmt
     if fmt == "auto":
