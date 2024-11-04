@@ -786,7 +786,9 @@ class Seal5Flow:
                 prev_tag = f"seal5-{self.name}-stage{int(stage)-1}"
             else:
                 prev_tag = base_tag
-            n_files_changed, n_insertions, n_deletions = inject_patches.analyze_diff(self.repo, cur=tag_name, base=prev_tag)
+            n_files_changed, n_insertions, n_deletions = inject_patches.analyze_diff(
+                self.repo, cur=tag_name, base=prev_tag
+            )
             stage_metrics = {}
             stage_metrics["n_files_changed"] = n_files_changed
             stage_metrics["n_insertions"] = n_insertions

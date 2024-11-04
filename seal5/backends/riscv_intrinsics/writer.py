@@ -54,7 +54,7 @@ logger = logging.getLogger("riscv_intrinsics")
 #  K -> ucontext_t
 #  p -> pid_t
 #  . -> "...".  This may only occur at the end of the function list.
-# 
+#
 # Types may be prefixed with the following modifiers:
 #  L   -> long (e.g. Li for 'long int', Ld for 'long double')
 #  LL  -> long long (e.g. LLi for 'long long int', LLd for __float128)
@@ -66,14 +66,14 @@ logger = logging.getLogger("riscv_intrinsics")
 #  S   -> signed
 #  U   -> unsigned
 #  I   -> Required to constant fold to an integer constant expression.
-# 
+#
 # Types may be postfixed with the following modifiers:
 # * -> pointer (optionally followed by an address space number, if no address
 #               space is specified than any address space will be accepted)
 # & -> reference (optionally followed by an address space number)
 # C -> const
 # D -> volatile
-# 
+#
 
 IR_TYPE_LOOKUP_TEXT = {
     # "i32": "Li",

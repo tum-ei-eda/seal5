@@ -58,7 +58,12 @@ def main():
                 n_files_changed = stage_metrics.get("n_files_changed", None)
                 n_insertions = stage_metrics.get("n_insertions", None)
                 n_deletions = stage_metrics.get("n_deletions", None)
-                new = {"phase": "*", "n_files_changed": n_files_changed, "n_insertions": n_insertions, "n_deletions": n_deletions}
+                new = {
+                    "phase": "*",
+                    "n_files_changed": n_files_changed,
+                    "n_insertions": n_insertions,
+                    "n_deletions": n_deletions,
+                }
                 ret.append(new)
                 continue
             if stage_name != "patch":
@@ -71,10 +76,14 @@ def main():
                 n_files_changed = phase_metrics.get("n_files_changed", None)
                 n_insertions = phase_metrics.get("n_insertions", None)
                 n_deletions = phase_metrics.get("n_deletions", None)
-                new = {"phase": phase_name, "n_files_changed": n_files_changed, "n_insertions": n_insertions, "n_deletions": n_deletions}
+                new = {
+                    "phase": phase_name,
+                    "n_files_changed": n_files_changed,
+                    "n_insertions": n_insertions,
+                    "n_deletions": n_deletions,
+                }
                 ret.append(new)
         return ret
-
 
     diff_data = process_metrics(settings)
 

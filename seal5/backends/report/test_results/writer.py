@@ -181,7 +181,6 @@ def main():
                 used.add(candidate_name)
         return ret, used
 
-
     results_data = []
     # resolve model paths
     top_levels = args.top_level
@@ -212,7 +211,6 @@ def main():
                     model = {"sets": temp, "cores": {}}
                 else:
                     assert False
-
 
         for set_name, set_def in model["sets"].items():
             xlen = set_def.xlen

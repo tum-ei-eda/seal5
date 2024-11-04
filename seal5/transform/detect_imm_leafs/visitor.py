@@ -22,6 +22,7 @@ from m2isar.metamodel import arch, behav
 # - Raise calls are replaced by empty blocks, to be removed in the operation visitor
 # - ~~Run optimizer afterwards to eliminate if statement.~~
 
+
 class Mode(IntFlag):
     NONE = 0
     REG = auto()
@@ -140,7 +141,6 @@ def conditional(self: behav.Conditional, context):
         #    stmt.generate(context)
         stmt = op.generate(context)
         stmts.append(stmt)
-
 
     return reduce(lambda x, y: x | y, conds + stmts)
 

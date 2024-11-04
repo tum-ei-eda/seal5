@@ -92,7 +92,6 @@ def main():
                     # print("instr_name", instr_name)
                     operands = instr_def.operands
 
-
                     def get_enc_properties(instr_def):
                         enc_size = instr_def.size
                         is_compressed = enc_size == 16
@@ -223,9 +222,15 @@ def main():
                     def get_operands_properties(operands):
                         num_operands = len(operands)
                         num_inputs = len([op for op in operands.values() if Seal5OperandAttribute.IN in op.attributes])
-                        num_outputs = len([op for op in operands.values() if Seal5OperandAttribute.OUT in op.attributes])
-                        num_inouts = len([op for op in operands.values() if Seal5OperandAttribute.INOUT in op.attributes])
-                        num_regs = len([op for op in operands.values() if Seal5OperandAttribute.IS_REG in op.attributes])
+                        num_outputs = len(
+                            [op for op in operands.values() if Seal5OperandAttribute.OUT in op.attributes]
+                        )
+                        num_inouts = len(
+                            [op for op in operands.values() if Seal5OperandAttribute.INOUT in op.attributes]
+                        )
+                        num_regs = len(
+                            [op for op in operands.values() if Seal5OperandAttribute.IS_REG in op.attributes]
+                        )
                         num_gprs = len(
                             [
                                 op
@@ -234,7 +239,9 @@ def main():
                                 and op.attributes[Seal5OperandAttribute.REG_CLASS] == "GPR"
                             ]
                         )
-                        num_imms = len([op for op in operands.values() if Seal5OperandAttribute.IS_IMM in op.attributes])
+                        num_imms = len(
+                            [op for op in operands.values() if Seal5OperandAttribute.IS_IMM in op.attributes]
+                        )
                         imm_types = set(
                             op.attributes[Seal5OperandAttribute.TYPE]
                             for op in operands.values()

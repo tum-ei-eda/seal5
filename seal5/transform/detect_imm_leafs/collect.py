@@ -95,7 +95,11 @@ def run(args):
         patch_model(visitor)
         for _, instr_def in set_def.instructions.items():
             metrics["n_instructions"] += 1
-            imm_op_names = [op_name for op_name, op_def in instr_def.operands.items() if seal5.model.Seal5OperandAttribute.IS_IMM in op_def.attributes]
+            imm_op_names = [
+                op_name
+                for op_name, op_def in instr_def.operands.items()
+                if seal5.model.Seal5OperandAttribute.IS_IMM in op_def.attributes
+            ]
             # print("imm_op_names", imm_op_names)
             context = VisitorContext(imm_op_names)
             logger.debug("detecting imm leafs for instr %s", instr_def.name)
