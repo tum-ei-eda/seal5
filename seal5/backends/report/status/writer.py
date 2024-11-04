@@ -33,6 +33,7 @@ def main():
     parser.add_argument("--fmt", type=str, choices=["auto", "csv", "pkl", "md"], default="auto")
     parser.add_argument("--yaml", type=str, default=None)
     parser.add_argument("--cols2rows", action="store_true")
+    parser.add_argument("--markdown-icons", action="store_true")
     args = parser.parse_args()
 
     # initialize logging
@@ -199,6 +200,15 @@ def main():
         status_df.to_pickle(out_path)
     elif fmt == "md":
         # status_df.to_markdown(out_path, tablefmt="grid", index=False)
+        if args.markdown_icons:
+
+            def helper(x):
+                x = x.replace("success", "success :heavy_check_mark:")
+                x = x.replace("skipped", "skipped :question:")
+                x = x.replace("failed", "failed :x:")
+                return x
+
+            status_df["status"] = status_df["status"].apply(helper)
         status_df.to_markdown(out_path, index=False)
     else:
         raise ValueError(f"Unsupported fmt: {fmt}")
