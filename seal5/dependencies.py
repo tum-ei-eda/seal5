@@ -104,7 +104,7 @@ DEFAULT_CDSL2LLVM_DIRS = [
 
 class CDSL2LLVMDependency(GitDependency):
     # def __init__(self, clone_url="https://github.com/mathis-s/CoreDSL2LLVM.git", ref="main"):
-    def __init__(self, clone_url="https://github.com/PhilippvK/CoreDSL2LLVM.git", ref="philippvk4"):
+    def __init__(self, clone_url="https://github.com/PhilippvK/CoreDSL2LLVM.git", ref="philippvk5"):
         super().__init__("cdsl2llvm", clone_url, ref=ref)
 
     def clone(

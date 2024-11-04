@@ -67,7 +67,6 @@ def gen_riscv_register_info_str(set_def):
             raise ValueError(f"Unhandled case: {reg.reg_class}")
             # width = reg.width
             # TODO: use width?
-    # print("ret", ret)
     return "\n".join(ret)
 
 
@@ -145,12 +144,13 @@ def main():
                 content += content_
         with open(out_path, "w", encoding="utf-8") as f:
             f.write(content)
-        register_info_patch = NamedPatch(
-            "llvm/lib/Target/RISCV/RISCVRegisterInfo.td",
-            key="riscv_register_info",
-            src_path=out_path,
-        )
-        artifacts[None].append(register_info_patch)
+        if len(content) > 0:
+            register_info_patch = NamedPatch(
+                "llvm/lib/Target/RISCV/RISCVRegisterInfo.td",
+                key="riscv_register_info",
+                src_path=out_path,
+            )
+            artifacts[None].append(register_info_patch)
     else:
         raise NotImplementedError("--splitted not supported")
     if args.metrics:

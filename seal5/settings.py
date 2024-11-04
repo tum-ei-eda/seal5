@@ -400,14 +400,18 @@ class ExtensionsSettings(YAMLSettings):
 
     def get_arch(self, name: Optional[str] = None):
         """Get extension arch."""
-        if self.arch is None:
+        arch = self.arch
+        if arch is None:
             feature = self.get_feature(name=name)
             assert feature is not None
             arch = feature.lower()
-            if self.experimental:
-                arch = "experimental-" + arch
-            return arch
-        return self.arch
+            assert len(arch) > 0
+            if arch[0] != "x":
+                arch = f"x{arch}"
+            # if self.experimental:
+            #     arch = "experimental-" + arch
+        assert arch[0] in ["z", "x"], "Arch needs to be start with z/x"
+        return arch
 
     def get_feature(self, name: Optional[str] = None):
         """Get extension feature."""
@@ -584,6 +588,7 @@ class IntrinsicArg(YAMLSettings):
 class IntrinsicDefn(YAMLSettings):
     instr_name: str
     intrinsic_name: str
+    set_name: Optional[str] = None
     ret_type: Optional[str] = None
     args: Optional[List[IntrinsicArg]] = None
 

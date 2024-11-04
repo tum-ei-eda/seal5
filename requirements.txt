@@ -8,3 +8,5 @@ importlib_resources
 dacite
 mako
 tqdm
+pandas
+tabulate

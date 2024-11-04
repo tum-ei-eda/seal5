@@ -79,22 +79,22 @@ seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load test inputs
 test_files = [
-    EXAMPLES_DIR / "tests" / "tumeda" / "cv_nand.c",
-    EXAMPLES_DIR / "tests" / "tumeda" / "cv_nand.s",
-    EXAMPLES_DIR / "tests" / "tumeda" / "cv_nand_invalid.s",
+    EXAMPLES_DIR / "tests" / "tumeda" / "*.s",
+    EXAMPLES_DIR / "tests" / "tumeda" / "*.ll",
+    EXAMPLES_DIR / "tests" / "tumeda" / "*.c",
 ]
 seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 
 # Load YAML inputs
 cfg_files = [
     # TODO
-    # EXAMPLES_DIR / "cfg" / "tumeda" / "riscv.yml",
     EXAMPLES_DIR / "cfg" / "llvm.yml",
     EXAMPLES_DIR / "cfg" / "filter.yml",
     EXAMPLES_DIR / "cfg" / "patches.yml",
     EXAMPLES_DIR / "cfg" / "tests.yml",
     EXAMPLES_DIR / "cfg" / "passes.yml",
     EXAMPLES_DIR / "cfg" / "git.yml",
+    EXAMPLES_DIR / "cfg" / "tumeda" / "intrinsics.yml",
 ]
 seal5_flow.load(cfg_files, verbose=VERBOSE, overwrite=False)
 
@@ -140,6 +140,10 @@ if not SKIP_PATTERNS:
 
 # Build patched LLVM
 seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG, enable_ccache=CCACHE)
+
+if TEST:
+    # Test patched LLVM
+    seal5_flow.test(verbose=VERBOSE, ignore_error=IGNORE_ERROR)
 
 if INSTALL:
     # Install final LLVM

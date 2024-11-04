@@ -55,7 +55,7 @@ def main():
     lo = LoadOrder()
     try:
         sets = lo.visit(tree)
-        print("sets", sets)
+        # print("sets", sets)
     except M2Error as e:
         logger.critical("Error during load order building: %s", e)
         sys.exit(1)
@@ -79,7 +79,7 @@ def main():
             s = arch_builder.visit(set_def)
             if not isinstance(s, list):
                 s = [s]
-            print("s", s)
+            # print("s", s)
         except M2Error as e:
             logger.critical("Error building architecture model of core", e)
 
@@ -103,7 +103,7 @@ def main():
 
     for set_name, set_def in models.items():
         logger.info("building behavior model for set %s", set_name)
-        print("set", set_name, set_def, dir(set_def))
+        # print("set", set_name, set_def, dir(set_def))
 
         warned_fns = set()
 

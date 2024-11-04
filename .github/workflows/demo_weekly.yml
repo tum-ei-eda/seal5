@@ -128,17 +128,73 @@ jobs:
       run: |
         source .venv/bin/activate
         VERBOSE=${{ matrix.verbose }} PROGRESS=${{ matrix.progress }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ matrix.clone_depth }} BUILD_CONFIG=${{ matrix.build_config }} IGNORE_ERROR=${{ matrix.ignore_error }} TEST=${{ matrix.test }} INSTALL=${{ matrix.install }} DEPLOY=${{ matrix.deploy }} EXPORT=${{ matrix.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ matrix.script }}
-    - uses: actions/upload-artifact@v4
+    - name: Generate Reports
+      run: |
+        source .venv/bin/activate
+        mkdir reports/
+
+        # Properties
+        python3 -m seal5.backends.report.properties.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --output reports/properties.csv
+        python3 -m seal5.backends.report.properties.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --output reports/properties.md
+        echo "### Properties" >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+        cat reports/properties.md >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+
+        # Status
+        python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --cols2rows --output reports/status.csv
+        python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --cols2rows --output reports/status.md
+        echo "### Status" >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+        cat reports/status.md >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+
+        # Test Results
+        python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/test_results.csv
+        python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/test_results.md
+        echo "### Test Results" >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+        cat reports/test_results.md >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+
+        # Diff
+        python3 -m seal5.backends.report.diff.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/diff.csv
+        python3 -m seal5.backends.report.diff.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/diff.md
+        echo "### Diff" >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+        cat reports/diff.md >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+
+        # Stage Times
+        python3 -m seal5.backends.report.times.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/stage_times.csv
+        python3 -m seal5.backends.report.times.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/stage_times.md
+        python3 -m seal5.backends.report.times.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/stage_times.mermaid
+        echo "### Stage/Pass Times" >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+        cat reports/stage_times.md >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`mermaid" >> $GITHUB_STEP_SUMMARY
+        cat reports/stage_times.mermaid >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+    - name: Upload Seal5 Reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: demo-${{ steps.ctx.outputs.name }}-reports
+        path: reports/
+    - name: Upload Seal5 Metadata
+      uses: actions/upload-artifact@v4
       if: "${{ matrix.export == '1' }}"
       with:
         name: demo-${{ steps.ctx.outputs.name }}-export
         path: /tmp/seal5_llvm.tar.gz
-    - uses: actions/upload-artifact@v4
+    - name: Upload Seal5 LLVM Installation
+      uses: actions/upload-artifact@v4
       if: "${{ matrix.install == '1' }}"
       with:
         name: demo-${{ steps.ctx.outputs.name }}-install
         path: /tmp/seal5_llvm/.seal5/install/${{ matrix.build_config }}
-    - uses: actions/upload-artifact@v4
+    - name: Upload Seal5 LLVM Sources
+      uses: actions/upload-artifact@v4
       if: "${{ matrix.deploy == '1' }}"
       with:
         name: demo-${{ steps.ctx.outputs.name }}-source

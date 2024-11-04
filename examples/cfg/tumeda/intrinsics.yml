@@ -1,0 +1,11 @@
+---
+intrinsics:
+  intrinsics:
+  - args:
+    - arg_name: rd
+      arg_type: i32
+    - arg_name: rs1
+      arg_type: i32
+    instr_name: CV_NAND_BITWISE
+    intrinsic_name: xcv_nand_bitwise
+    ret_type: i32

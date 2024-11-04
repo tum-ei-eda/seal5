@@ -6,7 +6,7 @@ passes:
       behav_to_pat:
         parallel: true
       convert_models: &a
-        use_subprocess: false
+        use_subprocess: true
         log_level: "warning"
       filter_models: *a
       drop_unused: *a

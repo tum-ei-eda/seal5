@@ -144,6 +144,10 @@ class Seal5InstrAttribute(Enum):
     DEFS = auto()
 
 
+class Seal5FunctionAttribute(Enum):
+    INLINE = auto()
+
+
 class Seal5OperandAttribute(Enum):
     IN = auto()  # or: READ (R)
     OUT = auto()  # or: WRITE (W)
@@ -155,6 +159,7 @@ class Seal5OperandAttribute(Enum):
     TYPE = auto()
     REG_CLASS = auto()
     REG_TYPE = auto()
+    IS_IMM_LEAF = auto()
 
 
 class Seal5DataType(Enum):

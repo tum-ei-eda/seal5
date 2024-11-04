@@ -218,3 +218,10 @@ def group(self: behav.Group, writer):
     self.expr.generate(writer)
     writer.write(")")
     # writer.leave_block()
+
+
+def procedure_call(self: behav.ProcedureCall, context):
+    # print("procedure_call")
+
+    for arg in self.args:
+        arg.generate(context)

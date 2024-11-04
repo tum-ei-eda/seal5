@@ -1,0 +1,208 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# This file is part of the M2-ISA-R project: https://github.com/tum-ei-eda/M2-ISA-R
+#
+# Copyright (C) 2022
+# Chair of Electrical Design Automation
+# Technical University of Munich
+
+"""Status report writer for Seal5."""
+
+import argparse
+import logging
+import pathlib
+import pickle
+from typing import Union
+
+import pandas as pd
+
+from m2isar.metamodel import arch
+from seal5.settings import Seal5Settings
+
+logger = logging.getLogger("status_writer")
+
+
+def main():
+    """Main app entrypoint."""
+
+    # read command line args
+    parser = argparse.ArgumentParser()
+    parser.add_argument("top_level", nargs="+", help="A .m2isarmodel or .seal5model file.")
+    parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
+    parser.add_argument("--output", "-o", type=str, default=None)
+    parser.add_argument("--fmt", type=str, choices=["auto", "csv", "pkl", "md"], default="auto")
+    parser.add_argument("--yaml", type=str, default=None)
+    parser.add_argument("--cols2rows", action="store_true")
+    args = parser.parse_args()
+
+    # initialize logging
+    logging.basicConfig(level=getattr(logging, args.log.upper()))
+
+    # if args.output is None:
+    #     assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
+    #     raise NotImplementedError
+
+    #     # out_path = top_level.parent / (top_level.stem + ".core_desc")
+    # else:
+    assert args.output is not None
+    out_path = pathlib.Path(args.output)
+
+    assert args.yaml is not None
+    assert pathlib.Path(args.yaml).is_file()
+    settings = Seal5Settings.from_yaml_file(args.yaml)
+
+    def process_metrics(settings, model=None):
+        metrics = settings.metrics
+        assert metrics is not None
+        assert isinstance(metrics, list)
+
+        def traverse(x, prefix=None):
+            assert isinstance(x, dict)
+            assert len(x) == 1
+            name = list(x.keys())[0]
+            prefix = name if prefix is None else f"{prefix}.{name}"
+            y = list(x.values())[0]
+            assert isinstance(y, dict)
+            y = y.copy()
+            passes = y.pop("passes", None)
+            if passes is None:
+                passes = []
+            assert isinstance(passes, list)
+            ret = {}
+            for pass_ in passes:
+                ret_ = traverse(pass_, prefix=prefix)
+                ret.update(ret_)
+            models = y.pop("models", None)
+            if models is None:
+                models = []
+            assert isinstance(models, list)
+            for model in models:
+                ret2_ = traverse(model, prefix=prefix)
+                ret.update(ret2_)
+            for key, value in y.items():
+                ret[f"{prefix}.{key}"] = value
+            return ret
+
+        all_metrics = {}
+        for stage_metrics in metrics:
+            result = traverse(stage_metrics)
+            all_metrics.update(result)
+
+        def filter_func(x):
+            return x.split(".")[-1] in ["success_instructions", "failed_instructions", "skipped_instructions"]
+
+        filtered_metrics = {key: val for key, val in all_metrics.items() if filter_func(key)}
+        if model:
+            filtered_metrics = {key.replace(f"{model}.", ""): val for key, val in filtered_metrics.items()}
+        return filtered_metrics
+
+    def get_status(filtered_metrics, instr_name, invert: bool = False):
+        skipped = []
+        failed = []
+        success = []
+        for key, val in filtered_metrics.items():
+            if not isinstance(val, list):
+                continue
+            if instr_name not in val:
+                continue
+            prefix, metric = key.rsplit(".", 1)
+            if metric == "skipped_instructions":
+                skipped.append(prefix)
+            elif metric == "failed_instructions":
+                failed.append(prefix)
+            elif metric == "success_instructions":
+                success.append(prefix)
+        if invert:
+            ret = {}
+            for pass_name in failed:
+                ret[pass_name] = "failed"
+            for pass_name in skipped:
+                if pass_name in ret:
+                    continue
+                ret[pass_name] = "skipped"
+            for pass_name in success:
+                if pass_name in ret:
+                    continue
+                ret[pass_name] = "success"
+        else:
+            ret = {
+                "skipped": skipped,
+                "failed": failed,
+                "success": success,
+            }
+        return ret
+
+    status_data = []
+
+    # resolve model paths
+    top_levels = args.top_level
+    for top_level in top_levels:
+        top_level = pathlib.Path(top_level)
+        # abs_top_level = top_level.resolve()
+
+        is_seal5_model = False
+        if top_level.suffix == ".seal5model":
+            is_seal5_model = True
+
+        logger.info("loading models")
+        if not is_seal5_model:
+            raise NotImplementedError
+
+        # load models
+        with open(top_level, "rb") as f:
+            # models: "dict[str, arch.CoreDef]" = pickle.load(f)
+            if is_seal5_model:
+                model: "dict[str, Union[arch.InstructionSet, ...]]" = pickle.load(f)
+                model["cores"] = {}
+            else:  # TODO: core vs. set!
+                temp: "dict[str, Union[arch.InstructionSet, arch.CoreDef]]" = pickle.load(f)
+                assert len(temp) > 0, "Empty model!"
+                if isinstance(list(temp.values())[0], arch.CoreDef):
+                    model = {"cores": temp, "sets": {}}
+                elif isinstance(list(temp.values())[0], arch.InstructionSet):
+                    model = {"sets": temp, "cores": {}}
+                else:
+                    assert False
+
+        for set_name, set_def in model["sets"].items():
+            xlen = set_def.xlen
+            model = top_level.stem
+            filtered_metrics = process_metrics(settings, model=model)
+
+            for instr_def in set_def.instructions.values():
+                instr_name = instr_def.name
+
+                data = {
+                    "model": model,
+                    "set": set_name,
+                    "xlen": xlen,
+                    "instr": instr_name,
+                }
+                if args.cols2rows:
+                    for pass_name, pass_status in get_status(filtered_metrics, instr_name, invert=True).items():
+                        stage_name, pass_rest = pass_name.split(".", 1)
+                        data_ = {**data, "stage": stage_name, "pass": pass_rest, "status": pass_status}
+                        status_data.append(data_)
+                else:
+                    data_ = {**data, **get_status(filtered_metrics, instr_name, invert=False)}
+                    status_data.append(data_)
+    status_df = pd.DataFrame(status_data)
+    fmt = args.fmt
+    if fmt == "auto":
+        fmt = out_path.suffix
+        assert len(fmt) > 1
+        fmt = fmt[1:].lower()
+
+    if fmt == "csv":
+        status_df.to_csv(out_path, index=False)
+    elif fmt == "pkl":
+        status_df.to_pickle(out_path)
+    elif fmt == "md":
+        # status_df.to_markdown(out_path, tablefmt="grid", index=False)
+        status_df.to_markdown(out_path, index=False)
+    else:
+        raise ValueError(f"Unsupported fmt: {fmt}")
+
+
+if __name__ == "__main__":
+    main()

@@ -5,7 +5,7 @@
 define i1 @sleu(i32 %a, i32 %b) {
 ; CHECK-LABEL: sle:
 ; CHECK:       # %bb.0:
-; CHECK-GISEL-NEXT:    seal5.cv.sle a0, a0, a1
+; CHECK-GISEL-NEXT:    seal5.cv.sleu a0, a0, a1
 ; CHECK-NEXT:    ret
   %1 = icmp sle i32 %a, %b
   ret i1 %1

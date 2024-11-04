@@ -79,9 +79,9 @@ seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load test inputs
 test_files = [
-    EXAMPLES_DIR / "tests" / "example" / "xexample64.test.s",
-    EXAMPLES_DIR / "tests" / "example" / "xexample64.test-invalid.s",
-    EXAMPLES_DIR / "tests" / "example" / "xexample64.test-codegen.ll",
+    EXAMPLES_DIR / "tests" / "xexample" / "xexample64-*.s",
+    EXAMPLES_DIR / "tests" / "xexample" / "xexample64-*.ll",
+    EXAMPLES_DIR / "tests" / "xexample" / "xexample64-*.c",
 ]
 seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 
@@ -94,6 +94,8 @@ cfg_files = [
     EXAMPLES_DIR / "cfg" / "tests.yml",
     EXAMPLES_DIR / "cfg" / "passes.yml",
     EXAMPLES_DIR / "cfg" / "git.yml",
+    EXAMPLES_DIR / "cfg" / "example/XExample64.yml",
+    EXAMPLES_DIR / "cfg" / "example/intrinsics64.yml",
 ]
 seal5_flow.load(cfg_files, verbose=VERBOSE, overwrite=False)
 
