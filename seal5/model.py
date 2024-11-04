@@ -160,6 +160,7 @@ class Seal5OperandAttribute(Enum):
     TYPE = auto()
     REG_CLASS = auto()
     REG_TYPE = auto()
+    IS_IMM_LEAF = auto()
 
 
 class Seal5DataType(Enum):
