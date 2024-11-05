@@ -29,6 +29,7 @@ def main():
     parser.add_argument("--fmt", type=str, choices=["auto", "csv", "pkl", "md", "mermaid"], default="auto")
     parser.add_argument("--yaml", type=str, default=None)
     parser.add_argument("--pass-times", action="store_true")
+    parser.add_argument("--sum-level", type=int, default=None)
     args = parser.parse_args()
 
     # initialize logging
@@ -109,6 +110,10 @@ def main():
 
     if args.pass_times:
         pass_times_df = pd.DataFrame(pass_times)
+        if args.sum_level:
+            pass_times_df["pass"] = pass_times_df["pass"].apply(lambda x: ".".join(x.split(".")[:args.sum_level]))
+            pass_times_df = pass_times_df.groupby("pass", as_index=False).agg({"start": "min", "end": "max"})
+            pass_times_df["time_s"] = pass_times_df["end"] - pass_times_df["start"]
         times_df = pd.concat([stage_times_df, pass_times_df])
     else:
         times_df = stage_times_df
