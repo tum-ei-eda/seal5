@@ -154,10 +154,6 @@ jobs:
       uses: peter-evans/repository-dispatch@v3
       with:
          token: ${{ secrets.SEAL5_ACCESS_TOKEN }}
-         repository: tum-ei-eda/etiss_riscv_examples
+         repository: tum-ei-eda/etiss_riscv_examples_s4e
          event-type: seal5-event
          client-payload: '{"triggered_run_id": "${{ github.run_id }}", "etiss_run_id": "${{ env.ETISS_RUN_ID }}"}'
-
-
-
-
