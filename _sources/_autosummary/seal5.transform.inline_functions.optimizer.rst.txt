@@ -1,0 +1,20 @@
+seal5.transform.inline\_functions.optimizer
+===========================================
+
+.. automodule:: seal5.transform.inline_functions.optimizer
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_parser
+      main
+      run
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      InlineFunctionsContext
+   

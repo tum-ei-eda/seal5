@@ -21,6 +21,7 @@ seal5.backends.coredsl2.visitor
       named_reference
       number_literal
       operation
+      procedure_call
       return_
       scalar_definition
       slice_operation

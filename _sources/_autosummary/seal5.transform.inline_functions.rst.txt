@@ -1,0 +1,14 @@
+seal5.transform.inline\_functions
+=================================
+
+.. automodule:: seal5.transform.inline_functions
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   optimizer
+   visitor

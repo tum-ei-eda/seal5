@@ -16,6 +16,7 @@ seal5.pass\_list
       convert_llvmir_to_gmir
       convert_models
       detect_behavior_constraints
+      detect_imm_leafs
       detect_inouts
       detect_registers
       detect_side_effects
@@ -34,6 +35,7 @@ seal5.pass\_list
       gen_seal5_td
       gen_set_td
       infer_types
+      inline_functions
       optimize_model
       pattern_gen_pass
       process_settings

@@ -1,0 +1,13 @@
+seal5.backends.report.properties
+================================
+
+.. automodule:: seal5.backends.report.properties
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   writer

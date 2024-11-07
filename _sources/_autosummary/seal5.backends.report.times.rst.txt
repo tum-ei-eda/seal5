@@ -1,0 +1,13 @@
+seal5.backends.report.times
+===========================
+
+.. automodule:: seal5.backends.report.times
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   writer

@@ -1,0 +1,12 @@
+seal5.metrics
+=============
+
+.. automodule:: seal5.metrics
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      read_metrics
+   

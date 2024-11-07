@@ -1,0 +1,14 @@
+seal5.transform.detect\_imm\_leafs
+==================================
+
+.. automodule:: seal5.transform.detect_imm_leafs
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   collect
+   visitor

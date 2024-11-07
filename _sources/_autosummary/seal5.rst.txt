@@ -16,6 +16,7 @@
    flow
    index
    logging
+   metrics
    model
    pass_list
    passes

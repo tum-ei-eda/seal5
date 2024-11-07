@@ -1,0 +1,13 @@
+seal5.backends.report.diff
+==========================
+
+.. automodule:: seal5.backends.report.diff
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   writer

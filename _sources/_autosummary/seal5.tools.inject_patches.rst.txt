@@ -8,6 +8,7 @@ seal5.tools.inject\_patches
 
    .. autosummary::
    
+      analyze_diff
       generate_patch
       main
       process_arguments

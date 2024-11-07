@@ -13,6 +13,7 @@ seal5.model
       Seal5Constraint
       Seal5DataType
       Seal5FPROperand
+      Seal5FunctionAttribute
       Seal5GPROperand
       Seal5ImmOperand
       Seal5InstrAttribute

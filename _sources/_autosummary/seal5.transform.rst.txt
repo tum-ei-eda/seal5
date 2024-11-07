@@ -15,6 +15,7 @@ seal5.transform
    collect_raises
    collect_register_operands
    converter
+   detect_imm_leafs
    detect_inouts
    detect_registers
    detect_side_effects
@@ -24,6 +25,7 @@ seal5.transform
    explicit_truncations
    filter_model
    infer_types
+   inline_functions
    optimize_instructions
    process_settings
    simplify_trivial_slices

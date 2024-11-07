@@ -1,0 +1,12 @@
+seal5.backends.report.diff.writer
+=================================
+
+.. automodule:: seal5.backends.report.diff.writer
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      main
+   

@@ -1,0 +1,13 @@
+seal5.backends.report.test\_results
+===================================
+
+.. automodule:: seal5.backends.report.test_results
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   writer
