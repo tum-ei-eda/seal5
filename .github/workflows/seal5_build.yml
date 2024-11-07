@@ -136,7 +136,7 @@ jobs:
       uses: dawidd6/action-download-artifact@v6
       with:
         name: etiss-run-id
-        github-token: ${{ secrets.SEAL5_ACCESS_TOKEN }}
+        github_token: ${{ secrets.SEAL5_ACCESS_TOKEN }}
         repository: tum-ei-eda/seal5
         path: /home/runner/work/
         workflow: sync_etiss_seal5_build.yml
