@@ -16,6 +16,8 @@ import pickle
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Union
 
+import pandas as pd
+
 from m2isar.metamodel import arch
 
 from seal5.tools import cdsl2llvm
@@ -89,6 +91,9 @@ def main():
         "n_skipped": 0,
         "n_failed": 0,
         "n_success": 0,
+        "skipped_instructions": [],
+        "failed_instructions": [],
+        "success_instructions": [],
     }
     # preprocess model
     # print("model", model)
@@ -131,7 +136,13 @@ def main():
                 attrs = instr_def.attributes
                 if len(attrs) > 0:
                     skip = False
-                    if Seal5InstrAttribute.MAY_LOAD in attrs:
+                    if instr_def.size != 32:
+                        skip = True
+                    elif len(attrs.get(Seal5InstrAttribute.USES, [])) > 0:
+                        skip = True
+                    elif len(attrs.get(Seal5InstrAttribute.DEFS, [])) > 0:
+                        skip = True
+                    elif Seal5InstrAttribute.MAY_LOAD in attrs:
                         skip = True
                     elif Seal5InstrAttribute.MAY_STORE in attrs:
                         skip = True
@@ -141,9 +152,11 @@ def main():
                         skip = True
                     if skip:
                         metrics["n_skipped"] += 1
+                        metrics["skipped_instructions"].append(instr_def.name)
                         return False, includes_
                 if not input_file.is_file():
                     metrics["n_skipped"] += 1
+                    metrics["skipped_instructions"].append(instr_def.name)
                     return False, includes_
                 # if args.patterns:
                 out_name = f"{instr_def.name}.{args.ext}"
@@ -169,6 +182,7 @@ def main():
                     )
                     if output_file.is_file():
                         metrics["n_success"] += 1
+                        metrics["success_instructions"].append(instr_def.name)
                         if args.formats:
                             file_artifact_fmt_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}/{out_name_fmt}"
                             file_artifact_fmt = File(file_artifact_fmt_dest, src_path=output_file_fmt)
@@ -183,8 +197,10 @@ def main():
                             includes_.append(include_path)
                     else:
                         metrics["n_failed"] += 1
+                        metrics["failed_instructions"].append(instr_def.name)
                 except AssertionError:
                     metrics["n_failed"] += 1
+                    metrics["failed_instructions"].append(instr_def.name)
                     return False, includes_
                     # errs.append((insn_name, str(ex)))
                 return True, includes_
@@ -227,11 +243,8 @@ def main():
         raise NotImplementedError
     if args.metrics:
         metrics_file = args.metrics
-        with open(metrics_file, "w", encoding="utf-8") as f:
-            f.write(",".join(metrics.keys()))
-            f.write("\n")
-            f.write(",".join(map(str, metrics.values())))
-            f.write("\n")
+        metrics_df = pd.DataFrame({key: [val] for key, val in metrics.items()})
+        metrics_df.to_csv(metrics_file, index=False)
     if args.index:
         if sum(map(len, artifacts.values())) > 0:
             global_artifacts = artifacts.get(None, [])

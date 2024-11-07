@@ -147,6 +147,7 @@ def run_pattern_gen(
     skip_formats=False,
     skip_patterns=False,
     skip_verify=True,
+    no_extend=True,
     debug=False,
 ):
     """Excute pattern-gen executable."""
@@ -173,7 +174,7 @@ def run_pattern_gen(
         mattr = build_riscv_mattr(features, xlen=xlen)
 
     if mattr:
-        pattern_gen_args.extend(["--mattr2", mattr])
+        pattern_gen_args.extend(["--mattr", mattr])
 
     if xlen:
         assert xlen in [32, 64]
@@ -190,6 +191,9 @@ def run_pattern_gen(
 
     if debug:
         pattern_gen_args.append("--debug")
+
+    if no_extend:
+        pattern_gen_args.append("--no-extend")
 
     # break_on_err = True
     break_on_err = False
@@ -246,7 +250,7 @@ def run_pattern_gen(
                 elif "Pattern Generation failed for" in line:
                     # reason = line
                     is_err = True
-        print("pat", pat)
+        # print("pat", pat)
         if len(pat) > 0:
             pat = "\n".join(pat)
             pat_file = str(dest) + ".pat"
@@ -283,6 +287,7 @@ def convert_ll_to_gmir(
     dest: Path,
     mattr=None,
     xlen=None,
+    optimize=3,
     verbose: bool = False,
 ):
     """Convert LLVM-IR file to GMIR file."""
@@ -292,7 +297,7 @@ def convert_ll_to_gmir(
 
     assert xlen is not None, "Needs XLEN"
 
-    llc_args = [src, f"-mtriple=riscv{xlen}-unknown-elf", "-stop-after=irtranslator", "-global-isel", "-O3"]
+    llc_args = [src, f"-mtriple=riscv{xlen}-unknown-elf", "-stop-after=irtranslator", "-global-isel", f"-O{optimize}"]
 
     if mattr:
         llc_args.extend(["--mattr", mattr])

@@ -1,9 +1,9 @@
-def ${name} : Instruction, Sched<${sched_str}> {
+class RVInst_${name}<dag outs, dag ins> : Instruction, Sched<${sched_str}> {
     // General
     let Namespace = "RISCV";
-    let Size = ${xlen // 8};
+    let Size = ${size // 8};
     bits<32> SoftFail = 0;
-    bits<${xlen}> Inst;
+    bits<${size}> Inst;
 
     // Operands
     % for operand in operands:
@@ -33,10 +33,8 @@ def ${name} : Instruction, Sched<${sched_str}> {
         % endif
     % endfor
 
-
-    // Operands
-    dag InOperandList = (ins ${ins_str});
-    dag OutOperandList = (outs ${outs_str});
+    dag OutOperandList = outs;
+    dag InOperandList = ins;
 
     // Assembly
     let AsmString = "${real_name}\t${asm_str}";
@@ -46,3 +44,4 @@ def ${name} : Instruction, Sched<${sched_str}> {
     let Constraints = "${constraints_str}";
     % endif
 }
+def ${name} : RVInst_${name}<(outs ${outs_str}), (ins ${ins_str})>;

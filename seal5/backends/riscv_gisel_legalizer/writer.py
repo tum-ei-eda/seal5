@@ -48,21 +48,21 @@ def gen_riscv_gisel_legalizer_str(legalizer_settings: RISCVLegalizerSettings):
     if ops is None:
         return ""
     for op in ops:
-        print("op", op)
+        # print("op", op)
         names = op.name
-        print("names", names)
+        # print("names", names)
         types = op.types
-        print("types", types)
+        # print("types", types)
         onlyif = op.onlyif
-        print("onlyif", onlyif)
+        # print("onlyif", onlyif)
         if not isinstance(names, list):
             assert isinstance(names, str)
             names = [names]
-        print("names'", names)
+        # print("names'", names)
         if not isinstance(types, list):
             assert isinstance(types, str)
             names = [names]
-        print("types'", types)
+        # print("types'", types)
         types = [f"seal5_{ty}" for ty in types]
         types_str = "{" + ", ".join(types) + "}"
         for ty in types:
@@ -83,7 +83,7 @@ def gen_riscv_gisel_legalizer_str(legalizer_settings: RISCVLegalizerSettings):
         line += f"getActionDefinitionsBuilder({names_str}).legalFor({types_str});"
         settings_lines.append(line)
 
-    print("used_types")
+    # print("used_types")
     ret = ""
     ret += "{\n"
     ret += "\n".join(types_lines)

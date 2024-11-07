@@ -16,6 +16,8 @@ import os.path
 from typing import Union
 from dataclasses import dataclass
 
+import pandas as pd
+
 from m2isar.metamodel import arch
 
 from seal5.index import NamedPatch, write_index_yaml
@@ -24,12 +26,91 @@ from seal5.settings import IntrinsicDefn
 logger = logging.getLogger("riscv_intrinsics")
 
 
+# See https://github.com/llvm-mirror/clang/blob/master/include/clang/Basic/Builtins.def
+# Types:
+#  v -> void
+#  b -> boolean
+#  c -> char
+#  s -> short
+#  i -> int
+#  h -> half
+#  f -> float
+#  d -> double
+#  z -> size_t
+#  w -> wchar_t
+#  F -> constant CFString
+#  G -> id
+#  H -> SEL
+#  M -> struct objc_super
+#  a -> __builtin_va_list
+#  A -> "reference" to __builtin_va_list
+#  V -> Vector, followed by the number of elements and the base type.
+#  E -> ext_vector, followed by the number of elements and the base type.
+#  X -> _Complex, followed by the base type.
+#  Y -> ptrdiff_t
+#  P -> FILE
+#  J -> jmp_buf
+#  SJ -> sigjmp_buf
+#  K -> ucontext_t
+#  p -> pid_t
+#  . -> "...".  This may only occur at the end of the function list.
+#
+# Types may be prefixed with the following modifiers:
+#  L   -> long (e.g. Li for 'long int', Ld for 'long double')
+#  LL  -> long long (e.g. LLi for 'long long int', LLd for __float128)
+#  LLL -> __int128_t (e.g. LLLi)
+#  Z   -> int32_t (require a native 32-bit integer type on the target)
+#  W   -> int64_t (require a native 64-bit integer type on the target)
+#  N   -> 'int' size if target is LP64, 'L' otherwise.
+#  O   -> long for OpenCL targets, long long otherwise.
+#  S   -> signed
+#  U   -> unsigned
+#  I   -> Required to constant fold to an integer constant expression.
+#
+# Types may be postfixed with the following modifiers:
+# * -> pointer (optionally followed by an address space number, if no address
+#               space is specified than any address space will be accepted)
+# & -> reference (optionally followed by an address space number)
+# C -> const
+# D -> volatile
+#
+
+IR_TYPE_LOOKUP_TEXT = {
+    # "i32": "Li",
+    "i1": "b",
+    "i8": "c",
+    "i16": "s",
+    "i32": "Zi",
+    "i64": "Wi",
+    "f16": "h",
+    "f32": "f",
+    "f64": "d",
+    # TODO: sign?
+}
+
+IR_TYPE_LOOKUP_PAT = {
+    # TODO: use f"llvm_{ir_type}_ty" instead?
+    "i1": "llvm_i1_ty",
+    "i8": "llvm_i8_ty",
+    "i16": "llvm_i16_ty",
+    "i32": "llvm_i32_ty",
+    "i64": "llvm_i64_ty",
+    "f16": "llvm_half_ty",
+    "f32": "llvm_float_ty",
+    "f64": "llvm_double_ty",
+    # llvm_anyint_ty?
+    # llvm_anyvector_ty?
+    # llvm_ptr_ty?
+}
+
+
 def ir_type_to_text(ir_type: str):
-    # needs fleshing out with all likely types
-    # probably needs to take into account RISC-V bit width, e.g. does "Li" means 32 bit integer on a 128-bit platform?
-    if ir_type == "i32":
-        return "Li"
-    raise NotImplementedError(f'Unhandled ir_type "{ir_type}"')
+    # TODO: needs fleshing out with all likely types
+    # TODO: probably needs to take into account RISC-V bit width, e.g. does "Li"
+    #   means 32 bit integer on a 128-bit platform?
+    found = IR_TYPE_LOOKUP_TEXT.get(ir_type, None)
+    assert found is not None, f"Unhandled ir_type '{ir_type}'"
+    return found
 
 
 def build_target(arch: str, intrinsic: IntrinsicDefn):
@@ -47,13 +128,13 @@ def build_target(arch: str, intrinsic: IntrinsicDefn):
 
 def ir_type_to_pattern(ir_type: str):
     # needs fleshing out with all likely types
-    if ir_type == "i32":
-        return "llvm_i32_ty"
-    raise NotImplementedError(f'Unhandled ir_type "{ir_type}"')
+    found = IR_TYPE_LOOKUP_PAT.get(ir_type, None)
+    assert found is not None, f"Unhandled ir_type '{ir_type}'"
+    return found
 
 
 def build_attr(arch: str, intrinsic: IntrinsicDefn):
-    uses_mem = False  # @todo
+    # uses_mem = False  # TODO: use
     attr = f"  def int_riscv_{intrinsic.intrinsic_name} : Intrinsic<\n    ["
     if intrinsic.ret_type:
         attr += f"{ir_type_to_pattern(intrinsic.ret_type)}"
@@ -139,9 +220,20 @@ def main():
 
     metrics = {
         "n_sets": 0,
+        "n_instructions": 0,
+        "n_intrinsics": 0,
         "n_skipped": 0,
         "n_failed": 0,
         "n_success": 0,
+        "skipped_instrinsics": [],
+        "failed_intrinsics": [],
+        "success_intrinsics": [],
+        "skipped_instructions": [],
+        "failed_instructions": [],
+        "success_instructions": [],
+        "skipped_sets": [],
+        "failed_sets": [],
+        "success_sets": [],
     }
     # preprocess model
     # print("model", model)
@@ -155,13 +247,14 @@ def main():
         llvm_version = None
         if not settings or not settings.intrinsics.intrinsics:
             logger.warning("No intrinsics configured; didn't need to invoke intrinsics writer.")
-            quit()
+            quit()  # TODO: refactor this
         if settings:
             llvm_settings = settings.llvm
             if llvm_settings:
                 llvm_state = llvm_settings.state
                 if llvm_state:
                     llvm_version = llvm_state.version  # unused today, but needed very soon
+                    assert llvm_version.major >= 17
         patch_frags = {
             "target": PatchFrag(patchee="clang/include/clang/Basic/BuiltinsRISCV.def", tag="builtins_riscv"),
             "attr": PatchFrag(patchee="llvm/include/llvm/IR/IntrinsicsRISCV.td", tag="intrinsics_riscv"),
@@ -171,21 +264,32 @@ def main():
             artifacts[set_name] = []
             metrics["n_sets"] += 1
             ext_settings = set_def.settings
-            if ext_settings is None:
+            if ext_settings is None or len(settings.intrinsics.intrinsics) == 0:
                 metrics["n_skipped"] += 1
+                metrics["skipped_sets"].append(set_name)
                 continue
             for intrinsic in settings.intrinsics.intrinsics:
-                metrics["n_success"] += 1
-
-                patch_frags["target"].contents += build_target(arch=ext_settings.get_arch(), intrinsic=intrinsic)
-                patch_frags["attr"].contents += build_attr(arch=ext_settings.get_arch(), intrinsic=intrinsic)
-                patch_frags["emit"].contents += build_emit(arch=ext_settings.get_arch(), intrinsic=intrinsic)
+                if intrinsic.set_name is not None and intrinsic.set_name != set_name:
+                    continue
+                try:
+                    arch_ = ext_settings.get_arch(name=set_name)
+                    patch_frags["target"].contents += build_target(arch=arch_, intrinsic=intrinsic)
+                    patch_frags["attr"].contents += build_attr(arch=arch_, intrinsic=intrinsic)
+                    patch_frags["emit"].contents += build_emit(arch=arch_, intrinsic=intrinsic)
+                    metrics["n_success"] += 1
+                    metrics["success_instructions"].append(intrinsic.instr_name)
+                except Exception as ex:
+                    logger.exception(ex)
+                    metrics["n_failed"] += 1
+                    metrics["failed_instructions"].append(intrinsic.instr_name)
+                    # metrics["failed_intrinsics"].append(?)
+                metrics["success_sets"].append(set_name)
 
         for id, frag in patch_frags.items():
             contents = frag.contents
             if len(contents) > 0:
                 if id == "target":
-                    contents = f"// {ext_settings.get_arch()}\n{contents}\n"
+                    contents = f"// {arch_}\n{contents}\n"
                 elif id == "attr":
                     contents = f'let TargetPrefix = "riscv" in {{\n{contents}\n}}'
                 (root, ext) = os.path.splitext(out_path)
@@ -199,11 +303,8 @@ def main():
                 artifacts[None].append(patch)
     if args.metrics:
         metrics_file = args.metrics
-        with open(metrics_file, "w") as f:
-            f.write(",".join(metrics.keys()))
-            f.write("\n")
-            f.write(",".join(map(str, metrics.values())))
-            f.write("\n")
+        metrics_df = pd.DataFrame({key: [val] for key, val in metrics.items()})
+        metrics_df.to_csv(metrics_file, index=False)
     if args.index:
         if sum(map(lambda x: len(x), artifacts.values())) > 0:
             global_artifacts = artifacts.get(None, [])

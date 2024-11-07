@@ -48,6 +48,7 @@ TRANSFORM_PASS_MAP = [
     ("eliminate_rd_cmp_zero", passes.eliminate_rd_cmp_zero, {}),
     ("eliminate_mod_rfs", passes.eliminate_mod_rfs, {}),
     ("drop_unused2", passes.drop_unused, {}),
+    ("inline_functions", passes.inline_functions, {}),
     ("optimize_model", passes.optimize_model, {}),
     ("infer_types", passes.infer_types, {}),
     ("simplify_trivial_slices", passes.simplify_trivial_slices, {}),
@@ -61,6 +62,7 @@ TRANSFORM_PASS_MAP = [
     ("collect_operand_types", passes.collect_operand_types, {}),
     ("detect_side_effects", passes.detect_side_effects, {}),
     ("detect_inouts", passes.detect_inouts, {}),
+    ("detect_imm_leafs", passes.detect_imm_leafs, {}),
     ("write_cdsl_full", passes.write_cdsl, {"split": False, "compat": False}),
     # TODO: determine static constraints (xlen,...) -> subtargetvmap
     # detect memory adressing modes
@@ -318,6 +320,8 @@ class Seal5Flow:
         set_log_level(console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level)
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
         self.settings.metrics.append({"initialize": metrics})
         self.settings.save()
@@ -391,6 +395,8 @@ class Seal5Flow:
         # input("qqqqqq")
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
         self.settings.metrics.append({"setup": metrics})
         self.settings.save()
@@ -507,6 +513,8 @@ class Seal5Flow:
         )
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
         self.settings.metrics.append({"build": metrics})
         self.settings.save()
@@ -541,6 +549,8 @@ class Seal5Flow:
         )
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
         self.settings.metrics.append({"build": metrics})
         self.settings.save()
@@ -575,6 +585,8 @@ class Seal5Flow:
 
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
         self.settings.metrics.append({"transform": metrics})
         self.settings.save()
@@ -597,6 +609,8 @@ class Seal5Flow:
 
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
         self.settings.metrics.append({"generate": metrics})
         self.settings.save()
@@ -751,6 +765,7 @@ class Seal5Flow:
             stages = list(map(PatchStage, range(PatchStage.PHASE_5 + 1)))
         assert len(stages) > 0
         patches_per_stage = self.collect_patches()
+        stages_metrics = {}
         for stage in stages:
             logger.info("Current stage: %s", stage)
             patches = patches_per_stage.get(stage, [])
@@ -766,9 +781,25 @@ class Seal5Flow:
             # author = git_.get_author(self.settings.git)
             # self.repo.create_tag(tag_name, message=tag_msg, force=True, author=author)
             self.repo.create_tag(tag_name, message=tag_msg, force=True)
+            base_tag = f"seal5-{self.name}-base"
+            if int(stage) > 0:
+                prev_tag = f"seal5-{self.name}-stage{int(stage)-1}"
+            else:
+                prev_tag = base_tag
+            n_files_changed, n_insertions, n_deletions = inject_patches.analyze_diff(
+                self.repo, cur=tag_name, base=prev_tag
+            )
+            stage_metrics = {}
+            stage_metrics["n_files_changed"] = n_files_changed
+            stage_metrics["n_insertions"] = n_insertions
+            stage_metrics["n_deletions"] = n_deletions
+            stages_metrics[PatchStage(stage).name] = stage_metrics
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
+        metrics["stages"] = stages_metrics
         self.settings.metrics.append({"patch": metrics})
         self.settings.save()
         logger.info("Completed application of Seal5 patches")
@@ -784,19 +815,38 @@ class Seal5Flow:
         if config is None:
             config = self.settings.llvm.default_config
         test_paths = self.settings.test.paths
-        failing_tests = llvm.test_llvm(
-            self.directory / "llvm" / "test",
-            self.settings.get_llvm_build_dir(config=config, fallback=True, check=True),
-            test_paths,
-            verbose=verbose,
-        )
-        if len(failing_tests) > 0:
-            logger.error("%d tests failed: %s", len(failing_tests), ", ".join(failing_tests))
-            if not ignore_error:
-                raise RuntimeError("Tests failed!")
+        if len(test_paths) == 0:
+            logger.warning("No test paths have been specified!")
+            passed_tests = []
+            failing_tests = []
+            score = None
+        else:
+            passed_tests, failing_tests = llvm.test_llvm(
+                self.directory / "llvm" / "test",
+                self.settings.get_llvm_build_dir(config=config, fallback=True, check=True),
+                test_paths,
+                verbose=verbose,
+            )
+            num_tests = len(passed_tests) + len(failing_tests)
+            if num_tests == 0:
+                logger.warning("No tests have been executed!")
+                score = None
+            else:
+                if len(passed_tests) > 0:
+                    logger.info("%d tests passed: %s", len(passed_tests), ", ".join(passed_tests))
+                if len(failing_tests) > 0:
+                    logger.error("%d tests failed: %s", len(failing_tests), ", ".join(failing_tests))
+                    if not ignore_error:
+                        raise RuntimeError("Tests failed!")
+                score = len(passed_tests) / num_tests
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
+        metrics["failing"] = failing_tests
+        metrics["passed"] = passed_tests
+        metrics["score"] = f"{score*100:.2f}%" if score is not None else None
         self.settings.metrics.append({"test": metrics})
         self.settings.save()
         logger.info("Completed test of Seal5 LLVM")
@@ -810,10 +860,17 @@ class Seal5Flow:
         start = time.time()
         metrics = {}
         # TODO: move to different file
+        base_tag = f"seal5-{self.name}-base"
         tag_name = f"seal5-{self.name}-stage{int(stage)}"
+        n_files_changed, n_insertions, n_deletions = inject_patches.analyze_diff(self.repo, cur=tag_name, base=base_tag)
         self.repo.git.archive(tag_name, "-o", dest)
         end = time.time()
         diff = end - start
+        metrics["n_files_changed"] = n_files_changed
+        metrics["n_insertions"] = n_insertions
+        metrics["n_deletions"] = n_deletions
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
         self.settings.metrics.append({"deploy": metrics})
         self.settings.save()
@@ -855,6 +912,8 @@ class Seal5Flow:
 
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
         self.settings.metrics.append({"export": metrics})
         self.settings.save()
@@ -872,6 +931,8 @@ class Seal5Flow:
             self.settings.reset()
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
         self.settings.metrics.append({"reset": metrics})
         if self.meta_dir.is_dir():
@@ -913,6 +974,7 @@ class Seal5Flow:
             to_clean.append(self.settings.build_dir)
         if deps:
             to_clean.append(self.settings.deps_dir)
+        # TODO: cleanup settings.test.paths or self.settings.tests_dir
         # if gen:
         #     to_clean.append(self.settings.gen_dir)
         for path in to_clean:
@@ -920,6 +982,8 @@ class Seal5Flow:
         # self.reset(verbose=verbose, interactive=interactive)
         end = time.time()
         diff = end - start
+        metrics["start"] = start
+        metrics["end"] = end
         metrics["time_s"] = diff
         self.settings.metrics.append({"clean": metrics})
         if self.meta_dir.is_dir():

@@ -25,7 +25,7 @@ class LoadOrder(CoreDSL2Visitor):
 
     def visitInstruction_set(self, ctx: CoreDSL2Parser.Instruction_setContext):
         name = ctx.name.text
-        print("set", name, [e.text for e in ctx.extension])
+        # print("set", name, [e.text for e in ctx.extension])
 
         if name in self.instruction_sets:
             raise M2DuplicateError(f"instruction set {name} specified more than once")
@@ -39,7 +39,7 @@ class LoadOrder(CoreDSL2Visitor):
                     stack.append(x)
             stack.append(e.text)
         self.stacks[name] = stack
-        print("stacks", self.stacks)
+        # print("stacks", self.stacks)
 
     # def extend_ins_set(self, ins_set_name):
     # 	if ins_set_name not in self.instruction_sets:
@@ -72,7 +72,7 @@ class LoadOrder(CoreDSL2Visitor):
     # 	self.core_defs[name] = ins_set_queue
 
     def visit(self, tree):
-        print("visit", tree)
+        # print("visit", tree)
         _ = super().visit(tree)
 
         ret = {}

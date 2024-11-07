@@ -73,17 +73,25 @@ seal5_flow.initialize(
 
 # Load CoreDSL inputs
 cdsl_files = [
-    EXAMPLES_DIR / "cdsl" / "rv_openasip" / "OpenASIP_.core_desc",
+    EXAMPLES_DIR / "cdsl" / "rv_openasip" / "OpenASIP_base.core_desc",
+    EXAMPLES_DIR / "cdsl" / "rv_openasip" / "OpenASIP_paper.core_desc",
 ]
 seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load test inputs
-test_files = []  # TODO
+test_files = [
+    EXAMPLES_DIR / "tests" / "xopenasip" / "base" / "*.c",
+    EXAMPLES_DIR / "tests" / "xopenasip" / "base" / "*.s",
+    EXAMPLES_DIR / "tests" / "xopenasip" / "base" / "*.ll",
+    EXAMPLES_DIR / "tests" / "xopenasip" / "base" / "*.mir",
+]
 seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 
 # Load YAML inputs
 cfg_files = [
-    EXAMPLES_DIR / "cfg" / "openasip" / "OpenASIP.yml",  # TODO: move to other dir
+    EXAMPLES_DIR / "cfg" / "openasip" / "OpenASIP_paper.yml",
+    EXAMPLES_DIR / "cfg" / "openasip" / "OpenASIP_base.yml",
+    EXAMPLES_DIR / "cfg" / "openasip" / "intrinsics.yml",
     EXAMPLES_DIR / "cfg" / "llvm.yml",
     EXAMPLES_DIR / "cfg" / "filter.yml",
     EXAMPLES_DIR / "cfg" / "patches.yml",

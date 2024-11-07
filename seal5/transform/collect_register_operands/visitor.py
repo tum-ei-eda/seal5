@@ -115,9 +115,9 @@ def named_reference(self: behav.NamedReference, context):
 
 
 def indexed_reference(self: behav.IndexedReference, context):
-    print("indexed_reference", self)
-    print("self.reference", self.reference)
-    print("self.index", self.index)
+    # print("indexed_reference", self)
+    # print("self.reference", self.reference)
+    # print("self.index", self.index)
     if isinstance(self.reference, arch.Memory):
         mem_name = self.reference.name
         mem = self.reference
@@ -126,23 +126,23 @@ def indexed_reference(self: behav.IndexedReference, context):
         index = self.index
         offset = 0
         if isinstance(index, behav.BinaryOperation):  # offset?
-            print("binop!")
+            # print("binop!")
             if index.op.value == "+":
-                print("offset!")
+                # print("offset!")
                 if isinstance(index.left, behav.NamedReference):
-                    print("lhs named")
+                    # print("lhs named")
                     if isinstance(index.right, behav.IntLiteral):
-                        print("rhs const")
+                        # print("rhs const")
                         offset = index.right.value
                         index = index.left
                 elif isinstance(index.right, behav.NamedReference):
-                    print("rhs named")
+                    # print("rhs named")
                     if isinstance(index.left, behav.IntLiteral):
-                        print("lhs const")
+                        # print("lhs const")
                         offset = index.left.value
                         index = index.right
-        print("index", index)
-        print("offset", offset)
+        # print("index", index)
+        # print("offset", offset)
         if isinstance(index, behav.NamedReference):
             if isinstance(index.reference, arch.BitFieldDescr):
                 op_name = index.reference.name
