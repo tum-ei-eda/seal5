@@ -137,7 +137,7 @@ jobs:
       with:
         name: etiss-run-id
         github_token: ${{ secrets.SEAL5_ACCESS_TOKEN }}
-        repository: tum-ei-eda/seal5
+        repo: tum-ei-eda/seal5
         path: /home/runner/work/
         workflow: sync_etiss_seal5_build.yml
         workflow_conclusion: success
