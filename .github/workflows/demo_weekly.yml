@@ -142,8 +142,8 @@ jobs:
         echo >> $GITHUB_STEP_SUMMARY
 
         # Status
-        python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml ---output reports/status.csv
-        python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact ---output reports/status_compact.csv
+        python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/status.csv
+        python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/status_compact.csv
         python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/status.md --markdown-icons
         python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/status_compact.md --markdown-icons
         echo "### Status" >> $GITHUB_STEP_SUMMARY
