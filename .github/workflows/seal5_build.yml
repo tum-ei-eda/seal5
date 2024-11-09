@@ -23,49 +23,6 @@ name: Usage Seal5-Build
 on:
   repository_dispatch:
     types: [s4e-cdsl-event]
-  workflow_dispatch:
-    inputs:
-      # script:
-      #   description: "Script"
-      #   required: true
-      #   default: "s4e_demo.py"
-      verbose:
-        description: "Verbose (0/1)"
-        required: true
-        default: "0"
-      progress:
-        description: "Enable progress bars (0/1)"
-        required: true
-        default: "1"
-      clone_depth:
-        description: "Clone Depth (-1 for full clone)"
-        required: true
-        default: "1"
-
-      ignore_error:
-        description: "Ignore Errors in TEST stage (0/1)"
-        required: true
-        default: "1"
-      build_config:
-        description: "Build Config (debug/release/...)"
-        required: true
-        default: "release_assertions"
-      test:
-        description: "Run LLVM tests"
-        required: true
-        default: "1"
-      install:
-        description: "Install LLVM (and upload as artifact)"
-        required: true
-        default: "1"
-      deploy:
-        description: "Install LLVM Sources (and upload as artifact)"
-        required: true
-        default: "1"
-      export:
-        description: "Install Seal5 Artifacts (and upload as artifact)"
-        required: true
-        default: "1"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -77,8 +34,9 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.10"]
-        os: ["ubuntu-latest"]
+        os: ["ubuntu-22.04"]
         ccache: ["1"]
+        build_config: ["release"]
     steps:
     - uses: actions/checkout@v4
       with:
@@ -88,7 +46,7 @@ jobs:
       uses: hendrikmuhs/ccache-action@v1
       with:
         max-size: 2G
-        key: ${{ matrix.os }}-s4e_demo.py-${{ github.event.inputs.build_config }}
+        key: ${{ matrix.os }}-s4e_demo.py-${{ matrix.build_config }}
         variant: sccache
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
@@ -113,19 +71,17 @@ jobs:
     - name: Run the demo
       run: |
         source .venv/bin/activate
-        VERBOSE=0 PROGESS=1 CLONE_DEPTH=1 CCACHE=${{ matrix.ccache }} BUILD_CONFIG=release IGNORE_ERROR=1 TEST=1 INSTALL=1 DEPLOY=1 EXPORT=1 DEST=/tmp/seal5_llvm python3 examples/s4e_demo.py
+        VERBOSE=0 PROGESS=1 CLONE_DEPTH=1 CCACHE=${{ matrix.ccache }} BUILD_CONFIG=${{ matrix.build_config }} IGNORE_ERROR=1 TEST=1 INSTALL=1 EXPORT=1 DEST=/tmp/seal5_llvm python3 examples/s4e_demo.py
 
     - uses: actions/upload-artifact@v4
-      if: "${{ github.event.inputs.export == '1' || github.event_name == 'repository_dispatch' }}"
       with:
-        name: demo-export
+        name: demo-export-${{ matrix.os }}-${{ matrix.build_config }}
         path: /tmp/seal5_llvm.tar.gz
 
     - uses: actions/upload-artifact@v4
-      if: "${{ github.event.inputs.install == '1' || github.event_name == 'repository_dispatch' }}"
       with:
-        name: demo-install
-        path: /tmp/seal5_llvm/.seal5/install/${{ github.event.inputs.build_config }}
+        name: demo-install-${{ matrix.os }}-${{ matrix.build_config }}
+        path: /tmp/seal5_llvm/.seal5/install/${{ matrix.build_config }}
 
   trigger_etiss_example_build:
     runs-on: ubuntu-latest
