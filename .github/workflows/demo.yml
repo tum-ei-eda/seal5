@@ -175,7 +175,7 @@ jobs:
         # Stage Times
         python3 -m seal5.backends.report.times.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/stage_times.csv --sum-level 2
         python3 -m seal5.backends.report.times.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/stage_times.md --sum-level 2
-        python3 -m seal5.backends.report.times.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/stage_times.mermaid --aum-level 2
+        python3 -m seal5.backends.report.times.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/stage_times.mermaid --sum-level 2
         echo "### Stage/Pass Times" >> $GITHUB_STEP_SUMMARY
         echo >> $GITHUB_STEP_SUMMARY
         cat reports/stage_times.md >> $GITHUB_STEP_SUMMARY
