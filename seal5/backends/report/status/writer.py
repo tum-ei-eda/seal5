@@ -32,7 +32,7 @@ def main():
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--fmt", type=str, choices=["auto", "csv", "pkl", "md"], default="auto")
     parser.add_argument("--yaml", type=str, default=None)
-    parser.add_argument("--cols2rows", action="store_true")
+    parser.add_argument("--compact", action="store_true")
     parser.add_argument("--markdown-icons", action="store_true")
     args = parser.parse_args()
 
@@ -179,13 +179,29 @@ def main():
                     "xlen": xlen,
                     "instr": instr_name,
                 }
-                if args.cols2rows:
+                if not args.compact:
                     for pass_name, pass_status in get_status(filtered_metrics, instr_name, invert=True).items():
                         stage_name, pass_rest = pass_name.split(".", 1)
                         data_ = {**data, "stage": stage_name, "pass": pass_rest, "status": pass_status}
                         status_data.append(data_)
                 else:
                     data_ = {**data, **get_status(filtered_metrics, instr_name, invert=False)}
+                    data_["n_success"] = len(data_["success"])
+                    del data_["success"]
+                    data_["n_skipped"] = len(data_["skipped"])
+                    del data_["skipped"]
+                    data_["n_failed"] = len(data_["failed"])
+                    del data_["failed"]
+                    data_["n_total"] = data_["n_failed"] + data_["n_skipped"] + data_["n_success"]
+                    def helper(success, skipped, failed):
+                        if failed:
+                            return "bad"
+                        if skipped:
+                            return "ok"
+                        if success:
+                            return "good"
+                        return "unknown"
+                    data_["status"] = helper(data_["n_success"], data_["n_skipped"], data_["n_failed"])
                     status_data.append(data_)
     status_df = pd.DataFrame(status_data)
     fmt = args.fmt
@@ -206,6 +222,10 @@ def main():
                 x = x.replace("success", "success :heavy_check_mark:")
                 x = x.replace("skipped", "skipped :question:")
                 x = x.replace("failed", "failed :x:")
+                x = x.replace("good", "good :green_circle:")
+                x = x.replace("ok", "ok :orange_circle:")
+                x = x.replace("unknown", "unknown :yellow_circle:")
+                x = x.replace("bad", "bad :red_circle:")
                 return x
 
             status_df["status"] = status_df["status"].apply(helper)

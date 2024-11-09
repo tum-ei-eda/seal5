@@ -33,6 +33,7 @@ def main():
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--fmt", type=str, choices=["auto", "csv", "pkl", "md"], default="auto")
     parser.add_argument("--yaml", type=str, default=None)
+    parser.add_argument("--compact", action="store_true")
     parser.add_argument("--markdown-icons", action="store_true")
     args = parser.parse_args()
 
@@ -286,6 +287,35 @@ def main():
         results_data.append(data_)
 
     results_df = pd.DataFrame(results_data)
+
+    if args.compact:
+        new = []
+        for group, group_df in results_df.groupby(["model", "set", "xlen", "instr"], dropna=False):
+            n_tests = len(group_df)
+            counts = group_df["result"].value_counts()
+            n_pass = counts.get("PASS")
+            n_fail = counts.get("FAIL")
+            def helper(n_tests, n_pass, n_fail):
+                if n_fail:
+                    return "bad"
+                if n_pass:
+                    return "good"
+                return "unknown"
+
+            state = helper(n_tests, n_pass, n_fail)
+            new_ = {
+                "model": group[0],
+                "set": group[1],
+                "xlen": group[2],
+                "instr": group[3],
+                "n_pass": n_pass,
+                "n_fail": n_fail,
+                "n_tests": n_tests,
+                "state": state,
+            }
+            new.append(new_)
+        results_df = pd.DataFrame(new)
+
     fmt = args.fmt
     if fmt == "auto":
         fmt = out_path.suffix
@@ -303,9 +333,16 @@ def main():
             def helper(x):
                 x = x.replace("PASS", "PASS :heavy_check_mark:")
                 x = x.replace("FAIL", "FAIL :x:")
+                x = x.replace("good", "good :green_circle:")
+                x = x.replace("ok", "ok :orange_circle:")
+                x = x.replace("unknown", "unknown :yellow_circle:")
+                x = x.replace("bad", "bad :red_circle:")
                 return x
 
-            results_df["result"] = results_df["result"].apply(helper)
+            if args.compact:
+                results_df["state"] = results_df["state"].apply(helper)
+            else:
+                results_df["result"] = results_df["result"].apply(helper)
         results_df.to_markdown(out_path, index=False)
     else:
         raise ValueError(f"Unsupported fmt: {fmt}")
