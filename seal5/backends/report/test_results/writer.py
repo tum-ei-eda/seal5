@@ -293,8 +293,8 @@ def main():
         for group, group_df in results_df.groupby(["model", "set", "xlen", "instr"], dropna=False):
             n_tests = len(group_df)
             counts = group_df["result"].value_counts()
-            n_pass = counts.get("PASS")
-            n_fail = counts.get("FAIL")
+            n_pass = counts.get("PASS", 0)
+            n_fail = counts.get("FAIL", 0)
             def helper(n_tests, n_pass, n_fail):
                 if n_fail:
                     return "bad"
