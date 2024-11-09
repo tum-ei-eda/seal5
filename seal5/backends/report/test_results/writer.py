@@ -222,7 +222,7 @@ def main():
                 instr_name = instr_def.name
 
                 data = {
-                    "model_name": model_name,
+                    "model": model_name,
                     "set": set_name,
                     "xlen": xlen,
                     "instr": instr_name,
