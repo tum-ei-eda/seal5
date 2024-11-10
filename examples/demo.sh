@@ -42,6 +42,7 @@ NAME=${NAME:-"cli_demo"}
 Example_files=examples/cdsl/rv_example/Example.core_desc
 export SEAL5_HOME=$DEST
 Config_files=(examples/cfg/llvm.yml examples/cfg/filter.yml examples/cfg/patches.yml examples/cfg/riscv.yml examples/cfg/tests.yml examples/cfg/passes.yml examples/cfg/git.yml)
+Test_files=(examples/tests/xexample/xexample-*.s examples/tests/xexample/xexample-*.ll examples/tests/xexample/xexample-*.c)
 
 echo Example_files:;
 echo ${Example_files};
@@ -74,6 +75,7 @@ seal5 --verbose --dir ${SEAL5_HOME} clean --temp --patches --models --inputs
 seal5 --verbose --dir ${SEAL5_HOME} init $INTERACTIVE_ARGS -c --clone-depth $CLONE_DEPTH $PROGRESS_ARGS -f
 seal5 --verbose load --files ${Example_files}
 seal5 --verbose load --files ${Config_files[@]}
+seal5 --verbose load --files ${Test_files[@]}
 seal5 --verbose setup $PROGRESS_ARGS
 seal5 --verbose patch -s 0
 seal5 --verbose build --config $BUILD_CONFIG $CCACHE_ARGS
