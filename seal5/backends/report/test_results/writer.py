@@ -288,7 +288,7 @@ def main():
 
     results_df = pd.DataFrame(results_data)
 
-    if args.compact:
+    if args.compact and len(results_df) > 0:
         new = []
         for group, group_df in results_df.groupby(["model", "set", "xlen", "instr"], dropna=False):
             n_tests = len(group_df)
