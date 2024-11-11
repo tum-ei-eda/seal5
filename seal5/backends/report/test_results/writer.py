@@ -19,6 +19,7 @@ import pandas as pd
 
 from m2isar.metamodel import arch
 from seal5.settings import Seal5Settings
+from seal5.model import Seal5InstrAttribute
 
 logger = logging.getLogger("test_results_writer")
 
@@ -35,6 +36,7 @@ def main():
     parser.add_argument("--yaml", type=str, default=None)
     parser.add_argument("--compact", action="store_true")
     parser.add_argument("--markdown-icons", action="store_true")
+    parser.add_argument("--coverage", default=None)
     args = parser.parse_args()
 
     # initialize logging
@@ -184,6 +186,8 @@ def main():
         return ret, used
 
     results_data = []
+    if args.coverage:
+        coverage_data = []
     # resolve model paths
     top_levels = args.top_level
     for top_level in top_levels:
@@ -227,7 +231,73 @@ def main():
                     "xlen": xlen,
                     "instr": instr_name,
                 }
+
                 found_tests, used = filter_tests_by_instr(instr_tests, instr_def)
+                if args.coverage:
+
+                    def get_instr_cov(instr_def, tests, settings):
+                        skip_pattern_gen = Seal5InstrAttribute.SKIP_PATTERN_GEN in instr_def.attributes
+                        has_legalizer_settings = False  # TODO: get from settings
+
+                        def lookup_intrin(instr_name, settings):
+                            if settings.intrinsics is None:
+                                return None
+                            intrinsics = settings.intrinsics.intrinsics
+                            if not intrinsics:
+                                return None
+                            found = None
+                            for intrin in intrinsics:
+                                if intrin.instr_name == instr_name:
+                                    found = intrin
+                                    break
+                            return found
+
+                        intrin = lookup_intrin(instr_def.name, settings)
+                        has_intrin = intrin is not None
+                        # (test_kind, test_fmt): optional
+                        temp = {
+                            ("mc", "s"): True,
+                            ("mc-invalid", "s"): False,
+                            ("inline-asm", "c"): False,
+                            ("cg", "ll"): not skip_pattern_gen,
+                            ("cg", "c"): not skip_pattern_gen,
+                            ("cg", "mir"): not skip_pattern_gen,
+                            ("legalizer", "mir"): has_legalizer_settings,
+                            ("intrin", "ll"): has_intrin,
+                            ("builtin", "c"): has_intrin,
+                        }
+                        # (test_kind, test_fmt, optional): (extra, exists)
+                        temp2 = {key: (val, False, False) for key, val in temp.items()}
+                        for test_kind, test_file, test_fmt, test_result in found_tests:
+                            required = temp.get((test_kind, test_fmt), None)
+                            if required is not None:
+                                temp2[(test_kind, test_fmt)] = (required, False, True)
+                            else:
+                                temp2[(test_kind, test_fmt)] = (False, True, True)
+                        # (test_kind, test_fmt, optional, extra, exists)
+                        ret = [(*key, *val) for key, val in temp2.items()]
+                        return ret
+
+                    instr_cov = get_instr_cov(instr_def, found_tests, settings)
+                    for test_kind, test_fmt, required, extra, exists in instr_cov:
+
+                        def helper(required, extra, exists):
+                            if exists:
+                                return "good"
+                            if not required:
+                                return "ok"
+                            return "bad"
+
+                        data_cov = {
+                            **data,
+                            "test_kind": test_kind,
+                            "test_fmt": test_fmt,
+                            "required": required,
+                            "extra": extra,
+                            "exists": exists,
+                            "coverage": helper(required, extra, exists),
+                        }
+                        coverage_data.append(data_cov)
                 used_keys.update(used)
                 for test_kind, test_file, test_fmt, test_result in found_tests:
                     data_ = {
@@ -316,6 +386,46 @@ def main():
             new.append(new_)
         results_df = pd.DataFrame(new)
 
+    if args.coverage:
+        # TODO: also add set test coverage
+        coverage_df = pd.DataFrame(coverage_data)
+        if args.compact and len(coverage_df) > 0:
+            new = []
+            for group, group_df in coverage_df.groupby(["model", "set", "xlen", "instr"], dropna=False):
+                n_exists = group_df["exists"].value_counts().get(True, 0)
+                n_required = group_df["required"].value_counts().get(True, 0)
+                n_optional = group_df[["required", "extra"]].value_counts().get((False, False), 0)
+                n_extra = group_df["extra"].value_counts().get(True, 0)
+                n_required_exists = group_df[["required", "exists"]].value_counts().get((True, True), 0)
+                n_optional_exists = group_df[["required", "exists"]].value_counts().get((False, True), 0)
+
+                def helper2(n_exists, n_required, n_required_exists, n_optional, n_optional_exists):
+                    if n_exists == 0:
+                        return "bad"
+                    if n_required_exists < n_required:
+                        return "bad"
+                    assert n_required_exists == n_required
+                    if n_optional_exists == n_optional:
+                        return "good"
+                    return "ok"
+
+                cov = helper2(n_exists, n_required, n_required_exists, n_optional, n_optional_exists)
+                new_ = {
+                    "model": group[0],
+                    "set": group[1],
+                    "xlen": group[2],
+                    "instr": group[3],
+                    "n_exists": n_exists,
+                    "n_required": n_required,
+                    "n_optional": n_optional,
+                    "n_extra": n_extra,
+                    "n_required_exists": n_required_exists,
+                    "n_optional_exists": n_optional_exists,
+                    "coverage": cov,
+                }
+                new.append(new_)
+            coverage_df = pd.DataFrame(new)
+
     fmt = args.fmt
     if fmt == "auto":
         fmt = out_path.suffix
@@ -328,7 +438,7 @@ def main():
         results_df.to_pickle(out_path)
     elif fmt == "md":
         # results_df.to_markdown(out_path, tablefmt="grid", index=False)
-        if args.markdown_icons:
+        if args.markdown_icons and len(results_df) > 0:
 
             def helper(x):
                 x = x.replace("PASS", "PASS :heavy_check_mark:")
@@ -346,6 +456,38 @@ def main():
         results_df.to_markdown(out_path, index=False)
     else:
         raise ValueError(f"Unsupported fmt: {fmt}")
+
+    if args.coverage:
+        # TODO: share code
+        cov_path = pathlib.Path(args.coverage)
+        fmt = args.fmt
+        if fmt == "auto":
+            fmt = cov_path.suffix
+            assert len(fmt) > 1
+            fmt = fmt[1:].lower()
+
+        if fmt == "csv":
+            coverage_df.to_csv(cov_path, index=False)
+        elif fmt == "pkl":
+            coverage_df.to_pickle(cov_path)
+        elif fmt == "md":
+            # coverage_df.to_markdown(cov_path, tablefmt="grid", index=False)
+            if args.markdown_icons and len(coverage_df) > 0:
+
+                def helper(x):
+                    x = x.replace("good", "good :green_circle:")
+                    x = x.replace("ok", "ok :orange_circle:")
+                    x = x.replace("unknown", "unknown :yellow_circle:")
+                    x = x.replace("bad", "bad :red_circle:")
+                    return x
+
+                if args.compact:
+                    coverage_df["coverage"] = coverage_df["coverage"].apply(helper)
+                else:
+                    coverage_df["coverage"] = coverage_df["coverage"].apply(helper)
+            coverage_df.to_markdown(cov_path, index=False)
+        else:
+            raise ValueError(f"Unsupported fmt: {fmt}")
 
 
 if __name__ == "__main__":
