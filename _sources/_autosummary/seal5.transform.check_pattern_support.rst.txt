@@ -1,0 +1,13 @@
+seal5.transform.check\_pattern\_support
+=======================================
+
+.. automodule:: seal5.transform.check_pattern_support
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   check

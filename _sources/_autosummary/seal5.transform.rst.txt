@@ -10,6 +10,7 @@ seal5.transform
    :toctree:
    :recursive:
 
+   check_pattern_support
    collect_immediate_operands
    collect_operand_types
    collect_raises

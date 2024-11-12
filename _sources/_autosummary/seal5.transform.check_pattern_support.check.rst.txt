@@ -1,0 +1,14 @@
+seal5.transform.check\_pattern\_support.check
+=============================================
+
+.. automodule:: seal5.transform.check_pattern_support.check
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_parser
+      main
+      run
+   
