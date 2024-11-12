@@ -82,7 +82,7 @@ seal5 --verbose build --config $BUILD_CONFIG $CCACHE_ARGS
 seal5 --verbose transform
 seal5 --verbose generate --skip pattern_gen
 seal5 --verbose patch -s 1 2
-if [[ $SKIP_PATTERNS -eq 0 ]]
+if [[ "$SKIP_PATTERNS" == "0" ]]
 then
     seal5 --verbose build --config $BUILD_CONFIG $CCACHE_ARGS
     seal5 --verbose build --config $BUILD_CONFIG -t pattern-gen $CCACHE_ARGS
@@ -92,27 +92,27 @@ fi
 seal5 --verbose patch -s 3 4 5
 seal5 --verbose build --config $BUILD_CONFIG $CCACHE_ARGS
 
-if [[ $TEST -eq 1 ]]
+if [[ "$TEST" == "1" ]]
 then
     TEST_EXTRA_ARGS=""
-    if [[ $IGNORE_ERROR -eq 1 ]]
+    if [[ $IGNORE_ERROR == "1" ]]
     then
         TEST_EXTRA_ARGS="$TEST_EXTRA_ARGS --ignore-error"
     fi
-    seal5 --verbose test
+    seal5 --verbose test $TEST_EXTRA_ARGS
 fi
 
-if [[ $INSTALL -eq 1 ]]
+if [[ "$INSTALL" == 1 ]]
 then
     seal5 --verbose install --config $BUILD_CONFIG $CCACHE_ARGS
 fi
 
-if [[ $DEPLOY -eq 1 ]]
+if [[ "$DEPLOY" == "1" ]]
 then
     seal5 --verbose deploy --dest ${DEST%/}_source.zip
 fi
 
-if [[ $EXPORT -eq 1 ]]
+if [[ "$EXPORT" == "1" ]]
 then
     seal5 --verbose export --dest ${DEST%/}.tar.gz
 fi
