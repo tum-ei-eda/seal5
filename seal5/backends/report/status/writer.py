@@ -193,6 +193,7 @@ def main():
                     data_["n_failed"] = len(data_["failed"])
                     del data_["failed"]
                     data_["n_total"] = data_["n_failed"] + data_["n_skipped"] + data_["n_success"]
+
                     def helper(success, skipped, failed):
                         if failed:
                             return "bad"
@@ -201,6 +202,7 @@ def main():
                         if success:
                             return "good"
                         return "unknown"
+
                     data_["status"] = helper(data_["n_success"], data_["n_skipped"], data_["n_failed"])
                     status_data.append(data_)
     status_df = pd.DataFrame(status_data)

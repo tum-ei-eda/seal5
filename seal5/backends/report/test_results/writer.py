@@ -365,6 +365,7 @@ def main():
             counts = group_df["result"].value_counts()
             n_pass = counts.get("PASS", 0)
             n_fail = counts.get("FAIL", 0)
+
             def helper(n_tests, n_pass, n_fail):
                 if n_fail:
                     return "bad"

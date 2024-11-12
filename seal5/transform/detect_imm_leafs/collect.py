@@ -112,14 +112,11 @@ def run(args):
                     operand = instr_def.operands.get(name)
                     assert operand is not None
                     operand.attributes[seal5.model.Seal5OperandAttribute.IS_IMM_LEAF] = []
-                    # print("operand.attributes", operand.attributes)
-                    # input("??")
                     instr_def.operands[name] = operand
                 metrics["n_success"] += 1
                 metrics["success_instructions"].append(instr_def.name)
             except Exception as ex:
                 logger.exception(ex)
-                input(">>>2")
                 metrics["n_failed"] += 1
                 metrics["failed_instructions"].append(instr_def.name)
 

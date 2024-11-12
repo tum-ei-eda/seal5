@@ -111,7 +111,7 @@ def main():
     if args.pass_times:
         pass_times_df = pd.DataFrame(pass_times).sort_values("start")
         if args.sum_level:
-            pass_times_df["pass"] = pass_times_df["pass"].apply(lambda x: ".".join(x.split(".")[:args.sum_level]))
+            pass_times_df["pass"] = pass_times_df["pass"].apply(lambda x: ".".join(x.split(".")[: args.sum_level]))
             pass_times_df = pass_times_df.groupby("pass", as_index=False).agg({"start": "min", "end": "max"})
             pass_times_df["time_s"] = pass_times_df["end"] - pass_times_df["start"]
             pass_times_df.sort_values("start", inplace=True)

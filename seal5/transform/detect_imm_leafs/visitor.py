@@ -63,7 +63,7 @@ def block(self: behav.Block, context):
                         continue
         stmts.append(stmt)
 
-    return reduce(lambda x, y: x | y, stmts)
+    return reduce(lambda x, y: x | y, stmts) if len(stmts) > 0 else Mode.NONE
 
 
 def binary_operation(self: behav.BinaryOperation, context):
