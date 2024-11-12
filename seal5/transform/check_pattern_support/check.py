@@ -125,7 +125,7 @@ def run(args):
                     is_noop
                     or is_rvc
                     or (num_ins == 0)
-                    or (num_outs == 0)
+                    or (num_outs != 0)
                     or may_load
                     or may_store
                     or is_branch
