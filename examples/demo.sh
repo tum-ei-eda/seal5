@@ -27,13 +27,14 @@ SKIP_PATTERNS=${SKIP_PATTERNS:-0}
 INTERACTIVE=${INTERACTIVE:-0}
 # PREPATCHED=${PREPATCHED:-0}
 BUILD_CONFIG=${BUILD_CONFIG:-"release"}
-IGNORE_ERROR=${IGNORE_ERRORI:-1}
+IGNORE_ERROR=${IGNORE_ERROR:-1}
 TEST=${TEST:-1}
 INSTALL=${INSTALL:-1}
 DEPLOY=${DEPLOY:-1}
 EXPORT=${EXPORT:-1}
 CLEANUP=${CLEANUP:-0}
 PROGRESS=${PROGRESS:-1}
+CCACHE=${PROGRESS:-0}
 CLONE_DEPTH=${CLONE_DEPTH:-1}
 DEST=${DEST:-"/tmp/seal5_llvm_cli_demo"}
 NAME=${NAME:-"cli_demo"}
@@ -41,6 +42,7 @@ NAME=${NAME:-"cli_demo"}
 Example_files=examples/cdsl/rv_example/Example.core_desc
 export SEAL5_HOME=$DEST
 Config_files=(examples/cfg/llvm.yml examples/cfg/filter.yml examples/cfg/patches.yml examples/cfg/riscv.yml examples/cfg/tests.yml examples/cfg/passes.yml examples/cfg/git.yml)
+Test_files=(examples/tests/xexample/xexample-*.s examples/tests/xexample/xexample-*.ll examples/tests/xexample/xexample-*.c)
 
 echo Example_files:;
 echo ${Example_files};
@@ -58,52 +60,59 @@ fi
 INTERACTIVE_ARGS=""
 if [[ $INTERACTIVE -eq 0 ]]
 then
-    PROGRESS_ARGS="--non-interactive"
+    INTERACTIVE_ARGS="--non-interactive"
+fi
+
+CCACHE_ARGS=""
+if [[ $CCACHE -eq 1 ]]
+then
+    CCACHE_ARGS="--ccache"
 fi
 
 
 seal5 --verbose --dir ${SEAL5_HOME} reset  --settings
 seal5 --verbose --dir ${SEAL5_HOME} clean --temp --patches --models --inputs
-seal5 --verbose --dir ${SEAL5_HOME} init $INTERACTIVE_ARGS -c --clone-depth $CLONE_DEPTH $PROGRESS_ARGS
+seal5 --verbose --dir ${SEAL5_HOME} init $INTERACTIVE_ARGS -c --clone-depth $CLONE_DEPTH $PROGRESS_ARGS -f
 seal5 --verbose load --files ${Example_files}
 seal5 --verbose load --files ${Config_files[@]}
+seal5 --verbose load --files ${Test_files[@]}
 seal5 --verbose setup $PROGRESS_ARGS
 seal5 --verbose patch -s 0
-seal5 --verbose build --config $BUILD_CONFIG
+seal5 --verbose build --config $BUILD_CONFIG $CCACHE_ARGS
 seal5 --verbose transform
 seal5 --verbose generate --skip pattern_gen
 seal5 --verbose patch -s 1 2
-if [[ $SKIP_PATTERNS -eq 0 ]]
+if [[ "$SKIP_PATTERNS" == "0" ]]
 then
-    seal5 --verbose build --config $BUILD_CONFIG
-    seal5 --verbose build --config $BUILD_CONFIG -t pattern-gen
-    seal5 --verbose build --config $BUILD_CONFIG -t llc
+    seal5 --verbose build --config $BUILD_CONFIG $CCACHE_ARGS
+    seal5 --verbose build --config $BUILD_CONFIG -t pattern-gen $CCACHE_ARGS
+    seal5 --verbose build --config $BUILD_CONFIG -t llc $CCACHE_ARGS
     seal5 --verbose generate --only pattern_gen
 fi
 seal5 --verbose patch -s 3 4 5
-seal5 --verbose build --config $BUILD_CONFIG
+seal5 --verbose build --config $BUILD_CONFIG $CCACHE_ARGS
 
-if [[ $TEST -eq 1 ]]
+if [[ "$TEST" == "1" ]]
 then
     TEST_EXTRA_ARGS=""
-    if [[ $IGNORE_ERROR -eq 1 ]]
+    if [[ $IGNORE_ERROR == "1" ]]
     then
         TEST_EXTRA_ARGS="$TEST_EXTRA_ARGS --ignore-error"
     fi
-    seal5 --verbose test
+    seal5 --verbose test $TEST_EXTRA_ARGS
 fi
 
-if [[ $INSTALL -eq 1 ]]
+if [[ "$INSTALL" == 1 ]]
 then
-    seal5 --verbose install --config $BUILD_CONFIG
+    seal5 --verbose install --config $BUILD_CONFIG $CCACHE_ARGS
 fi
 
-if [[ $DEPLOY -eq 1 ]]
+if [[ "$DEPLOY" == "1" ]]
 then
     seal5 --verbose deploy --dest ${DEST%/}_source.zip
 fi
 
-if [[ $EXPORT -eq 1 ]]
+if [[ "$EXPORT" == "1" ]]
 then
     seal5 --verbose export --dest ${DEST%/}.tar.gz
 fi

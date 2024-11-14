@@ -8,12 +8,9 @@
 
 """Utility stuff for M2-ISA-R viewer"""
 
-from typing import TYPE_CHECKING
+import tkinter as tk
+from tkinter import ttk
 from anytree import Node
-
-if TYPE_CHECKING:
-    import tkinter as tk
-    from tkinter import ttk
 
 
 class TreeGenContext:

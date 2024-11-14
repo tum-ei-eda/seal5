@@ -35,6 +35,10 @@ on:
         description: "Enable progress bars (0/1)"
         required: true
         default: "1"
+      # ccache:
+      #   description: "Enable ccache (0/1)"
+      #   required: true
+      #   default: "0"
       clone_depth:
         description: "Clone Depth (-1 for full clone)"
         required: true
@@ -50,7 +54,7 @@ on:
       build_config:
         description: "Build Config (debug/release/...)"
         required: true
-        default: "release"
+        default: "release_assertions"
       test:
         description: "Run LLVM tests"
         required: true
@@ -77,16 +81,25 @@ on:
 
 jobs:
   demo:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         python-version: ["3.10"]
+        os: ["ubuntu-latest"]
+        ccache: ["1"]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
+    - name: Setup ccache
+      if: ${{ matrix.ccache == '1' }}
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        max-size: 2G
+        key: ${{ matrix.os }}-${{ github.event.inputs.script }}-${{ github.event.inputs.build_config }}
+        variant: sccache
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install APT packages
@@ -121,18 +134,82 @@ jobs:
     - name: Run the demo
       run: |
         source .venv/bin/activate
-        VERBOSE=${{ github.event.inputs.verbose }} PROGESS=${{ github.event.inputs.progress }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ github.event.inputs.test }} INSTALL=${{ github.event.inputs.install }} DEPLOY=${{ github.event.inputs.deploy }} EXPORT=${{ github.event.inputs.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
-    - uses: actions/upload-artifact@v4
+        VERBOSE=${{ github.event.inputs.verbose }} PROGRESS=${{ github.event.inputs.progress }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ github.event.inputs.test }} INSTALL=${{ github.event.inputs.install }} DEPLOY=${{ github.event.inputs.deploy }} EXPORT=${{ github.event.inputs.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
+    - name: Generate Reports
+      run: |
+        source .venv/bin/activate
+        mkdir reports/
+
+        # Properties
+        python3 -m seal5.backends.report.properties.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --output reports/properties.csv
+        python3 -m seal5.backends.report.properties.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --output reports/properties.md
+        echo "### Properties" >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+        cat reports/properties.md >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+
+        # Status
+        python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/status.csv
+        python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/status_compact.csv
+        python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/status.md --markdown-icons
+        python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/status_compact.md --markdown-icons
+        echo "### Passes" >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+        cat reports/status_compact.md >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+
+        # Test Results
+        python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/test_results.csv --coverage reports/test_coverage.csv
+        python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/test_results_compact.csv --coverage reports/test_coverage_compact.csv
+        python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/test_results.md --coverage reports/test_coverage.md --markdown-icons
+        python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/test_results_compact.md --coverage reports/test_coverage_compact.md --markdown-icons
+        echo "### Test Coverage" >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+        cat reports/test_coverage_compact.md >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+        echo "### Test Results" >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+        cat reports/test_results_compact.md >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+
+        # Diff
+        python3 -m seal5.backends.report.diff.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/diff.csv
+        python3 -m seal5.backends.report.diff.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/diff.md
+        echo "### Diff" >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+        cat reports/diff.md >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+
+        # Stage Times
+        python3 -m seal5.backends.report.times.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/stage_times.csv --sum-level 2
+        python3 -m seal5.backends.report.times.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/stage_times.md --sum-level 2
+        python3 -m seal5.backends.report.times.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/stage_times.mermaid --sum-level 2
+        echo "### Stage/Pass Times" >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+        cat reports/stage_times.md >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`mermaid" >> $GITHUB_STEP_SUMMARY
+        cat reports/stage_times.mermaid >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+    - name: Upload Seal5 Reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: demo-reports
+        path: reports/
+    - name: Upload Seal5 Metadata
+      uses: actions/upload-artifact@v4
       if: "${{ github.event.inputs.export == '1' }}"
       with:
         name: demo-export
         path: /tmp/seal5_llvm.tar.gz
-    - uses: actions/upload-artifact@v4
+    - name: Upload Seal5 LLVM Installation
+      uses: actions/upload-artifact@v4
       if: "${{ github.event.inputs.install == '1' }}"
       with:
         name: demo-install
         path: /tmp/seal5_llvm/.seal5/install/${{ github.event.inputs.build_config }}
-    - uses: actions/upload-artifact@v4
+    - name: Upload Seal5 LLVM Sources
+      uses: actions/upload-artifact@v4
       if: "${{ github.event.inputs.deploy == '1' }}"
       with:
         name: demo-source

@@ -1,9 +1,9 @@
 ---
 extensions:
-  s4e-mac:
-    feature: s4emac
+  X_S4E_MAC:
+    feature: XS4EMAC
     arch: xs4emac
     version: "1.0"
-    experimental: true
+    # experimental: true
     vendor: true
     # patches: []

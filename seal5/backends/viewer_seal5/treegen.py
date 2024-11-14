@@ -10,7 +10,7 @@
 
 # import tkinter as tk
 
-from ...metamodel import behav
+from m2isar.metamodel import behav
 from .utils import TreeGenContext
 
 # pylint: disable=unused-argument
@@ -18,7 +18,6 @@ from .utils import TreeGenContext
 
 def operation(self: behav.Operation, context: "TreeGenContext"):
     context.insert("Operation")
-    print("operation", self.statements)
 
     for stmt in self.statements:
         if stmt is None:

@@ -1,8 +1,20 @@
-# Seal5 Supported Instructions
+# Compatibility
 
-## Core-V Extensions
+## Supported LLVM Versions
 
-### Legend
+| **Seal5**             | **LLVM 17**                           | **LLVM 18**                               | **LLVM 19**                           | **Comment**      |
+|-----------------------|---------------------------------------|-------------------------------------------|---------------------------------------|------------------|
+| `v0.1.0`              | :white_check_mark: (`llvmorg-17.0.6`) | :x:                                       | :x:                                   | Limited support! |
+| `v0.1.1` ... `v0.1.4` | :question:                            | :white_check_mark: (`llvmorg-18.1.0-rc3`) | :x:                                   |                  |
+| `TODO`                | :question:                            | :question:                                | :white_check_mark: (`llvmorg-19.1.3`) | To be released!  |
+
+_(Last updated: 30.10.2024)_
+
+## Supported Instructions
+
+### Core-V Extensions
+
+**Legend**
 
 ```
 y: yes
@@ -13,7 +25,7 @@ f: filtered/excluded
 ?: unknown
 ```
 
-### Notes
+**Notes**
 
 ```
 ^1: commented out
@@ -21,7 +33,7 @@ f: filtered/excluded
 ^3: due to tablegen freeze
 ```
 
-### Table
+**Table**
 
 | Mnemonic                         | Extension  | Group                   | Sub-Group                                     | CDSL written? | Assembly support | Intrinsics support | Patterns support | Assembly tests | Intrinsics tests | Codegen tests |
 |----------------------------------|------------|-------------------------|-----------------------------------------------|---------------|------------------|--------------------|------------------|----------------|------------------|---------------|

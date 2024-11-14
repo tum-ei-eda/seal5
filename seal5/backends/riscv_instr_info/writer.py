@@ -12,13 +12,17 @@ import argparse
 import logging
 import pathlib
 import pickle
-from typing import Union
+from typing import Union, Optional
+
+import pandas as pd
 
 from mako.template import Template
 
 from m2isar.metamodel import arch
 
 from seal5.index import NamedPatch, File, write_index_yaml
+from seal5.utils import is_power_of_two
+from seal5.settings import IntrinsicDefn
 
 # from seal5.settings import ExtensionsSettings
 
@@ -114,13 +118,18 @@ def write_riscv_instruction_info(
     # operands,
     size,
     details_str,
-    attrs={},
-    constraints=[],
+    attrs: Optional[dict] = None,
+    constraints: Optional[list] = None,
     formats=False,
     compressed_pat=None,
 ):
-    if formats:
-        instr_template = Template(filename=str(template_dir / "instr_tablegen2.mako"))
+    if attrs is None:
+        attrs = {}
+    if constraints is None:
+        constraints = []
+    if not formats:
+        raise NotImplementedError("!InstrFormat")
+        # instr_template = Template(filename=str(template_dir / "instr_tablegen2.mako"))
     else:
         instr_template = Template(filename=str(template_dir / "instr_tablegen.mako"))
 
@@ -131,6 +140,9 @@ def write_riscv_instruction_info(
 
     attrs = {key: attr_helper(value) for key, value in attrs.items()}
     constraints_str = ", ".join(constraints)
+
+    if len(ins_str) == 0 and len(outs_str) == 0:
+        assert len(operands) == 0, "Could not resolve in/out operands"
 
     out_str = instr_template.render(
         name=name,
@@ -164,33 +176,33 @@ def write_riscv_instruction_info(
 
 
 def gen_riscv_instr_info_str(instr, set_def):
-    print("instr", instr)
+    # print("instr", instr)
     name = instr.name
     # operands = instr.operands
     size = instr.size
     # print("operands", operands)
-    reads = instr.llvm_reads
-    writes = instr.llvm_writes
+    # reads = instr.llvm_reads
+    # writes = instr.llvm_writes
     constraints = instr.llvm_constraints
-    print("reads", reads)
-    print("writes", writes)
+    # print("reads", reads)
+    # print("writes", writes)
     constraints = instr.llvm_constraints
-    print("constraints", constraints)
+    # print("constraints", constraints)
     # constraints_str = ", ".join(constraints)
-    attributes = instr.attributes
-    print("attributes", attributes)
+    # attributes = instr.attributes
+    # print("attributes", attributes)
     real_name = instr.mnemonic
     asm_str = instr.llvm_asm_str
-    print("asm_str", asm_str)
+    # print("asm_str", asm_str)
     ins_str = instr.llvm_ins_str
-    print("ins_str", ins_str)
+    # print("ins_str", ins_str)
     outs_str = instr.llvm_outs_str
-    print("outs_str", outs_str)
+    # print("outs_str", outs_str)
     details_str = ""
     fields = instr.fields
-    print("fields")
+    # print("fields")
     encoding = instr.encoding
-    print("encoding")
+    # print("encoding")
     attrs = instr.llvm_attributes
     # constraints = instr.constraints
     # if len(constraints) > 0:
@@ -216,6 +228,13 @@ def gen_riscv_instr_info_str(instr, set_def):
     return tablegen_str
 
 
+def gen_intrinsic_pattern(instr, intrinsic: IntrinsicDefn):
+    pat = f"""class Pat_{instr.name}<SDPatternOperator OpNode, Instruction Inst>
+: Pat<(OpNode {instr.llvm_ins_str}), (Inst {instr.llvm_ins_str})>;
+def : Pat_{instr.name}<int_riscv_{intrinsic.intrinsic_name}, {instr.name}>;"""
+    return pat
+
+
 def main():
     """Main app entrypoint."""
 
@@ -229,6 +248,13 @@ def main():
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
     parser.add_argument("--index", default=None, help="Output index to file")
     parser.add_argument("--ext", type=str, default="td", help="Default file extension (if using --splitted)")
+    parser.add_argument(
+        "--no-add-intrinsics",
+        dest="add_intrinsics",
+        default=True,
+        action="store_false",
+        help="Suppress patterns for intrinsic functions",
+    )
     args = parser.parse_args()
 
     # initialize logging
@@ -243,13 +269,12 @@ def main():
     # print("suffix", top_level.suffix)
     if top_level.suffix == ".seal5model":
         is_seal5_model = True
-    if args.output is None:
-        assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
-        raise NotImplementedError
-
-        # out_path = top_level.parent / (top_level.stem + ".core_desc")
-    else:
+    if args.output is not None:
         out_path = pathlib.Path(args.output)
+    else:
+        assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
+        # out_path = top_level.parent / (top_level.stem + ".core_desc")
+        raise NotImplementedError
 
     logger.info("loading models")
     if not is_seal5_model:
@@ -273,22 +298,33 @@ def main():
 
     metrics = {
         "n_sets": 0,
+        "n_instructions": 0,
         "n_skipped": 0,
         "n_failed": 0,
         "n_success": 0,
+        "skipped_instructions": [],
+        "failed_instructions": [],
+        "success_instructions": [],
+        "skipped_sets": [],
+        "failed_sets": [],
+        "success_sets": [],
     }
     # preprocess model
     # print("model", model)
-    # settings = model.get("settings", None)
+    settings = model.get("settings", None)
     artifacts = {}
     artifacts[None] = []  # used for global artifacts
     if args.splitted:
         content = ""
         # errs = []
         for set_name, set_def in model["sets"].items():
+            metrics["n_sets"] += 1
             set_name_lower = set_name.lower()
             artifacts[set_name] = []
             xlen = set_def.xlen
+            assert xlen is not None
+            assert is_power_of_two(xlen)
+            assert xlen % 8 == 0
             includes = []
             set_dir = out_path / set_name
             set_dir.mkdir(exist_ok=True)
@@ -296,29 +332,42 @@ def main():
             pred = None
             if ext_settings is not None:
                 pred = "Has" + ext_settings.get_predicate(name=set_name)
-            metrics["n_sets"] += 1
             # TODO: check for GPRC and require HasStdExtCOrZca?
             # TODO: check for GPR32Pair and require HasGPR32Pair
             # TODO: check for GPR32V2/GPR32V4 and require HasGPR32V
-            for instr_name, instr_def in set_def.instructions.items():
-                metrics["n_success"] += 1
+            for _, instr_def in set_def.instructions.items():
+                metrics["n_instructions"] += 1
                 out_name = f"{instr_def.name}InstrInfo.{args.ext}"
                 output_file = set_dir / out_name
-                content = gen_riscv_instr_info_str(instr_def, set_def)
-                if len(content) > 0:
-                    assert pred is not None
-                    predicate_str = f"Predicates = [{pred}, IsRV{xlen}]"
-                    content = f"let {predicate_str} in {{\n{content}\n}}"
-                    with open(output_file, "w") as f:
-                        f.write(content)
-                    instr_info_patch = File(
-                        f"llvm/lib/Target/RISCV/seal5/{set_name}/{output_file.name}",
-                        src_path=output_file,
-                    )
-                    artifacts[set_name].append(instr_info_patch)
-                    inc = f"seal5/{set_name}/{output_file.name}"
-                    includes.append(inc)
-
+                try:
+                    metrics["n_success"] += 1
+                    metrics["success_instructions"].append(instr_def.name)
+                    content = gen_riscv_instr_info_str(instr_def, set_def)
+                    if len(content) > 0:
+                        if args.add_intrinsics and settings.intrinsics.intrinsics:
+                            # TODO: intrinsics should be dict keyed by instr name
+                            for intrinsic in settings.intrinsics.intrinsics:
+                                if intrinsic.instr_name.casefold() in [
+                                    instr_def.mnemonic.casefold(),
+                                    instr_def.name.casefold(),
+                                ]:
+                                    content += gen_intrinsic_pattern(instr_def, intrinsic)
+                        assert pred is not None
+                        predicate_str = f"Predicates = [{pred}, IsRV{xlen}]"
+                        content = f"let {predicate_str} in {{\n{content}\n}}"
+                        with open(output_file, "w", encoding="utf-8") as f:
+                            f.write(content)
+                        instr_info_patch = File(
+                            f"llvm/lib/Target/RISCV/seal5/{set_name}/{output_file.name}",
+                            src_path=output_file,
+                        )
+                        artifacts[set_name].append(instr_info_patch)
+                        inc = f"seal5/{set_name}/{output_file.name}"
+                        includes.append(inc)
+                except Exception as ex:
+                    logger.exception(ex)
+                    metrics["n_failed"] += 1
+                    metrics["failed_instructions"].append(instr_def.name)
             includes_str = "\n".join([f'include "{inc}"' for inc in includes])
             set_td_includes_patch = NamedPatch(
                 f"llvm/lib/Target/RISCV/seal5/{set_name}.td",
@@ -330,13 +379,10 @@ def main():
         raise NotImplementedError
     if args.metrics:
         metrics_file = args.metrics
-        with open(metrics_file, "w") as f:
-            f.write(",".join(metrics.keys()))
-            f.write("\n")
-            f.write(",".join(map(str, metrics.values())))
-            f.write("\n")
+        metrics_df = pd.DataFrame({key: [val] for key, val in metrics.items()})
+        metrics_df.to_csv(metrics_file, index=False)
     if args.index:
-        if sum(map(lambda x: len(x), artifacts.values())) > 0:
+        if sum(map(len, artifacts.values())) > 0:
             global_artifacts = artifacts.get(None, [])
             set_artifacts = {key: value for key, value in artifacts.items() if key is not None}
             index_file = args.index

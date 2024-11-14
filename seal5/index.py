@@ -1,9 +1,13 @@
+"""Classes for managing index fiels used to summarize patches."""
+
 from typing import List, Dict, Optional
 from pathlib import Path
 import yaml
 
 
-class Artifact:
+class Artifact:  # TODO: make abstract
+    """Abstract class for artifacts used in patching procedures."""
+
     def __init__(
         self, dest_path: Path, src_path: Optional[Path] = None, content: Optional[str] = None, append: bool = False
     ):
@@ -13,6 +17,7 @@ class Artifact:
         self.append: bool = append
 
     def to_dict(self, content=False) -> dict:
+        """Returns dict-representation of artifact."""
         return {
             key: str(value) if isinstance(value, Path) else value
             for key, value in vars(self).items()
@@ -21,6 +26,8 @@ class Artifact:
 
 
 class GitPatch(Artifact):
+    """GitPatch Artifact class."""
+
     def __init__(
         self,
         dest_path: Path,
@@ -36,6 +43,8 @@ class GitPatch(Artifact):
 
 
 class Patch(Artifact):
+    """Generic Patch artifact class."""
+
     def __init__(
         self, dest_path: Path, src_path: Optional[Path] = None, content: Optional[str] = None, append: bool = False
     ):
@@ -43,6 +52,8 @@ class Patch(Artifact):
 
 
 class NamedPatch(Patch):
+    """NamedPatch artifact class."""
+
     def __init__(
         self,
         dest_path: Path,
@@ -61,6 +72,8 @@ class NamedPatch(Patch):
 
 
 class IndexedPatch(Patch):
+    """IndexedPatch artifact class."""
+
     def __init__(
         self,
         dest_path: Path,
@@ -76,6 +89,8 @@ class IndexedPatch(Patch):
 
 
 class RangedPatch(Patch):
+    """RangedPatch artifact class."""
+
     def __init__(
         self,
         dest_path: Path,
@@ -93,6 +108,8 @@ class RangedPatch(Patch):
 
 
 class File(Artifact):
+    """File artifact class."""
+
     def __init__(
         self, dest_path: Path, src_path: Optional[Path] = None, content: Optional[Path] = None, append: bool = False
     ):
@@ -100,6 +117,8 @@ class File(Artifact):
 
 
 class Directory(Artifact):
+    """Directory artifact class."""
+
     def __init__(
         self, dest_path: Path, src_path: Optional[Path] = None, content: Optional[Path] = None, append: bool = False
     ):
@@ -111,6 +130,7 @@ class Directory(Artifact):
 def write_index_yaml(
     out_path: Path, global_artifacts: List[Artifact], ext_artifacts: Dict[str, List[Artifact]], content=False
 ):
+    """Export full index to YAML file."""
     extensions_yaml_data = []
     for ext, artifacts_ in ext_artifacts.items():
         extension_yaml_data = {"name": ext, "artifacts": list(map(lambda a: a.to_dict(content=content), artifacts_))}
@@ -119,5 +139,5 @@ def write_index_yaml(
         "artifacts": list(map(lambda a: a.to_dict(content=content), global_artifacts)),
         "extensions": extensions_yaml_data,
     }
-    with open(out_path, "w") as f:
+    with open(out_path, "w", encoding="utf-8") as f:
         yaml.safe_dump(index_yaml_data, f)

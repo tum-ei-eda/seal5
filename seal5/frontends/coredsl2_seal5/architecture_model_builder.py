@@ -67,7 +67,7 @@ class ArchitectureModelBuilder(CoreDSL2Visitor):
 
     def visitInstruction_set(self, ctx: CoreDSL2Parser.Instruction_setContext):
         """Generate a top-level instruction set object."""
-        print("visitInstruction_set", ctx.name.text)
+        # print("visitInstruction_set", ctx.name.text)
         # print("len(self._constants) 1", len(self._constants))
         # input("22")
 

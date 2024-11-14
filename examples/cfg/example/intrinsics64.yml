@@ -1,0 +1,13 @@
+---
+intrinsics:
+  intrinsics:
+  - args:
+    - arg_name: rd
+      arg_type: i64
+    - arg_name: rs1
+      arg_type: i64
+    - arg_name: rs2
+      arg_type: i64
+    instr_name: CV_SUBINCACC
+    intrinsic_name: subincacc
+    ret_type: i64

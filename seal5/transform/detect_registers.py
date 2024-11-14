@@ -36,7 +36,8 @@ def detect_registers(set_def: seal5_model.Seal5InstructionSet):
         width = mem.size
         # print("width", width)
         # TODO: implement memory dtype in m2isar
-        # assert mem.data_type in [arch.DataType.S, arch.DataType.U], f"Unsupported dtype {mem.data_type} for memory {mem_name}"
+        # assert mem.data_type in [arch.DataType.S, arch.DataType.U],
+        #  f"Unsupported dtype {mem.data_type} for memory {mem_name}"
         # signed = mem.data_type == arch.DataType.S
         signed = False
         reg_class = seal5_model.Seal5RegisterClass.CUSTOM
@@ -97,8 +98,8 @@ def run(args):
             continue
         logger.info("processing set %s", set_name)
         detect_registers(set_def)
-        print("set_def.register", set_def.registers)
-        print("set_def.register_groups", set_def.register_groups)
+        # print("set_def.register", set_def.registers)
+        # print("set_def.register_groups", set_def.register_groups)
         # input("@")
 
     logger.info("dumping model")

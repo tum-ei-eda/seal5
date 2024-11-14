@@ -42,8 +42,10 @@ DEPLOY = bool(int(os.environ.get("DEPLOY", 1)))
 EXPORT = bool(int(os.environ.get("EXPORT", 1)))
 CLEANUP = bool(int(os.environ.get("CLEANUP", 0)))
 PROGRESS = bool(int(os.environ.get("PROGRESS", 1)))
+CCACHE = bool(int(os.environ.get("CCACHE", 0)))
 CLONE_DEPTH = bool(int(os.environ.get("CLONE_DEPTH", 1)))
-DEST = os.environ.get("DEST", "/tmp/seal5_llvm_corev").rstrip("/")
+DEST_DIR = os.environ.get("DEST_DIR", "/tmp")
+DEST = os.environ.get("DEST", DEST_DIR + "/seal5_llvm_corev").rstrip("/")
 NAME = os.environ.get("NAME", "corev")
 
 seal5_flow = Seal5Flow(DEST, name=NAME)
@@ -82,7 +84,19 @@ seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load test inputs
 test_files = [
-    EXAMPLES_DIR / "tests" / "xcorev" / "*.inline_asm.c",
+    # EXAMPLES_DIR / "tests" / "xcorev" / "alu" / "*.c",
+    EXAMPLES_DIR / "tests" / "xcorev" / "alu" / "*.s",
+    EXAMPLES_DIR / "tests" / "xcorev" / "alu" / "*.ll",
+    # EXAMPLES_DIR / "tests" / "xcorev" / "mac" / "*.s",
+    EXAMPLES_DIR / "tests" / "xcorev" / "mac" / "*.ll",
+    # EXAMPLES_DIR / "tests" / "xcorev" / "bitmanip" / "*.s",
+    EXAMPLES_DIR / "tests" / "xcorev" / "bitmanip" / "*.ll",
+    # EXAMPLES_DIR / "tests" / "xcorev" / "bi" / "*.s",
+    # EXAMPLES_DIR / "tests" / "xcorev" / "bi" / "*.ll",
+    # EXAMPLES_DIR / "tests" / "xcorev" / "simd" / "*.s",
+    # EXAMPLES_DIR / "tests" / "xcorev" / "simd" / "*.ll",
+    # EXAMPLES_DIR / "tests" / "xcorev" / "mem" / "*.s",
+    # EXAMPLES_DIR / "tests" / "xcorev" / "mem" / "*.ll",
 ]
 seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 
@@ -117,7 +131,7 @@ if not PREPATCHED:
     seal5_flow.patch(verbose=VERBOSE, stages=[PatchStage.PHASE_0])
 
 # Build initial LLVM
-seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG)
+seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG, enable_ccache=CCACHE)
 
 # Transform inputs
 #   1. Create M2-ISA-R metamodel
@@ -132,12 +146,12 @@ seal5_flow.generate(verbose=VERBOSE, skip=["pattern_gen"])
 seal5_flow.patch(verbose=VERBOSE, stages=[PatchStage.PHASE_1, PatchStage.PHASE_2])
 
 # Build patched LLVM
-seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG)
+seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG, enable_ccache=CCACHE)
 
 if not SKIP_PATTERNS:
     # Build PatternGen & llc
-    seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG, target="pattern-gen")
-    seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG, target="llc")
+    seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG, target="pattern-gen", enable_ccache=CCACHE)
+    seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG, target="llc", enable_ccache=CCACHE)
 
     # Generate remaining patches
     seal5_flow.generate(verbose=VERBOSE, only=["pattern_gen"])
@@ -146,7 +160,7 @@ if not SKIP_PATTERNS:
     seal5_flow.patch(verbose=VERBOSE, stages=list(range(PatchStage.PHASE_3, PatchStage.PHASE_5 + 1)))
 
 # Build patched LLVM
-seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG)
+seal5_flow.build(verbose=VERBOSE, config=BUILD_CONFIG, enable_ccache=CCACHE)
 
 if TEST:
     # Test patched LLVM
@@ -154,7 +168,7 @@ if TEST:
 
 if INSTALL:
     # Install final LLVM
-    seal5_flow.install(verbose=VERBOSE, config=BUILD_CONFIG)
+    seal5_flow.install(verbose=VERBOSE, config=BUILD_CONFIG, enable_ccache=CCACHE)
 
 if DEPLOY:
     # Deploy patched LLVM (export sources)

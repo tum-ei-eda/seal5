@@ -18,7 +18,7 @@
 #
 """Seal5 dependencies."""
 
-from typing import Optional
+from typing import Optional, List, Union
 from pathlib import Path
 
 import git
@@ -50,6 +50,7 @@ class GitDependency(Dependency):
         sparse: bool = False,
         sparse_filter=None,
     ):
+        del overwrite  # TODO: rename to override
         if is_populated(dest):
             logger.debug("Updating repository: %s", dest)
             repo = git.Repo(dest)
@@ -93,12 +94,18 @@ class M2ISARDependency(GitDependency):
         super().__init__("m2isar", clone_url, ref=ref)
 
 
-CDSL2LLVM_DIRS = ["llvm/tools/pattern-gen", "llvm/lib/CodeGen", "llvm/include/llvm/CodeGen", "llvm/lib/Target/RISCV"]
+DEFAULT_CDSL2LLVM_DIRS = [
+    "llvm/tools/pattern-gen",
+    "llvm/lib/CodeGen",
+    "llvm/include/llvm/CodeGen",
+    "llvm/lib/Target/RISCV",
+]
 
 
 class CDSL2LLVMDependency(GitDependency):
     # def __init__(self, clone_url="https://github.com/mathis-s/CoreDSL2LLVM.git", ref="main"):
-    def __init__(self, clone_url="https://github.com/PhilippvK/CoreDSL2LLVM.git", ref="future-paper"):
+    # def __init__(self, clone_url="https://github.com/PhilippvK/CoreDSL2LLVM.git", ref="future-paper"):
+    def __init__(self, clone_url="https://github.com/PhilippvK/CoreDSL2LLVM.git", ref="philippvk5"):
         super().__init__("cdsl2llvm", clone_url, ref=ref)
 
     def clone(
@@ -108,8 +115,10 @@ class CDSL2LLVMDependency(GitDependency):
         depth: Optional[int] = None,
         progress: bool = False,
         sparse: bool = True,
-        sparse_filter=CDSL2LLVM_DIRS,
+        sparse_filter: Optional[List[Union[str, Path]]] = None,
     ):
+        if sparse and sparse_filter is None:
+            sparse_filter = DEFAULT_CDSL2LLVM_DIRS
         super().clone(
             dest, overwrite=overwrite, depth=depth, progress=progress, sparse=sparse, sparse_filter=sparse_filter
         )

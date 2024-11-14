@@ -17,16 +17,17 @@
 # limitations under the License.
 #
 """Command line subcommand for resetting the seal5 environment."""
+from os import getenv
 
 from seal5.flow import Seal5Flow
 from seal5.logging import get_logger
-from os import getenv
 
 
 logger = get_logger()
 
 
 def add_reset_options(parser):
+    """Setup parser for reset argument group."""
     reset_parser = parser.add_argument_group("reset options")
     reset_parser.add_argument(
         "--non-interactive",

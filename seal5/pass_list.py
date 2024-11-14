@@ -8,6 +8,8 @@ from seal5.index import File, NamedPatch, write_index_yaml
 from seal5.passes import Seal5Pass, PassType, PassScope, PassManager, PassResult
 from seal5.types import PatchStage
 from seal5.settings import Seal5Settings, PatchSettings
+from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
+from seal5.metrics import read_metrics
 
 logger = get_logger()
 
@@ -22,10 +24,10 @@ def convert_models(
     env: Optional[dict] = None,
     verbose: bool = False,
     inplace: bool = False,
-    use_subprocess: bool = False,
+    use_subprocess: bool = True,  # This breaks if parallel and called without process
     prefix: Optional[str] = None,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert not inplace
     input_file = settings.models_dir / f"{input_model}.m2isarmodel"
@@ -70,7 +72,7 @@ def optimize_model(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -98,6 +100,44 @@ def optimize_model(
         )
 
 
+def inline_functions(
+    input_model,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    use_subprocess: bool = False,
+    log_level: str = "debug",
+    **_kwargs,
+):
+    assert inplace
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Inlining functions for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        log_level,
+    ]
+    # Warning: only functions marked with [[inline]] will be processed
+    if not use_subprocess:
+        from seal5.transform.inline_functions import InlineFunctions
+
+        args = sanitize_args(args)
+        InlineFunctions(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.inline_functions.optimizer",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
+    return PassResult(metrics={})
+
+
 def infer_types(
     input_model: str,
     settings: Optional[Seal5Settings] = None,
@@ -106,7 +146,7 @@ def infer_types(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -132,6 +172,7 @@ def infer_types(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    return PassResult(metrics={})
 
 
 def simplify_trivial_slices(
@@ -142,9 +183,10 @@ def simplify_trivial_slices(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
+    gen_metrics_file = True
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
     name = input_file.name
@@ -154,6 +196,10 @@ def simplify_trivial_slices(
         "--log",
         log_level,
     ]
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (name + "_simplify_trivial_slices_metrics.csv")
+        args.extend(["--metrics", metrics_file])
     if not use_subprocess:
         from seal5.transform.simplify_trivial_slices import SimplifyTrivialSlices
 
@@ -168,6 +214,10 @@ def simplify_trivial_slices(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def explicit_truncations(
@@ -178,9 +228,10 @@ def explicit_truncations(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
+    gen_metrics_file = True
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
     name = input_file.name
@@ -190,6 +241,10 @@ def explicit_truncations(
         "--log",
         log_level,
     ]
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (name + "_explicit_truncations_metrics.csv")
+        args.extend(["--metrics", metrics_file])
     if not use_subprocess:
         from seal5.transform.explicit_truncations import ExplicitTruncations
 
@@ -204,6 +259,9 @@ def explicit_truncations(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def process_settings(
@@ -214,7 +272,7 @@ def process_settings(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -242,6 +300,7 @@ def process_settings(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    return PassResult(metrics={})
 
 
 def filter_model(
@@ -252,7 +311,7 @@ def filter_model(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -305,6 +364,7 @@ def filter_model(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    return PassResult(metrics={})
 
 
 def drop_unused(
@@ -315,7 +375,7 @@ def drop_unused(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -351,7 +411,7 @@ def detect_registers(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -377,6 +437,7 @@ def detect_registers(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    return PassResult(metrics={})
 
 
 def detect_behavior_constraints(
@@ -387,9 +448,10 @@ def detect_behavior_constraints(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
+    gen_metrics_file = True
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
     name = input_file.name
@@ -399,6 +461,10 @@ def detect_behavior_constraints(
         "--log",
         log_level,
     ]
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (name + "_collect_raises_metrics.csv")
+        args.extend(["--metrics", metrics_file])
     if not use_subprocess:
         from seal5.transform.collect_raises import CollectRaises
 
@@ -413,6 +479,10 @@ def detect_behavior_constraints(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def detect_side_effects(
@@ -423,9 +493,10 @@ def detect_side_effects(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
+    gen_metrics_file = True
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
     name = input_file.name
@@ -435,6 +506,10 @@ def detect_side_effects(
         "--log",
         log_level,
     ]
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (name + "_detect_side_effects_metrics.csv")
+        args.extend(["--metrics", metrics_file])
     if not use_subprocess:
         from seal5.transform.detect_side_effects import DetectSideEffects
 
@@ -449,6 +524,10 @@ def detect_side_effects(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def detect_inouts(
@@ -459,9 +538,10 @@ def detect_inouts(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kargs,
+    **_kwargs,
 ):
     assert inplace
+    gen_metrics_file = True
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
     name = input_file.name
@@ -471,6 +551,10 @@ def detect_inouts(
         "--log",
         log_level,
     ]
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (name + "_detect_inouts_metrics.csv")
+        args.extend(["--metrics", metrics_file])
     if not use_subprocess:
         from seal5.transform.detect_inouts import DetectInouts
 
@@ -485,6 +569,10 @@ def detect_inouts(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def collect_operand_types(
@@ -495,7 +583,7 @@ def collect_operand_types(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -533,9 +621,10 @@ def collect_register_operands(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
+    gen_metrics_file = True
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
     name = input_file.name
@@ -545,6 +634,10 @@ def collect_register_operands(
         "--log",
         log_level,
     ]
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (name + "_collect_register_operands_metrics.csv")
+        args.extend(["--metrics", metrics_file])
     if not use_subprocess:
         from seal5.transform.collect_register_operands import CollectRegisterOperands
 
@@ -559,6 +652,10 @@ def collect_register_operands(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def collect_immediate_operands(
@@ -569,9 +666,10 @@ def collect_immediate_operands(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
+    gen_metrics_file = True
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
     name = input_file.name
@@ -581,6 +679,10 @@ def collect_immediate_operands(
         "--log",
         log_level,
     ]
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (name + "_collect_immediate_operands_metrics.csv")
+        args.extend(["--metrics", metrics_file])
     if not use_subprocess:
         from seal5.transform.collect_immediate_operands import CollectImmediateOperands
 
@@ -595,6 +697,10 @@ def collect_immediate_operands(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def eliminate_rd_cmp_zero(
@@ -605,7 +711,7 @@ def eliminate_rd_cmp_zero(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -631,6 +737,7 @@ def eliminate_rd_cmp_zero(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    return PassResult(metrics={})
 
 
 def eliminate_mod_rfs(
@@ -641,7 +748,7 @@ def eliminate_mod_rfs(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
@@ -677,8 +784,11 @@ def write_yaml(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
+    del use_subprocess  # unused
+    # if not use_subprocess:
+    #     raise NotImplementedError("use_subprocess=False")
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
@@ -702,6 +812,7 @@ def write_yaml(
     )
     new_settings: Seal5Settings = Seal5Settings.from_yaml_file(settings.temp_dir / new_name)
     settings.merge(new_settings, overwrite=False)
+    return PassResult(metrics={})
 
 
 def write_cdsl(
@@ -714,8 +825,12 @@ def write_cdsl(
     split: bool = False,
     compat: bool = False,
     log_level: str = "debug",
-    **kargs,
+    **_kwargs,
 ):
+    del use_subprocess  # unused
+    gen_metrics_file = True
+    # if not use_subprocess:
+    #     raise NotImplementedError("use_subprocess=False")
     assert inplace
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
@@ -737,6 +852,10 @@ def write_cdsl(
         args.append("--splitted")
     if compat:
         args.append("--compat")
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (new_name + "_coredsl2_writer_metrics.csv")
+        args.extend(["--metrics", metrics_file])
     utils.python(
         "-m",
         "seal5.backends.coredsl2.writer",
@@ -764,6 +883,7 @@ def write_cdsl(
     #     print_func=logger.info if verbose else logger.debug,
     #     live=True,
     # )
+    # return PassResult(metrics={})
 
 
 # def write_cdsl_splitted(inplace: bool = True):
@@ -845,6 +965,7 @@ def write_cdsl(
 #                     print_func=logger.info if verbose else logger.debug,
 #                     live=True,
 #                 )
+#    return PassResult(metrics={})
 
 
 def convert_behav_to_llvmir(
@@ -854,7 +975,7 @@ def convert_behav_to_llvmir(
     verbose: bool = False,
     split: bool = True,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert split, "TODO"
     gen_metrics_file = True
@@ -888,6 +1009,10 @@ def convert_behav_to_llvmir(
         print_func=logger.info if verbose else logger.debug,
         live=True,
     )
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def convert_behav_to_tablegen(
@@ -900,7 +1025,7 @@ def convert_behav_to_tablegen(
     patterns: bool = True,
     parallel: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert split, "TODO"
     gen_metrics_file = True
@@ -962,6 +1087,10 @@ def convert_behav_to_tablegen(
             settings.to_yaml_file(settings.settings_file)
         else:
             logger.warning("No patches found!")
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def gen_riscv_features_patch(
@@ -971,7 +1100,7 @@ def gen_riscv_features_patch(
     verbose: bool = False,
     split: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert not split, "TODO"
     # formats = True
@@ -1023,6 +1152,10 @@ def gen_riscv_features_patch(
             settings.to_yaml_file(settings.settings_file)
         else:
             logger.warning("No patches found!")
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def gen_riscv_isa_info_patch(
@@ -1032,7 +1165,7 @@ def gen_riscv_isa_info_patch(
     verbose: bool = False,
     split: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     assert not split, "TODO"
     # formats = True
@@ -1084,6 +1217,75 @@ def gen_riscv_isa_info_patch(
             settings.to_yaml_file(settings.settings_file)
         else:
             logger.warning("No patches found!")
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
+
+
+def gen_riscv_intrinsics(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    split: bool = False,
+    log_level: str = "debug",
+    **kwargs,
+):
+    assert not split, "TODO"
+    # formats = True
+    gen_metrics_file = True
+    gen_index_file = True
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    new_name = name.replace(".seal5model", "")
+    logger.info("Writing intrinsics patches patch for %s", name)
+    out_dir = settings.patches_dir / new_name
+    out_dir.mkdir(exist_ok=True)
+
+    args = [
+        settings.models_dir / name,
+        "--log",
+        log_level,
+        "--output",
+        out_dir / "riscv_intrinsics_info.patch",
+    ]
+    if split:
+        args.append("--splitted")
+    if gen_metrics_file:
+        metrics_file = out_dir / ("riscv_intrinsics_info_metrics.csv")
+        args.extend(["--metrics", metrics_file])
+    if gen_index_file:
+        index_file = out_dir / ("riscv_intrinsics_index.yml")
+        args.extend(["--index", index_file])
+    utils.python(
+        "-m",
+        "seal5.backends.riscv_intrinsics.writer",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+    if gen_index_file:
+        if index_file.is_file():
+            patch_base = f"riscv_intrinsics_target_{input_file.stem}"
+            patch_settings = PatchSettings(
+                name=patch_base,
+                stage=int(PatchStage.PHASE_1),
+                comment=f"Generated RISCV Intrinsics patch for {input_file.name}",
+                index=str(index_file),
+                generated=True,
+                target="llvm",
+            )
+            settings.add_patch(patch_settings)
+            settings.to_yaml_file(settings.settings_file)
+        else:
+            logger.warning("No patches found!")
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def gen_riscv_instr_info_patch(
@@ -1093,7 +1295,7 @@ def gen_riscv_instr_info_patch(
     verbose: bool = False,
     split: bool = True,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     # assert not split, "TODO"
     assert split, "TODO"
@@ -1151,6 +1353,10 @@ def gen_riscv_instr_info_patch(
             settings.to_yaml_file(settings.settings_file)
         else:
             logger.warning("No patches found!")
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def gen_riscv_register_info_patch(
@@ -1159,7 +1365,7 @@ def gen_riscv_register_info_patch(
     env: Optional[dict] = None,
     verbose: bool = False,
     split: bool = False,
-    **kwargs,
+    **_kwargs,
 ):
     assert not split, "TODO"
     gen_metrics_file = False
@@ -1216,6 +1422,10 @@ def gen_riscv_register_info_patch(
             settings.to_yaml_file(settings.settings_file)
         else:
             logger.warning("No patches found!")
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 def gen_riscv_gisel_legalizer_patch(
@@ -1224,7 +1434,7 @@ def gen_riscv_gisel_legalizer_patch(
     env: Optional[dict] = None,
     verbose: bool = False,
     log_level: str = "debug",
-    **kwargs,
+    **_kwargs,
 ):
     gen_metrics_file = False  # TODO
     gen_index_file = True
@@ -1276,6 +1486,10 @@ def gen_riscv_gisel_legalizer_patch(
         else:
             logger.warning("No patches found!")
     # TODO: introduce global (model-independed) settings file
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
 
 
 # def convert_behav_to_tablegen_splitted(inplace: bool = True):
@@ -1325,6 +1539,7 @@ def gen_riscv_gisel_legalizer_patch(
 #         for insn_name, err_str in errs:
 #             print("Err:", insn_name, err_str)
 #             input("!")
+#     return PassResult(metrics={})
 
 
 def convert_llvmir_to_gmir(
@@ -1334,36 +1549,43 @@ def convert_llvmir_to_gmir(
     verbose: bool = False,
     split: bool = True,
     inplace: bool = True,
+    allow_errors: bool = False,
     use_subprocess: bool = False,
-    **kwargs,
+    **_kwargs,
 ):
+    del env  # unused
     assert inplace
     assert split
+    if use_subprocess:
+        raise NotImplementedError("use_subprocess=True")
     # input_files = list(settings.models_dir.glob("*.seal5model"))
     # assert len(input_files) > 0, "No Seal5 models found!"
     errs = []
     # for input_file in input_files:
     #     name = input_file.name
     #     sub = name.replace(".seal5model", "")
-    default_mattr = "+m,+fast-unaligned-access"
     xlen = None
     if settings:
         riscv_settings = settings.riscv
-        if riscv_settings:
-            xlen = riscv_settings.xlen
-            features = riscv_settings.features
-            if features is None:
-                pass
-            else:
-                default_mattr = ",".join([f"+{f}" for f in features])
-            if xlen == 64 and "+64bit" not in default_mattr:
-                default_mattr = ",".join([*default_mattr.split(","), "+64bit"])
+    else:
+        riscv_settings = None
+    default_features, default_xlen = get_riscv_defaults(riscv_settings)
+
     for _ in [None]:
         set_names = list(settings.extensions.keys())
         assert len(set_names) > 0, "No sets found"
         for set_name in set_names:
             ext_settings = settings.extensions[set_name]
             insn_names = ext_settings.instructions
+            xlen = ext_settings.xlen
+            if xlen is None and default_xlen is not None:
+                xlen = default_xlen
+            features = [*default_features]
+            arch_ = ext_settings.get_arch(name=set_name)
+            features = [*default_features]
+            if arch_ is not None:
+                features.append(arch_)
+            mattr = build_riscv_mattr(default_features, xlen)
             if insn_names is None:
                 logger.warning("Skipping empty set %s", set_name)
                 continue
@@ -1387,15 +1609,9 @@ def convert_llvmir_to_gmir(
                     cdsl2llvm_build_dir = None
                     integrated_pattern_gen = settings.tools.pattern_gen.integrated
                     if integrated_pattern_gen:
-                        config = settings.llvm.default_config
-                        cdsl2llvm_build_dir = str(settings.build_dir / config)
+                        cdsl2llvm_build_dir = str(settings.get_llvm_build_dir(fallback=True, check=True))
                     else:
                         cdsl2llvm_build_dir = str(settings.deps_dir / "cdsl2llvm" / "llvm" / "build")
-                    mattr = default_mattr
-                    if ext_settings is not None:
-                        # predicate = ext_settings.get_predicate(name=set_name)
-                        arch_ = ext_settings.get_arch(name=set_name)
-                        mattr = ",".join([*mattr.split(","), f"+{arch_}"])
                     # TODO: migrate with pass to cmdline backend
                     cdsl2llvm.convert_ll_to_gmir(
                         # settings.deps_dir / "cdsl2llvm" / "llvm" / "build", ll_file, output_file
@@ -1404,15 +1620,19 @@ def convert_llvmir_to_gmir(
                         output_file,
                         mattr=mattr,
                         xlen=xlen,
+                        verbose=verbose,
                     )
-                except AssertionError:
-                    pass
-                    # errs.append((insn_name, str(ex)))
+                except AssertionError as ex:
+                    if allow_errors:
+                        errs.append((insn_name, str(ex)))
+                    else:
+                        raise ex
     if len(errs) > 0:
         # print("errs", errs)
+        logger.warning("Ignored Errors:")
         for insn_name, err_str in errs:
-            print("Err:", insn_name, err_str)
-            input("!")
+            logger.warning("%s: %s", insn_name, err_str)
+    return PassResult(metrics={})
 
 
 def gen_seal5_td(
@@ -1420,8 +1640,10 @@ def gen_seal5_td(
     settings: Optional[Seal5Settings] = None,
     env: Optional[dict] = None,
     verbose: bool = False,
-    **kwargs,
+    **_kwargs,
 ):
+    del env  # unused
+    del verbose  # unused
     assert input_model is None
     patch_name = "seal5_td"
     dest = "llvm/lib/Target/RISCV/seal5.td"
@@ -1457,6 +1679,7 @@ include "seal5.td"
         target="llvm",
     )
     settings.add_patch(patch_settings)
+    return PassResult(metrics={})
 
 
 def gen_model_td(
@@ -1464,8 +1687,10 @@ def gen_model_td(
     settings: Optional[Seal5Settings] = None,
     env: Optional[dict] = None,
     verbose: bool = False,
-    **kwargs,
+    **_kwargs,
 ):
+    del env  # unused
+    del verbose  # unused
     assert input_model is not None
     patch_name = f"model_td_{input_model}"
     dest = f"llvm/lib/Target/RISCV/seal5/{input_model}.td"
@@ -1501,6 +1726,7 @@ include "seal5/{input_model}.td"
         target="llvm",
     )
     settings.add_patch(patch_settings)
+    return PassResult(metrics={})
 
 
 def gen_set_td(
@@ -1508,8 +1734,10 @@ def gen_set_td(
     settings: Optional[Seal5Settings] = None,
     env: Optional[dict] = None,
     verbose: bool = False,
-    **kwargs,
+    **_kwargs,
 ):
+    del env  # unused
+    del verbose  # unused
     assert input_model is not None
     artifacts = []
     includes = []
@@ -1551,6 +1779,7 @@ def gen_set_td(
         target="llvm",
     )
     settings.add_patch(patch_settings)
+    return PassResult(metrics={})
 
 
 def pattern_gen_pass(
@@ -1566,7 +1795,7 @@ def pattern_gen_pass(
     assert llvm_version is not None
     if llvm_version.major < 18:
         raise RuntimeError("PatternGen needs LLVM version 18 or higher")
-    PATTERN_GEN_PASSES = [
+    pattern_gen_passes = [
         ("write_cdsl_compat", write_cdsl, {"split": split, "compat": True}),
         ("behav_to_llvmir", convert_behav_to_llvmir, {"split": split}),
         ("llvmir_to_gmir", convert_llvmir_to_gmir, {"split": split}),
@@ -1574,7 +1803,7 @@ def pattern_gen_pass(
         ("behav_to_pat", convert_behav_to_tablegen, {"split": split, "formats": False, "patterns": True}),
     ]
     pass_list = []
-    for pass_name, pass_handler, pass_options in PATTERN_GEN_PASSES:
+    for pass_name, pass_handler, pass_options in pattern_gen_passes:
         pass_list.append(Seal5Pass(pass_name, PassType.GENERATE, PassScope.MODEL, pass_handler, options=pass_options))
     # TODO: get parent pass context automatically
     parent = kwargs.get("parent", None)
@@ -1582,3 +1811,93 @@ def pattern_gen_pass(
     with PassManager("pattern_gen_passes", pass_list, skip=[], only=[], parent=parent) as pm:
         result = pm.run([model_name], settings=settings, env=env, verbose=verbose)
     return result
+
+
+def detect_imm_leafs(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    use_subprocess: bool = False,
+    log_level: str = "debug",
+    **_kwargs,
+):
+    assert inplace
+    gen_metrics_file = True
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Detecting imm leafs for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        log_level,
+    ]
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (name + "_detect_imm_leafs_metrics.csv")
+        args.extend(["--metrics", metrics_file])
+    if not use_subprocess:
+        from seal5.transform.detect_imm_leafs import DetectImmLeafs
+
+        args = sanitize_args(args)
+        DetectImmLeafs(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.detect_imm_leafs.collect",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
+
+
+def check_pattern_support(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    use_subprocess: bool = False,
+    log_level: str = "debug",
+    **_kwargs,
+):
+    assert inplace
+    gen_metrics_file = True
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Detecting imm leafs for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        log_level,
+    ]
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (name + "_check_pattern_support_metrics.csv")
+        args.extend(["--metrics", metrics_file])
+    if not use_subprocess:
+        from seal5.transform.check_pattern_support import CheckPatternSupport
+
+        args = sanitize_args(args)
+        CheckPatternSupport(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.check_pattern_support.check",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)

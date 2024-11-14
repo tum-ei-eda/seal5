@@ -15,18 +15,19 @@ import pathlib
 import pickle
 
 from m2isar.metamodel import arch
-import seal5.model as seal5_model
 from m2isar.metamodel.utils.expr_preprocessor import process_attributes, process_functions, process_instructions
+
+import seal5.model as seal5_model
 
 logger = logging.getLogger("seal5_converter")
 
 
-def convert_attrs(attrs):
+def convert_attrs(attrs, base):
     # print("convert_attrs", attrs)
     ret = {}
     for attr, attr_val in attrs.items():
         if isinstance(attr, str):
-            attr_ = seal5_model.Seal5InstrAttribute._member_map_.get(attr.upper())
+            attr_ = base._member_map_.get(attr.upper())
             if attr_ is not None:
                 ret[attr_] = attr_val
             else:
@@ -89,7 +90,7 @@ def run(args):
                 instr_def.mnemonic = f"{prefix_}{instr_def.mnemonic}"
             set_def.instructions[enc] = seal5_model.Seal5Instruction(
                 instr_def.name,
-                convert_attrs(instr_def.attributes),
+                convert_attrs(instr_def.attributes, base=seal5_model.Seal5InstrAttribute),
                 instr_def.encoding,
                 instr_def.mnemonic,
                 instr_def.assembly,
@@ -98,6 +99,8 @@ def run(args):
                 {},
             )
             set_def.instructions[enc].scalars = instr_def.scalars
+        for func_name, func_def in set_def.functions.items():
+            func_def.attributes = convert_attrs(func_def.attributes, base=seal5_model.Seal5FunctionAttribute)
         sets[set_name] = seal5_model.Seal5InstructionSet(
             set_def.name,
             set_def.extension,

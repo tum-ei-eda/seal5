@@ -15,8 +15,11 @@ import pathlib
 import pickle
 from typing import Union
 
-from . import visitor
+import pandas as pd
+
 from m2isar.metamodel import arch, behav, patch_model
+
+from . import visitor
 
 logger = logging.getLogger("coredsl2_writer")
 
@@ -115,16 +118,15 @@ class CoreDSL2Writer:
                     if len(val) == 1:
                         return helper(val[0])
                     return "(" + ",".join([helper(x) for x in val]) + ")"
-                elif isinstance(val, str):  # TODO: replace with string literal
+                if isinstance(val, str):  # TODO: replace with string literal
                     return val  # TODO: operation
-                elif isinstance(val, int):  # TODO: replace with int literal
+                if isinstance(val, int):  # TODO: replace with int literal
                     return str(val)  # TODO: operation
-                elif isinstance(val, behav.IntLiteral):
+                if isinstance(val, behav.IntLiteral):
                     return str(val.value)
-                elif isinstance(val, behav.StringLiteral):
+                if isinstance(val, behav.StringLiteral):
                     return val.value
-                else:
-                    raise NotImplementedError(f"Unhandled case: {type(val)}")
+                raise NotImplementedError(f"Unhandled case: {type(val)}")
 
             val = helper(val)
             self.write(val)
@@ -226,7 +228,7 @@ class CoreDSL2Writer:
             return
         self.enter_block()
         # print("operands", operands)
-        for i, op in enumerate(operands.values()):
+        for _, op in enumerate(operands.values()):
             self.write_operand(op)
         # for i, op in enumerate(operands.values()):
         #     self.write_constraints(op.constraints)
@@ -292,8 +294,9 @@ class CoreDSL2Writer:
             self.write_instruction(instruction)
         self.leave_block()
 
-    def write_architectural_state(self, set_def):
+    def write_architectural_state(self, _set_def):
         self.write("architectural_state")
+        # TODO: use set_def
         # print("set_def", set_def, dir(set_def))
         self.enter_block()
         # TODO: scalars, memories,...
@@ -331,6 +334,7 @@ def main():
     parser.add_argument("--compat", action="store_true", help="Generate pattern-gen compatible syntax")
     parser.add_argument("--splitted", action="store_true", help="Split per set and instruction")
     parser.add_argument("--ext", type=str, default="core_desc", help="Default file extension (if using --splitted)")
+    parser.add_argument("--metrics", default=None, help="Output metrics to file")
     args = parser.parse_args()
 
     # initialize logging
@@ -374,10 +378,25 @@ def main():
 
     # preprocess model
     # print("model", model)
+    metrics = {
+        "n_sets": 0,
+        "n_instructions": 0,
+        "n_skipped": 0,
+        "n_failed": 0,
+        "n_success": 0,
+        "skipped_instructions": [],
+        "failed_instructions": [],
+        "success_instructions": [],
+        "skipped_sets": [],
+        "failed_sets": [],
+        "success_sets": [],
+    }
     if args.splitted:
         assert out_path.is_dir(), "Expecting output directory when using --splitted"
         for set_name, set_def in model["sets"].items():
+            metrics["n_sets"] += 1
             for instr_def in set_def.instructions.values():
+                metrics["n_instructions"] += 1
                 writer = CoreDSL2Writer(compat=args.compat)
                 logger.debug("writing instr %s/%s", set_def.name, instr_def.name)
                 patch_model(visitor)
@@ -387,25 +406,45 @@ def main():
                     for key, instr_def_ in set_def.instructions.items()
                     if instr_def.name == instr_def_.name
                 }
-                # TODO: drop_ununsed
-                writer.write_set(set_def_)
-                content = writer.text
-                out_path_ = out_path / set_name / f"{instr_def.name}.{args.ext}"
-                out_path_.parent.mkdir(exist_ok=True)
-                with open(out_path_, "w") as f:
-                    f.write(content)
+                try:
+                    # TODO: drop_ununsed
+                    writer.write_set(set_def_)
+                    content = writer.text
+                    out_path_ = out_path / set_name / f"{instr_def.name}.{args.ext}"
+                    out_path_.parent.mkdir(exist_ok=True)
+                    with open(out_path_, "w", encoding="utf-8") as f:
+                        f.write(content)
+                    metrics["n_success"] += 1
+                    metrics["success_instructions"].append(instr_def.name)
+                except Exception as ex:
+                    logger.exception(ex)
+                    metrics["n_failed"] += 1
+                    metrics["failed_instructions"].append(instr_def.name)
     else:
         writer = CoreDSL2Writer(compat=args.compat)
         for set_name, set_def in model["sets"].items():
+            metrics["n_sets"] += 1
             # print("set", set_def)
             # print("instrs", set_def.instructions)
             # input("123")
             logger.debug("writing set %s", set_def.name)
             patch_model(visitor)
-            writer.write_set(set_def)
+            try:
+                writer.write_set(set_def)
+                metrics["n_success"] += 1
+                metrics["success_sets"].append(set_name)
+                # TODO: add instrs as well?
+            except Exception as ex:
+                logger.exception(ex)
+                metrics["n_failed"] += 1
+                metrics["failed_sets"].append(set_name)
         content = writer.text
-        with open(out_path, "w") as f:
+        with open(out_path, "w", encoding="utf-8") as f:
             f.write(content)
+    if args.metrics:
+        metrics_file = args.metrics
+        metrics_df = pd.DataFrame({key: [val] for key, val in metrics.items()})
+        metrics_df.to_csv(metrics_file, index=False)
 
 
 if __name__ == "__main__":

@@ -14,6 +14,7 @@ import pathlib
 import pickle
 from typing import Union
 
+import pandas as pd
 from mako.template import Template
 
 from m2isar.metamodel import arch
@@ -31,7 +32,7 @@ MAKO_TEMPLATE_LLVM18 = '    {"${arch}", {${version_major}, ${version_minor}}},'
 def gen_riscv_isa_info_str(name: str, ext_settings: ExtensionsSettings, llvm_version: LLVMVersion):
     # print("name", name)
     # print("ext_settings", ext_settings)
-    arch = ext_settings.get_arch(name=name)
+    arch_ = ext_settings.get_arch(name=name)
     version = ext_settings.get_version()
     if not isinstance(version, str):
         assert isinstance(version, (int, float))
@@ -41,7 +42,7 @@ def gen_riscv_isa_info_str(name: str, ext_settings: ExtensionsSettings, llvm_ver
     llvm_major = llvm_version.major
     template = MAKO_TEMPLATE_LLVM18 if llvm_major >= 18 else MAKO_TEMPLATE
     content_template = Template(template)
-    content_text = content_template.render(arch=arch, version_major=version_major, version_minor=version_minor)
+    content_text = content_template.render(arch=arch_, version_major=version_major, version_minor=version_minor)
     # content_text = content_text.rstrip("\n")
     return arch, (content_text)
 
@@ -73,13 +74,12 @@ def main():
     # print("suffix", top_level.suffix)
     if top_level.suffix == ".seal5model":
         is_seal5_model = True
-    if args.output is None:
-        assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
-        raise NotImplementedError
-
-        # out_path = top_level.parent / (top_level.stem + ".core_desc")
-    else:
+    if args.output is not None:
         out_path = pathlib.Path(args.output)
+    else:
+        assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
+        # out_path = top_level.parent / (top_level.stem + ".core_desc")
+        raise NotImplementedError
 
     logger.info("loading models")
     if not is_seal5_model:
@@ -106,14 +106,15 @@ def main():
         "n_skipped": 0,
         "n_failed": 0,
         "n_success": 0,
+        "skipped_sets": [],
+        "failed_sets": [],
+        "success_sets": [],
     }
     # preprocess model
     # print("model", model)
     artifacts = {}
     artifacts[None] = []  # used for global artifacts
-    if args.splitted:
-        raise NotImplementedError
-    else:
+    if not args.splitted:
         # content = ""
         contents = []  # Extensions need to be sorted!
         # errs = []
@@ -131,14 +132,16 @@ def main():
             ext_settings = set_def.settings
             if ext_settings is None:
                 metrics["n_skipped"] += 1
+                metrics["skipped_sets"].append(set_name)
                 continue
             metrics["n_success"] += 1
+            metrics["success_sets"].append(set_name)
             key, new_content = gen_riscv_isa_info_str(set_name, ext_settings=ext_settings, llvm_version=llvm_version)
             contents.append((key, new_content))
         contents = sorted(contents, key=lambda x: x[0])
         content = "\n".join([x[1] for x in contents])
         if len(content) > 0:
-            with open(out_path, "w") as f:
+            with open(out_path, "w", encoding="utf-8") as f:
                 f.write(content)
             if ext_settings.experimental:
                 key = "riscv_isa_info_experimental"
@@ -146,15 +149,14 @@ def main():
                 key = "riscv_isa_info"
             riscv_isa_info_patch = NamedPatch("llvm/lib/Support/RISCVISAInfo.cpp", key=key, src_path=out_path)
             artifacts[None].append(riscv_isa_info_patch)
+    else:
+        raise NotImplementedError
     if args.metrics:
         metrics_file = args.metrics
-        with open(metrics_file, "w") as f:
-            f.write(",".join(metrics.keys()))
-            f.write("\n")
-            f.write(",".join(map(str, metrics.values())))
-            f.write("\n")
+        metrics_df = pd.DataFrame({key: [val] for key, val in metrics.items()})
+        metrics_df.to_csv(metrics_file, index=False)
     if args.index:
-        if sum(map(lambda x: len(x), artifacts.values())) > 0:
+        if sum(map(len, artifacts.values())) > 0:
             global_artifacts = artifacts.get(None, [])
             set_artifacts = {key: value for key, value in artifacts.items() if key is not None}
             index_file = args.index

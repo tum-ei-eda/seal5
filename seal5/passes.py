@@ -85,7 +85,7 @@ class Seal5Pass:
     def skip(self):
         self.status = PassStatus.SKIPPED
 
-    def run(self, inputs: List[str], *args, settings: Optional[Seal5Settings] = None, **kwargs):
+    def run(self, inputs: List[str], *_args, settings: Optional[Seal5Settings] = None, **kwargs):
         logger.debug("Running pass: %s", self)
         self.status = PassStatus.RUNNING
         assert settings is not None
@@ -147,6 +147,8 @@ class Seal5Pass:
             end = time.time()
             diff = end - start
             self.status = PassStatus.COMPLETED
+            self.metrics["start"] = start
+            self.metrics["end"] = end
             self.metrics["time_s"] = diff
         except Exception as e:
             self.status = PassStatus.FAILED
@@ -217,6 +219,8 @@ class PassManager:
                     self.metrics["passes"].append({pass_.name: metrics})
         end = time.time()
         diff = end - start
+        self.metrics["start"] = start
+        self.metrics["end"] = end
         self.metrics["time_s"] = diff
         return PassResult(metrics=self.metrics)
 

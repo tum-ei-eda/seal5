@@ -143,6 +143,11 @@ class Seal5InstrAttribute(Enum):
     COMPRESSED = auto()
     USES = auto()
     DEFS = auto()
+    SKIP_PATTERN_GEN = auto()  # TODO: use
+
+
+class Seal5FunctionAttribute(Enum):
+    INLINE = auto()
 
 
 class Seal5OperandAttribute(Enum):
@@ -156,6 +161,7 @@ class Seal5OperandAttribute(Enum):
     TYPE = auto()
     REG_CLASS = auto()
     REG_TYPE = auto()
+    IS_IMM_LEAF = auto()
 
 
 class Seal5DataType(Enum):
@@ -293,6 +299,7 @@ class Seal5Instruction(Instruction):
         constraints: "list[Seal5Constraint]",
         operands: "dict[str, Seal5Operand]",
     ):
+        del operands  # TODO: use
         operands_ = {}  # TODO
         function_info = None
         super().__init__(name, attributes, operands_, encoding, mnemonic, assembly, operation, function_info)
@@ -320,20 +327,14 @@ class Seal5Instruction(Instruction):
             op_attrs = {}
             # check for fixed bits
             temp = [False] * width
-            # print("field_name", field_name)
-            # print("temp", temp)
             for enc in self.encoding:
                 if isinstance(enc, BitField):
                     if enc.name == field_name:
-                        # print("enc", enc, dir(enc))
                         rng = enc.range
-                        # print("rng", rng)
                         assert rng.lower <= rng.upper
                         for pos in range(rng.lower, rng.upper + 1):
-                            # print("pos", pos)
                             assert pos < len(temp)
                             temp[pos] = True
-            # print("temp", temp)
             temp = [pos for pos, val in enumerate(temp) if not val]
             temp2 = []
             cur = None
@@ -349,7 +350,6 @@ class Seal5Instruction(Instruction):
             if cur is not None:
                 temp2.append(f"{cur[0]}:{cur[1]}")
             temp = temp2
-            # print("temp", temp)
             # input("pp")
             constraints = []
             for pos in temp:
@@ -366,7 +366,6 @@ class Seal5Instruction(Instruction):
                 )
                 constraint = Seal5Constraint([stmt])
                 constraints.append(constraint)
-            # print("constraints", constraints)
             if len(constraints) > 0:
                 # input("eee")
                 pass
@@ -533,51 +532,32 @@ class Seal5Instruction(Instruction):
         if isinstance(uncompressed_instr, list):
             uncompressed_instr = uncompressed_instr[0]
         compressed_instr = self.name
-        print("compressed_instr", compressed_instr)
         uncompressed_instr = uncompressed_instr.value.strip()
-        print("uncompressed_instr", uncompressed_instr)
         uncompressed = None
         assert set_def is not None
         for _, instr_def in set_def.instructions.items():
-            print("idn", instr_def.name)
             if instr_def.name == uncompressed_instr:
-                print("if")
                 uncompressed = instr_def
-                print("break")
                 break
         assert uncompressed is not None, f"Could not find instr {uncompressed_instr} in set {set_def.name}"
-        print("uncompressed", uncompressed)
-        print("compressed_constraints", self.llvm_constraints)
-        print("compressed_ins_str", self.llvm_ins_str)
-        print("compressed_outs_str", self.llvm_outs_str)
-        print("compressed_asm_order", self.llvm_asm_order)
-        print("uncompressed_constraints", uncompressed.llvm_constraints)
-        print("uncompressed_ins_str", uncompressed.llvm_ins_str)
-        print("uncompressed_outs_str", uncompressed.llvm_outs_str)
-        print("uncompressed_asm_order", uncompressed.llvm_asm_order)
         # TODO: rs1_wb vs. rd_wb?
         uncompressed_asm_order_ = None
         assert len(uncompressed.llvm_constraints) == 0
         if len(self.llvm_asm_order) == len(uncompressed.llvm_asm_order):
-            print("EQUAL")
             raise NotImplementedError
-        elif len(self.llvm_asm_order) < len(uncompressed.llvm_asm_order):
-            print("LESS")
+        if len(self.llvm_asm_order) < len(uncompressed.llvm_asm_order):
             assert len(self.llvm_asm_order) == (len(uncompressed.llvm_asm_order) - 1)
             missing = set(uncompressed.llvm_asm_order) - set(self.llvm_asm_order)
             assert len(missing) == 1
             missing = list(missing)[0]
-            print("missing", missing)
             assert len(self.llvm_constraints) > 0
             wb_reg = None
             for constr in self.llvm_constraints:
-                print("constr", constr)
                 m = re.compile(r"(\$[a-zA-Z0-9]*)\s*=\s*(\$[a-zA-Z0-9]*)_wb").match(constr)
                 if m:
                     x, y = m.groups()
                     if x == y:
                         wb_reg = x
-            print("wb_reg", wb_reg)
 
             def replace_helper(x):
                 if x == missing:
@@ -587,7 +567,6 @@ class Seal5Instruction(Instruction):
                 return x
 
             uncompressed_asm_order_ = [replace_helper(x) for x in uncompressed.llvm_asm_order]
-            print("uncompressed_asm_order", uncompressed_asm_order_)
         else:
             raise RuntimeError("Compressed instr has more args than uncompressed one")
         assert uncompressed_asm_order_ is not None
@@ -605,16 +584,11 @@ class Seal5Instruction(Instruction):
             return ", ".join(ret)
 
         compressed_args = args_helper(self.llvm_asm_order, self.llvm_ins_str, self.llvm_outs_str)
-        print("compressed_args", compressed_args)
         uncompressed_args = args_helper(uncompressed_asm_order_, self.llvm_ins_str, self.llvm_outs_str)
         # uncompressed_args = "GPRC:$rs1, GPRC:$rs1, GPRC:$rs2"
-        print("uncompressed_args", uncompressed_args)
         uncompressed_str = f"{uncompressed_instr} {uncompressed_args}"
-        print("uncompressed_str", uncompressed_str)
         compressed_str = f"{compressed_instr} {compressed_args}"
-        print("compressed_str", compressed_str)
         ret = f"def : CompressPat<({uncompressed_str}), ({compressed_str})>;"
-        print("ret", ret)
 
         # raise NotImplementedError
         return ret

@@ -18,19 +18,29 @@
 #
 """PatternGen utils for seal5."""
 from pathlib import Path
+from typing import Optional
 
 from seal5.logging import get_logger
 from seal5.settings import PatchSettings
 from seal5.types import PatchStage
 from seal5.index import File, Directory, NamedPatch, write_index_yaml
+from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 from seal5 import utils
 
 logger = get_logger()
 
 
 def build_pattern_gen(
-    src: Path, dest: Path, debug: bool = False, use_ninja: bool = False, verbose: bool = False, cmake_options: dict = {}
+    src: Path,
+    dest: Path,
+    # debug: bool = False,
+    use_ninja: bool = False,
+    verbose: bool = False,
+    cmake_options: Optional[dict] = None,
 ):
+    """Build PatternGen tool."""
+    if cmake_options is None:
+        cmake_options = {}
     cmake_args = utils.get_cmake_args(cmake_options)
     dest.mkdir(exist_ok=True)
     utils.cmake(
@@ -49,8 +59,9 @@ def build_pattern_gen(
 def get_pattern_gen_patches(
     src: Path,
     temp_dir: Path,
-    verbose: bool = False,
+    # verbose: bool = False,
 ):
+    """Generate patches for PatternGen integration."""
     # TODO: copy!
     artifacts = []
     directory_artifact = Directory(
@@ -102,8 +113,16 @@ def get_pattern_gen_patches(
 
 
 def build_llc(
-    src: Path, dest: Path, debug: bool = False, use_ninja: bool = False, verbose: bool = False, cmake_options: dict = {}
+    src: Path,
+    dest: Path,
+    # debug: bool = False,
+    use_ninja: bool = False,
+    verbose: bool = False,
+    cmake_options: Optional[dict] = None,
 ):
+    """Build llc tool."""
+    if cmake_options is None:
+        cmake_options = {}
     cmake_args = utils.get_cmake_args(cmake_options)
     dest.mkdir(exist_ok=True)
     utils.cmake(
@@ -128,8 +147,10 @@ def run_pattern_gen(
     skip_formats=False,
     skip_patterns=False,
     skip_verify=True,
+    no_extend=True,
     debug=False,
 ):
+    """Excute pattern-gen executable."""
     if not isinstance(build_dir, Path):
         build_dir = Path(build_dir)
     pattern_gen_args = [src]
@@ -145,15 +166,15 @@ def run_pattern_gen(
         pattern_gen_args.extend(["-p", preds_str])
 
     if mattr is None:
-        attrs = ["+m", "+fast-unaligned-access"]
+        features, _ = get_riscv_defaults()
         if ext:
             ext_ = ext.lower()
             ext_ = ext_.replace("std", "").replace("vendor", "").replace("ext", "")
-            attrs.append(f"+{ext_}")
-        mattr = ",".join(attrs)
+            features.append(f"+{ext_}")
+        mattr = build_riscv_mattr(features, xlen=xlen)
 
     if mattr:
-        pattern_gen_args.extend(["--mattr2", mattr])
+        pattern_gen_args.extend(["--mattr", mattr])
 
     if xlen:
         assert xlen in [32, 64]
@@ -171,6 +192,9 @@ def run_pattern_gen(
     if debug:
         pattern_gen_args.append("--debug")
 
+    if no_extend:
+        pattern_gen_args.append("--no-extend")
+
     # break_on_err = True
     break_on_err = False
 
@@ -178,7 +202,7 @@ def run_pattern_gen(
     def handle_exit(code=None, out=None):
         if code is not None and code != 0:
             err_file = str(dest) + ".err"
-            with open(err_file, "w") as f:
+            with open(err_file, "w", encoding="utf-8") as f:
                 f.write(out)
         return code
 
@@ -198,7 +222,7 @@ def run_pattern_gen(
         if break_on_err:
             input("^^^ERR^^^")
         if dest.is_file():
-            with open(dest, "r") as f:
+            with open(dest, "r", encoding="utf-8") as f:
                 content = f.read()
             if len(content) == 0:
                 dest.unlink()
@@ -226,11 +250,11 @@ def run_pattern_gen(
                 elif "Pattern Generation failed for" in line:
                     # reason = line
                     is_err = True
-        print("pat", pat)
+        # print("pat", pat)
         if len(pat) > 0:
             pat = "\n".join(pat)
             pat_file = str(dest) + ".pat"
-            with open(pat_file, "w") as f:
+            with open(pat_file, "w", encoding="utf-8") as f:
                 f.write(pat)
         else:
             is_err = True
@@ -244,7 +268,7 @@ def run_pattern_gen(
                 input("^^^ERROR^^^")
             dest.unlink()
         out_file = str(dest) + (".err" if is_err else ".out")
-        with open(out_file, "w") as f:
+        with open(out_file, "w", encoding="utf-8") as f:
             f.write(out)
         # if len(rest) > 0:
         #     rest = "\n".join(rest)
@@ -263,17 +287,17 @@ def convert_ll_to_gmir(
     dest: Path,
     mattr=None,
     xlen=None,
+    optimize=3,
     verbose: bool = False,
 ):
+    """Convert LLVM-IR file to GMIR file."""
     if mattr is None:
-        attrs = ["+m", "+fast-unaligned-access"]
-        if xlen == 64 and "+64bit" not in attrs:
-            attrs.append("+64bit")
-        mattr = ",".join(attrs)
+        features, _ = get_riscv_defaults()
+        mattr = build_riscv_mattr(features, xlen=xlen)
 
     assert xlen is not None, "Needs XLEN"
 
-    llc_args = [src, f"-mtriple=riscv{xlen}-unknown-elf", "-stop-after=irtranslator", "-global-isel", "-O3"]
+    llc_args = [src, f"-mtriple=riscv{xlen}-unknown-elf", "-stop-after=irtranslator", "-global-isel", f"-O{optimize}"]
 
     if mattr:
         llc_args.extend(["--mattr", mattr])

@@ -27,6 +27,7 @@ logger = get_logger()
 
 
 def add_build_options(parser):
+    """Setup parser for build argument group."""
     build_parser = parser.add_argument_group("build options")
     build_parser.add_argument(
         "--target",
@@ -38,6 +39,11 @@ def add_build_options(parser):
         "--config",
         default=None,
         help="Choose build Config in Settings.yml",
+    )
+    build_parser.add_argument(
+        "--ccache",
+        action="store_true",
+        help="Enable CCache to speedup compilation.",
     )
 
 
@@ -62,4 +68,5 @@ def handle(args):
         config=args.config,
         target=args.target,
         verbose=args.verbose,
+        enable_ccache=args.ccache,
     )

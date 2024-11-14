@@ -1,0 +1,13 @@
+---
+extensions:
+  OpenASIP_paper:
+    version: "1.0"
+    # experimental: true
+    experimental: false
+    vendor: true
+passes:
+  per_model:
+    OpenASIP_paper:
+      overrides:
+        convert_models:
+          prefix: "SEAL5_"

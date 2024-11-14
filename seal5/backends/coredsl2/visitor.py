@@ -102,7 +102,7 @@ def conditional(self: behav.Conditional, writer):
             writer.write("if (")
             self.conds[i].generate(writer)
             writer.write(")")
-        elif i > 0 and i < len(self.conds):
+        elif 0 < i < len(self.conds):
             writer.write("else if(")
             self.conds[i].generate(writer)
             writer.write(")")
@@ -218,3 +218,10 @@ def group(self: behav.Group, writer):
     self.expr.generate(writer)
     writer.write(")")
     # writer.leave_block()
+
+
+def procedure_call(self: behav.ProcedureCall, context):
+    # print("procedure_call")
+
+    for arg in self.args:
+        arg.generate(context)

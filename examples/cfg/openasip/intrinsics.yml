@@ -1,0 +1,21 @@
+---
+intrinsics:
+  intrinsics:
+  - args:
+    - arg_name: rs1
+      arg_type: i32
+    - arg_name: rs2
+      arg_type: i32
+    set_name: OpenASIP_base  # TODO: change hierarchy
+    instr_name: openasip_base_max
+    intrinsic_name: openasip_base_max
+    ret_type: i32
+  - args:
+    - arg_name: rs1
+      arg_type: i32
+    - arg_name: rs2
+      arg_type: i32
+    set_name: OpenASIP_base  # TODO: change hierarchy
+    instr_name: openasip_base_maxu
+    intrinsic_name: openasip_base_maxu
+    ret_type: i32
