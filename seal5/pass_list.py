@@ -1346,6 +1346,7 @@ def convert_llvmir_to_gmir(
     #     name = input_file.name
     #     sub = name.replace(".seal5model", "")
     default_mattr = "+m,+fast-unaligned-access"
+    xlen = None
     if settings:
         riscv_settings = settings.riscv
         if riscv_settings:
