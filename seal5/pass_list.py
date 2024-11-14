@@ -1577,6 +1577,7 @@ def convert_llvmir_to_gmir(
     # for input_file in input_files:
     #     name = input_file.name
     #     sub = name.replace(".seal5model", "")
+    xlen = None
     if settings:
         riscv_settings = settings.riscv
         model_settings = settings.models.get(input_model)
