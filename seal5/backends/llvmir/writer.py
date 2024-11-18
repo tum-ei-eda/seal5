@@ -121,21 +121,7 @@ def main():
                 metrics["n_instructions"] += 1
                 attrs = instr_def.attributes
                 if len(attrs) > 0:
-                    skip = False
-                    if instr_def.size != 32:
-                        skip = True
-                    elif len(attrs.get(Seal5InstrAttribute.USES, [])) > 0:
-                        skip = True
-                    elif len(attrs.get(Seal5InstrAttribute.DEFS, [])) > 0:
-                        skip = True
-                    elif Seal5InstrAttribute.MAY_LOAD in attrs:
-                        skip = True
-                    elif Seal5InstrAttribute.MAY_STORE in attrs:
-                        skip = True
-                    elif arch.InstrAttribute.COND in attrs:
-                        skip = True
-                    elif arch.InstrAttribute.NO_CONT in attrs:
-                        skip = True
+                    skip = Seal5InstrAttribute.SKIP_PATTERN_GEN in attrs
                     if skip:
                         metrics["n_skipped"] += 1
                         metrics["skipped_instructions"].append(instr_def.name)
