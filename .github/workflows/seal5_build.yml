@@ -83,7 +83,7 @@ jobs:
 
     - uses: actions/upload-artifact@v4
       with:
-        name: ${{ setps.ctx.outputs.name }}-install-${{ matrix.os }}-${{ matrix.build_config }}
+        name: ${{ steps.ctx.outputs.name }}-install-${{ matrix.os }}-${{ matrix.build_config }}
         path: /tmp/seal5_llvm/.seal5/install/${{ matrix.build_config }}
 
   trigger_etiss_example_build:
