@@ -37,6 +37,9 @@ jobs:
         os: ["ubuntu-22.04"]
         ccache: ["1"]
         build_config: ["release"]
+        script:
+        - openasip_demo.py  # TODO: use different trigger (generate matrix!)
+        - tumeda_demo.py
     steps:
     - uses: actions/checkout@v4
       with:
@@ -46,7 +49,7 @@ jobs:
       uses: hendrikmuhs/ccache-action@v1
       with:
         max-size: 2G
-        key: ${{ matrix.os }}-s4e_demo.py-${{ matrix.build_config }}
+        key: ${{ matrix.os }}-${{ matrix.script }}-${{ matrix.build_config }}
         variant: sccache
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
@@ -71,22 +74,31 @@ jobs:
     - name: Run the demo
       run: |
         source .venv/bin/activate
-        VERBOSE=0 PROGESS=1 CLONE_DEPTH=1 CCACHE=${{ matrix.ccache }} BUILD_CONFIG=${{ matrix.build_config }} IGNORE_ERROR=1 TEST=1 INSTALL=1 EXPORT=1 DEST=/tmp/seal5_llvm python3 examples/s4e_demo.py
+        VERBOSE=0 PROGESS=1 CLONE_DEPTH=1 CCACHE=${{ matrix.ccache }} BUILD_CONFIG=${{ matrix.build_config }} IGNORE_ERROR=1 TEST=1 INSTALL=1 EXPORT=1 DEST=/tmp/seal5_llvm python3 examples/${{ matrix.script }}
+
+    - name: Determine name
+      id: ctx
+      run: |
+        echo "name=$(basename ${{ matrix.script}} .py)-py" >> $GITHUB_OUTPUT
 
     - uses: actions/upload-artifact@v4
       with:
-        name: demo-export-${{ matrix.os }}-${{ matrix.build_config }}
-        path: /tmp/seal5_llvm.tar.gz
-
-    - uses: actions/upload-artifact@v4
-      with:
-        name: demo-install-${{ matrix.os }}-${{ matrix.build_config }}
+        name: ${{ setps.ctx.outputs.name }}-install-${{ matrix.os }}-${{ matrix.build_config }}
         path: /tmp/seal5_llvm/.seal5/install/${{ matrix.build_config }}
 
   trigger_etiss_example_build:
     runs-on: ubuntu-latest
     needs: build_seal5
+    strategy:
+      matrix:
+        script:
+        - openasip_demo.py  # TODO: use different trigger (generate matrix!)
+        - tumeda_demo.py
     steps:
+    - name: Determine name
+      id: ctx
+      run: |
+        echo "name=$(basename ${{ matrix.script}} .py)-py" >> $GITHUB_OUTPUT
     - name: Download ETISS RUN-ID Artifacts
       id: download-artifact
       uses: dawidd6/action-download-artifact@v6
@@ -111,4 +123,4 @@ jobs:
          token: ${{ secrets.SEAL5_ACCESS_TOKEN }}
          repository: tum-ei-eda/etiss_riscv_examples_s4e
          event-type: seal5-event
-         client-payload: '{"triggered_run_id": "${{ github.run_id }}", "etiss_run_id": "${{ env.ETISS_RUN_ID }}"}'
+         client-payload: '{"triggered_run_id": "${{ github.run_id }}", "etiss_run_id": "${{ env.ETISS_RUN_ID }}", "name": "${{ steps.ctx.outputs.name }}"}'
