@@ -28,7 +28,7 @@ from .templates import template_dir
 logger = logging.getLogger("riscv_features")
 
 
-def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings):
+def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings, llvm_settings: LLVMSettings):
     """Generate features string for LLVM patch."""
     requires = ext_settings.requires
     feature = ext_settings.get_feature(name=name)
@@ -42,14 +42,12 @@ def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings):
         raise NotImplementedError
 
     legacy = True
-    if settings:
-        llvm_settings = settings.llvm
-        if llvm_settings:
-            llvm_state = llvm_settings.state
-            if llvm_state:
-                llvm_version = llvm_state.version  # unused today, but needed very soon
-                if llvm_version.major >= 19:
-                    legacy = False
+    if llvm_settings:
+        llvm_state = llvm_settings.state
+        if llvm_state:
+            llvm_version = llvm_state.version  # unused today, but needed very soon
+            if llvm_version.major >= 19:
+                legacy = False
     if legacy:
         template_name = "riscv_features"
     else:
@@ -133,6 +131,10 @@ def main():
     }
     # preprocess model
     # print("model", model)
+    settings = model.get("settings", None)
+    llvm_settings = None
+    if settings.llvm:
+        llvm_settings = settings.llvm
     artifacts = {}
     artifacts[None] = []  # used for global artifacts
     if not args.splitted:
@@ -148,7 +150,7 @@ def main():
                 continue
             metrics["n_success"] += 1
             metrics["success_sets"].append(set_name)
-            content += gen_riscv_features_str(set_name, ext_settings)
+            content += gen_riscv_features_str(set_name, ext_settings, llvm_settings)
         content = content.rstrip()
         if len(content) > 0:
             with open(out_path, "w", encoding="utf-8") as f:
