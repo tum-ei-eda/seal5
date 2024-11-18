@@ -21,7 +21,7 @@ from mako.template import Template
 from m2isar.metamodel import arch
 
 from seal5.index import NamedPatch, write_index_yaml
-from seal5.settings import ExtensionsSettings
+from seal5.settings import ExtensionsSettings, LLVMSettings
 from .templates import template_dir
 
 
@@ -57,12 +57,15 @@ def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings, llvm_set
             template_name = "riscv_features_new"
 
     # TODO: make util!
-    assert isinstance(version, float)
-    major, minor = list(map(int, f"{val:.1f}".split(".", 1)))
-
+    if not isinstance(version, str):
+        assert isinstance(version, float)
+        version = f"{version:.1f}"
+    major, minor = list(map(int, version.split(".", 1)))
 
     content_template = Template(filename=str(template_dir / f"{template_name}.mako"))
-    content_text = content_template.render(predicate=predicate, feature=feature, arch=arch_, description=description, major=major, minor=minor)
+    content_text = content_template.render(
+        predicate=predicate, feature=feature, arch=arch_, description=description, major=major, minor=minor
+    )
     return content_text + "\n"
 
 

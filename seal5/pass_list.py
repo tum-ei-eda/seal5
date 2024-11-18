@@ -1174,8 +1174,8 @@ def gen_riscv_isa_info_patch(
             llvm_state = llvm_settings.state
             if llvm_state:
                 llvm_version = llvm_state.version  # unused today, but needed very soon
-                assert llvm_version.major >= 19
-                return PassResult(metrics={})
+                if llvm_version.major >= 19:
+                    return PassResult(metrics={})
     # formats = True
     gen_metrics_file = True
     gen_index_file = True
