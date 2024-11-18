@@ -35,12 +35,36 @@ def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings):
     arch_ = ext_settings.get_arch(name=name)
     description = ext_settings.get_description(name=name)
     predicate = ext_settings.get_predicate(name=name)
+    version = ext_settings.get_version()
+    experimental = ext_settings.experimental
 
     if requires:
         raise NotImplementedError
 
-    content_template = Template(filename=str(template_dir / "riscv_features.mako"))
-    content_text = content_template.render(predicate=predicate, feature=feature, arch=arch_, description=description)
+    legacy = True
+    if settings:
+        llvm_settings = settings.llvm
+        if llvm_settings:
+            llvm_state = llvm_settings.state
+            if llvm_state:
+                llvm_version = llvm_state.version  # unused today, but needed very soon
+                if llvm_version.major >= 19:
+                    legacy = False
+    if legacy:
+        template_name = "riscv_features"
+    else:
+        if experimental:
+            template_name = "riscv_features_experimental_new"
+        else:
+            template_name = "riscv_features_new"
+
+    # TODO: make util!
+    assert isinstance(version, float)
+    major, minor = list(map(int, f"{val:.1f}".split(".", 1)))
+
+
+    content_template = Template(filename=str(template_dir / f"{template_name}.mako"))
+    content_text = content_template.render(predicate=predicate, feature=feature, arch=arch_, description=description, major=major, minor=minor)
     return content_text + "\n"
 
 
