@@ -39,7 +39,7 @@ jobs:
         build_config: ["release"]
         script:
         - openasip_demo.py  # TODO: use different trigger (generate matrix!)
-        - tumeda_demo.py
+        - s4e_demo.py
     steps:
     - uses: actions/checkout@v4
       with:
@@ -79,7 +79,7 @@ jobs:
     - name: Determine name
       id: ctx
       run: |
-        echo "name=$(basename ${{ matrix.script}} .py)-py" >> $GITHUB_OUTPUT
+        echo "name=$(basename ${{ matrix.script}} .py)" >> $GITHUB_OUTPUT
 
     - uses: actions/upload-artifact@v4
       with:
@@ -98,7 +98,7 @@ jobs:
     - name: Determine name
       id: ctx
       run: |
-        echo "name=$(basename ${{ matrix.script}} .py)-py" >> $GITHUB_OUTPUT
+        echo "name=$(basename ${{ matrix.script}} .py)" >> $GITHUB_OUTPUT
     - name: Download ETISS RUN-ID Artifacts
       id: download-artifact
       uses: dawidd6/action-download-artifact@v6
