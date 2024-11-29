@@ -297,8 +297,6 @@ def main():
                 with open(patch_path, "w") as f:
                     f.write(contents)
                 key = frag.tag
-                if ext_settings.experimental:
-                    key += "_experimental"
                 patch = NamedPatch(frag.patchee, key=key, src_path=patch_path, content=contents)
                 artifacts[None].append(patch)
     if args.metrics:

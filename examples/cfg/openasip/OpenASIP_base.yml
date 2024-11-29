@@ -2,8 +2,7 @@
 extensions:
   OpenASIP_base:
     version: "1.0"
-    # experimental: true
-    experimental: false
+    experimental: true
     vendor: true
 passes:
   per_model:
