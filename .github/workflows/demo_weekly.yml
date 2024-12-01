@@ -209,6 +209,7 @@ jobs:
         path: /tmp/seal5_llvm_source.zip
     - name: Aggregate and Publish Test Results
       run:
+        python3 -m pip install pandas
         python3 examples/merge_test_artifacts.py reports/demo-${{ steps.ctx.outputs.name }}-reports/status_compact.csv reports/demo-${{ steps.ctx.outputs.name }}-reports/properties.csv  reports/demo-${{ steps.ctx.outputs.name }}-reports/test_results_compact.csv reports/demo-${{ steps.ctx.outputs.name }}-reports/test_coverage_compact.csv 
         echo "### Compiling Results" >> $GITHUB_STEP_SUMMARY
         echo >> $GITHUB_STEP_SUMMARY
