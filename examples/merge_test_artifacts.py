@@ -45,7 +45,7 @@ def main():
 
     def save_data_frames_as_md(dataframe, filename):
         with open(filename, 'w') as md:
-            print(dataframe.to_markdown(buf=md, tablefmt="grid"))
+            print(dataframe.to_html(buf=md, index=True"))
 
     save_data_frames_as_md(stat_prop_result_df, "stat_prop_result_df.md")
     save_data_frames_as_md(stat_prop_result_cv_df, "stat_prop_result_cv_df.md")
