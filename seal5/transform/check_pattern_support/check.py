@@ -135,6 +135,8 @@ def run(args):
                 )
                 if skip_pattern_gen:
                     attributes[Seal5InstrAttribute.SKIP_PATTERN_GEN] = []
+                # TODO: move to different/new pass (add_instr_attributes) and move detections to Seal5Instr class in metamodel
+                attributes[Seal5InstrAttribute.LLVM_INSTR] = behav.StringLiteral(instr_def.name)
                 instr_def.attributes = attributes
                 metrics["n_success"] += 1
                 metrics["success_instructions"].append(instr_def.name)

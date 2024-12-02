@@ -142,7 +142,8 @@ class Seal5InstrAttribute(Enum):
     COMPRESSED = auto()
     USES = auto()
     DEFS = auto()
-    SKIP_PATTERN_GEN = auto()  # TODO: use
+    SKIP_PATTERN_GEN = auto()
+    LLVM_INSTR = auto()
 
 
 class Seal5FunctionAttribute(Enum):
