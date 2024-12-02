@@ -125,7 +125,10 @@ class CoreDSL2Writer:
                 if isinstance(val, behav.IntLiteral):
                     return str(val.value)
                 if isinstance(val, behav.StringLiteral):
-                    return val.value
+                    val = val.value
+                    if '"' not in val:
+                        val = '"' + val + '"'
+                    return val
                 raise NotImplementedError(f"Unhandled case: {type(val)}")
 
             val = helper(val)
