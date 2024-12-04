@@ -405,3 +405,6 @@ def group(self: behav.Group, context):
     self.inferred_type = self.expr.inferred_type
 
     return self
+
+def break_(self: behav.Break, context):
+    return self

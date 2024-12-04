@@ -219,3 +219,6 @@ def procedure_call(self: behav.ProcedureCall, context):
     self.fn_args = [arg.generate(context) for arg in self.args]
 
     return self
+
+def break_(self: behav.Break, context):
+    return self
