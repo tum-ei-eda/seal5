@@ -137,7 +137,6 @@ def main():
                 skip = False
                 if len(attrs) > 0:
                     skip = Seal5InstrAttribute.SKIP_PATTERN_GEN in attrs
-                        return False, includes_
                 if not input_file.is_file():
                     skip = True
                 if skip:
