@@ -144,6 +144,8 @@ class Seal5InstrAttribute(Enum):
     DEFS = auto()
     SKIP_PATTERN_GEN = auto()
     LLVM_INSTR = auto()
+    HAS_CALL = auto()
+    HAS_LOOP = auto()
 
 
 class Seal5FunctionAttribute(Enum):
