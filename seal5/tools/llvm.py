@@ -29,7 +29,7 @@ from tqdm import tqdm
 from seal5 import utils
 from seal5.logging import get_logger
 from seal5.tools.git import get_author_from_settings
-from seal5.settings import GitSettings
+from seal5.settings import GitSettings, CcacheSettings
 
 logger = get_logger()
 
@@ -148,7 +148,7 @@ def build_llvm(
     cmake_options: Optional[dict] = None,
     install: bool = False,
     install_dir: Optional[Union[str, Path]] = None,
-    enable_ccache: bool = False,
+    ccache_settings: Optional[CcacheSettings] = None,
 ):
     if cmake_options is None:
         cmake_options = {}
@@ -156,9 +156,17 @@ def build_llvm(
         assert install_dir is not None
         assert Path(install_dir).parent.is_dir()
         cmake_options["CMAKE_INSTALL_PREFIX"] = str(install_dir)
-    if enable_ccache:
-        cmake_options["CMAKE_C_COMPILER_LAUNCHER"] = "sccache"  # TODO: choose between sccache/ccache
-        cmake_options["CMAKE_CXX_COMPILER_LAUNCHER"] = "sccache"  # TODO: choose between sccache/ccache
+    env = os.environ.copy()
+    if ccache_settings:
+        if ccache_settings.enable:
+            ccache_executable = ccache_settings.executable
+            ccache_directory = ccache_settings.directory
+            if ccache_executable is None:
+                ccache_executable = "sccache"
+            cmake_options["CMAKE_C_COMPILER_LAUNCHER"] = ccache_executable
+            cmake_options["CMAKE_CXX_COMPILER_LAUNCHER"] = ccache_executable
+            if ccache_directory is not None:
+                env["CCACHE_DIR"] = ccache_directory
     cmake_args = utils.get_cmake_args(cmake_options)
     dest.mkdir(exist_ok=True)
     utils.cmake(
@@ -167,6 +175,7 @@ def build_llvm(
         use_ninja=use_ninja,
         debug=debug,
         cwd=dest,
+        env=env,
         print_func=logger.info if verbose else logger.debug,
         live=True,
     )

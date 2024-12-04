@@ -504,13 +504,16 @@ class Seal5Flow:
         llvm_config = self.settings.llvm.configs.get(config, None)
         assert llvm_config is not None, f"Invalid llvm config: {config}"
         cmake_options = llvm_config.options
+        ccache_settings = self.settings.llvm.ccache
+        if kwargs.get("enable_ccache", False):
+            ccache_settings.enable = True
         llvm.build_llvm(
             Path(self.settings.directory),
             self.settings.get_llvm_build_dir(config=config, fallback=True, check=False),
             cmake_options=cmake_options,
             target=target,
             use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
-            enable_ccache=self.settings.llvm.ccache or kwargs.get("enable_ccache", False),
+            ccache_settings=ccache_settings,
         )
         end = time.time()
         diff = end - start
@@ -538,12 +541,15 @@ class Seal5Flow:
         llvm_config = self.settings.llvm.configs.get(config, None)
         assert llvm_config is not None, f"Invalid llvm config: {config}"
         cmake_options = llvm_config.options
+        ccache_settings = self.settings.llvm.ccache
+        if kwargs.get("enable_ccache", False):
+            ccache_settings.enable = True
         llvm.build_llvm(
             Path(self.settings.directory),
             self.settings.get_llvm_build_dir(config=config, fallback=True, check=True),
             cmake_options=cmake_options,
             use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
-            enable_ccache=self.settings.llvm.ccache or kwargs.get("enable_ccache", False),
+            ccache_settings=ccache_settings,
             target=None,
             install=True,
             install_dir=dest,
