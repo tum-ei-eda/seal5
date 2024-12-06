@@ -43,23 +43,34 @@ def main():
 
     stat_prop_result_cv_df = pd.merge( stat_prop_result_df, test_cv_df, on=['model', 'set', 'xlen', 'instr'], how='left')
 
-    def save_data_frames_as_md(dataframe, filename):
-        with open(filename, 'w') as md:
-            print(dataframe.to_html(buf=md, index=True))
+    def save_data_frames_as_html_to_file(dataframe, filename):
+        with open(filename, 'w') as html_file:
+            print(dataframe.to_html(buf=html_file, index=True))
 
-    save_data_frames_as_md(stat_prop_result_df, "stat_prop_result_df.md")
-    save_data_frames_as_md(stat_prop_result_cv_df, "stat_prop_result_cv_df.md")
 
-    stat_prop_result_cv_df1 = stat_prop_result_cv_df;
+    save_data_frames_as_html_to_file(stat_prop_result_df, "stat_prop_result_df.html")
+    save_data_frames_as_html_to_file(stat_prop_result_cv_df, "stat_prop_result_cv_df.html")
 
-    stat_prop_result_cv_df2 = stat_prop_result_cv_df;
-    
-    stat_prop_result_cv_df1.set_index(['model', 'set', 'enc_format', 'opcode', 'instr'], inplace=True)
+    stat_prop_result_cv_df.set_index(['model', 'set', 'enc_format', 'opcode', 'instr'], inplace=True)
 
-    stat_prop_result_cv_df1 = stat_prop_result_cv_df1.groupby(level=[0,1,2,3,4])[['n_success',  'n_optional',  'n_extra',  'n_required_exists', 'n_optional_exists']].mean()
-  
-    save_data_frames_as_md(stat_prop_result_cv_df1, "Grouped_stat_prop_result_cv.md")
-    save_data_frames_as_md(stat_prop_result_cv_df2, "Grouped_stat_prop_result_all.md")
+    stat_prop_result_cv_df1 = stat_prop_result_cv_df.groupby(level=[0,1,2,3,4])[['n_optional',  'n_extra',  'n_required_exists', 'n_optional_exists']].mean()
+
+
+
+    def calc_stage_percentage( ):
+       perc_success = (((stat_prop_result_cv_df['n_success'] *100) / stat_prop_result_cv_df['n_total'] ).astype(int)).astype(str)
+       perc_skipped = (((stat_prop_result_cv_df['n_skipped'] *100) / stat_prop_result_cv_df['n_total'] ).astype(int)).astype(str)
+       perc_failed  = (((stat_prop_result_cv_df['n_failed'] *100) / stat_prop_result_cv_df['n_total'] ).astype(int)).astype(str)
+
+       perc_result = '['+ perc_success +'%' + ' / '+ perc_skipped +'%'+ ' / '+ perc_failed +'%'+ ']'
+       return perc_result;
+
+    stat_prop_result_cv_df1["Status_Summary: (Passed/Skipped/Failed) % "] =  stat_prop_result_cv_df["n_success"].astype(str)+' / '+ stat_prop_result_cv_df["n_skipped"].astype(str) +' / '+ stat_prop_result_cv_df["n_failed"].astype(str)+ ' ' + calc_stage_percentage() # + " ["+ ((stat_prop_result_cv_df["n_success"]*100/stat_prop_result_cv_df["n_total"]).astype(int)).astype(str)+"%]"
+    print(stat_prop_result_cv_df1)
+
+    save_data_frames_as_html_to_file(stat_prop_result_cv_df1, "Grouped_stat_prop_result_cv.md")
+    save_data_frames_as_html_to_file(stat_prop_result_cv_df, "Grouped_stat_prop_result_all.md")
+
 
 if __name__ == "__main__":
     main()
