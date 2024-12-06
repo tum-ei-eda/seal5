@@ -213,7 +213,6 @@ jobs:
         python3 examples/merge_test_artifacts.py reports/status_compact.csv reports/properties.csv  reports/test_results_compact.csv reports/test_coverage_compact.csv
         echo "### Compiling Results" >> $GITHUB_STEP_SUMMARY
         echo >> $GITHUB_STEP_SUMMARY
-        ls -al
         cat Grouped_stat_prop_result_all.md >> $GITHUB_STEP_SUMMARY
         echo >> $GITHUB_STEP_SUMMARY
         
