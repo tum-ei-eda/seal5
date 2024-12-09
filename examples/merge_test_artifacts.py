@@ -65,7 +65,7 @@ def main():
        perc_result = '['+ perc_success +'%' + ' / '+ perc_skipped +'%'+ ' / '+ perc_failed +'%'+ ']'
        return perc_result;
 
-    stat_prop_result_cv_df1["Status_Summary: (Passed/Skipped/Failed) % "] =  stat_prop_result_cv_df["n_success"].astype(str)+' / '+ stat_prop_result_cv_df["n_skipped"].astype(str) +' / '+ stat_prop_result_cv_df["n_failed"].astype(str)+ ' ' + calc_stage_percentage() # + " ["+ ((stat_prop_result_cv_df["n_success"]*100/stat_prop_result_cv_df["n_total"]).astype(int)).astype(str)+"%]"
+    stat_prop_result_cv_df1["Status_Summary: (Passed/Skipped/Failed) % "] =  stat_prop_result_cv_df["n_success"].astype(str)+' / '+ stat_prop_result_cv_df["n_skipped"].astype(str) +' / '+ stat_prop_result_cv_df["n_failed"].astype(str)+ ' ' + calc_stage_percentage() 
     print(stat_prop_result_cv_df1)
 
     save_data_frames_as_html_to_file(stat_prop_result_cv_df1, "Grouped_stat_prop_result_cv.md")
