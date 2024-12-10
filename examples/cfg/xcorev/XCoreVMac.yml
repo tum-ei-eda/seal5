@@ -6,6 +6,90 @@ extensions:
     version: "1.0"
     experimental: false
     vendor: true
+intrinsics:
+  intrinsics:
+  - &ScalarCoreVMacGprGprGprIntrinsic
+    args:
+    - arg_name: rd
+      arg_type: i32
+    - arg_name: rs1
+      arg_type: i32
+    - arg_name: rs2
+      arg_type: i32
+    set_name: XCoreVMac
+    instr_name: SEAL5_CV_MAC
+    intrinsic_name: mac_mac
+  - <<: *ScalarCoreVMacGprGprGprIntrinsic
+    instr_name: SEAL5_CV_MSU
+    intrinsic_name: mac_msu
+  - &ScalarCoreVMacGprGprImmIntrinsic
+    args:
+    - arg_name: rs1
+      arg_type: i32
+    - arg_name: rs2
+      arg_type: i32
+    - arg_name: Is3
+      arg_type: i32
+      immediate: true
+    set_name: XCoreVMac
+    instr_name: SEAL5_CV_MULUN
+    intrinsic_name: mac_mulun
+  - <<: *ScalarCoreVMacGprGprImmIntrinsic
+    instr_name: SEAL5_CV_MULHHUN
+    intrinsic_name: mac_mulhhun
+  - <<: *ScalarCoreVMacGprGprImmIntrinsic
+    instr_name: SEAL5_CV_MULSN
+    intrinsic_name: mac_mulsn
+  - <<: *ScalarCoreVMacGprGprImmIntrinsic
+    instr_name: SEAL5_CV_MULHHSN
+    intrinsic_name: mac_mulhhsn
+  - <<: *ScalarCoreVMacGprGprImmIntrinsic
+    instr_name: SEAL5_CV_MULURN
+    intrinsic_name: mac_mulurn
+  - <<: *ScalarCoreVMacGprGprImmIntrinsic
+    instr_name: SEAL5_CV_MULHHURN
+    intrinsic_name: mac_mulhhurn
+  - <<: *ScalarCoreVMacGprGprImmIntrinsic
+    instr_name: SEAL5_CV_MULSRN
+    intrinsic_name: mac_mulsrn
+  - <<: *ScalarCoreVMacGprGprImmIntrinsic
+    instr_name: SEAL5_CV_MULHHSRN
+    intrinsic_name: mac_mulhhsrn
+  - &ScalarCoreVMacGprGprGprImmIntrinsic
+    args:
+    - arg_name: rd
+      arg_type: i32
+    - arg_name: rs1
+      arg_type: i32
+    - arg_name: rs2
+      arg_type: i32
+    - arg_name: Is3
+      arg_type: i32
+      immediate: true
+    set_name: XCoreVMac
+    instr_name: SEAL5_CV_MACUN
+    intrinsic_name: mac_macun
+  - <<: *ScalarCoreVMacGprGprGprImmIntrinsic
+    instr_name: SEAL5_CV_MACHHUN
+    intrinsic_name: mac_machhun
+  - <<: *ScalarCoreVMacGprGprGprImmIntrinsic
+    instr_name: SEAL5_CV_MACSN
+    intrinsic_name: mac_macsn
+  - <<: *ScalarCoreVMacGprGprGprImmIntrinsic
+    instr_name: SEAL5_CV_MACHHSN
+    intrinsic_name: mac_machhsn
+  - <<: *ScalarCoreVMacGprGprGprImmIntrinsic
+    instr_name: SEAL5_CV_MACURN
+    intrinsic_name: mac_macurn
+  - <<: *ScalarCoreVMacGprGprGprImmIntrinsic
+    instr_name: SEAL5_CV_MACHHURN
+    intrinsic_name: mac_machhurn
+  - <<: *ScalarCoreVMacGprGprGprImmIntrinsic
+    instr_name: SEAL5_CV_MACSRN
+    intrinsic_name: mac_macsrn
+  - <<: *ScalarCoreVMacGprGprGprImmIntrinsic
+    instr_name: SEAL5_CV_MACHHSRN
+    intrinsic_name: mac_machhsrn
 passes:
   per_model:
     XCoreVMac:

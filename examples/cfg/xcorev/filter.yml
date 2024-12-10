@@ -20,6 +20,11 @@ filter:
     - SEAL5_CV_SLETU
     - SEAL5_CV_PACK
     - SEAL5_CV_PACKLO_B
+    # segfault due to wrong pattern?
+    - SEAL5_CV_EXTHS
+    - SEAL5_CV_EXTBS
+    - SEAL5_CV_EXTHZ
+    - SEAL5_CV_EXTBZ
     # broken due to pattern freeze
     - SEAL5_CV_MACUN
     - SEAL5_CV_MULURN

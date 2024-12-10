@@ -6,6 +6,95 @@ extensions:
     version: "1.0"
     experimental: false
     vendor: true
+intrinsics:
+  intrinsics:
+  # unary
+  - &ScalarCoreVAluGprIntrinsic
+    args:
+    - arg_name: rs1
+      arg_type: i32
+    set_name: XCoreVAlu
+    instr_name: SEAL5_CV_ABS
+    intrinsic_name: alu_abs
+    ret_type: i32
+  - <<: *ScalarCoreVAluGprIntrinsic
+    instr_name: SEAL5_CV_EXTHS
+    intrinsic_name: alu_exths
+  - <<: *ScalarCoreVAluGprIntrinsic
+    instr_name: SEAL5_CV_EXTHZ
+    intrinsic_name: alu_exthz
+  - <<: *ScalarCoreVAluGprIntrinsic
+    instr_name: SEAL5_CV_EXTBS
+    intrinsic_name: alu_extbs
+  - <<: *ScalarCoreVAluGprIntrinsic
+    instr_name: SEAL5_CV_EXTBZ
+    intrinsic_name: alu_extbz
+  # binary
+  - &ScalarCoreVAluGprGprIntrinsic
+    args:
+    - arg_name: rs1
+      arg_type: i32
+    - arg_name: rs2
+      arg_type: i32
+    set_name: XCoreVAlu
+    instr_name: SEAL5_CV_SLET
+    intrinsic_name: alu_slet
+    ret_type: i32
+  - <<: *ScalarCoreVAluGprIntrinsic
+    instr_name: SEAL5_CV_SLETU
+    intrinsic_name: alu_sletu
+  - <<: *ScalarCoreVAluGprIntrinsic
+    instr_name: SEAL5_CV_MIN
+    intrinsic_name: alu_min
+  - <<: *ScalarCoreVAluGprIntrinsic
+    instr_name: SEAL5_CV_MINU
+    intrinsic_name: alu_minu
+  - <<: *ScalarCoreVAluGprIntrinsic
+    instr_name: SEAL5_CV_MAX
+    intrinsic_name: alu_max
+  - <<: *ScalarCoreVAluGprIntrinsic
+    instr_name: SEAL5_CV_MAXU
+    intrinsic_name: alu_maxu
+  - <<: *ScalarCoreVAluGprIntrinsic
+    instr_name: SEAL5_CV_CLIP
+    intrinsic_name: alu_clip
+  - <<: *ScalarCoreVAluGprIntrinsic
+    instr_name: SEAL5_CV_CLIPU
+    intrinsic_name: alu_clipu
+  # ternary
+  - &ScalarCoreVAluGprGprGprIntrinsic
+    args:
+    - arg_name: rs1
+      arg_type: i32
+    - arg_name: rs2
+      arg_type: i32
+    - arg_name: rs3  # TODO: Shouldn't this be Luimm5 and immediate: true?
+      arg_type: i32
+    set_name: XCoreVAlu
+    instr_name: SEAL5_CV_ADDN
+    intrinsic_name: alu_addn
+    ret_type: i32
+  - <<: *ScalarCoreVAluGprGprIntrinsic
+    instr_name: SEAL5_CV_ADDUN
+    intrinsic_name: alu_addun
+  - <<: *ScalarCoreVAluGprGprIntrinsic
+    instr_name: SEAL5_CV_ADDRN
+    intrinsic_name: alu_addrn
+  - <<: *ScalarCoreVAluGprGprIntrinsic
+    instr_name: SEAL5_CV_ADDURN
+    intrinsic_name: alu_addurn
+  - <<: *ScalarCoreVAluGprGprIntrinsic
+    instr_name: SEAL5_CV_SUBN
+    intrinsic_name: alu_subn
+  - <<: *ScalarCoreVAluGprGprIntrinsic
+    instr_name: SEAL5_CV_SUBUN
+    intrinsic_name: alu_subun
+  - <<: *ScalarCoreVAluGprGprIntrinsic
+    instr_name: SEAL5_CV_SUBRN
+    intrinsic_name: alu_subrn
+  - <<: *ScalarCoreVAluGprGprIntrinsic
+    instr_name: SEAL5_CV_SUBURN
+    intrinsic_name: alu_suburn
 passes:
   per_model:
     XCoreVAlu:

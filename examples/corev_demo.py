@@ -84,9 +84,10 @@ seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load test inputs
 test_files = [
-    # EXAMPLES_DIR / "tests" / "xcorev" / "alu" / "*.c",
+    EXAMPLES_DIR / "tests" / "xcorev" / "alu" / "*.c",
     EXAMPLES_DIR / "tests" / "xcorev" / "alu" / "*.s",
     EXAMPLES_DIR / "tests" / "xcorev" / "alu" / "*.ll",
+    EXAMPLES_DIR / "tests" / "xcorev" / "mac" / "*.c",
     # EXAMPLES_DIR / "tests" / "xcorev" / "mac" / "*.s",
     EXAMPLES_DIR / "tests" / "xcorev" / "mac" / "*.ll",
     # EXAMPLES_DIR / "tests" / "xcorev" / "bitmanip" / "*.s",
