@@ -504,6 +504,10 @@ class LLVMVersion(YAMLSettings):
     patch: Optional[int] = None
     rc: Optional[int] = None
 
+    @property
+    def triple(self):
+        return (self.major, self.minor, self.patch)
+
 
 @dataclass
 class LLVMState(YAMLSettings):

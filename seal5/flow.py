@@ -351,6 +351,9 @@ class Seal5Flow:
             kwargs["clone_url"] = pattern_gen_settings.clone_url
         if pattern_gen_settings.ref is not None:
             kwargs["ref"] = pattern_gen_settings.ref
+        llvm_version = self.settings.llvm.state.version
+        if llvm_version is not None:
+            kwargs["llvm_version"] = llvm_version
         cdsl2llvm_dependency = CDSL2LLVMDependency(**kwargs)
         cdsl2llvm_dependency.clone(
             self.settings.deps_dir / "cdsl2llvm",
