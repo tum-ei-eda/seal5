@@ -295,9 +295,9 @@ def main():
                 (root, ext) = os.path.splitext(out_path)
                 patch_path = root + "_" + id + ext
                 with open(patch_path, "w") as f:
-                    f.write(contents)
+                    f.write(contents.strip())
                 key = frag.tag
-                patch = NamedPatch(frag.patchee, key=key, src_path=patch_path, content=contents)
+                patch = NamedPatch(frag.patchee, key=key, src_path=patch_path, content=contents.strip())
                 artifacts[None].append(patch)
     if args.metrics:
         metrics_file = args.metrics
