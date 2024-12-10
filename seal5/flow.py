@@ -509,7 +509,7 @@ class Seal5Flow:
             cmake_options=cmake_options,
             target=target,
             use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
-            enable_ccache=self.settings.llvm.ccache or kwargs.get("enable_ccache", False),
+            compiler_cache=self.settings.llvm.ccache or kwargs.get("enable_ccache", False),
         )
         end = time.time()
         diff = end - start
@@ -542,7 +542,7 @@ class Seal5Flow:
             self.settings.get_llvm_build_dir(config=config, fallback=True, check=True),
             cmake_options=cmake_options,
             use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
-            enable_ccache=self.settings.llvm.ccache or kwargs.get("enable_ccache", False),
+            compiler_cache=self.settings.llvm.ccache or kwargs.get("enable_ccache", False),
             target=None,
             install=True,
             install_dir=dest,

@@ -42,8 +42,8 @@ def add_build_options(parser):
     )
     build_parser.add_argument(
         "--ccache",
-        action="store_true",
-        help="Enable CCache to speedup compilation.",
+        default=None
+        help="Enable a compiler cache to speedup compilation. Specify ccache, sccache, or compatible tool",
     )
 
 
