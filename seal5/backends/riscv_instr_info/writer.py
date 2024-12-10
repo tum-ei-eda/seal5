@@ -228,10 +228,11 @@ def gen_riscv_instr_info_str(instr, set_def):
     return tablegen_str
 
 
-def gen_intrinsic_pattern(instr, intrinsic: IntrinsicDefn):
+def gen_intrinsic_pattern(instr, set_name, intrinsic: IntrinsicDefn):
+    arch_ = ext_settings.get_arch(name=set_name)
     pat = f"""class Pat_{instr.name}<SDPatternOperator OpNode, Instruction Inst>
 : Pat<(OpNode {instr.llvm_ins_str}), (Inst {instr.llvm_ins_str})>;
-def : Pat_{instr.name}<int_riscv_{intrinsic.intrinsic_name}, {instr.name}>;"""
+def : Pat_{instr.name}<int_riscv_{arch_}_{intrinsic.intrinsic_name}, {instr.name}>;"""
     return pat
 
 
@@ -351,7 +352,7 @@ def main():
                                     instr_def.mnemonic.casefold(),
                                     instr_def.name.casefold(),
                                 ]:
-                                    content += gen_intrinsic_pattern(instr_def, intrinsic)
+                                    content += gen_intrinsic_pattern(instr_def, set_name, intrinsic)
                         assert pred is not None
                         predicate_str = f"Predicates = [{pred}, IsRV{xlen}]"
                         content = f"let {predicate_str} in {{\n{content}\n}}"

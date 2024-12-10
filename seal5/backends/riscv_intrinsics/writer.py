@@ -122,7 +122,7 @@ def build_target(arch: str, intrinsic: IntrinsicDefn):
     for arg in intrinsic.args:
         arg_str += ir_type_to_text(arg.arg_type)
 
-    target = f'TARGET_BUILTIN(__builtin_{arch}_{intrinsic.intrinsic_name}, "{arg_str}", "nc", "{arch}")'
+    target = f'TARGET_BUILTIN(__builtin_{arch}_{intrinsic.intrinsic_name}, "{arg_str}", "nc", "{arch}")\n'
     return target
 
 
@@ -135,7 +135,7 @@ def ir_type_to_pattern(ir_type: str):
 
 def build_attr(arch: str, intrinsic: IntrinsicDefn):
     # uses_mem = False  # TODO: use
-    attr = f"  def int_riscv_{intrinsic.intrinsic_name} : Intrinsic<\n    ["
+    attr = f"  def int_riscv_{arch}_{intrinsic.intrinsic_name} : Intrinsic<\n    ["
     if intrinsic.ret_type:
         attr += f"{ir_type_to_pattern(intrinsic.ret_type)}"
     attr += "],\n    ["
@@ -144,15 +144,15 @@ def build_attr(arch: str, intrinsic: IntrinsicDefn):
             attr += ", "
         attr += ir_type_to_pattern(arg.arg_type)
     attr += "],\n"
-    attr += "    [IntrNoMem, IntrSpeculatable, IntrWillReturn]>;"
+    attr += "    [IntrNoMem, IntrSpeculatable, IntrWillReturn]>;\n"
     return attr
 
 
 def build_emit(arch: str, intrinsic: IntrinsicDefn):
     emit = (
         f"  case RISCV::BI__builtin_{arch}_{intrinsic.intrinsic_name}:\n"
-        f"    ID = Intrinsic::riscv_{intrinsic.intrinsic_name};\n"
-        f"    break;"
+        f"    ID = Intrinsic::riscv_{arch}_{intrinsic.intrinsic_name};\n"
+        f"    break;\n"
     )
     return emit
 
