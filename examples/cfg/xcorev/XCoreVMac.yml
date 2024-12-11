@@ -19,6 +19,7 @@ intrinsics:
     set_name: XCoreVMac
     instr_name: SEAL5_CV_MAC
     intrinsic_name: mac_mac
+    ret_type: i32
   - <<: *ScalarCoreVMacGprGprGprIntrinsic
     instr_name: SEAL5_CV_MSU
     intrinsic_name: mac_msu
@@ -34,6 +35,7 @@ intrinsics:
     set_name: XCoreVMac
     instr_name: SEAL5_CV_MULUN
     intrinsic_name: mac_mulun
+    ret_type: i32
   - <<: *ScalarCoreVMacGprGprImmIntrinsic
     instr_name: SEAL5_CV_MULHHUN
     intrinsic_name: mac_mulhhun
@@ -69,6 +71,7 @@ intrinsics:
     set_name: XCoreVMac
     instr_name: SEAL5_CV_MACUN
     intrinsic_name: mac_macun
+    ret_type: i32
   - <<: *ScalarCoreVMacGprGprGprImmIntrinsic
     instr_name: SEAL5_CV_MACHHUN
     intrinsic_name: mac_machhun

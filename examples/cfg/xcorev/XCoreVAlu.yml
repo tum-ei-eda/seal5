@@ -40,25 +40,25 @@ intrinsics:
     instr_name: SEAL5_CV_SLET
     intrinsic_name: alu_slet
     ret_type: i32
-  - <<: *ScalarCoreVAluGprIntrinsic
+  - <<: *ScalarCoreVAluGprGprIntrinsic
     instr_name: SEAL5_CV_SLETU
     intrinsic_name: alu_sletu
-  - <<: *ScalarCoreVAluGprIntrinsic
+  - <<: *ScalarCoreVAluGprGprIntrinsic
     instr_name: SEAL5_CV_MIN
     intrinsic_name: alu_min
-  - <<: *ScalarCoreVAluGprIntrinsic
+  - <<: *ScalarCoreVAluGprGprIntrinsic
     instr_name: SEAL5_CV_MINU
     intrinsic_name: alu_minu
-  - <<: *ScalarCoreVAluGprIntrinsic
+  - <<: *ScalarCoreVAluGprGprIntrinsic
     instr_name: SEAL5_CV_MAX
     intrinsic_name: alu_max
-  - <<: *ScalarCoreVAluGprIntrinsic
+  - <<: *ScalarCoreVAluGprGprIntrinsic
     instr_name: SEAL5_CV_MAXU
     intrinsic_name: alu_maxu
-  - <<: *ScalarCoreVAluGprIntrinsic
+  - <<: *ScalarCoreVAluGprGprIntrinsic
     instr_name: SEAL5_CV_CLIP
     intrinsic_name: alu_clip
-  - <<: *ScalarCoreVAluGprIntrinsic
+  - <<: *ScalarCoreVAluGprGprIntrinsic
     instr_name: SEAL5_CV_CLIPU
     intrinsic_name: alu_clipu
   # ternary
@@ -70,29 +70,32 @@ intrinsics:
       arg_type: i32
     - arg_name: rs3  # TODO: Shouldn't this be Luimm5 and immediate: true?
       arg_type: i32
+    # - arg_name: Is3
+    #   arg_type: i32
+    #   immediate: true
     set_name: XCoreVAlu
     instr_name: SEAL5_CV_ADDN
     intrinsic_name: alu_addn
     ret_type: i32
-  - <<: *ScalarCoreVAluGprGprIntrinsic
+  - <<: *ScalarCoreVAluGprGprGprIntrinsic
     instr_name: SEAL5_CV_ADDUN
     intrinsic_name: alu_addun
-  - <<: *ScalarCoreVAluGprGprIntrinsic
+  - <<: *ScalarCoreVAluGprGprGprIntrinsic
     instr_name: SEAL5_CV_ADDRN
     intrinsic_name: alu_addrn
-  - <<: *ScalarCoreVAluGprGprIntrinsic
+  - <<: *ScalarCoreVAluGprGprGprIntrinsic
     instr_name: SEAL5_CV_ADDURN
     intrinsic_name: alu_addurn
-  - <<: *ScalarCoreVAluGprGprIntrinsic
+  - <<: *ScalarCoreVAluGprGprGprIntrinsic
     instr_name: SEAL5_CV_SUBN
     intrinsic_name: alu_subn
-  - <<: *ScalarCoreVAluGprGprIntrinsic
+  - <<: *ScalarCoreVAluGprGprGprIntrinsic
     instr_name: SEAL5_CV_SUBUN
     intrinsic_name: alu_subun
-  - <<: *ScalarCoreVAluGprGprIntrinsic
+  - <<: *ScalarCoreVAluGprGprGprIntrinsic
     instr_name: SEAL5_CV_SUBRN
     intrinsic_name: alu_subrn
-  - <<: *ScalarCoreVAluGprGprIntrinsic
+  - <<: *ScalarCoreVAluGprGprGprIntrinsic
     instr_name: SEAL5_CV_SUBURN
     intrinsic_name: alu_suburn
 passes:
