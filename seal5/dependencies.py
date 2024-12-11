@@ -124,8 +124,6 @@ def pick_coredsl2llvm_ref(ref: str, llvm_version: LLVMVersion):
     return ref
 
 
-
-
 class CDSL2LLVMDependency(GitDependency):
     # def __init__(self, clone_url="https://github.com/mathis-s/CoreDSL2LLVM.git", ref="main"):
     # def __init__(self, clone_url="https://github.com/PhilippvK/CoreDSL2LLVM.git", ref="philippvk5"):
