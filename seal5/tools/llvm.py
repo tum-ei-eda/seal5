@@ -24,13 +24,12 @@ from pathlib import Path
 from typing import List, Optional, Union
 
 import git
-from git import RemoteProgress
-from tqdm import tqdm
 
 from seal5 import utils
 from seal5.logging import get_logger
 from seal5.tools.git import get_author_from_settings
 from seal5.settings import GitSettings, CcacheSettings
+from seal5.dependencies import apply_repository_override, CloneProgress
 
 logger = get_logger()
 
@@ -63,16 +62,6 @@ def check_llvm_repo(path: Path):
     return True
 
 
-class CloneProgress(RemoteProgress):
-    def __init__(self):
-        super().__init__()
-        self.pbar = tqdm()
-
-    def update(self, op_code, cur_count, max_count=None, message=""):
-        self.pbar.total = max_count
-        self.pbar.n = cur_count
-        self.pbar.refresh()
-
 
 def clone_llvm_repo(
     dest: Path,
@@ -88,6 +77,7 @@ def clone_llvm_repo(
     sha = None
     version_info = {}
     repo = None
+    clone_url = apply_repository_override(clone_url)
     if dest.is_dir():
         if refresh:
             logger.debug("Refreshing LLVM repository: %s", dest)
