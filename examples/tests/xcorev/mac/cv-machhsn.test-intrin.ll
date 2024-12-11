@@ -2,14 +2,14 @@
 ; RUN: llc -mtriple=riscv32 -mattr=+m,+xcorevmac -verify-machineinstrs < %s \
 ; RUN:   | FileCheck %s
 
-declare i32 @llvm.riscv.cv.mac.machhsN(i32, i32, i32)
+declare i32 @llvm.riscv.xcorevmac.mac.machhsn(i32, i32, i32, i32)
 
-define i32 @test.machhsN(i32 %a, i32 %b, i32 %c) {
-; CHECK-LABEL: test.mac:
+define i32 @test_machhsn(i32 %a, i32 %b, i32 %c, i32 %d) {
+; CHECK-LABEL: test_machhsn:
 ; CHECK:       # %bb.0:
-; CHECK-NEXT:    seal5.cv.machhsn a2, a0, a1
+; CHECK-NEXT:    seal5.cv.machhsn a2, a0, a1, 5
 ; CHECK-NEXT:    mv a0, a2
 ; CHECK-NEXT:    ret
-  %1 = call i32 @llvm.riscv.cv.mac.machhsN(i32 %a, i32 %b, i32 %c)
+  %1 = call i32 @llvm.riscv.xcorevmac.mac.machhsn(i32 %a, i32 %b, i32 %c, i32 %d)
   ret i32 %1
 }
