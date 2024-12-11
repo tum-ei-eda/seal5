@@ -20,24 +20,59 @@
 
 from typing import Optional, List, Union
 from pathlib import Path
+import os
+import re
 
 import git
+from git import RemoteProgress
+from tqdm import tqdm
 
 from seal5.logging import get_logger
 from seal5.utils import is_populated
-from .tools.llvm import CloneProgress  # TODO: move to other file
+#from .tools.llvm import CloneProgress  # TODO: move to other file
 
 logger = get_logger()
+
+class CloneProgress(RemoteProgress):
+    def __init__(self):
+        super().__init__()
+        self.pbar = tqdm()
+
+    def update(self, op_code, cur_count, max_count=None, message=""):
+        self.pbar.total = max_count
+        self.pbar.n = cur_count
+        self.pbar.refresh()
 
 
 class Dependency:
     pass
 
+class SubstituteRepoURL:
+    def __init__(self):
+        self.repo_map = {}
+        for (var, val) in os.environ.items():
+            if var[:9] == 'REPO_URL_':
+                self.repo_map[var[9:]] = val
+
+    def url(self, url:str):
+        # substitute shell-incompatible chars in url
+        key = re.sub('[-#?.,/]', '_', url)
+        for (var,val) in self.repo_map.items():
+            if key.find(var) >= 0:
+                return val
+        return url
+
+
+substitute_repo_url = SubstituteRepoURL()
+
+def apply_repository_override(url: str):
+    return substitute_repo_url.url(url)
+
 
 class GitDependency(Dependency):
     def __init__(self, name: str, clone_url: str, ref: Optional[str] = None, recursive: bool = False):
         self.name: str = name
-        self.clone_url: str = clone_url
+        self.clone_url = apply_repository_override(clone_url)
         self.ref: Optional[str] = ref
         self.recursive: bool = recursive
 
