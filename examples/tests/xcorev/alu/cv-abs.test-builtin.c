@@ -5,7 +5,7 @@ int __builtin_xcorevalu_alu_abs(int);
 
 int test_abs(int a) {
     // CHECK-OBJ: <test_abs>
-    // CHECK-OBJ-NEXT: cv.abs
+    // CHECK-OBJ-NEXT: seal5.cv.abs
     // CHECK-LL-LABEL: @test_abs
     // CHECK-LL-NEXT:  entry:
     // CHECK-LL-NEXT:    [[TMP0:%.*]] = tail call i32 @llvm.riscv.xcorevalu.alu.abs(i32 %a)

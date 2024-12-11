@@ -2,13 +2,13 @@
 ; RUN: llc -O0 -mtriple=riscv32 -mattr=+m,+xcorevalu -verify-machineinstrs -global-isel=1 < %s \
 ; RUN:   | FileCheck %s --check-prefixes=CHECK,CHECK-GISEL
 
-declare i32 @llvm.umax.i32(i32, i32)
+declare i32 @llvm.smax.i32(i32, i32)
 
-define i32 @umax(i32 %a, i32 %b) {
-; CHECK-LABEL: umax:
+define i32 @max(i32 %a, i32 %b) {
+; CHECK-LABEL: max:
 ; CHECK:       # %bb.0:
-; CHECK-GISEL-NEXT:    seal5.cv.maxu a0, a0, a1
+; CHECK-GISEL-NEXT:    seal5.cv.max a0, a0, a1
 ; CHECK-NEXT:    ret
-  %1 = call i32 @llvm.umax.i32(i32 %a, i32 %b)
+  %1 = call i32 @llvm.smax.i32(i32 %a, i32 %b)
   ret i32 %1
 }

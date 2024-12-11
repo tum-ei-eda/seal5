@@ -5,7 +5,7 @@ int __builtin_xcorevmac_mac_mac(int, int, int);
 
 int test_mac(int a, int b, int c) {
     // CHECK-OBJ: <test_mac>
-    // CHECK-OBJ-NEXT: cv.mac
+    // CHECK-OBJ-NEXT: seal5.cv.mac
     // CHECK-LL-LABEL: @test_mac
     // CHECK-LL-NEXT:  entry:
     // CHECK-LL-NEXT:    [[TMP0:%.*]] = tail call i32 @llvm.riscv.xcorevmac.mac.mac(i32 %a, i32 %b, i32 %c)
