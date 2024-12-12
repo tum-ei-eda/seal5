@@ -101,7 +101,7 @@ DEFAULT_SETTINGS = {
         "ninja": True,
         "ccache": {
             "enable": False,
-            "executable": "sccache",
+            "executable": "auto",
             "directory": None,
         },
         "default_config": "release",

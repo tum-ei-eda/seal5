@@ -19,6 +19,7 @@
 """LLVM utils for seal5."""
 import re
 import os
+import shutil
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -32,6 +33,15 @@ from seal5.tools.git import get_author_from_settings
 from seal5.settings import GitSettings, CcacheSettings
 
 logger = get_logger()
+
+
+def lookup_ccache():
+    candidates = ["sccache", "ccache"]
+    for candidate in candidates:
+        found = shutil.which(candidate)
+        if found:
+            return found
+    return None  # Not found
 
 
 def check_llvm_repo(path: Path):
@@ -162,7 +172,11 @@ def build_llvm(
             ccache_executable = ccache_settings.executable
             ccache_directory = ccache_settings.directory
             if ccache_executable is None:
-                ccache_executable = "sccache"
+                ccache_executable = "auto"
+
+            if ccache_executable == "auto":
+                ccache_executable = lookup_ccache()
+                assert ccache_executable is not None, "Could not resolve ccache executable"
             cmake_options["CMAKE_C_COMPILER_LAUNCHER"] = ccache_executable
             cmake_options["CMAKE_CXX_COMPILER_LAUNCHER"] = ccache_executable
             if ccache_directory is not None:
