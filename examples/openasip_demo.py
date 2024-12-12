@@ -65,7 +65,7 @@ if PREPATCHED:
 seal5_flow.initialize(
     clone=True,
     clone_url=LLVM_URL,
-    clone_ref="seal5-demo-stage0" if PREPATCHED else LLVM_REF,
+    clone_ref=f"seal5-{NAME}-stage0" if PREPATCHED else LLVM_REF,
     clone_depth=CLONE_DEPTH,
     progress=PROGRESS,
     force=True,
