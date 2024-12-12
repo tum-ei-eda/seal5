@@ -1,7 +1,7 @@
 ; RUN: llc -O3 -mtriple=riscv32 -mattr=+xcorevalu -verify-machineinstrs < %s \
 ; RUN:   | FileCheck %s
 
-declare i32 @llvm.riscv.xcorev.alu.extbz(i32)
+declare i32 @llvm.riscv.xcorevalu.alu.extbz(i32)
 
 define i32 @test_extbz(i32 %a) {
 ; CHECK-LABEL: test_extbz:

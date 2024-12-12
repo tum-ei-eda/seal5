@@ -1,7 +1,7 @@
 ; RUN: llc -O3 -mtriple=riscv32 -mattr=+xcorevalu -verify-machineinstrs < %s \
 ; RUN:   | FileCheck %s
 
-declare i32 @llvm.riscv.xcorev.alu.addunr(i32, i32, i32)
+declare i32 @llvm.riscv.xcorevalu.alu.addunr(i32, i32, i32)
 
 define i32 @test_addunr(i32 %a, i32 %b, i32 %c) {
 ; CHECK-LABEL: test_addunr:
