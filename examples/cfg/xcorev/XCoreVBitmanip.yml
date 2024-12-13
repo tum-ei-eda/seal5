@@ -6,6 +6,74 @@ extensions:
     version: "1.0"
     experimental: false
     vendor: true
+intrinsics:
+  intrinsics:
+  # unary (reg)
+  - &ScalarCoreVBitmanipGprIntrinsic
+    args:
+    - arg_name: rs1
+      arg_type: i32
+    set_name: XCoreVBitmanip
+    instr_name: SEAL5_CV_FF1
+    intrinsic_name: bitmanip_ff1
+    ret_type: i32
+  - <<: *ScalarCoreVBitmanipGprIntrinsic
+    instr_name: SEAL5_CV_FL1
+    intrinsic_name: bitmanip_fl1
+  - <<: *ScalarCoreVBitmanipGprIntrinsic
+    instr_name: SEAL5_CV_CLB
+    intrinsic_name: bitmanip_clb
+  - <<: *ScalarCoreVBitmanipGprIntrinsic
+    instr_name: SEAL5_CV_CNT
+    intrinsic_name: bitmanip_cnt
+  # binary (reg+reg)
+  - &ScalarCoreVBitmanipGprGprIntrinsic
+    # TODO: names i, j?
+    args:
+    - arg_name: rs1
+      arg_type: i32
+    - arg_name: rs2
+      arg_type: i32
+    set_name: XCoreVBitmanip
+    instr_name: SEAL5_CV_ROR
+    intrinsic_name: bitmanip_ror
+    ret_type: i32
+  - <<: *ScalarCoreVBitmanipGprGprIntrinsic
+    instr_name: SEAL5_CV_EXTRACTR
+    intrinsic_name: bitmanip_extractr
+  - <<: *ScalarCoreVBitmanipGprGprIntrinsic
+    instr_name: SEAL5_CV_EXTRACTUR
+    intrinsic_name: bitmanip_extractur
+  # ternary (reg+imm+imm)
+  # TODO: fix immediate args!
+  # TODO: allow pseudo "wrapper" for selecting imm/reg variant
+  - &ScalarCoreVBitmanipGprImmImmIntrinsic
+    # TODO: names pts, radix?
+    args:
+    - arg_name: rs1
+      arg_type: i32
+    - arg_name: Iuimm5
+      arg_type: i8
+      immediate: true
+    - arg_name: Luimm5
+      arg_type: i8
+      immediate: true
+    set_name: XCoreVBitmanip
+    instr_name: SEAL5_CV_BITREV
+    intrinsic_name: bitmanip_bitrev
+    ret_type: i32
+  - <<: *ScalarCoreVBitmanipGprImmImmIntrinsic
+    instr_name: SEAL5_CV_EXTRACT
+    intrinsic_name: bitmanip_extract
+  - <<: *ScalarCoreVBitmanipGprImmImmIntrinsic
+    instr_name: SEAL5_CV_EXTRACTU
+    intrinsic_name: bitmanip_extractu
+  - <<: *ScalarCoreVBitmanipGprImmImmIntrinsic
+    instr_name: SEAL5_CV_BSET
+    intrinsic_name: bitmanip_bset
+  - <<: *ScalarCoreVBitmanipGprImmImmIntrinsic
+    instr_name: SEAL5_CV_BCLR
+    intrinsic_name: bitmanip_bclr
 passes:
   per_model:
     XCoreVBitmanip:
