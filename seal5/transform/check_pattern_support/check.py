@@ -18,7 +18,6 @@ from typing import Union
 import pandas as pd
 
 from m2isar.metamodel import arch, behav
-import seal5.model
 from seal5.model import Seal5InstrAttribute, Seal5OperandAttribute
 
 
@@ -138,7 +137,8 @@ def run(args):
                 )
                 if skip_pattern_gen:
                     attributes[Seal5InstrAttribute.SKIP_PATTERN_GEN] = []
-                # TODO: move to different/new pass (add_instr_attributes) and move detections to Seal5Instr class in metamodel
+                # TODO: move to different/new pass (add_instr_attributes) and
+                # move detections to Seal5Instr class in metamodel
                 attributes[Seal5InstrAttribute.LLVM_INSTR] = behav.StringLiteral(instr_def.name)
                 instr_def.attributes = attributes
                 metrics["n_success"] += 1

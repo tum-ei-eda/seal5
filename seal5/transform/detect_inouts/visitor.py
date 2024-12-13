@@ -98,11 +98,6 @@ def scalar_definition(self: behav.ScalarDefinition, context):
     return self
 
 
-def break_(self: behav.Break, context):
-    # print("break_")
-    return self
-
-
 def assignment(self: behav.Assignment, context):
     # print("assignment")
     context.is_write = True

@@ -89,7 +89,11 @@ class Seal5Register:
         # TODO: attributes
 
     def __repr__(self):
-        return f"{type(self)}({self.name}, size={self.size}, width={self.width}, signed={self.signed}, reg_class={self.reg_class})"
+        return (
+            f"{type(self)}({self.name}, size={self.size}, "
+            f"width={self.width}, signed={self.signed}, "
+            f"reg_class={self.reg_class})"
+        )
 
 
 class Seal5RegisterGroup:
@@ -101,7 +105,10 @@ class Seal5RegisterGroup:
         self.reg_class = reg_class
 
     def __repr__(self):
-        return f"{type(self)}({self.names}, size={self.size}, width={self.width}, signed={self.signed}, reg_class={self.reg_class})"
+        return (
+            f"{type(self)}({self.names}, size={self.size}, width={self.width}, "
+            f"signed={self.signed}, reg_class={self.reg_class})"
+        )
 
     @property
     def registers(self):
