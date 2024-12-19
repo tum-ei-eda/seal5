@@ -119,8 +119,9 @@ def main():
     stat_result_summary =  stat_prop_result_cv_df2["n_success"].astype(str)+' / '+ stat_prop_result_cv_df2["n_skipped"].astype(str) +' / '+ stat_prop_result_cv_df2["n_failed"].astype(str)+ ' ' + calc_stage_percentage2()
     stat_prop_result_cv_df2.insert(loc=1, column='Status_Summary: (Passed/Skipped/Failed) %', value=stat_result_summary)
 
+
     stat_prop_test_summary = stat_prop_result_cv_test["n_pass"].astype(str)+' / '+ stat_prop_result_cv_test["n_fail"].astype(str)+ ' ' + calc_test_percentage()
-    stat_prop_result_cv_df2.insert(loc=1, column=' Summary Test Results: (Passed/Failed) % ', value=stat_prop_test_summary)
+    stat_prop_result_cv_test.insert(loc=1, column=' Summary Test Results: (Passed/Failed) % ', value=stat_prop_test_summary)
 
     #'n_exists', 'n_required' , 'n_optional', 'n_extra', 'n_required_exists', 'n_optional_exists'
 
@@ -136,19 +137,25 @@ def main():
     save_data_frames_as_html_to_file(stat_prop_result_cv_df, "Grouped_stat_prop_result_all.html")
 
 
-    final_test_table = final_coverage_table.drop('instr', axis=1)
+    final_test_table = final_test_table.drop('instr', axis=1)
     final_coverage_table = final_coverage_table.drop('instr', axis=1)
     save_data_frames_as_html_to_file(final_test_table, "Grouped_stat_prop_result_test_wo_instr.html")
     save_data_frames_as_html_to_file(final_coverage_table, "Grouped_stat_prop_result_cv_wo_instr.html")
     
+
+    print("FINAL TEST_RESULTS\n")
     print(final_test_results)
+
+    print('FINALE STATUS RESULTS\n')
     print(final_status_results)
 
 
+    print("Final Test Table\n")
     print(final_test_table)  
+
+
+    print("Finalt Coverage Table\n")
     print(final_coverage_table)
 
 if __name__ == "__main__":
     main()
-
-
