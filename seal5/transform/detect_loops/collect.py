@@ -97,7 +97,7 @@ def run(args):
             logger.debug("collecting loops for instr %s", instr_def.name)
             try:
                 instr_def.operation.generate(context)
-                if context.has_loops:
+                if context.has_loop:
                     if seal5.model.Seal5InstrAttribute.HAS_LOOP not in instr_def.attributes:
                         instr_def.attributes[seal5.model.Seal5InstrAttribute.HAS_LOOP] = []
                 metrics["n_success"] += 1

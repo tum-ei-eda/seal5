@@ -117,9 +117,9 @@ def run(args):
                 may_store = Seal5InstrAttribute.MAY_STORE in attributes
                 is_rvc = instr_def.size != 32
                 is_branch = arch.InstrAttribute.COND in attributes or arch.InstrAttribute.NO_CONT in attributes
-                has_loop = arch.InstrAttribute.HAS_LOOP in attributes
+                has_loop = Seal5InstrAttribute.HAS_LOOP in attributes
                 # TODO: has_static_loop
-                has_call = arch.InstrAttribute.HAS_CALL in attributes
+                has_call = Seal5InstrAttribute.HAS_CALL in attributes
                 uses_custom_reg = len(attributes.get(Seal5InstrAttribute.USES, []))
                 defs_custom_reg = len(attributes.get(Seal5InstrAttribute.DEFS, []))
                 skip_pattern_gen = (
