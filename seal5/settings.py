@@ -612,6 +612,8 @@ class ToolsSettings(YAMLSettings):
 class IntrinsicArg(YAMLSettings):
     arg_name: str
     arg_type: str
+    immediate: bool = False
+    signed: bool = False
 
 
 @dataclass
@@ -620,6 +622,7 @@ class IntrinsicDefn(YAMLSettings):
     intrinsic_name: str
     set_name: Optional[str] = None
     ret_type: Optional[str] = None
+    ret_signed: Optional[bool] = None
     args: Optional[List[IntrinsicArg]] = None
 
 
