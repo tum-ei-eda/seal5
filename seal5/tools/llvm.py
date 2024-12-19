@@ -136,7 +136,7 @@ def clone_llvm_repo(
         version_info["major"] = int(major)
         version_info["minor"] = int(minor)
         version_info["patch"] = int(patch)
-        rest = splitted[2]
+        rest = splitted[2] if len(splitted) > 2 else ""
         if "rc" in rest:
             rc = rest.split("-", 1)[0][2:]
             version_info["rc"] = int(rc)
