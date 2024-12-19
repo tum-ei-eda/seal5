@@ -1,3 +1,13 @@
+diff --git a/clang/include/clang/Basic/BuiltinsRISCV.td b/clang/include/clang/Basic/BuiltinsRISCV.td
+--- a/clang/include/clang/Basic/BuiltinsRISCV.td
++++ b/clang/include/clang/Basic/BuiltinsRISCV.td
+@@ -146,3 +146,6 @@ let Features = "zihintntl", Attributes = [CustomTypeChecking] in {
+ def ntl_load : RISCVBuiltin<"void(...)">;
+ def ntl_store : RISCVBuiltin<"void(...)">;
+ } // Features = "zihintntl", Attributes = [CustomTypeChecking]
++
++// BuiltinsRISCV.td - builtins_riscv - INSERTION_START
++// BuiltinsRISCV.td - builtins_riscv - INSERTION_END
 diff --git a/clang/lib/CodeGen/CGBuiltin.cpp b/clang/lib/CodeGen/CGBuiltin.cpp
 --- a/clang/lib/CodeGen/CGBuiltin.cpp
 +++ b/clang/lib/CodeGen/CGBuiltin.cpp

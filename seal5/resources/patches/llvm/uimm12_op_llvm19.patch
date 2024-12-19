@@ -1,9 +1,9 @@
 diff --git a/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp b/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
 --- a/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
 +++ b/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
-@@ -697,6 +697,7 @@ public:
-   bool isUImm8() const { return IsUImm<8>(); }
+@@ -707,6 +707,7 @@ public:
    bool isUImm20() const { return IsUImm<20>(); }
+   bool isUImm32() const { return IsUImm<32>(); }
    // RISCVAsmParser.cpp - riscv_operands - INSERTION_START
 +  bool isUImm12() const { return IsUImm<12>(); }
    // RISCVAsmParser.cpp - riscv_operands - INSERTION_END
@@ -12,7 +12,7 @@ diff --git a/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp b/llvm/lib/Targe
 diff --git a/llvm/lib/Target/RISCV/RISCVInstrInfo.td b/llvm/lib/Target/RISCV/RISCVInstrInfo.td
 --- a/llvm/lib/Target/RISCV/RISCVInstrInfo.td
 +++ b/llvm/lib/Target/RISCV/RISCVInstrInfo.td
-@@ -310,6 +310,7 @@ def simm21_lsb0_jal : Operand<OtherVT> {
+@@ -316,6 +316,7 @@ def simm21_lsb0_jal : Operand<OtherVT> {
  }
 
  // RISCVInstrInfo.td - field_types - INSERTION_START
