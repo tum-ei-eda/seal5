@@ -211,14 +211,17 @@ jobs:
       run: |
         python3 -m pip install pandas tabulate
         python3 examples/merge_test_artifacts.py reports/status_compact.csv reports/properties.csv  reports/test_results_compact.csv reports/test_coverage_compact.csv
-        echo "### Compiling Results" >> $GITHUB_STEP_SUMMARY
+        echo "###  Compiled Pass/Test/Coverage Results with Properties" >> $GITHUB_STEP_SUMMARY
         echo >> $GITHUB_STEP_SUMMARY
-        cat Grouped_stat_prop_result_all.md >> $GITHUB_STEP_SUMMARY
+        cat Grouped_stat_prop_result_all. >html> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+
+        echo "### Compiled Summarized Pass/Test Results" >> $GITHUB_STEP_SUMMARY
+        echo >> $GITHUB_STEP_SUMMARY
+        cat  Grouped_stat_prop_result_test.html >> $GITHUB_STEP_SUMMARY
         echo >> $GITHUB_STEP_SUMMARY
         
-        echo "### Compiling Results" >> $GITHUB_STEP_SUMMARY
+        echo "### Summarized Test Coverage Results" >> $GITHUB_STEP_SUMMARY
         echo >> $GITHUB_STEP_SUMMARY
-        cat  Grouped_stat_prop_result_cv.md >> $GITHUB_STEP_SUMMARY
+        cat  Grouped_stat_prop_result_cv.html >> $GITHUB_STEP_SUMMARY
         echo >> $GITHUB_STEP_SUMMARY
-
-
