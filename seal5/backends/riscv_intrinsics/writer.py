@@ -13,7 +13,7 @@ import logging
 import pathlib
 import pickle
 import os.path
-from typing import Union
+from typing import Union, Optional
 from dataclasses import dataclass
 
 import pandas as pd
@@ -88,6 +88,35 @@ IR_TYPE_LOOKUP_TEXT = {
     # TODO: sign?
 }
 
+IR_TYPE_LOOKUP_PREFIX = {
+    (None,): "U",
+    (False,): "U",
+    (True,): "S",
+}
+
+
+def ir_type_lookup_new(llvm_ty, signed: bool):
+    ret = None
+    if llvm_ty in ["i1"]:
+        ret = "bool"
+    elif llvm_ty in ["i64", "i32", "i16", "i8"]:
+        sz = int(llvm_ty[1:])
+        ret = f"int{sz}_t"
+        if not signed:
+            ret = f"u{ret}"
+    elif llvm_ty in ["f64", "f32", "f16"]:
+        sz = int(llvm_ty[1:])
+        lookup = {
+            16: "half",
+            32: "float",  # single
+            64: "double",
+        }
+        ret = lookup[sz]
+    if ret is None:
+        raise NotImplementedError("Unhandled llvm type: {llvm_ty}")
+    return ret
+
+
 IR_TYPE_LOOKUP_PAT = {
     # TODO: use f"llvm_{ir_type}_ty" instead?
     "i1": "llvm_i1_ty",
@@ -104,13 +133,25 @@ IR_TYPE_LOOKUP_PAT = {
 }
 
 
-def ir_type_to_text(ir_type: str):
+def ir_type_to_text(ir_type: str, signed: bool = False, legacy: bool = True):
     # TODO: needs fleshing out with all likely types
     # TODO: probably needs to take into account RISC-V bit width, e.g. does "Li"
     #   means 32 bit integer on a 128-bit platform?
-    found = IR_TYPE_LOOKUP_TEXT.get(ir_type, None)
-    assert found is not None, f"Unhandled ir_type '{ir_type}'"
-    return found
+    if legacy:
+        prefix_lookup = IR_TYPE_LOOKUP_PREFIX
+        print("prefix_lookup", prefix_lookup)
+        print("signed", signed, type(signed))
+        key = (signed,)
+        print("key", key)
+        prefix_found = prefix_lookup.get(key, None)
+        assert prefix_found is not None, f"Unhandled prefix for ir_type '{ir_type}'"
+        text_lookup = IR_TYPE_LOOKUP_TEXT
+        found = text_lookup.get(ir_type, None)
+        assert found is not None, f"Unhandled ir_type '{ir_type}'"
+        return found
+    ret = ir_type_lookup_new(ir_type, signed)
+    assert ret is not None
+    return ret
 
 
 def build_target(arch: str, intrinsic: IntrinsicDefn):
@@ -118,11 +159,26 @@ def build_target(arch: str, intrinsic: IntrinsicDefn):
     # Start with return type if not void
     arg_str = ""
     if intrinsic.ret_type:
-        arg_str += ir_type_to_text(intrinsic.ret_type)
+        arg_str += ir_type_to_text(intrinsic.ret_type, signed=intrinsic.ret_signed, legacy=True)
     for arg in intrinsic.args:
-        arg_str += ir_type_to_text(arg.arg_type)
+        arg_str += ir_type_to_text(arg.arg_type, signed=arg.signed, legacy=True)
 
     target = f'TARGET_BUILTIN(__builtin_{arch}_{intrinsic.intrinsic_name}, "{arg_str}", "nc", "{arch}")\n'
+    return target
+
+
+def build_target_new(arch: str, intrinsic: IntrinsicDefn, prefix: Optional[str] = "__builtin_riscv"):
+    if prefix != "__builtin_riscv":
+        raise NotImplementedError("Clang builtin custom prefix")
+    ret_str = "void"
+    if intrinsic.ret_type:
+        ret_str = ir_type_to_text(intrinsic.ret_type, signed=intrinsic.ret_signed, legacy=False)
+    args_str = ", ".join([ir_type_to_text(arg.arg_type, signed=arg.signed, legacy=False) for arg in intrinsic.args])
+    prototype_str = f"{ret_str}({args_str})"
+    features = [arch]
+    features_str = "|".join(features)
+    target = f'def {intrinsic.intrinsic_name} : RISCVBuiltin<"{prototype_str}", "{features_str}">;'
+
     return target
 
 
@@ -179,6 +235,7 @@ def main():
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
     parser.add_argument("--index", default=None, help="Output index to file")
     parser.add_argument("--ext", type=str, default="td", help="Default file extension (if using --splitted)")
+    parser.add_argument("--ignore-failing", action="store_true", help="Do not crash in case of errors.")
     args = parser.parse_args()
 
     # initialize logging
@@ -256,10 +313,17 @@ def main():
                     llvm_version = llvm_state.version  # unused today, but needed very soon
                     assert llvm_version.major >= 17
         patch_frags = {
-            "target": PatchFrag(patchee="clang/include/clang/Basic/BuiltinsRISCV.def", tag="builtins_riscv"),
             "attr": PatchFrag(patchee="llvm/include/llvm/IR/IntrinsicsRISCV.td", tag="intrinsics_riscv"),
             "emit": PatchFrag(patchee="clang/lib/CodeGen/CGBuiltin.cpp", tag="cg_builtin"),
         }
+        if llvm_version is not None and llvm_version.major < 19:
+            patch_frags["target"] = PatchFrag(
+                patchee="clang/include/clang/Basic/BuiltinsRISCV.def", tag="builtins_riscv"
+            )
+        else:
+            patch_frags["target"] = PatchFrag(
+                patchee="clang/include/clang/Basic/BuiltinsRISCV.td", tag="builtins_riscv"
+            )
         for set_name, set_def in model["sets"].items():
             artifacts[set_name] = []
             metrics["n_sets"] += 1
@@ -273,7 +337,10 @@ def main():
                     continue
                 try:
                     arch_ = ext_settings.get_arch(name=set_name)
-                    patch_frags["target"].contents += build_target(arch=arch_, intrinsic=intrinsic)
+                    if llvm_version is not None and llvm_version.major < 19:
+                        patch_frags["target"].contents += build_target(arch=arch_, intrinsic=intrinsic)
+                    else:
+                        patch_frags["target"].contents += build_target_new(arch=arch_, intrinsic=intrinsic)
                     patch_frags["attr"].contents += build_attr(arch=arch_, intrinsic=intrinsic)
                     patch_frags["emit"].contents += build_emit(arch=arch_, intrinsic=intrinsic)
                     metrics["n_success"] += 1
@@ -283,7 +350,7 @@ def main():
                     metrics["n_failed"] += 1
                     metrics["failed_instructions"].append(intrinsic.instr_name)
                     # metrics["failed_intrinsics"].append(?)
-                metrics["success_sets"].append(set_name)
+            metrics["success_sets"].append(set_name)
 
         for id, frag in patch_frags.items():
             contents = frag.contents
@@ -299,6 +366,12 @@ def main():
                 key = frag.tag
                 patch = NamedPatch(frag.patchee, key=key, src_path=patch_path, content=contents.strip())
                 artifacts[None].append(patch)
+    if not args.ignore_failing:
+        n_failed = metrics["n_failed"]
+        if n_failed > 0:
+            failed = metrics["failed_instructions"]
+            failing_str = ", ".join(failed)
+            logger.error("%s intructions failed: %s", n_failed, failing_str)
     if args.metrics:
         metrics_file = args.metrics
         metrics_df = pd.DataFrame({key: [val] for key, val in metrics.items()})
