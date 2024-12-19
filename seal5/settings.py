@@ -26,6 +26,7 @@ import yaml
 from dacite import from_dict
 
 from seal5.types import PatchStage
+from seal5.utils import parse_cond
 
 
 DEFAULT_SETTINGS = {
@@ -165,6 +166,7 @@ DEFAULT_SETTINGS = {
     },
     "intrinsics": {},
 }
+
 
 ALLOWED_YAML_TYPES = (int, float, str, bool)
 
@@ -335,6 +337,17 @@ class PatchSettings(YAMLSettings):
     enable: bool = True
     generated: bool = False
     applied: bool = False
+    onlyif: Optional[str] = None
+
+    def check_enabled(self, settings: YAMLSettings):
+        if self.onlyif is not None:
+            if isinstance(self.onlyif, str):
+                res = parse_cond(self.onlyif, settings)
+            elif isinstance(self.onlyif, int):
+                res = bool(res)
+            assert isinstance(res, bool)
+            return res
+        return self.enable
 
     # @property
     # def file(self) -> Path:

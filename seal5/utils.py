@@ -230,3 +230,10 @@ def ask_user(
 
 def is_power_of_two(n):
     return (n & (n - 1) == 0) and n != 0
+
+
+def parse_cond(cond, settings=None):
+    # TODO: is this secure enough?
+    locals_ = {"settings": settings} if settings is not None else {}
+    res = eval(cond, {"__builtins__": {}}, locals_)
+    return res

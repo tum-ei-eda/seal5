@@ -714,7 +714,10 @@ class Seal5Flow:
         name = patch.name
         target = patch.target
         if patch.enable:
-            logger.info("Applying patch '%s' on '%s'", name, target)
+            if patch.check_enabled(self.settings):
+                logger.info("Applying patch '%s' on '%s'", name, target)
+            else:
+                return
         else:
             logger.info("Skipping patch '%s' on '%s'", name, target)
             return

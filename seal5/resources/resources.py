@@ -35,7 +35,8 @@ def get_patches(patch_name: Optional[str] = None, target: Optional[str] = None, 
                 # print("entry2", entry2.name)
                 assert not entry2.is_dir(), "Nested patches are not allowed"
                 assert entry2.is_file(), f"Invalid patch: {entry.name}"
-                if patch_name and patch_name not in entry2.stem:
+                # if patch_name and patch_name not in entry2.stem:
+                if patch_name and patch_name != entry2.stem:
                     continue
                 ret.append(entry2.resolve())
         elif entry.is_file():
