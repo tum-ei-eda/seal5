@@ -1238,6 +1238,7 @@ def gen_riscv_intrinsics(
     verbose: bool = False,
     split: bool = False,
     log_level: str = "debug",
+    ignore_failing: bool = False,
     **kwargs,
 ):
     assert not split, "TODO"
@@ -1261,6 +1262,8 @@ def gen_riscv_intrinsics(
     ]
     if split:
         args.append("--splitted")
+    if ignore_failing:
+        args.append("--ignore-failing")
     if gen_metrics_file:
         metrics_file = out_dir / ("riscv_intrinsics_info_metrics.csv")
         args.extend(["--metrics", metrics_file])

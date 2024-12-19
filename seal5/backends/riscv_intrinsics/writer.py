@@ -372,6 +372,7 @@ def main():
             failed = metrics["failed_instructions"]
             failing_str = ", ".join(failed)
             logger.error("%s intructions failed: %s", n_failed, failing_str)
+            raise RuntimeError("Abort due to errors")
     if args.metrics:
         metrics_file = args.metrics
         metrics_df = pd.DataFrame({key: [val] for key, val in metrics.items()})
