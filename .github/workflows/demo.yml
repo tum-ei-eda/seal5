@@ -67,10 +67,14 @@ on:
         description: "Install LLVM Sources (and upload as artifact)"
         required: true
         default: "1"
-      export:
-        description: "Install Seal5 Artifacts (and upload as artifact)"
+      # export:
+      #   description: "Install Seal5 Artifacts (and upload as artifact)"
+      #   required: true
+      #   default: "1"
+      llvm_ref:
+        description: "Tag/Branch/Commit of LLVM repository"
         required: true
-        default: "1"
+        default: "llvmorg-18.1.0-rc3"
       # TODO: maybe add Python/OS version here?
 # push:
 #   branches:
@@ -87,6 +91,7 @@ jobs:
         python-version: ["3.10"]
         os: ["ubuntu-latest"]
         ccache: ["1"]
+        export: ["1"]
     steps:
     - uses: actions/checkout@v4
       with:
@@ -134,7 +139,7 @@ jobs:
     - name: Run the demo
       run: |
         source .venv/bin/activate
-        VERBOSE=${{ github.event.inputs.verbose }} PROGRESS=${{ github.event.inputs.progress }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ github.event.inputs.test }} INSTALL=${{ github.event.inputs.install }} DEPLOY=${{ github.event.inputs.deploy }} EXPORT=${{ github.event.inputs.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
+        VERBOSE=${{ github.event.inputs.verbose }} PROGRESS=${{ github.event.inputs.progress }} LLVM_REF=${{ github.event.inputs.llvm_ref }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ github.event.inputs.test }} INSTALL=${{ github.event.inputs.install }} DEPLOY=${{ github.event.inputs.deploy }} EXPORT=${{ github.event.inputs.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
     - name: Generate Reports
       run: |
         source .venv/bin/activate

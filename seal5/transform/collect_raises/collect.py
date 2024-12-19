@@ -98,7 +98,8 @@ def run(args):
             context = VisitorContext()
             logger.debug("collecting raises for instr %s", instr_def.name)
             try:
-                instr_def.operation.generate(None)
+                context = VisitorContext()
+                instr_def.operation.generate(context)
                 if len(instr_def.constraints) > 0:
                     raise NotImplementedError("Can not yet append existing constraints")
                 constraints = []

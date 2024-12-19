@@ -35,6 +35,8 @@ VERBOSE = bool(int(os.environ.get("VERBOSE", 0)))
 SKIP_PATTERNS = bool(int(os.environ.get("SKIP_PATTERNS", 0)))
 INTERACTIVE = bool(int(os.environ.get("INTERACTIVE", 0)))
 PREPATCHED = bool(int(os.environ.get("PREPATCHED", 0)))
+LLVM_URL = os.environ.get("LLVM_URL", "https://github.com/llvm/llvm-project.git")
+LLVM_REF = os.environ.get("LLVM_REF", "llvmorg-18.1.0-rc3")
 BUILD_CONFIG = os.environ.get("BUILD_CONFIG", "release")
 IGNORE_ERROR = bool(int(os.environ.get("IGNORE_ERROR", 1)))
 TEST = bool(int(os.environ.get("TEST", 1)))
@@ -62,9 +64,8 @@ if PREPATCHED:
 # Clone LLVM and init seal5 metadata directory
 seal5_flow.initialize(
     clone=True,
-    clone_url="https://github.com/llvm/llvm-project.git",
-    # clone_ref="llvmorg-17.0.6",
-    clone_ref="seal5-rvp-stage0" if PREPATCHED else "llvmorg-18.1.0-rc3",
+    clone_url=LLVM_URL,
+    clone_ref=f"seal5-{NAME}-stage0" if PREPATCHED else LLVM_REF,
     clone_depth=CLONE_DEPTH,
     progress=PROGRESS,
     force=True,

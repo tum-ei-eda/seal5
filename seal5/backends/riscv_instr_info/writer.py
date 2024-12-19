@@ -22,7 +22,7 @@ from m2isar.metamodel import arch
 
 from seal5.index import NamedPatch, File, write_index_yaml
 from seal5.utils import is_power_of_two
-from seal5.settings import IntrinsicDefn
+from seal5.settings import IntrinsicDefn, ExtensionsSettings
 
 # from seal5.settings import ExtensionsSettings
 
@@ -228,10 +228,12 @@ def gen_riscv_instr_info_str(instr, set_def):
     return tablegen_str
 
 
-def gen_intrinsic_pattern(instr, intrinsic: IntrinsicDefn):
+def gen_intrinsic_pattern(instr, set_name, intrinsic: IntrinsicDefn, ext_settings: Optional[ExtensionsSettings] = None):
+    assert ext_settings is not None
+    arch_ = ext_settings.get_arch(name=set_name)
     pat = f"""class Pat_{instr.name}<SDPatternOperator OpNode, Instruction Inst>
 : Pat<(OpNode {instr.llvm_ins_str}), (Inst {instr.llvm_ins_str})>;
-def : Pat_{instr.name}<int_riscv_{intrinsic.intrinsic_name}, {instr.name}>;"""
+def : Pat_{instr.name}<int_riscv_{arch_}_{intrinsic.intrinsic_name}, {instr.name}>;"""
     return pat
 
 
@@ -351,7 +353,9 @@ def main():
                                     instr_def.mnemonic.casefold(),
                                     instr_def.name.casefold(),
                                 ]:
-                                    content += gen_intrinsic_pattern(instr_def, intrinsic)
+                                    content += gen_intrinsic_pattern(
+                                        instr_def, set_name, intrinsic, ext_settings=ext_settings
+                                    )
                         assert pred is not None
                         predicate_str = f"Predicates = [{pred}, IsRV{xlen}]"
                         content = f"let {predicate_str} in {{\n{content}\n}}"
@@ -368,13 +372,14 @@ def main():
                     logger.exception(ex)
                     metrics["n_failed"] += 1
                     metrics["failed_instructions"].append(instr_def.name)
-            includes_str = "\n".join([f'include "{inc}"' for inc in includes])
-            set_td_includes_patch = NamedPatch(
-                f"llvm/lib/Target/RISCV/seal5/{set_name}.td",
-                key=f"{set_name_lower}_set_td_includes",
-                content=includes_str,
-            )
-            artifacts[set_name].append(set_td_includes_patch)
+            if len(includes) > 0:
+                includes_str = "\n".join([f'include "{inc}"' for inc in includes])
+                set_td_includes_patch = NamedPatch(
+                    f"llvm/lib/Target/RISCV/seal5/{set_name}.td",
+                    key=f"{set_name_lower}_set_td_includes",
+                    content=includes_str,
+                )
+                artifacts[set_name].append(set_td_includes_patch)
     else:
         raise NotImplementedError
     if args.metrics:

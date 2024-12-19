@@ -132,7 +132,13 @@ def main():
                         metrics["skipped_instructions"].append(instr_def.name)
                         continue
                 input_file = out_path / set_name / f"{instr_def.name}.core_desc"
+                attrs = instr_def.attributes
+                skip = False
+                if len(attrs) > 0:
+                    skip = Seal5InstrAttribute.SKIP_PATTERN_GEN in attrs
                 if not input_file.is_file():
+                    skip = True
+                if skip:
                     metrics["n_skipped"] += 1
                     metrics["skipped_instructions"].append(instr_def.name)
                     # errs.append(TODO)

@@ -134,13 +134,12 @@ def main():
                 metrics["n_instructions"] += 1
                 input_file = out_path / set_name / f"{instr_def.name}.core_desc"
                 attrs = instr_def.attributes
+                skip = False
                 if len(attrs) > 0:
                     skip = Seal5InstrAttribute.SKIP_PATTERN_GEN in attrs
-                    if skip:
-                        metrics["n_skipped"] += 1
-                        metrics["skipped_instructions"].append(instr_def.name)
-                        return False, includes_
                 if not input_file.is_file():
+                    skip = True
+                if skip:
                     metrics["n_skipped"] += 1
                     metrics["skipped_instructions"].append(instr_def.name)
                     return False, includes_
@@ -205,12 +204,13 @@ def main():
                         includes.extend(includes_)
             if len(includes) > 0:
                 set_includes_str = "\n".join([f'include "seal5/{inc}"' for inc in includes])
-                set_includes_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}.td"
-                set_name_lower = set_name.lower()
-                key = f"{set_name_lower}_set_td_includes"
-                set_includes_artifact = NamedPatch(set_includes_artifact_dest, key=key, content=set_includes_str)
-                artifacts[set_name].append(set_includes_artifact)
-                # model_includes.append(f"{set_name}.td")
+                if len(set_includes_str.strip()) > 0:
+                    set_includes_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}.td"
+                    set_name_lower = set_name.lower()
+                    key = f"{set_name_lower}_set_td_includes"
+                    set_includes_artifact = NamedPatch(set_includes_artifact_dest, key=key, content=set_includes_str)
+                    artifacts[set_name].append(set_includes_artifact)
+                    # model_includes.append(f"{set_name}.td")
         # if len(model_includes) > 0:
         #     model_includes_str = "\n".join([f'include "seal5/{inc}"' for inc in model_includes])
         #     model_includes_artifact_dest = "llvm/lib/Target/RISCV/seal5.td"

@@ -24,6 +24,7 @@ from pathlib import Path
 import git
 
 from seal5.logging import get_logger
+from seal5.settings import LLVMVersion
 from seal5.utils import is_populated
 from .tools.llvm import CloneProgress  # TODO: move to other file
 
@@ -102,10 +103,32 @@ DEFAULT_CDSL2LLVM_DIRS = [
 ]
 
 
+def pick_coredsl2llvm_ref(ref: str, llvm_version: LLVMVersion):
+    if ref is not None:
+        return ref
+
+    # auto
+    if llvm_version is None:
+        # TODO: warning
+        return "philippvk5"
+
+    major, minor, patch = llvm_version.triple
+
+    if major == 19:
+        ref = "llvm-19.1.0"
+    elif major == 18:
+        ref = "philippvk5"
+
+    assert ref is not None, f"Could not find a CoreDSL2LLVM ref for LLVM version {major}.{minor}.{patch}"
+
+    return ref
+
+
 class CDSL2LLVMDependency(GitDependency):
     # def __init__(self, clone_url="https://github.com/mathis-s/CoreDSL2LLVM.git", ref="main"):
-    def __init__(self, clone_url="https://github.com/PhilippvK/CoreDSL2LLVM.git", ref="philippvk5"):
-        super().__init__("cdsl2llvm", clone_url, ref=ref)
+    # def __init__(self, clone_url="https://github.com/PhilippvK/CoreDSL2LLVM.git", ref="philippvk5"):
+    def __init__(self, clone_url="https://github.com/PhilippvK/CoreDSL2LLVM.git", ref=None, llvm_version=None):
+        super().__init__("cdsl2llvm", clone_url, ref=pick_coredsl2llvm_ref(ref, llvm_version))
 
     def clone(
         self,

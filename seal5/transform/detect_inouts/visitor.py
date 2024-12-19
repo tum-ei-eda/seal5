@@ -98,11 +98,6 @@ def scalar_definition(self: behav.ScalarDefinition, context):
     return self
 
 
-def break_(self: behav.Break, context):
-    # print("break_")
-    return self
-
-
 def assignment(self: behav.Assignment, context):
     # print("assignment")
     context.is_write = True
@@ -218,4 +213,8 @@ def procedure_call(self: behav.ProcedureCall, context):
 
     self.fn_args = [arg.generate(context) for arg in self.args]
 
+    return self
+
+
+def break_(self: behav.Break, context):
     return self

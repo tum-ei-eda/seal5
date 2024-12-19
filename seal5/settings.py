@@ -26,6 +26,7 @@ import yaml
 from dacite import from_dict
 
 from seal5.types import PatchStage
+from seal5.utils import parse_cond
 
 
 DEFAULT_SETTINGS = {
@@ -99,7 +100,11 @@ DEFAULT_SETTINGS = {
     "llvm": {
         "state": {"version": "auto", "base_commit": "unknown"},
         "ninja": True,
-        "ccache": False,
+        "ccache": {
+            "enable": False,
+            "executable": "auto",
+            "directory": None,
+        },
         "default_config": "release",
         "clone_depth": None,
         "configs": {
@@ -161,6 +166,7 @@ DEFAULT_SETTINGS = {
     },
     "intrinsics": {},
 }
+
 
 ALLOWED_YAML_TYPES = (int, float, str, bool)
 
@@ -331,6 +337,17 @@ class PatchSettings(YAMLSettings):
     enable: bool = True
     generated: bool = False
     applied: bool = False
+    onlyif: Optional[str] = None
+
+    def check_enabled(self, settings: YAMLSettings):
+        if self.onlyif is not None:
+            if isinstance(self.onlyif, str):
+                res = parse_cond(self.onlyif, settings)
+            elif isinstance(self.onlyif, int):
+                res = bool(res)
+            assert isinstance(res, bool)
+            return res
+        return self.enable
 
     # @property
     # def file(self) -> Path:
@@ -500,6 +517,10 @@ class LLVMVersion(YAMLSettings):
     patch: Optional[int] = None
     rc: Optional[int] = None
 
+    @property
+    def triple(self):
+        return (self.major, self.minor, self.patch)
+
 
 @dataclass
 class LLVMState(YAMLSettings):
@@ -517,11 +538,20 @@ class LLVMConfig(YAMLSettings):
 
 
 @dataclass
+class CcacheSettings(YAMLSettings):
+    """Seal5 ccache settings."""
+
+    enable: Optional[bool] = None
+    executable: Optional[str] = None
+    directory: Optional[str] = None
+
+
+@dataclass
 class LLVMSettings(YAMLSettings):
     """Seal5 llvm settings."""
 
     ninja: Optional[bool] = None
-    ccache: Optional[bool] = None
+    ccache: Optional[CcacheSettings] = None
     clone_depth: Optional[int] = None
     default_config: Optional[str] = None
     configs: Optional[Dict[str, LLVMConfig]] = None
@@ -582,6 +612,8 @@ class ToolsSettings(YAMLSettings):
 class IntrinsicArg(YAMLSettings):
     arg_name: str
     arg_type: str
+    immediate: bool = False
+    signed: bool = False
 
 
 @dataclass
@@ -590,6 +622,7 @@ class IntrinsicDefn(YAMLSettings):
     intrinsic_name: str
     set_name: Optional[str] = None
     ret_type: Optional[str] = None
+    ret_signed: Optional[bool] = None
     args: Optional[List[IntrinsicArg]] = None
 
 
