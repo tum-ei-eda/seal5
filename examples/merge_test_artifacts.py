@@ -120,7 +120,7 @@ def main():
     stat_prop_result_cv_df2.insert(loc=1, column='Status_Summary: (Passed/Skipped/Failed) %', value=stat_result_summary)
 
     stat_prop_test_summary = stat_prop_result_cv_test["n_pass"].astype(str)+' / '+ stat_prop_result_cv_test["n_fail"].astype(str)+ ' ' + calc_test_percentage()
-    stat_prop_result_cv_df2.insert(loc=0, column=' Summary Test Results: (Passed/Failed) % ', value=stat_prop_test_summary)
+    stat_prop_result_cv_df2.insert(loc=1, column=' Summary Test Results: (Passed/Failed) % ', value=stat_prop_test_summary)
 
     #'n_exists', 'n_required' , 'n_optional', 'n_extra', 'n_required_exists', 'n_optional_exists'
 
@@ -147,12 +147,6 @@ def main():
 
     print(final_test_table)  
     print(final_coverage_table)
-
-
-
-    save_data_frames_as_html_to_file(final_test_table, "Grouped_stat_prop_result_test.html")
-    save_data_frames_as_html_to_file(final_coverage_table, "Grouped_stat_prop_result_cv.html")
-    save_data_frames_as_html_to_file(stat_prop_result_cv_df, "Grouped_stat_prop_result_all.html")
 
 if __name__ == "__main__":
     main()
