@@ -169,6 +169,7 @@ def build_target(arch: str, intrinsic: IntrinsicDefn):
 
 def build_target_new(arch: str, intrinsic: IntrinsicDefn, prefix: Optional[str] = "__builtin_riscv"):
     if prefix != "__builtin_riscv":
+        # Use: let Spellings = ["__builtin_riscv_" # NAME];
         raise NotImplementedError("Clang builtin custom prefix")
     ret_str = "void"
     if intrinsic.ret_type:
@@ -177,7 +178,7 @@ def build_target_new(arch: str, intrinsic: IntrinsicDefn, prefix: Optional[str] 
     prototype_str = f"{ret_str}({args_str})"
     features = [arch]
     features_str = "|".join(features)
-    target = f'def {intrinsic.intrinsic_name} : RISCVBuiltin<"{prototype_str}", "{features_str}">;'
+    target = f'def {arch}_{intrinsic.intrinsic_name} : RISCVBuiltin<"{prototype_str}", "{features_str}">;'
 
     return target
 
