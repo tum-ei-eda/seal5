@@ -407,6 +407,13 @@ intrinsics:
   - <<: *ScalarCoreVSimdGprImmIntrinsic
     instr_name: SEAL5_CV_EXTRACT_H
     intrinsic_name: simd_extract_h
+  # -> shuffle'
+  - <<: *ScalarCoreVSimdGprImmIntrinsic
+    instr_name: SEAL5_CV_SHUFFLE_SCI_B
+    intrinsic_name: simd_shuffle_sci_b
+  - <<: *ScalarCoreVSimdGprImmIntrinsic
+    instr_name: SEAL5_CV_SHUFFLE_SCI_H
+    intrinsic_name: simd_shuffle_sci_h
   # ternary (reg+reg+reg)
   # -> sdotup/sdotusp/sdotsp
   - &ScalarCoreVSimdGprGprGprIntrinsic
@@ -499,13 +506,6 @@ intrinsics:
   - <<: *ScalarCoreVSimdGprGprImmIntrinsic
     instr_name: SEAL5_CV_INSERT_H
     intrinsic_name: simd_insert_h
-  # -> shuffle'
-  - <<: *ScalarCoreVSimdGprGprImmIntrinsic
-    instr_name: SEAL5_CV_SHUFFLE_SCI_B
-    intrinsic_name: simd_shuffle_sci_b
-  - <<: *ScalarCoreVSimdGprGprImmIntrinsic
-    instr_name: SEAL5_CV_SHUFFLE_SCI_H
-    intrinsic_name: simd_shuffle_sci_h
   # quaternary (reg+reg+reg+imm)
   # TODO: introduce shift arg and select div2/div4/div8 automatically...
   # - &ScalarCoreVSimdGprGprGprImmIntrinsic
