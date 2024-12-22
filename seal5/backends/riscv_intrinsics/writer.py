@@ -163,11 +163,14 @@ def build_target(arch: str, intrinsic: IntrinsicDefn):
     for arg in intrinsic.args:
         arg_str += ir_type_to_text(arg.arg_type, signed=arg.signed, legacy=True)
 
-    target = f'TARGET_BUILTIN(__builtin_{arch}_{intrinsic.intrinsic_name}, "{arg_str}", "nc", "{arch}")\n'
+    target = f'TARGET_BUILTIN(__builtin_riscv_{arch}_{intrinsic.intrinsic_name}, "{arg_str}", "nc", "{arch}")\n'
     return target
 
 
-def build_target_new(arch: str, intrinsic: IntrinsicDefn, prefix: Optional[str] = "__builtin_riscv"):
+def build_target_new(
+    arch: str, intrinsic: IntrinsicDefn, prefix: Optional[str] = "__builtin_riscv", xlen: Optional[int] = None
+):
+    attributes = ["NoThrow", "Const"]  # TODO: expose/use/group
     if prefix != "__builtin_riscv":
         # Use: let Spellings = ["__builtin_riscv_" # NAME];
         raise NotImplementedError("Clang builtin custom prefix")
@@ -177,10 +180,20 @@ def build_target_new(arch: str, intrinsic: IntrinsicDefn, prefix: Optional[str] 
     args_str = ", ".join([ir_type_to_text(arg.arg_type, signed=arg.signed, legacy=False) for arg in intrinsic.args])
     prototype_str = f"{ret_str}({args_str})"
     features = [arch]
-    features_str = "|".join(features)
+    if xlen is not None:
+        features.append(f"{xlen}bit")
+    features_str = ",".join(features)
     target = f'def {arch}_{intrinsic.intrinsic_name} : RISCVBuiltin<"{prototype_str}", "{features_str}">;'
+    if len(attributes) > 0:
+        attributes_str = ", ".join(attributes)
+        ret = f"""let Attributes = [{attributes_str}] in {{
+{target}
+}} // Attributes = [{attributes_str}]
+"""
+    else:
+        ret = f"{target}\n"
 
-    return target
+    return ret
 
 
 def ir_type_to_pattern(ir_type: str):
@@ -207,7 +220,7 @@ def build_attr(arch: str, intrinsic: IntrinsicDefn):
 
 def build_emit(arch: str, intrinsic: IntrinsicDefn):
     emit = (
-        f"  case RISCV::BI__builtin_{arch}_{intrinsic.intrinsic_name}:\n"
+        f"  case RISCV::BI__builtin_riscv_{arch}_{intrinsic.intrinsic_name}:\n"
         f"    ID = Intrinsic::riscv_{arch}_{intrinsic.intrinsic_name};\n"
         f"    break;\n"
     )
@@ -338,10 +351,11 @@ def main():
                     continue
                 try:
                     arch_ = ext_settings.get_arch(name=set_name)
+                    xlen = ext_settings.xlen
                     if llvm_version is not None and llvm_version.major < 19:
                         patch_frags["target"].contents += build_target(arch=arch_, intrinsic=intrinsic)
                     else:
-                        patch_frags["target"].contents += build_target_new(arch=arch_, intrinsic=intrinsic)
+                        patch_frags["target"].contents += build_target_new(arch=arch_, intrinsic=intrinsic, xlen=xlen)
                     patch_frags["attr"].contents += build_attr(arch=arch_, intrinsic=intrinsic)
                     patch_frags["emit"].contents += build_emit(arch=arch_, intrinsic=intrinsic)
                     metrics["n_success"] += 1
