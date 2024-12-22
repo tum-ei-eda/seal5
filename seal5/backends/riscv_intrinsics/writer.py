@@ -139,10 +139,10 @@ def ir_type_to_text(ir_type: str, signed: bool = False, legacy: bool = True):
     #   means 32 bit integer on a 128-bit platform?
     if legacy:
         prefix_lookup = IR_TYPE_LOOKUP_PREFIX
-        print("prefix_lookup", prefix_lookup)
-        print("signed", signed, type(signed))
+        # print("prefix_lookup", prefix_lookup)
+        # print("signed", signed, type(signed))
         key = (signed,)
-        print("key", key)
+        # print("key", key)
         prefix_found = prefix_lookup.get(key, None)
         assert prefix_found is not None, f"Unhandled prefix for ir_type '{ir_type}'"
         text_lookup = IR_TYPE_LOOKUP_TEXT
@@ -338,20 +338,35 @@ def main():
             patch_frags["target"] = PatchFrag(
                 patchee="clang/include/clang/Basic/BuiltinsRISCV.td", tag="builtins_riscv"
             )
+        global_riscv_settings = settings.riscv
+        model_name = top_level.stem
+        model_settings = settings.models.get(model_name)
+        model_riscv_settings = model_settings.riscv
+        riscv_settings = global_riscv_settings
+        if model_riscv_settings is not None:
+            riscv_settings = riscv_settings.merge(model_riscv_settings)
         for set_name, set_def in model["sets"].items():
             artifacts[set_name] = []
             metrics["n_sets"] += 1
-            ext_settings = set_def.settings
+            # ext_settings = set_def.settings
+            ext_settings = model_settings.extensions.get(set_name)
+            riscv_settings_ = riscv_settings
+            ext_riscv_settings = ext_settings.riscv
+            if ext_riscv_settings:
+                riscv_settings_ = riscv_settings.merge(ext_riscv_settings)
+
             if ext_settings is None or len(settings.intrinsics.intrinsics) == 0:
                 metrics["n_skipped"] += 1
                 metrics["skipped_sets"].append(set_name)
                 continue
+            assert riscv_settings is not None
+            xlen = riscv_settings_.xlen
+            assert xlen is not None
             for intrinsic in settings.intrinsics.intrinsics:
                 if intrinsic.set_name is not None and intrinsic.set_name != set_name:
                     continue
                 try:
                     arch_ = ext_settings.get_arch(name=set_name)
-                    xlen = ext_settings.xlen
                     if llvm_version is not None and llvm_version.major < 19:
                         patch_frags["target"].contents += build_target(arch=arch_, intrinsic=intrinsic)
                     else:

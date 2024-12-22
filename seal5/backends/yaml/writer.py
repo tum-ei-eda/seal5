@@ -83,6 +83,7 @@ def main():
                 model = {"sets": temp, "cores": {}}
             else:
                 assert False
+        model_name = top_level.stem
 
     # preprocess model
     # print("model", model)
@@ -90,11 +91,13 @@ def main():
     for set_name, set_def in model["sets"].items():
         # print("set", set_def)
         set_data = {"instructions": []}
-        set_data["model"] = top_level.stem
-        set_data["xlen"] = set_def.xlen
+        riscv_data = {}
+        riscv_data["xlen"] = set_def.xlen
+        set_data["riscv"] = riscv_data
         for instr in set_def.instructions.values():
             set_data["instructions"].append(instr.name)
         data["extensions"][set_name] = set_data
+    data = {"models": {model_name: data}}
     with open(out_path, "w", encoding="utf-8") as f:
         yaml.dump(data, f)
 

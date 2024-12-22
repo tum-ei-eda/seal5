@@ -144,11 +144,10 @@ def main():
     if settings:
         riscv_settings = settings.riscv
         model_settings = settings.models.get(model_name)
-        model_riscv_settings = model_settings.riscv
-        if model_riscv_settings is not None:
-            riscv_settings = riscv_settings.merge(model_riscv_settings)
-        else:
-            riscv_settings = None
+        if model_settings is not None:
+            model_riscv_settings = model_settings.riscv
+            if model_riscv_settings is not None:
+                riscv_settings = riscv_settings.merge(model_riscv_settings)
 
         if riscv_settings:
             legalization_settings = riscv_settings.legalization

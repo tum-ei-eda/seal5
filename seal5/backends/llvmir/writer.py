@@ -158,9 +158,11 @@ def main():
                     arch_ = ext_settings.get_arch(name=set_name)
                     if arch is not None:
                         features.append(arch_)
-                    xlen_ = ext_settings.xlen
-                    if xlen_ is not None:
-                        xlen = xlen_
+                    riscv_settings = ext_settings.riscv
+                    if riscv_settings is not None:
+                        xlen_ = riscv_settings.xlen
+                        if xlen_ is not None:
+                            xlen = xlen_
                 mattr = build_riscv_mattr(features, xlen)
 
                 install_dir = os.getenv("CDSL2LLVM_DIR", None)

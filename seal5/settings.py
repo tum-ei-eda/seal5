@@ -19,7 +19,7 @@
 """Settings module for seal5."""
 import logging
 from pathlib import Path
-from dataclasses import dataclass, field, asdict, fields
+from dataclasses import dataclass, field, asdict, fields, replace
 from typing import List, Union, Optional, Dict
 
 import yaml
@@ -86,12 +86,9 @@ DEFAULT_SETTINGS = {
     #     "passes": "*",
     # },
     "passes": {
-        "defaults": {
-            "skip": [],
-            "only": [],
-            "overrides": {},
-        },
-        "per_model": {},
+        "skip": [],
+        "only": [],
+        "overrides": {},
     },
     "test": {
         "paths": [],
@@ -141,19 +138,10 @@ DEFAULT_SETTINGS = {
         },
     },
     "inputs": [],
-    "extensions": {
-        # RV32Zpsfoperand:
-        #   feature: RV32Zpsfoperand
-        #   arch: rv32zpsfoperand
-        #   version: "1.0"
-        #   experimental: true
-        #   vendor: false
-        #   instructions/intrinsics/aliases/constraints: TODO
-        #   # patches: []
-    },
-    "groups": {
-        "all": "*",
-    },
+    "models": {},
+    # "groups": {
+    #     "all": "*",
+    # },
     "tools": {
         "pattern_gen": {
             "integrated": True,
@@ -218,8 +206,10 @@ class YAMLSettings:  # TODO: make abstract
         with open(path, "w", encoding="utf-8") as file:
             file.write(text)
 
-    def merge(self, other: "YAMLSettings", overwrite: bool = False):
+    def merge(self, other: "YAMLSettings", overwrite: bool = False, inplace: bool = False):
         """Merge two instances of YAMLSettings."""
+        if not inplace:
+            ret = replace(self)  # Make a copy of self
         for f1 in fields(other):
             k1 = f1.name
             v1 = getattr(other, k1)
@@ -233,12 +223,15 @@ class YAMLSettings:  # TODO: make abstract
                 if k2 == k1:
                     found = True
                     if v2 is None:
-                        setattr(self, k2, v1)
+                        if inplace:
+                            setattr(self, k2, v1)
+                        else:
+                            setattr(ret, k2, v1)
                     else:
                         t2 = type(v2)
                         assert t1 is t2, "Type conflict"
                         if isinstance(v1, YAMLSettings):
-                            v2.merge(v1, overwrite=overwrite)
+                            v2.merge(v1, overwrite=overwrite, inplace=True)
                         elif isinstance(v1, dict):
                             if overwrite:
                                 v2.clear()
@@ -248,7 +241,11 @@ class YAMLSettings:  # TODO: make abstract
                                     if dict_key in v2:
                                         if isinstance(dict_val, YAMLSettings):
                                             assert isinstance(v2[dict_key], YAMLSettings)
-                                            v2[dict_key].merge(dict_val, overwrite=overwrite)
+                                            v2[dict_key].merge(dict_val, overwrite=overwrite, inplace=True)
+                                        elif isinstance(dict_val, dict):
+                                            v2[dict_key].update(dict_val)
+                                        else:
+                                            v2[dict_key] = dict_val
                                     else:
                                         v2[dict_key] = dict_val
                         elif isinstance(v1, list):
@@ -260,15 +257,20 @@ class YAMLSettings:  # TODO: make abstract
                             assert isinstance(
                                 v2, (int, float, str, bool, Path)
                             ), f"Unsupported field type for merge {t1}"
-                            setattr(self, k1, v1)
+                            if inplace:
+                                setattr(self, k1, v1)
+                            else:
+                                setattr(ret, k1, v1)
                     break
             assert found
+        if not inplace:
+            return ret
 
         # input("123")
         # if overwrite:
-        #     self.data.update(other.data)
+        #     ret.data.update(other.data)
         # else:
-        #     # self.data = utils.merge_dicts(self.data, other.data)
+        #     # ret.data = utils.merge_dicts(ret.data, other.data)
 
     # @staticmethod
     # def from_yaml(text: str):
@@ -527,7 +529,6 @@ class ExtensionsSettings(YAMLSettings):
     experimental: Optional[bool] = None
     vendor: Optional[bool] = None
     std: Optional[bool] = None
-    model: Optional[str] = None
     description: Optional[str] = None
     requires: Optional[List[str]] = None
     instructions: Optional[List[str]] = None
@@ -670,7 +671,7 @@ class Seal5Settings(YAMLSettings):
 
     def reset(self):
         """Reset Seal5 seetings."""
-        self.extensions = {}
+        self.models = {}
         self.patches = []
         self.name = "default"
         self.inputs = []
@@ -685,12 +686,9 @@ class Seal5Settings(YAMLSettings):
             encoding_sizes=FilterSetting(keep=[], drop=[]),
         )
         self.passes = PassesSettings(
-            defaults=PassesSetting(
-                skip=[],
-                only=[],
-                overrides={},
-            ),
-            per_model={},
+            skip=[],
+            only=[],
+            overrides={},
         )
         self.riscv = RISCVSettings(
             xlen=None,

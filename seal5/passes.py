@@ -124,7 +124,9 @@ class Seal5Pass:
                                 continue
                             kwargs__ = kwargs_.copy()
                             if passes_settings__.overrides:
-                                kwargs__.update(passes_settings__.overrides)
+                                overrides = passes_settings__.overrides.get(self.name)
+                                if overrides:
+                                    kwargs__.update(overrides)
                             future = executor.submit(self.handler, input_model, ext_name, settings=settings, **kwargs__)
                             futures.append(future)
                     results = []
@@ -152,7 +154,9 @@ class Seal5Pass:
                             logger.info("Skipped pass %s for model %s", self.name, input_model)
                             continue
                         if passes_settings_.overrides:
-                            kwargs__.update(passes_settings_.overrides)
+                            overrides = passes_settings_.overrides.get(self.name)
+                            if overrides:
+                                kwargs__.update(overrides)
                         future = executor.submit(self.handler, input_model, settings=settings, **kwargs__)
                         futures.append(future)
                     results = []

@@ -412,7 +412,7 @@ class Seal5Flow:
         """Load YAML cfg."""
         assert file.is_file(), f"File does not exist: {file}"
         new_settings: Seal5Settings = Seal5Settings.from_yaml_file(file)
-        self.settings.merge(new_settings, overwrite=overwrite)
+        self.settings.merge(new_settings, overwrite=overwrite, inplace=True)
         self.settings.save()
 
     def load_test(self, file: Path, overwrite: bool = True):
@@ -575,11 +575,10 @@ class Seal5Flow:
         metrics = {"passes": []}
         passes_settings = self.settings.passes
         assert passes_settings is not None
-        assert passes_settings.defaults is not None
-        default_skip = passes_settings.defaults.skip
+        default_skip = passes_settings.skip
         if skip is None and default_skip:
             skip = default_skip
-        default_only = passes_settings.defaults.only
+        default_only = passes_settings.only
         if only is None and default_only:
             only = default_only
         # inplace = True
@@ -659,7 +658,7 @@ class Seal5Flow:
                         # override
                         logger.debug("Overriding existing patch settings")
                         new = temp[key]
-                        new.merge(patch_settings)
+                        new.merge(patch_settings, inplace=True)
                         temp[key] = new
                     else:
                         temp[key] = patch_settings
@@ -675,7 +674,7 @@ class Seal5Flow:
                     # override
                     logger.debug("Overriding existing patch settings")
                     new = temp[key]
-                    new.merge(patch_settings)
+                    new.merge(patch_settings, inplace=True)
                     temp[key] = new
                 else:
                     temp[key] = patch_settings

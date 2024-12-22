@@ -811,7 +811,7 @@ def write_yaml(
         live=True,
     )
     new_settings: Seal5Settings = Seal5Settings.from_yaml_file(settings.temp_dir / new_name)
-    settings.merge(new_settings, overwrite=False)
+    settings.merge(new_settings, overwrite=False, inplace=True)
     return PassResult(metrics={})
 
 
@@ -1589,16 +1589,15 @@ def convert_llvmir_to_gmir(
         for model_name, model_settings in settings.models.items():
             if model_name != input_model:
                 continue
-            ext_settings = model_settings.get(model_name)
-            set_names = list(settings.extensions.keys())
-            assert len(set_names) > 0, "No sets found"
-            for set_name in set_names:
-                ext_settings = settings.extensions.get(set_name)
-                assert ext_settings is not None
+            assert len(model_settings.extensions) > 0, "No sets found"
+            for set_name, ext_settings in model_settings.extensions.items():
                 insn_names = ext_settings.instructions
-                xlen = ext_settings.xlen
-                if xlen is None and default_xlen is not None:
-                    xlen = default_xlen
+                riscv_settings = ext_settings.riscv
+                xlen = default_xlen
+                if riscv_settings is not None:
+                    xlen_ = riscv_settings.xlen
+                    if xlen_ is not None:
+                        xlen = xlen_
                 features = [*default_features]
                 arch_ = ext_settings.get_arch(name=set_name)
                 features = [*default_features]
@@ -1755,9 +1754,7 @@ def gen_set_td(
     assert input_model is not None
     artifacts = []
     includes = []
-    for set_name, set_settings in settings.extensions.items():
-        if set_settings.model != input_model:
-            continue
+    for set_name, set_settings in settings.models[input_model].extensions.items():
         set_name_lower = set_name.lower()
         patch_name = f"set_td_{set_name}"
         dest = f"llvm/lib/Target/RISCV/seal5/{set_name}.td"

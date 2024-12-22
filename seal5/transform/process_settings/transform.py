@@ -17,7 +17,7 @@ from typing import Union
 
 from m2isar.metamodel import arch
 
-from seal5.settings import Seal5Settings, ExtensionsSettings
+from seal5.settings import Seal5Settings, ExtensionsSettings, RISCVSettings
 
 logger = logging.getLogger("process_settings")
 
@@ -85,6 +85,11 @@ def run(args):
             ext_settings = model_settings.extensions.get(set_name, None)
         if ext_settings is None:
             ext_settings = ExtensionsSettings(feature=set_name.replace("_", ""))
+        riscv_settings = ext_settings.riscv
+        if riscv_settings is None:
+            riscv_settings = RISCVSettings(xlen=set_def.xlen)
+        if riscv_settings.xlen is None:
+            riscv_settings.xlen = set_def.xlen
         assert set_def.settings is None
         set_def.settings = ext_settings  # TODO: decide how to do this properly
 
