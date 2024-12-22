@@ -1,29 +1,28 @@
 ---
 passes:
-  defaults:
-    overrides:
-      # TODO: allow "*"
-      behav_to_pat:
-        parallel: true
-      convert_models: &a
-        use_subprocess: true
-        log_level: "warning"
-      filter_models: *a
-      drop_unused: *a
-      eliminate_rd_cmp_zero: *a
-      eliminate_mod_rfs: *a
-      drop_unused2: *a
-      optimize_model: *a
-      infer_types: *a
-      simplify_trivial_slices: *a
-      explicit_truncations: *a
-      process_settings: *a
-      write_yaml: *a
-      detect_behavior_constraints: *a
-      collect_register_operands: *a
-      collect_immediate_operands: *a
-      collect_operand_types: *a
-      detect_side_effects: *a
-      detect_inouts: *a
-      detect_registers: *a
-      write_cdsl_full: *a
+  overrides:
+    # TODO: allow "*"
+    behav_to_pat:
+      parallel: true
+    convert_models: &a
+      use_subprocess: true
+      log_level: "warning"
+    filter_models: *a
+    drop_unused: *a
+    eliminate_rd_cmp_zero: *a
+    eliminate_mod_rfs: *a
+    drop_unused2: *a
+    optimize_model: *a
+    infer_types: *a
+    simplify_trivial_slices: *a
+    explicit_truncations: *a
+    process_settings: *a
+    write_yaml: *a
+    detect_behavior_constraints: *a
+    collect_register_operands: *a
+    collect_immediate_operands: *a
+    collect_operand_types: *a
+    detect_side_effects: *a
+    detect_inouts: *a
+    detect_registers: *a
+    write_cdsl_full: *a
