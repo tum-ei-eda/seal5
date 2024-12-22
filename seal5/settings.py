@@ -23,7 +23,7 @@ from dataclasses import dataclass, field, asdict, fields
 from typing import List, Union, Optional, Dict
 
 import yaml
-from dacite import from_dict
+from dacite import from_dict, Config
 
 from seal5.types import PatchStage
 from seal5.utils import parse_cond
@@ -190,7 +190,7 @@ class YAMLSettings:  # TODO: make abstract
     @classmethod
     def from_dict(cls, data: dict):
         """Convert dict into instance of YAMLSettings."""
-        return from_dict(data_class=cls, data=data)
+        return from_dict(data_class=cls, data=data, config=Config(strict=True))
 
     @classmethod
     def from_yaml(cls, text: str):
@@ -203,7 +203,7 @@ class YAMLSettings:  # TODO: make abstract
         """Parse settings from YAML file."""
         with open(path, "r", encoding="utf-8") as file:
             data = yaml.safe_load(file)
-        return cls.from_dict(data=data)
+        return cls.from_dict(data)
 
     def to_yaml(self):
         """Convert settings to YAML string."""
