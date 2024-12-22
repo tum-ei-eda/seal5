@@ -363,104 +363,30 @@ class PatchSettings(YAMLSettings):
 #     pass
 
 
+# @dataclass
+# class PassesSetting(YAMLSettings):
+#     """Seal5 model-specific passes settings."""
+#
+#     skip: Optional[List[str]] = None
+#     only: Optional[List[str]] = None
+#     overrides: Optional[dict] = None
+#
+#
+# @dataclass
+# class PassesSettings(YAMLSettings):
+#     """Seal5 passes settings."""
+#
+#     defaults: Optional[PassesSetting] = None
+#     per_model: Optional[Dict[str, PassesSetting]] = None
+
+
 @dataclass
-class PassesSetting(YAMLSettings):
+class PassesSettings(YAMLSettings):
     """Seal5 model-specific passes settings."""
 
     skip: Optional[List[str]] = None
     only: Optional[List[str]] = None
     overrides: Optional[dict] = None
-
-
-@dataclass
-class PassesSettings(YAMLSettings):
-    """Seal5 passes settings."""
-
-    defaults: Optional[PassesSetting] = None
-    per_model: Optional[Dict[str, PassesSetting]] = None
-
-
-@dataclass
-class ExtensionsSettings(YAMLSettings):
-    """Seal5 extensions settings."""
-
-    feature: Optional[str] = None
-    predicate: Optional[str] = None
-    arch: Optional[str] = None
-    version: Optional[str] = None
-    experimental: Optional[bool] = None
-    vendor: Optional[bool] = None
-    std: Optional[bool] = None
-    model: Optional[str] = None
-    description: Optional[str] = None
-    requires: Optional[List[str]] = None
-    instructions: Optional[List[str]] = None
-    xlen: Optional[int] = None  # TODO: support multiple?
-    # patches
-
-    def get_version(self):
-        """Get extension version."""
-        if self.version:
-            return self.version
-        return "1.0"
-
-    def get_description(self, name: Optional[str] = None):
-        """Get extension description."""
-        if self.description is None:
-            if name:
-                description = name
-            else:
-                description = "RISC-V"
-            description += " Extension"
-            return description
-        return self.description
-
-    def get_arch(self, name: Optional[str] = None):
-        """Get extension arch."""
-        arch = self.arch
-        if arch is None:
-            feature = self.get_feature(name=name)
-            assert feature is not None
-            arch = feature.lower()
-            assert len(arch) > 0
-            if arch[0] != "x":
-                arch = f"x{arch}"
-            # if self.experimental:
-            #     arch = "experimental-" + arch
-        assert arch[0] in ["z", "x"], "Arch needs to be start with z/x"
-        return arch
-
-    def get_feature(self, name: Optional[str] = None):
-        """Get extension feature."""
-        if self.feature is None:
-            assert name is not None
-            feature = name.replace("_", "")
-            return feature
-        return self.feature
-
-    def get_predicate(self, name: Optional[str] = None, with_has: bool = False):
-        """Get extension predicate."""
-        if self.predicate is None:
-            feature = self.get_feature(name=name)
-            assert feature is not None
-            if self.vendor:
-                assert not self.std
-                prefix = "Vendor"
-            elif self.std:
-                prefix = "StdExt"
-            else:
-                prefix = "Ext"
-            if with_has:
-                prefix = "Has" + prefix
-            return prefix + feature
-        if with_has:
-            assert "has" in self.predicate.lower()
-        return self.predicate
-
-
-@dataclass
-class GroupsSettings(YAMLSettings):
-    """Seal5 groups settings."""
 
 
 @dataclass
@@ -591,6 +517,94 @@ class RISCVSettings(YAMLSettings):
 
 
 @dataclass
+class ExtensionsSettings(YAMLSettings):
+    """Seal5 extensions settings."""
+
+    feature: Optional[str] = None
+    predicate: Optional[str] = None
+    arch: Optional[str] = None
+    version: Optional[str] = None
+    experimental: Optional[bool] = None
+    vendor: Optional[bool] = None
+    std: Optional[bool] = None
+    model: Optional[str] = None
+    description: Optional[str] = None
+    requires: Optional[List[str]] = None
+    instructions: Optional[List[str]] = None
+    riscv: Optional[RISCVSettings] = None
+    passes: Optional[PassesSettings] = None
+    # patches
+
+    def get_version(self):
+        """Get extension version."""
+        if self.version:
+            return self.version
+        return "1.0"
+
+    def get_description(self, name: Optional[str] = None):
+        """Get extension description."""
+        if self.description is None:
+            if name:
+                description = name
+            else:
+                description = "RISC-V"
+            description += " Extension"
+            return description
+        return self.description
+
+    def get_arch(self, name: Optional[str] = None):
+        """Get extension arch."""
+        arch = self.arch
+        if arch is None:
+            feature = self.get_feature(name=name)
+            assert feature is not None
+            arch = feature.lower()
+            assert len(arch) > 0
+            if arch[0] != "x":
+                arch = f"x{arch}"
+            # if self.experimental:
+            #     arch = "experimental-" + arch
+        assert arch[0] in ["z", "x"], "Arch needs to be start with z/x"
+        return arch
+
+    def get_feature(self, name: Optional[str] = None):
+        """Get extension feature."""
+        if self.feature is None:
+            assert name is not None
+            feature = name.replace("_", "")
+            return feature
+        return self.feature
+
+    def get_predicate(self, name: Optional[str] = None, with_has: bool = False):
+        """Get extension predicate."""
+        if self.predicate is None:
+            feature = self.get_feature(name=name)
+            assert feature is not None
+            if self.vendor:
+                assert not self.std
+                prefix = "Vendor"
+            elif self.std:
+                prefix = "StdExt"
+            else:
+                prefix = "Ext"
+            if with_has:
+                prefix = "Has" + prefix
+            return prefix + feature
+        if with_has:
+            assert "has" in self.predicate.lower()
+        return self.predicate
+
+
+@dataclass
+class ModelSettings(YAMLSettings):
+    """Seal5 model settings."""
+
+    extensions: Optional[Dict[str, ExtensionsSettings]] = None
+    riscv: Optional[RISCVSettings] = None
+    passes: Optional[PassesSettings] = None
+
+
+@dataclass
 class PatternGenSettings(YAMLSettings):
     """Seal5 pattern-gen settings."""
 
@@ -646,8 +660,8 @@ class Seal5Settings(YAMLSettings):
     # transform: Optional[TransformSettings] = None  # TODO: make list?
     passes: Optional[PassesSettings] = None  # TODO: make list?
     test: Optional[TestSettings] = None
-    extensions: Optional[Dict[str, ExtensionsSettings]] = None
-    groups: Optional[GroupsSettings] = None  # TODO: make list?
+    models: Optional[Dict[str, ModelSettings]] = None
+    # groups: Optional[GroupsSettings] = None  # TODO: make list?
     inputs: Optional[List[str]] = None
     riscv: Optional[RISCVSettings] = None
     tools: Optional[ToolsSettings] = None

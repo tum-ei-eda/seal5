@@ -1,29 +1,31 @@
 ---
 # TODO: make xlen generic
-extensions:
+models:
   RV32Zpn:
-    feature: RV32Zpn
-    arch: rv32zpn
-    version: "1.0"
-    experimental: true
-    vendor: false
-    # patches: []
+    extensions:
+      RV32Zpn:
+        feature: RV32Zpn
+        arch: rv32zpn
+        version: "1.0"
+        experimental: true
+        vendor: false
+        # patches: []
 
-  RV32Zbpo:
-    feature: RV32Zbpo
-    arch: rv32zbpo
-    version: "1.0"
-    experimental: true
-    vendor: false
-    # patches: []
+      RV32Zbpo:
+        feature: RV32Zbpo
+        arch: rv32zbpo
+        version: "1.0"
+        experimental: true
+        vendor: false
+        # patches: []
 
-  RV32Zpsfoperand:
-    feature: RV32Zpsfoperand
-    arch: rv32zpsfoperand
-    version: "1.0"
-    experimental: true
-    vendor: false
-    # patches: []
+      RV32Zpsfoperand:
+        feature: RV32Zpsfoperand
+        arch: rv32zpsfoperand
+        version: "1.0"
+        experimental: true
+        vendor: false
+        # patches: []
 
 # groups:
 #   RV32P:

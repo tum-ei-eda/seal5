@@ -1,11 +1,17 @@
 ---
-extensions:
+models:
   XCoreVMac:
-    # feature: XCVmac
-    # arch: xcvmac
-    version: "1.0"
-    experimental: false
-    vendor: true
+    extensions:
+      XCoreVMac:
+        # feature: XCVmac
+        # arch: xcvmac
+        version: "1.0"
+        experimental: false
+        vendor: true
+    passes:
+      overrides:
+        convert_models:
+          prefix: "SEAL5_"
 intrinsics:
   # See: https://github.com/openhwgroup/core-v-sw/blob/master/specifications/corev-builtin-spec.md#listing-of-multiply-accumulate-builtins-xcvmac
   intrinsics:
@@ -94,9 +100,3 @@ intrinsics:
   - <<: *ScalarCoreVMacGprGprGprImmIntrinsic
     instr_name: SEAL5_CV_MACHHSRN
     intrinsic_name: mac_machhsrn
-passes:
-  per_model:
-    XCoreVMac:
-      overrides:
-        convert_models:
-          prefix: "SEAL5_"

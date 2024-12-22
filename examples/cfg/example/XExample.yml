@@ -1,8 +1,10 @@
 ---
-extensions:
+models:
   XExample:
-    feature: XExample
-    arch: xexample
-    version: "1.0"
-    experimental: false
-    vendor: true
+    extensions:
+      XExample:
+        feature: XExample
+        arch: xexample
+        version: "1.0"
+        experimental: false
+        vendor: true

@@ -77,6 +77,7 @@ def main():
                 model = {"sets": temp, "cores": {}}
             else:
                 assert False
+        model_name = top_level.stem
 
     # preprocess model
     # print("model", model)
@@ -97,17 +98,25 @@ def main():
         # errs = []
         if settings:
             riscv_settings = settings.riscv
+            model_settings = settings.models.get(model_name)
+            model_riscv_settings = model_settings.riscv
+            if model_riscv_settings is not None:
+                riscv_settings = riscv_settings.merge(model_riscv_settings)
         else:
             riscv_settings = None
-        default_features, default_xlen = get_riscv_defaults(riscv_settings)
 
         assert out_path.is_dir(), "Expecting output directory when using --splitted"
         for set_name, set_def in model["sets"].items():
             xlen = set_def.xlen
-            if xlen is None:
-                xlen = default_xlen
             metrics["n_sets"] += 1
             ext_settings = set_def.settings
+            riscv_settings_ = riscv_settings
+            ext_riscv_settings = ext_settings.riscv
+            if ext_riscv_settings is not None:
+                riscv_settings_ = riscv_settings_.merge(ext_riscv_settings)
+            default_features, default_xlen = get_riscv_defaults(riscv_settings)
+            if xlen is None:  # TODO: redundant?
+                xlen = default_xlen
             for instr_def in set_def.instructions.values():
                 metrics["n_instructions"] += 1
                 attrs = instr_def.attributes
@@ -149,6 +158,9 @@ def main():
                     arch_ = ext_settings.get_arch(name=set_name)
                     if arch is not None:
                         features.append(arch_)
+                    xlen_ = ext_settings.xlen
+                    if xlen_ is not None:
+                        xlen = xlen_
                 mattr = build_riscv_mattr(features, xlen)
 
                 install_dir = os.getenv("CDSL2LLVM_DIR", None)

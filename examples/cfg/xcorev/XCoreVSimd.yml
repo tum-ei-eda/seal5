@@ -1,11 +1,17 @@
 ---
-extensions:
+models:
   XCoreVSimd:
-    # feature: XCVsimd
-    # arch: xcvsimd
-    version: "1.0"
-    experimental: false
-    vendor: true
+    extensions:
+      XCoreVSimd:
+        # feature: XCVsimd
+        # arch: xcvsimd
+        version: "1.0"
+        experimental: false
+        vendor: true
+    passes:
+      overrides:
+        convert_models:
+          prefix: "SEAL5_"
 intrinsics:
   # See: https://github.com/openhwgroup/core-v-sw/blob/master/specifications/corev-builtin-spec.md#listing-of-pulp-816-bit-simd-builtins-xcvsimd
   intrinsics:
@@ -520,9 +526,3 @@ intrinsics:
   # - <<: *ScalarCoreVSimdGprGprImmIntrinsic
   #   instr_name: SEAL5_CV_?
   #   intrinsic_name: simd_?
-passes:
-  per_model:
-    XCoreVSimd:
-      overrides:
-        convert_models:
-          prefix: "SEAL5_"

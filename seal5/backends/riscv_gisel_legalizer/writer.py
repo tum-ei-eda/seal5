@@ -111,7 +111,8 @@ def main():
     logging.basicConfig(level=getattr(logging, args.log.upper()))
 
     # resolve model paths
-    # top_level = pathlib.Path(args.top_level)
+    top_level = pathlib.Path(args.top_level)
+    model_name = top_level.stem
     # abs_top_level = top_level.resolve()
 
     # is_seal5_model = False
@@ -142,6 +143,13 @@ def main():
     artifacts[None] = []  # used for global artifacts
     if settings:
         riscv_settings = settings.riscv
+        model_settings = settings.models.get(model_name)
+        model_riscv_settings = model_settings.riscv
+        if model_riscv_settings is not None:
+            riscv_settings = riscv_settings.merge(model_riscv_settings)
+        else:
+            riscv_settings = None
+
         if riscv_settings:
             legalization_settings = riscv_settings.legalization
             if legalization_settings:

@@ -1,11 +1,17 @@
 ---
-extensions:
+models:
   XCoreVAlu:
-    # feature: XCValu
-    # arch: xcvalu
-    version: "1.0"
-    experimental: false
-    vendor: true
+    extensions:
+      XCoreVAlu:
+        # feature: XCValu
+        # arch: xcvalu
+        version: "1.0"
+        experimental: false
+        vendor: true
+    passes:
+      overrides:
+        convert_models:
+          prefix: "SEAL5_"
 intrinsics:
   # See: https://github.com/openhwgroup/core-v-sw/blob/master/specifications/corev-builtin-spec.md#listing-of-multiply-accumulate-builtins-xcvmac
   intrinsics:
@@ -99,9 +105,3 @@ intrinsics:
   - <<: *ScalarCoreVAluGprGprGprIntrinsic
     instr_name: SEAL5_CV_SUBURN
     intrinsic_name: alu_suburn
-passes:
-  per_model:
-    XCoreVAlu:
-      overrides:
-        convert_models:
-          prefix: "SEAL5_"

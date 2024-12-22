@@ -1,10 +1,8 @@
 ---
-extensions:
+models:
   OpenASIP_base:
-    version: "1.0"
-    experimental: true
-    vendor: true
-passes:
-  per_model:
-    OpenASIP_base:
-      overrides: {}
+    extensions:
+      OpenASIP_base:
+        version: "1.0"
+        experimental: true
+        vendor: true

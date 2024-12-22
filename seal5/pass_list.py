@@ -1577,66 +1577,70 @@ def convert_llvmir_to_gmir(
     #     sub = name.replace(".seal5model", "")
     if settings:
         riscv_settings = settings.riscv
+        model_settings = settings.models.get(input_model)
+        model_riscv_settings = model_settings.riscv
+        if model_riscv_settings is not None:
+            riscv_settings = riscv_settings.merge(model_riscv_settings)
     else:
         riscv_settings = None
     default_features, default_xlen = get_riscv_defaults(riscv_settings)
 
     for _ in [None]:
-        set_names = list(settings.extensions.keys())
-        assert len(set_names) > 0, "No sets found"
-        for set_name in set_names:
-            ext_settings = settings.extensions[set_name]
-            insn_names = ext_settings.instructions
-            xlen = ext_settings.xlen
-            if xlen is None and default_xlen is not None:
-                xlen = default_xlen
-            features = [*default_features]
-            arch_ = ext_settings.get_arch(name=set_name)
-            features = [*default_features]
-            if arch_ is not None:
-                features.append(arch_)
-            mattr = build_riscv_mattr(default_features, xlen)
-            if insn_names is None:
-                logger.warning("Skipping empty set %s", set_name)
+        for model_name, model_settings in settings.models.items():
+            if model_name != input_model:
                 continue
-            assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
-            sub = ext_settings.model
-            if sub != input_model:
-                continue
-            # TODO: populate model in yaml backend!
-            if sub is None:  # Fallbacke
-                sub = set_name
-            for insn_name in insn_names:
-                ll_file = settings.temp_dir / sub / set_name / f"{insn_name}.ll"
-                if not ll_file.is_file():
-                    logger.warning("Skipping %s due to errors.", insn_name)
+            ext_settings = model_settings.get(model_name)
+            set_names = list(settings.extensions.keys())
+            assert len(set_names) > 0, "No sets found"
+            for set_name in set_names:
+                ext_settings = settings.extensions.get(set_name)
+                assert ext_settings is not None
+                insn_names = ext_settings.instructions
+                xlen = ext_settings.xlen
+                if xlen is None and default_xlen is not None:
+                    xlen = default_xlen
+                features = [*default_features]
+                arch_ = ext_settings.get_arch(name=set_name)
+                features = [*default_features]
+                if arch_ is not None:
+                    features.append(arch_)
+                mattr = build_riscv_mattr(default_features, xlen)
+                if insn_names is None:
+                    logger.warning("Skipping empty set %s", set_name)
                     continue
-                output_file = ll_file.parent / (ll_file.stem + ".gmir")
-                name = ll_file.name
-                logger.info("Writing gmir for %s", name)
-                try:
-                    # TODO: move to backends
-                    cdsl2llvm_build_dir = None
-                    integrated_pattern_gen = settings.tools.pattern_gen.integrated
-                    if integrated_pattern_gen:
-                        cdsl2llvm_build_dir = str(settings.get_llvm_build_dir(fallback=True, check=True))
-                    else:
-                        cdsl2llvm_build_dir = str(settings.deps_dir / "cdsl2llvm" / "llvm" / "build")
-                    # TODO: migrate with pass to cmdline backend
-                    cdsl2llvm.convert_ll_to_gmir(
-                        # settings.deps_dir / "cdsl2llvm" / "llvm" / "build", ll_file, output_file
-                        cdsl2llvm_build_dir,
-                        ll_file,
-                        output_file,
-                        mattr=mattr,
-                        xlen=xlen,
-                        verbose=verbose,
-                    )
-                except AssertionError as ex:
-                    if allow_errors:
-                        errs.append((insn_name, str(ex)))
-                    else:
-                        raise ex
+                assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
+                # TODO: populate model in yaml backend!
+                for insn_name in insn_names:
+                    ll_file = settings.temp_dir / model_name / set_name / f"{insn_name}.ll"
+                    if not ll_file.is_file():
+                        logger.warning("Skipping %s due to errors.", insn_name)
+                        continue
+                    output_file = ll_file.parent / (ll_file.stem + ".gmir")
+                    name = ll_file.name
+                    logger.info("Writing gmir for %s", name)
+                    try:
+                        # TODO: move to backends
+                        cdsl2llvm_build_dir = None
+                        integrated_pattern_gen = settings.tools.pattern_gen.integrated
+                        if integrated_pattern_gen:
+                            cdsl2llvm_build_dir = str(settings.get_llvm_build_dir(fallback=True, check=True))
+                        else:
+                            cdsl2llvm_build_dir = str(settings.deps_dir / "cdsl2llvm" / "llvm" / "build")
+                        # TODO: migrate with pass to cmdline backend
+                        cdsl2llvm.convert_ll_to_gmir(
+                            # settings.deps_dir / "cdsl2llvm" / "llvm" / "build", ll_file, output_file
+                            cdsl2llvm_build_dir,
+                            ll_file,
+                            output_file,
+                            mattr=mattr,
+                            xlen=xlen,
+                            verbose=verbose,
+                        )
+                    except AssertionError as ex:
+                        if allow_errors:
+                            errs.append((insn_name, str(ex)))
+                        else:
+                            raise ex
     if len(errs) > 0:
         # print("errs", errs)
         logger.warning("Ignored Errors:")

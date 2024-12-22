@@ -1,11 +1,17 @@
 ---
-extensions:
+models:
   XCoreVBitmanip:
-    # feature: XCVbitmanip
-    # arch: xcvbitmanip
-    version: "1.0"
-    experimental: false
-    vendor: true
+    extensions:
+      XCoreVBitmanip:
+        # feature: XCVbitmanip
+        # arch: xcvbitmanip
+        version: "1.0"
+        experimental: false
+        vendor: true
+    passes:
+      overrides:
+        convert_models:
+          prefix: "SEAL5_"
 intrinsics:
   # See: https://github.com/openhwgroup/core-v-sw/blob/master/specifications/corev-builtin-spec.md#listing-of-pulp-bit-manipulation-builtins-xcvbitmanip
   intrinsics:
@@ -75,9 +81,3 @@ intrinsics:
   # - <<: *ScalarCoreVBitmanipGprImmImmIntrinsic
   #   instr_name: SEAL5_CV_BCLR
   #   intrinsic_name: bitmanip_bclr
-passes:
-  per_model:
-    XCoreVBitmanip:
-      overrides:
-        convert_models:
-          prefix: "SEAL5_"

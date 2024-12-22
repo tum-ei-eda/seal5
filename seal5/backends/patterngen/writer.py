@@ -84,6 +84,7 @@ def main():
                 model = {"sets": temp, "cores": {}}
             else:
                 assert False
+        model_name = top_level.stem
 
     metrics = {
         "n_sets": 0,
@@ -105,19 +106,27 @@ def main():
         # model_includes = []
         if settings:
             riscv_settings = settings.riscv
+            model_settings = settings.models.get(model_name)
+            model_riscv_settings = model_settings.riscv
+            if model_riscv_settings is not None:
+                riscv_settings = riscv_settings.merge(model_riscv_settings)
         else:
             riscv_settings = None
-        default_features, default_xlen = get_riscv_defaults(riscv_settings)
 
         assert out_path.is_dir(), "Expecting output directory when using --splitted"
         for set_name, set_def in model["sets"].items():
             xlen = set_def.xlen
-            if xlen is None and default_xlen is not None:
-                xlen = default_xlen
             artifacts[set_name] = []
             metrics["n_sets"] += 1
-            ext_settings = set_def.settings
             set_dir = out_path / set_name
+            ext_settings = set_def.settings
+            riscv_settings_ = riscv_settings
+            ext_riscv_settings = ext_settings.riscv
+            if ext_riscv_settings is not None:
+                riscv_settings_ = riscv_settings_.merge(ext_riscv_settings)
+            default_features, default_xlen = get_riscv_defaults(riscv_settings)
+            if xlen is None:  # TODO: redundant?
+                xlen = default_xlen
 
             predicate = None
             features = [*default_features]
