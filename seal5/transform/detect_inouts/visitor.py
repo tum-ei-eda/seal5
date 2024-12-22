@@ -10,6 +10,8 @@
 
 from m2isar.metamodel import behav
 
+from .utils import IOMode
+
 # pylint: disable=unused-argument
 
 # Limitations
@@ -69,8 +71,12 @@ def binary_operation(self: behav.BinaryOperation, context):
 def slice_operation(self: behav.SliceOperation, context):
     # print("slice_operation")
     self.expr = self.expr.generate(context)
+    context.push(IOMode.READ)
     self.left = self.left.generate(context)
+    context.pop()
+    context.push(IOMode.READ)
     self.right = self.right.generate(context)
+    context.pop()
 
     return self
 
@@ -100,16 +106,16 @@ def scalar_definition(self: behav.ScalarDefinition, context):
 
 def assignment(self: behav.Assignment, context):
     # print("assignment")
-    context.is_write = True
+    context.push(IOMode.WRITE)
     # print("> START WRITE")
     self.target = self.target.generate(context)
     # print("< STOP WRITE")
-    context.is_write = False
-    context.is_read = True
+    context.pop()
+    context.push(IOMode.READ)
     # print("> START READ")
     self.expr = self.expr.generate(context)
     # print("> STOP READ")
-    context.is_read = False
+    context.pop()
 
     return self
 
@@ -117,11 +123,11 @@ def assignment(self: behav.Assignment, context):
 def conditional(self: behav.Conditional, context):
     # print("conditional")
     for i, cond in enumerate(self.conds):
-        context.is_read = True
+        context.push(IOMode.READ)
         # print("> START READ")
         self.conds[i] = cond.generate(context)
         # print("> STOP READ")
-        context.is_read = False
+        context.pop()
     for op in self.stmts:
         # for stmt in flatten(op):
         #    stmt.generate(context)
@@ -132,11 +138,11 @@ def conditional(self: behav.Conditional, context):
 
 def loop(self: behav.Loop, context):
     # print("loop")
-    context.is_read = True
+    context.push(IOMode.READ)
     # print("> START READ")
     self.cond = self.cond.generate(context)
     # print("> STOP READ")
-    context.is_read = False
+    context.pop()
     self.stmts = [x.generate(context) for x in self.stmts]
 
     return self
@@ -144,13 +150,13 @@ def loop(self: behav.Loop, context):
 
 def ternary(self: behav.Ternary, context):
     # print("ternary")
-    context.is_read = True
+    context.push(IOMode.READ)
     # print("> START READ")
     self.cond = self.cond.generate(context)
     self.then_expr = self.then_expr.generate(context)
     self.else_expr = self.else_expr.generate(context)
     # print("> STOP READ")
-    context.is_read = False
+    context.pop()
 
     return self
 
