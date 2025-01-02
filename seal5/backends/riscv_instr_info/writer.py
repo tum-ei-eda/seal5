@@ -346,9 +346,9 @@ def main():
                     metrics["success_instructions"].append(instr_def.name)
                     content = gen_riscv_instr_info_str(instr_def, set_def)
                     if len(content) > 0:
-                        if args.add_intrinsics and settings.intrinsics.intrinsics:
+                        if args.add_intrinsics and settings.intrinsics:
                             # TODO: intrinsics should be dict keyed by instr name
-                            for intrinsic in settings.intrinsics.intrinsics:
+                            for intrinsic in settings.intrinsics:
                                 if intrinsic.instr_name.casefold() in [
                                     instr_def.mnemonic.casefold(),
                                     instr_def.name.casefold(),

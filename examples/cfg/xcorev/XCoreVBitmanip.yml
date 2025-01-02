@@ -8,7 +8,6 @@ extensions:
     vendor: true
 intrinsics:
   # See: https://github.com/openhwgroup/core-v-sw/blob/master/specifications/corev-builtin-spec.md#listing-of-pulp-bit-manipulation-builtins-xcvbitmanip
-  intrinsics:
   # unary (reg)
   - &ScalarCoreVBitmanipGprIntrinsic
     args:

@@ -1,6 +1,5 @@
 ---
 intrinsics:
-  intrinsics:
   - args:
     - arg_name: rs1
       arg_type: i32

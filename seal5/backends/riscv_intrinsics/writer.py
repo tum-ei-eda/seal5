@@ -303,7 +303,7 @@ def main():
         # errs = []
         settings = model.get("settings", None)
         llvm_version = None
-        if not settings or not settings.intrinsics.intrinsics:
+        if not settings or not settings.intrinsics:
             logger.warning("No intrinsics configured; didn't need to invoke intrinsics writer.")
             quit()  # TODO: refactor this
         if settings:
@@ -329,11 +329,11 @@ def main():
             artifacts[set_name] = []
             metrics["n_sets"] += 1
             ext_settings = set_def.settings
-            if ext_settings is None or len(settings.intrinsics.intrinsics) == 0:
+            if ext_settings is None or len(settings.intrinsics) == 0:
                 metrics["n_skipped"] += 1
                 metrics["skipped_sets"].append(set_name)
                 continue
-            for intrinsic in settings.intrinsics.intrinsics:
+            for intrinsic in settings.intrinsics:
                 if intrinsic.set_name is not None and intrinsic.set_name != set_name:
                     continue
                 try:

@@ -8,7 +8,6 @@ extensions:
     vendor: true
 intrinsics:
   # See: https://github.com/openhwgroup/core-v-sw/blob/master/specifications/corev-builtin-spec.md#listing-of-pulp-816-bit-simd-builtins-xcvsimd
-  intrinsics:
   # TODO: add SCI variants
   # TODO: add DIV2/4/8 variants
   # unary (reg)

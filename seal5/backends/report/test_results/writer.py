@@ -242,7 +242,7 @@ def main():
                         def lookup_intrin(instr_name, settings):
                             if settings.intrinsics is None:
                                 return None
-                            intrinsics = settings.intrinsics.intrinsics
+                            intrinsics = settings.intrinsics
                             if not intrinsics:
                                 return None
                             found = None

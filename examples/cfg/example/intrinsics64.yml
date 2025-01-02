@@ -1,6 +1,5 @@
 ---
 intrinsics:
-  intrinsics:
   - args:
     - arg_name: rd
       arg_type: i64

@@ -164,7 +164,7 @@ DEFAULT_SETTINGS = {
             "sparse_checkout": False,
         },
     },
-    "intrinsics": {},
+    "intrinsics": [],
 }
 
 
@@ -627,11 +627,6 @@ class IntrinsicDefn(YAMLSettings):
 
 
 @dataclass
-class IntrinsicsSettings(YAMLSettings):
-    intrinsics: Optional[List[IntrinsicDefn]] = None
-
-
-@dataclass
 class Seal5Settings(YAMLSettings):
     """Seal5 settings."""
 
@@ -652,7 +647,7 @@ class Seal5Settings(YAMLSettings):
     riscv: Optional[RISCVSettings] = None
     tools: Optional[ToolsSettings] = None
     metrics: list = field(default_factory=list)
-    intrinsics: Optional[IntrinsicsSettings] = None
+    intrinsics: Optional[List[IntrinsicDefn]] = None
 
     def reset(self):
         """Reset Seal5 seetings."""
@@ -684,7 +679,7 @@ class Seal5Settings(YAMLSettings):
             transform_info=None,
             legalization=None,
         )
-        self.intrinsics = IntrinsicsSettings()
+        self.intrinsics = []
 
     def save(self, dest: Optional[Path] = None):
         """Save Seal5 settings to file."""

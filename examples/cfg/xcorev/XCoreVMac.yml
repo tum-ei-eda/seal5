@@ -8,7 +8,6 @@ extensions:
     vendor: true
 intrinsics:
   # See: https://github.com/openhwgroup/core-v-sw/blob/master/specifications/corev-builtin-spec.md#listing-of-multiply-accumulate-builtins-xcvmac
-  intrinsics:
   - &ScalarCoreVMacGprGprGprIntrinsic
     args:
     - arg_name: rd
