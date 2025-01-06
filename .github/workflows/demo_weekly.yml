@@ -222,17 +222,17 @@ jobs:
         cat  Grouped_stat_prop_result_cv_wo_instr.html >> $GITHUB_STEP_SUMMARY
         echo >> $GITHUB_STEP_SUMMARY
 
-        echo "### Summarized Pass/Test Results" >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        cat  Grouped_stat_prop_result_test.html >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
+        #   echo "### Summarized Pass/Test Results" >> $GITHUB_STEP_SUMMARY
+        #echo >> $GITHUB_STEP_SUMMARY
+        #cat  Grouped_stat_prop_result_test.html >> $GITHUB_STEP_SUMMARY
+        #echo >> $GITHUB_STEP_SUMMARY
         
-        echo "### Summarized Test Coverage Results" >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        cat  Grouped_stat_prop_result_cv.html >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
+        #echo "### Summarized Test Coverage Results" >> $GITHUB_STEP_SUMMARY
+        #echo >> $GITHUB_STEP_SUMMARY
+        #cat  Grouped_stat_prop_result_cv.html >> $GITHUB_STEP_SUMMARY
+        #echo >> $GITHUB_STEP_SUMMARY
 
-        echo "###  Compiled Pass/Test/Coverage Results with Properties" >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        cat Grouped_stat_prop_result_all.html> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
+        #echo "###  Compiled Pass/Test/Coverage Results with Properties" >> $GITHUB_STEP_SUMMARY
+        #echo >> $GITHUB_STEP_SUMMARY
+        #cat Grouped_stat_prop_result_all.html> $GITHUB_STEP_SUMMARY
+        #echo >> $GITHUB_STEP_SUMMARY
