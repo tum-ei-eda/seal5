@@ -215,14 +215,13 @@ jobs:
         echo "### Summarized and Compact Pass/Test Results" >> $GITHUB_STEP_SUMMARY
         echo >> $GITHUB_STEP_SUMMARY
         cat  Grouped_stat_prop_result_test_wo_instr.html >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        
+        echo >> $GITHUB_STEP_SUMMARY    
         echo "### Summarized and Compact Test Coverage Results" >> $GITHUB_STEP_SUMMARY
         echo >> $GITHUB_STEP_SUMMARY
         cat  Grouped_stat_prop_result_cv_wo_instr.html >> $GITHUB_STEP_SUMMARY
         echo >> $GITHUB_STEP_SUMMARY
 
-        #   echo "### Summarized Pass/Test Results" >> $GITHUB_STEP_SUMMARY
+        #echo "### Summarized Pass/Test Results" >> $GITHUB_STEP_SUMMARY
         #echo >> $GITHUB_STEP_SUMMARY
         #cat  Grouped_stat_prop_result_test.html >> $GITHUB_STEP_SUMMARY
         #echo >> $GITHUB_STEP_SUMMARY
