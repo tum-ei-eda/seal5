@@ -74,7 +74,8 @@ on:
       llvm_ref:
         description: "Tag/Branch/Commit of LLVM repository"
         required: true
-        default: "llvmorg-18.1.0-rc3"
+        # default: "llvmorg-18.1.0-rc3"
+        default: "llvmorg-19.1.0"
       # TODO: maybe add Python/OS version here?
 # push:
 #   branches:

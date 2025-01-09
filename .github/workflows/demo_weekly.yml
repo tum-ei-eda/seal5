@@ -79,6 +79,7 @@ jobs:
         - "1"
         llvm-ref:
         - "llvmorg-18.1.0-rc3"
+        - "llvmorg-19.1.0"
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
