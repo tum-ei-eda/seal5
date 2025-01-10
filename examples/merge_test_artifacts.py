@@ -1,18 +1,37 @@
+#
+# Copyright (c) 2025 TUM Department of Electrical and Computer Engineering.
+# Copyright (c) 2025 DLR-SE Department of System Evolution and Operation 
+#
+# This file is part of Seal5.
+# See https://github.com/tum-ei-eda/seal5.git for further info.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+
+
 import argparse
 import pathlib
 import math
 import pandas as pd
 import numpy as np
 
-pd.options.display.max_rows = 9999
-
 def main():
     """Main function."""
 
     # read command line args
     parser = argparse.ArgumentParser()
-    parser = argparse.ArgumentParser(description="Merge SEAL5 Test Results")#,
-               #formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description="Merge SEAL5 Test Results")
     parser.add_argument("status_file",  type=str, help="Path to the status file")
     parser.add_argument("properties_file", type=str,  help="Path to the file of instruction properties")
     parser.add_argument("test_results",  type=str,  help="Path to the file containing seal5 test result file name")
@@ -54,7 +73,8 @@ def main():
 
     def save_data_frames_as_html_to_file(dataframe, filename):
         with open(filename, 'w') as html_file:
-            print(dataframe.to_html(buf=html_file, index=True))
+            with pd.option_context("display.max_rows", 9999):
+                print(dataframe.to_html(buf=html_file, index=True))     
 
 
     def rounded_mean(x):
