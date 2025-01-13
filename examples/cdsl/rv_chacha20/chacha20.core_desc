@@ -1,0 +1,63 @@
+// Sample extension providing custom instructions for acceleraing
+// the four quarter-round transformations at the core of the
+// ChaCha20 cipher operation (per Wikipedia):
+//
+// b ^= (a + d) <<<  7;
+// c ^= (b + a) <<<  9;
+// d ^= (c + b) <<< 13;
+// a ^= (d + c) <<< 18;
+//
+// The choice of this as a sample was inspired by the Imperas
+// whitepaper "RISC-V Model Custom Extension Guide"
+
+
+import "../rv_base/RV32I.core_desc"
+
+// InstructionSet XChaCha extends RISCVBase {
+InstructionSet XExample extends RV32I {
+    functions {
+        unsigned<32> rotl32(unsigned<32> x, unsigned<32> n) [[inline]] {
+            return (x << n) | (x >> (32 - n));
+            // return (x << n) | (x >> (-(n)&31));
+        }
+    }
+
+    instructions {
+        CV_CHACHA20QR1 {
+            encoding: 7'b0000000 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b0001011;
+            assembly: {"xexample.chacha20qr1", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: {
+                if (rd != 0) {
+                    X[rd] += rotl32(X[rs1] ^ X[rs2], 7);
+                }
+            }
+        }
+        CV_CHACHA20QR2 {
+            encoding: 7'b0000000 :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b0001011;
+            assembly: {"xexample.chacha20qr2", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: {
+                if (rd != 0) {
+                    X[rd] += rotl32(X[rs1] ^ X[rs2], 9);
+                }
+            }
+        }
+        CV_CHACHA20QR3 {
+            encoding: 7'b0000000 :: rs2[4:0] :: rs1[4:0] :: 3'b010 :: rd[4:0] :: 7'b0001011;
+            assembly: {"xexample.chacha20qr3", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: {
+                if (rd != 0) {
+                    X[rd] += rotl32(X[rs1] ^ X[rs2], 13);
+                }
+            }
+        }
+        CV_CHACHA20QR4 {
+            encoding: 7'b0000000 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0001011;
+            assembly: {"xexample.chacha20qr4", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: {
+                if (rd != 0) {
+                    X[rd] += rotl32(X[rs1] ^ X[rs2], 18);
+                }
+            }
+        }
+    }
+}
