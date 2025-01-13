@@ -1,0 +1,43 @@
+---
+intrinsics:
+  intrinsics:
+  - args:
+    - arg_name: rd
+      arg_type: i32
+    - arg_name: rs1
+      arg_type: i32
+    - arg_name: rs2
+      arg_type: i32
+    instr_name: CV_CHACHA20QR1
+    intrinsic_name: chacha20_qr1
+    ret_type: i32
+  - args:
+    - arg_name: rd
+      arg_type: i32
+    - arg_name: rs1
+      arg_type: i32
+    - arg_name: rs2
+      arg_type: i32
+    instr_name: CV_CHACHA20QR2
+    intrinsic_name: chacha20_qr2
+    ret_type: i32
+  - args:
+    - arg_name: rd
+      arg_type: i32
+    - arg_name: rs1
+      arg_type: i32
+    - arg_name: rs2
+      arg_type: i32
+    instr_name: CV_CHACHA20QR3
+    intrinsic_name: chacha20_qr3
+    ret_type: i32
+  - args:
+    - arg_name: rd
+      arg_type: i32
+    - arg_name: rs1
+      arg_type: i32
+    - arg_name: rs2
+      arg_type: i32
+    instr_name: CV_CHACHA20QR4
+    intrinsic_name: chacha20_qr4
+    ret_type: i32
