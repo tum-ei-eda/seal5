@@ -77,6 +77,9 @@ jobs:
         - "1"
         ccache:
         - "1"
+        llvm-ref:
+        - "llvmorg-18.1.0-rc3"
+        - "llvmorg-19.1.0"
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
@@ -115,11 +118,11 @@ jobs:
         if [[ "${{ matrix.script }}" == *.py ]]
         then
             echo "program=python3" >> $GITHUB_OUTPUT
-            echo "name=$(basename ${{ matrix.script}} .py)-py" >> $GITHUB_OUTPUT
+            echo "name=$(basename ${{ matrix.script}} .py)-py-${{ matrix.llvm-ref }}" >> $GITHUB_OUTPUT
         elif [[ "${{ matrix.script }}" == *.sh ]]
         then
             echo "program=bash" >> $GITHUB_OUTPUT
-            echo "name=$(basename ${{ matrix.script}} .sh)-sh" >> $GITHUB_OUTPUT
+            echo "name=$(basename ${{ matrix.script}} .sh)-sh-${{ matrix.llvm-ref }}" >> $GITHUB_OUTPUT
         else
             echo "Invalid file extension!"
             exit 1
@@ -127,7 +130,7 @@ jobs:
     - name: Run the demo
       run: |
         source .venv/bin/activate
-        VERBOSE=${{ matrix.verbose }} PROGRESS=${{ matrix.progress }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ matrix.clone_depth }} BUILD_CONFIG=${{ matrix.build_config }} IGNORE_ERROR=${{ matrix.ignore_error }} TEST=${{ matrix.test }} INSTALL=${{ matrix.install }} DEPLOY=${{ matrix.deploy }} EXPORT=${{ matrix.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ matrix.script }}
+        VERBOSE=${{ matrix.verbose }} PROGRESS=${{ matrix.progress }} LLVM_REF=${{ matrix.llvm-ref }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ matrix.clone_depth }} BUILD_CONFIG=${{ matrix.build_config }} IGNORE_ERROR=${{ matrix.ignore_error }} TEST=${{ matrix.test }} INSTALL=${{ matrix.install }} DEPLOY=${{ matrix.deploy }} EXPORT=${{ matrix.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ matrix.script }}
     - name: Generate Reports
       run: |
         source .venv/bin/activate

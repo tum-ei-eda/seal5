@@ -6,5 +6,5 @@ int test_intrinsic(int a, int b, int c) {
     // CHECK: <test_intrinsic>
     // Can't rely upon specific registers being used but at least instruction should have been used
     // CHECK: xexample64.subincacc
-    c = __builtin_xexample_subincacc(a, b, c);
+    c = __builtin_riscv_xexample_subincacc(a, b, c);
 }

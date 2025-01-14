@@ -21,6 +21,7 @@ from m2isar.metamodel import arch, patch_model
 import seal5.model
 
 from . import visitor
+from .utils import IOMode
 
 logger = logging.getLogger("detect_inouts")
 
@@ -29,8 +30,21 @@ class VisitorContext:
     def __init__(self):
         self.reads = set()
         self.writes = set()
-        self.is_read = False
-        self.is_write = False
+        self.stack = []
+
+    def push(self, mode):
+        self.stack.append(mode)
+
+    def pop(self):
+        return self.stack.pop()
+
+    @property
+    def is_read(self):
+        return self.stack[-1] == IOMode.READ
+
+    @property
+    def is_write(self):
+        return self.stack[-1] == IOMode.WRITE
 
 
 def get_parser():
@@ -101,15 +115,19 @@ def run(args):
             try:
                 instr_def.operation.generate(context)
                 for op_name, op_def in instr_def.operands.items():
-                    if op_name in context.reads and op_name in context.writes:
-                        if seal5.model.Seal5OperandAttribute.INOUT not in instr_def.attributes:
-                            op_def.attributes[seal5.model.Seal5OperandAttribute.INOUT] = []
-                    elif op_name in context.reads:
-                        if seal5.model.Seal5OperandAttribute.IN not in instr_def.attributes:
+                    if seal5.model.Seal5OperandAttribute.IS_IMM in op_def.attributes:
+                        if seal5.model.Seal5OperandAttribute.IN not in op_def.attributes:
                             op_def.attributes[seal5.model.Seal5OperandAttribute.IN] = []
-                    elif op_name in context.writes:
-                        if seal5.model.Seal5OperandAttribute.OUT not in instr_def.attributes:
-                            op_def.attributes[seal5.model.Seal5OperandAttribute.OUT] = []
+                    else:
+                        if op_name in context.reads and op_name in context.writes:
+                            if seal5.model.Seal5OperandAttribute.INOUT not in op_def.attributes:
+                                op_def.attributes[seal5.model.Seal5OperandAttribute.INOUT] = []
+                        elif op_name in context.reads:
+                            if seal5.model.Seal5OperandAttribute.IN not in op_def.attributes:
+                                op_def.attributes[seal5.model.Seal5OperandAttribute.IN] = []
+                        elif op_name in context.writes:
+                            if seal5.model.Seal5OperandAttribute.OUT not in op_def.attributes:
+                                op_def.attributes[seal5.model.Seal5OperandAttribute.OUT] = []
                 # print("---")
                 # print("instr_def.scalars.keys()", instr_def.scalars.keys())
                 for reg_name in context.reads:

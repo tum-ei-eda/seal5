@@ -1,14 +1,14 @@
 ---
-extensions:
+models:
   XCoreVBranchImmediate:
-    # feature: XCVbi
-    # arch: xcvbi
-    version: "1.0"
-    experimental: false
-    vendor: true
-passes:
-  per_model:
-    XCoreVBranchImmediate:
+    extensions:
+      XCoreVBranchImmediate:
+        # feature: XCVbi
+        # arch: xcvbi
+        version: "1.0"
+        experimental: false
+        vendor: true
+    passes:
       overrides:
         convert_models:
           prefix: "SEAL5_"

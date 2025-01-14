@@ -17,7 +17,7 @@ from typing import Union
 
 from m2isar.metamodel import arch
 
-from seal5.settings import Seal5Settings, ExtensionsSettings
+from seal5.settings import Seal5Settings, ExtensionsSettings, RISCVSettings
 
 logger = logging.getLogger("process_settings")
 
@@ -73,16 +73,23 @@ def run(args):
                 model = {"sets": temp, "cores": {}}
             else:
                 assert False
+        model_name = top_level.stem
 
     assert "settings" not in model
     model["settings"] = settings
 
     for set_name, set_def in model["sets"].items():
-        ext_settings = settings.extensions.get(set_name, None)
+        model_settings = settings.models.get(model_name)
+        ext_settings = None
+        if model_settings is not None:
+            ext_settings = model_settings.extensions.get(set_name, None)
         if ext_settings is None:
-            # Fallback!
             ext_settings = ExtensionsSettings(feature=set_name.replace("_", ""))
-            # TODOL extract other details from attributes
+        riscv_settings = ext_settings.riscv
+        if riscv_settings is None:
+            riscv_settings = RISCVSettings(xlen=set_def.xlen)
+        if riscv_settings.xlen is None:
+            riscv_settings.xlen = set_def.xlen
         assert set_def.settings is None
         set_def.settings = ext_settings  # TODO: decide how to do this properly
 

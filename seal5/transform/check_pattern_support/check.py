@@ -18,7 +18,6 @@ from typing import Union
 import pandas as pd
 
 from m2isar.metamodel import arch, behav
-import seal5.model
 from seal5.model import Seal5InstrAttribute, Seal5OperandAttribute
 
 
@@ -118,23 +117,29 @@ def run(args):
                 may_store = Seal5InstrAttribute.MAY_STORE in attributes
                 is_rvc = instr_def.size != 32
                 is_branch = arch.InstrAttribute.COND in attributes or arch.InstrAttribute.NO_CONT in attributes
-                has_loop = False  # TODO: check and unroll
+                has_loop = Seal5InstrAttribute.HAS_LOOP in attributes
+                # TODO: has_static_loop
+                has_call = Seal5InstrAttribute.HAS_CALL in attributes
                 uses_custom_reg = len(attributes.get(Seal5InstrAttribute.USES, []))
                 defs_custom_reg = len(attributes.get(Seal5InstrAttribute.DEFS, []))
                 skip_pattern_gen = (
                     is_noop
                     or is_rvc
                     or (num_ins == 0)
-                    or (num_outs != 0)
+                    or (num_outs != 1)
                     or may_load
                     or may_store
                     or is_branch
                     or has_loop
+                    or has_call
                     or uses_custom_reg
                     or defs_custom_reg
                 )
                 if skip_pattern_gen:
                     attributes[Seal5InstrAttribute.SKIP_PATTERN_GEN] = []
+                # TODO: move to different/new pass (add_instr_attributes) and
+                # move detections to Seal5Instr class in metamodel
+                attributes[Seal5InstrAttribute.LLVM_INSTR] = behav.StringLiteral(instr_def.name)
                 instr_def.attributes = attributes
                 metrics["n_success"] += 1
                 metrics["success_instructions"].append(instr_def.name)

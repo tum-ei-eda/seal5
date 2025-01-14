@@ -95,7 +95,7 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
             # fallback
             if key:
                 return find_site(path, None)
-            assert False, "Marker not found!"
+            assert False, f"Marker not found: {path}, {key}"
         return site_line, site_len, start_mark, end_mark
 
     def generate_patch_fragment(artifact):

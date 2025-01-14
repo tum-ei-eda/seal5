@@ -811,7 +811,7 @@ def write_yaml(
         live=True,
     )
     new_settings: Seal5Settings = Seal5Settings.from_yaml_file(settings.temp_dir / new_name)
-    settings.merge(new_settings, overwrite=False)
+    settings.merge(new_settings, overwrite=False, inplace=True)
     return PassResult(metrics={})
 
 
@@ -1168,6 +1168,14 @@ def gen_riscv_isa_info_patch(
     **_kwargs,
 ):
     assert not split, "TODO"
+    if settings:
+        llvm_settings = settings.llvm
+        if llvm_settings:
+            llvm_state = llvm_settings.state
+            if llvm_state:
+                llvm_version = llvm_state.version  # unused today, but needed very soon
+                if llvm_version.major >= 19:
+                    return PassResult(metrics={})
     # formats = True
     gen_metrics_file = True
     gen_index_file = True
@@ -1230,6 +1238,7 @@ def gen_riscv_intrinsics(
     verbose: bool = False,
     split: bool = False,
     log_level: str = "debug",
+    ignore_failing: bool = False,
     **kwargs,
 ):
     assert not split, "TODO"
@@ -1253,6 +1262,8 @@ def gen_riscv_intrinsics(
     ]
     if split:
         args.append("--splitted")
+    if ignore_failing:
+        args.append("--ignore-failing")
     if gen_metrics_file:
         metrics_file = out_dir / ("riscv_intrinsics_info_metrics.csv")
         args.extend(["--metrics", metrics_file])
@@ -1566,66 +1577,69 @@ def convert_llvmir_to_gmir(
     #     sub = name.replace(".seal5model", "")
     if settings:
         riscv_settings = settings.riscv
+        model_settings = settings.models.get(input_model)
+        model_riscv_settings = model_settings.riscv
+        if model_riscv_settings is not None:
+            riscv_settings = riscv_settings.merge(model_riscv_settings)
     else:
         riscv_settings = None
     default_features, default_xlen = get_riscv_defaults(riscv_settings)
 
     for _ in [None]:
-        set_names = list(settings.extensions.keys())
-        assert len(set_names) > 0, "No sets found"
-        for set_name in set_names:
-            ext_settings = settings.extensions[set_name]
-            insn_names = ext_settings.instructions
-            xlen = ext_settings.xlen
-            if xlen is None and default_xlen is not None:
+        for model_name, model_settings in settings.models.items():
+            if model_name != input_model:
+                continue
+            assert len(model_settings.extensions) > 0, "No sets found"
+            for set_name, ext_settings in model_settings.extensions.items():
+                insn_names = ext_settings.instructions
+                riscv_settings = ext_settings.riscv
                 xlen = default_xlen
-            features = [*default_features]
-            arch_ = ext_settings.get_arch(name=set_name)
-            features = [*default_features]
-            if arch_ is not None:
-                features.append(arch_)
-            mattr = build_riscv_mattr(default_features, xlen)
-            if insn_names is None:
-                logger.warning("Skipping empty set %s", set_name)
-                continue
-            assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
-            sub = ext_settings.model
-            if sub != input_model:
-                continue
-            # TODO: populate model in yaml backend!
-            if sub is None:  # Fallbacke
-                sub = set_name
-            for insn_name in insn_names:
-                ll_file = settings.temp_dir / sub / set_name / f"{insn_name}.ll"
-                if not ll_file.is_file():
-                    logger.warning("Skipping %s due to errors.", insn_name)
+                if riscv_settings is not None:
+                    xlen_ = riscv_settings.xlen
+                    if xlen_ is not None:
+                        xlen = xlen_
+                features = [*default_features]
+                arch_ = ext_settings.get_arch(name=set_name)
+                features = [*default_features]
+                if arch_ is not None:
+                    features.append(arch_)
+                mattr = build_riscv_mattr(default_features, xlen)
+                if insn_names is None:
+                    logger.warning("Skipping empty set %s", set_name)
                     continue
-                output_file = ll_file.parent / (ll_file.stem + ".gmir")
-                name = ll_file.name
-                logger.info("Writing gmir for %s", name)
-                try:
-                    # TODO: move to backends
-                    cdsl2llvm_build_dir = None
-                    integrated_pattern_gen = settings.tools.pattern_gen.integrated
-                    if integrated_pattern_gen:
-                        cdsl2llvm_build_dir = str(settings.get_llvm_build_dir(fallback=True, check=True))
-                    else:
-                        cdsl2llvm_build_dir = str(settings.deps_dir / "cdsl2llvm" / "llvm" / "build")
-                    # TODO: migrate with pass to cmdline backend
-                    cdsl2llvm.convert_ll_to_gmir(
-                        # settings.deps_dir / "cdsl2llvm" / "llvm" / "build", ll_file, output_file
-                        cdsl2llvm_build_dir,
-                        ll_file,
-                        output_file,
-                        mattr=mattr,
-                        xlen=xlen,
-                        verbose=verbose,
-                    )
-                except AssertionError as ex:
-                    if allow_errors:
-                        errs.append((insn_name, str(ex)))
-                    else:
-                        raise ex
+                assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
+                # TODO: populate model in yaml backend!
+                for insn_name in insn_names:
+                    ll_file = settings.temp_dir / model_name / set_name / f"{insn_name}.ll"
+                    if not ll_file.is_file():
+                        logger.warning("Skipping %s due to errors.", insn_name)
+                        continue
+                    output_file = ll_file.parent / (ll_file.stem + ".gmir")
+                    name = ll_file.name
+                    logger.info("Writing gmir for %s", name)
+                    try:
+                        # TODO: move to backends
+                        cdsl2llvm_build_dir = None
+                        integrated_pattern_gen = settings.tools.pattern_gen.integrated
+                        if integrated_pattern_gen:
+                            cdsl2llvm_build_dir = str(settings.get_llvm_build_dir(fallback=True, check=True))
+                        else:
+                            cdsl2llvm_build_dir = str(settings.deps_dir / "cdsl2llvm" / "llvm" / "build")
+                        # TODO: migrate with pass to cmdline backend
+                        cdsl2llvm.convert_ll_to_gmir(
+                            # settings.deps_dir / "cdsl2llvm" / "llvm" / "build", ll_file, output_file
+                            cdsl2llvm_build_dir,
+                            ll_file,
+                            output_file,
+                            mattr=mattr,
+                            xlen=xlen,
+                            verbose=verbose,
+                        )
+                    except AssertionError as ex:
+                        if allow_errors:
+                            errs.append((insn_name, str(ex)))
+                        else:
+                            raise ex
     if len(errs) > 0:
         # print("errs", errs)
         logger.warning("Ignored Errors:")
@@ -1740,9 +1754,7 @@ def gen_set_td(
     assert input_model is not None
     artifacts = []
     includes = []
-    for set_name, set_settings in settings.extensions.items():
-        if set_settings.model != input_model:
-            continue
+    for set_name, set_settings in settings.models[input_model].extensions.items():
         set_name_lower = set_name.lower()
         patch_name = f"set_td_{set_name}"
         dest = f"llvm/lib/Target/RISCV/seal5/{set_name}.td"
@@ -1846,6 +1858,96 @@ def detect_imm_leafs(
         utils.python(
             "-m",
             "seal5.transform.detect_imm_leafs.collect",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
+
+
+def detect_calls(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    use_subprocess: bool = False,
+    log_level: str = "debug",
+    **_kwargs,
+):
+    assert inplace
+    gen_metrics_file = True
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Detecting imm leafs for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        log_level,
+    ]
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (name + "_detect_calls_metrics.csv")
+        args.extend(["--metrics", metrics_file])
+    if not use_subprocess:
+        from seal5.transform.detect_calls import DetectCalls
+
+        args = sanitize_args(args)
+        DetectCalls(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.detect_calls.collect",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
+
+
+def detect_loops(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    use_subprocess: bool = False,
+    log_level: str = "debug",
+    **_kwargs,
+):
+    assert inplace
+    gen_metrics_file = True
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Detecting imm leafs for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        log_level,
+    ]
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (name + "_detect_loops_metrics.csv")
+        args.extend(["--metrics", metrics_file])
+    if not use_subprocess:
+        from seal5.transform.detect_loops import DetectLoops
+
+        args = sanitize_args(args)
+        DetectLoops(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.detect_loops.collect",
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,

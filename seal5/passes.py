@@ -91,38 +91,72 @@ class Seal5Pass:
         assert settings is not None
         passes_settings = settings.passes
         assert passes_settings is not None
-        assert passes_settings.defaults is not None
-        assert passes_settings.defaults.overrides is not None
-        default_overrides = passes_settings.defaults.overrides.get(self.name, None)
         self.metrics["models"] = []
         try:
             kwargs_ = {**kwargs}
             if self.options:
                 kwargs_.update(self.options)
-            if default_overrides:
-                kwargs_.update(default_overrides)
             start = time.time()
             parent = kwargs.get("parent", None)
             if parent:
                 parallel = parent.parallel
             else:
                 parallel = 1
-            if self.pass_scope == PassScope.MODEL:
-                assert passes_settings.per_model is not None
+            if self.pass_scope == PassScope.SET:
+                with ThreadPoolExecutor(max_workers=parallel) as executor:
+                    futures = []
+                    passes_settings_ = passes_settings
+                    for input_model in inputs:
+                        model_settings = settings.models[input_model]
+                        model_passes_settings = model_settings.passes
+                        if model_passes_settings is not None:
+                            passes_settings_ = passes_settings_.merge(model_passes_settings)
+                        if check_filter(self.name, passes_settings_.skip, passes_settings_.only):
+                            logger.info("Skipped pass %s for model %s", self.name, input_model)
+                            continue
+                        passes_settings__ = passes_settings_
+                        for ext_name, ext_settings in model_settings.extensions.items():
+                            ext_passes_settings = model_settings.passes
+                            if ext_passes_settings is not None:
+                                passes_settings__ = passes_settings_.merge(ext_passes_settings)
+                            if check_filter(self.name, passes_settings__.skip, passes_settings__.only):
+                                logger.info("Skipped pass %s for extension %s", self.name, ext_name)
+                                continue
+                            kwargs__ = kwargs_.copy()
+                            if passes_settings__.overrides:
+                                overrides = passes_settings__.overrides.get(self.name)
+                                if overrides:
+                                    kwargs__.update(overrides)
+                            future = executor.submit(self.handler, input_model, ext_name, settings=settings, **kwargs__)
+                            futures.append(future)
+                    results = []
+                    for i, future in enumerate(futures):
+                        result = future.result()
+                        input_model = inputs[i]
+                        if result:
+                            metrics = result.metrics
+                            if metrics:
+                                self.metrics["models"].append({input_model: metrics})
+                        results.append(result)
+                    # TODO: check results (metrics?)
+            elif self.pass_scope == PassScope.MODEL:
 
                 with ThreadPoolExecutor(max_workers=parallel) as executor:
                     futures = []
+                    passes_settings_ = passes_settings
                     for input_model in inputs:
+                        model_settings = settings.models[input_model]
+                        model_passes_settings = model_settings.passes
                         kwargs__ = kwargs_.copy()
-                        per_model = passes_settings.per_model.get(input_model, None)
-                        if per_model:
-                            if check_filter(self.name, per_model.skip, per_model.only):
-                                logger.info("Skipped pass %s for model %s", self.name, input_model)
-                                continue
-                            if per_model.overrides:
-                                overrides = per_model.overrides.get(self.name, None)
-                                if overrides:
-                                    kwargs__.update(overrides)
+                        if model_passes_settings is not None:
+                            passes_settings_ = passes_settings_.merge(model_passes_settings)
+                        if check_filter(self.name, passes_settings_.skip, passes_settings_.only):
+                            logger.info("Skipped pass %s for model %s", self.name, input_model)
+                            continue
+                        if passes_settings_.overrides:
+                            overrides = passes_settings_.overrides.get(self.name)
+                            if overrides:
+                                kwargs__.update(overrides)
                         future = executor.submit(self.handler, input_model, settings=settings, **kwargs__)
                         futures.append(future)
                     results = []

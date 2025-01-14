@@ -19,13 +19,14 @@
 """Settings module for seal5."""
 import logging
 from pathlib import Path
-from dataclasses import dataclass, field, asdict, fields
+from dataclasses import dataclass, field, asdict, fields, replace
 from typing import List, Union, Optional, Dict
 
 import yaml
-from dacite import from_dict
+from dacite import from_dict, Config
 
 from seal5.types import PatchStage
+from seal5.utils import parse_cond
 
 
 DEFAULT_SETTINGS = {
@@ -85,12 +86,9 @@ DEFAULT_SETTINGS = {
     #     "passes": "*",
     # },
     "passes": {
-        "defaults": {
-            "skip": [],
-            "only": [],
-            "overrides": {},
-        },
-        "per_model": {},
+        "skip": [],
+        "only": [],
+        "overrides": {},
     },
     "test": {
         "paths": [],
@@ -99,7 +97,11 @@ DEFAULT_SETTINGS = {
     "llvm": {
         "state": {"version": "auto", "base_commit": "unknown"},
         "ninja": True,
-        "ccache": False,
+        "ccache": {
+            "enable": False,
+            "executable": "auto",
+            "directory": None,
+        },
         "default_config": "release",
         "clone_depth": None,
         "configs": {
@@ -136,19 +138,10 @@ DEFAULT_SETTINGS = {
         },
     },
     "inputs": [],
-    "extensions": {
-        # RV32Zpsfoperand:
-        #   feature: RV32Zpsfoperand
-        #   arch: rv32zpsfoperand
-        #   version: "1.0"
-        #   experimental: true
-        #   vendor: false
-        #   instructions/intrinsics/aliases/constraints: TODO
-        #   # patches: []
-    },
-    "groups": {
-        "all": "*",
-    },
+    "models": {},
+    # "groups": {
+    #     "all": "*",
+    # },
     "tools": {
         "pattern_gen": {
             "integrated": True,
@@ -161,6 +154,7 @@ DEFAULT_SETTINGS = {
     },
     "intrinsics": {},
 }
+
 
 ALLOWED_YAML_TYPES = (int, float, str, bool)
 
@@ -184,7 +178,7 @@ class YAMLSettings:  # TODO: make abstract
     @classmethod
     def from_dict(cls, data: dict):
         """Convert dict into instance of YAMLSettings."""
-        return from_dict(data_class=cls, data=data)
+        return from_dict(data_class=cls, data=data, config=Config(strict=True))
 
     @classmethod
     def from_yaml(cls, text: str):
@@ -197,7 +191,7 @@ class YAMLSettings:  # TODO: make abstract
         """Parse settings from YAML file."""
         with open(path, "r", encoding="utf-8") as file:
             data = yaml.safe_load(file)
-        return cls.from_dict(data=data)
+        return cls.from_dict(data)
 
     def to_yaml(self):
         """Convert settings to YAML string."""
@@ -212,8 +206,10 @@ class YAMLSettings:  # TODO: make abstract
         with open(path, "w", encoding="utf-8") as file:
             file.write(text)
 
-    def merge(self, other: "YAMLSettings", overwrite: bool = False):
+    def merge(self, other: "YAMLSettings", overwrite: bool = False, inplace: bool = False):
         """Merge two instances of YAMLSettings."""
+        if not inplace:
+            ret = replace(self)  # Make a copy of self
         for f1 in fields(other):
             k1 = f1.name
             v1 = getattr(other, k1)
@@ -227,12 +223,15 @@ class YAMLSettings:  # TODO: make abstract
                 if k2 == k1:
                     found = True
                     if v2 is None:
-                        setattr(self, k2, v1)
+                        if inplace:
+                            setattr(self, k2, v1)
+                        else:
+                            setattr(ret, k2, v1)
                     else:
                         t2 = type(v2)
                         assert t1 is t2, "Type conflict"
                         if isinstance(v1, YAMLSettings):
-                            v2.merge(v1, overwrite=overwrite)
+                            v2.merge(v1, overwrite=overwrite, inplace=True)
                         elif isinstance(v1, dict):
                             if overwrite:
                                 v2.clear()
@@ -242,7 +241,11 @@ class YAMLSettings:  # TODO: make abstract
                                     if dict_key in v2:
                                         if isinstance(dict_val, YAMLSettings):
                                             assert isinstance(v2[dict_key], YAMLSettings)
-                                            v2[dict_key].merge(dict_val, overwrite=overwrite)
+                                            v2[dict_key].merge(dict_val, overwrite=overwrite, inplace=True)
+                                        elif isinstance(dict_val, dict):
+                                            v2[dict_key].update(dict_val)
+                                        else:
+                                            v2[dict_key] = dict_val
                                     else:
                                         v2[dict_key] = dict_val
                         elif isinstance(v1, list):
@@ -254,15 +257,20 @@ class YAMLSettings:  # TODO: make abstract
                             assert isinstance(
                                 v2, (int, float, str, bool, Path)
                             ), f"Unsupported field type for merge {t1}"
-                            setattr(self, k1, v1)
+                            if inplace:
+                                setattr(self, k1, v1)
+                            else:
+                                setattr(ret, k1, v1)
                     break
             assert found
+        if not inplace:
+            return ret
 
         # input("123")
         # if overwrite:
-        #     self.data.update(other.data)
+        #     ret.data.update(other.data)
         # else:
-        #     # self.data = utils.merge_dicts(self.data, other.data)
+        #     # ret.data = utils.merge_dicts(ret.data, other.data)
 
     # @staticmethod
     # def from_yaml(text: str):
@@ -331,6 +339,17 @@ class PatchSettings(YAMLSettings):
     enable: bool = True
     generated: bool = False
     applied: bool = False
+    onlyif: Optional[str] = None
+
+    def check_enabled(self, settings: YAMLSettings):
+        if self.onlyif is not None:
+            if isinstance(self.onlyif, str):
+                res = parse_cond(self.onlyif, settings)
+            elif isinstance(self.onlyif, int):
+                res = bool(res)
+            assert isinstance(res, bool)
+            return res
+        return self.enable
 
     # @property
     # def file(self) -> Path:
@@ -346,8 +365,25 @@ class PatchSettings(YAMLSettings):
 #     pass
 
 
+# @dataclass
+# class PassesSetting(YAMLSettings):
+#     """Seal5 model-specific passes settings."""
+#
+#     skip: Optional[List[str]] = None
+#     only: Optional[List[str]] = None
+#     overrides: Optional[dict] = None
+#
+#
+# @dataclass
+# class PassesSettings(YAMLSettings):
+#     """Seal5 passes settings."""
+#
+#     defaults: Optional[PassesSetting] = None
+#     per_model: Optional[Dict[str, PassesSetting]] = None
+
+
 @dataclass
-class PassesSetting(YAMLSettings):
+class PassesSettings(YAMLSettings):
     """Seal5 model-specific passes settings."""
 
     skip: Optional[List[str]] = None
@@ -356,11 +392,130 @@ class PassesSetting(YAMLSettings):
 
 
 @dataclass
-class PassesSettings(YAMLSettings):
-    """Seal5 passes settings."""
+class ConsoleLoggingSettings(YAMLSettings):
+    """Seal5 console logging settings."""
 
-    defaults: Optional[PassesSetting] = None
-    per_model: Optional[Dict[str, PassesSetting]] = None
+    level: Union[int, str] = logging.INFO
+
+
+@dataclass
+class FileLoggingSettings(YAMLSettings):
+    """Seal5 file logging settings."""
+
+    level: Union[int, str] = logging.INFO
+    limit: Optional[int] = None  # TODO: implement
+    rotate: bool = False  # TODO: implement
+
+
+@dataclass
+class LoggingSettings(YAMLSettings):
+    """Seal5 logging settings."""
+
+    console: ConsoleLoggingSettings
+    file: FileLoggingSettings
+
+
+@dataclass
+class FilterSetting(YAMLSettings):
+    """Seal5 set/instr/alias/instrinsic/opcode/enc-specific filter settings."""
+
+    keep: List[Union[str, int]] = field(default_factory=list)
+    drop: List[Union[str, int]] = field(default_factory=list)
+
+
+@dataclass
+class FilterSettings(YAMLSettings):
+    """Seal5 filter settings."""
+
+    sets: Optional[FilterSetting] = None
+    instructions: Optional[FilterSetting] = None
+    aliases: Optional[FilterSetting] = None
+    intrinsics: Optional[FilterSetting] = None
+    opcodes: Optional[FilterSetting] = None
+    encoding_sizes: Optional[FilterSetting] = None
+    # TODO: functions
+
+
+@dataclass
+class LLVMVersion(YAMLSettings):
+    """Seal5 llvm version settings."""
+
+    major: Optional[int] = None
+    minor: Optional[int] = None
+    patch: Optional[int] = None
+    rc: Optional[int] = None
+
+    @property
+    def triple(self):
+        return (self.major, self.minor, self.patch)
+
+
+@dataclass
+class LLVMState(YAMLSettings):
+    """Seal5 llvm state settings."""
+
+    base_commit: Optional[str] = None
+    version: Optional[Union[str, LLVMVersion]] = None
+
+
+@dataclass
+class LLVMConfig(YAMLSettings):
+    """Seal5 llvm config settings."""
+
+    options: dict = field(default_factory=dict)
+
+
+@dataclass
+class CcacheSettings(YAMLSettings):
+    """Seal5 ccache settings."""
+
+    enable: Optional[bool] = None
+    executable: Optional[str] = None
+    directory: Optional[str] = None
+
+
+@dataclass
+class LLVMSettings(YAMLSettings):
+    """Seal5 llvm settings."""
+
+    ninja: Optional[bool] = None
+    ccache: Optional[CcacheSettings] = None
+    clone_depth: Optional[int] = None
+    default_config: Optional[str] = None
+    configs: Optional[Dict[str, LLVMConfig]] = None
+    state: Optional[LLVMState] = None
+
+
+@dataclass
+class RISCVLegalizerSetting(YAMLSettings):
+    """Seal5 riscv legalizer single settings."""
+
+    name: Optional[Union[str, List[str]]] = None
+    types: Optional[Union[str, List[str]]] = None
+    onlyif: Optional[Union[str, List[str]]] = None
+
+
+@dataclass
+class RISCVLegalizerSettings(YAMLSettings):
+    """Seal5 riscv legalizer settings."""
+
+    ops: Optional[List[RISCVLegalizerSetting]] = None
+
+
+@dataclass
+class RISCVSettings(YAMLSettings):
+    """Seal5 riscv settings."""
+
+    xlen: Optional[int] = None
+    features: Optional[List[str]] = None
+    # Used for  baseline extensions, tune and legalizer + pattern gen
+    # default: zicsr,m,(32/64bit),fast-unaligned-access
+    # others: zmmul,a,f,d,zfh,zfinx,zdinx,c,zba,zbb,zbc,zbs,zca,zcb,zcd
+    #   zcmp,zce,e,no-optimized-zero-stride-load,no-default-unroll,...
+    transform_info: Optional[Dict[str, Optional[Union[bool, int]]]] = None
+    # options: see ttiimpl_notes.txt
+    # TODO: processor/pipeline/mcpu/tune -> ProcessorSettings
+    legalization: Optional[Dict[str, RISCVLegalizerSettings]] = None
 
 
 @dataclass
@@ -374,11 +529,11 @@ class ExtensionsSettings(YAMLSettings):
     experimental: Optional[bool] = None
     vendor: Optional[bool] = None
     std: Optional[bool] = None
-    model: Optional[str] = None
     description: Optional[str] = None
     requires: Optional[List[str]] = None
     instructions: Optional[List[str]] = None
-    xlen: Optional[int] = None  # TODO: support multiple?
+    riscv: Optional[RISCVSettings] = None
+    passes: Optional[PassesSettings] = None
     # patches
 
     def get_version(self):
@@ -442,122 +597,12 @@ class ExtensionsSettings(YAMLSettings):
 
 
 @dataclass
-class GroupsSettings(YAMLSettings):
-    """Seal5 groups settings."""
+class ModelSettings(YAMLSettings):
+    """Seal5 model settings."""
 
-
-@dataclass
-class ConsoleLoggingSettings(YAMLSettings):
-    """Seal5 console logging settings."""
-
-    level: Union[int, str] = logging.INFO
-
-
-@dataclass
-class FileLoggingSettings(YAMLSettings):
-    """Seal5 file logging settings."""
-
-    level: Union[int, str] = logging.INFO
-    limit: Optional[int] = None  # TODO: implement
-    rotate: bool = False  # TODO: implement
-
-
-@dataclass
-class LoggingSettings(YAMLSettings):
-    """Seal5 logging settings."""
-
-    console: ConsoleLoggingSettings
-    file: FileLoggingSettings
-
-
-@dataclass
-class FilterSetting(YAMLSettings):
-    """Seal5 set/instr/alias/instrinsic/opcode/enc-specific filter settings."""
-
-    keep: List[Union[str, int]] = field(default_factory=list)
-    drop: List[Union[str, int]] = field(default_factory=list)
-
-
-@dataclass
-class FilterSettings(YAMLSettings):
-    """Seal5 filter settings."""
-
-    sets: Optional[FilterSetting] = None
-    instructions: Optional[FilterSetting] = None
-    aliases: Optional[FilterSetting] = None
-    intrinsics: Optional[FilterSetting] = None
-    opcodes: Optional[FilterSetting] = None
-    encoding_sizes: Optional[FilterSetting] = None
-    # TODO: functions
-
-
-@dataclass
-class LLVMVersion(YAMLSettings):
-    """Seal5 llvm version settings."""
-
-    major: Optional[int] = None
-    minor: Optional[int] = None
-    patch: Optional[int] = None
-    rc: Optional[int] = None
-
-
-@dataclass
-class LLVMState(YAMLSettings):
-    """Seal5 llvm state settings."""
-
-    base_commit: Optional[str] = None
-    version: Optional[Union[str, LLVMVersion]] = None
-
-
-@dataclass
-class LLVMConfig(YAMLSettings):
-    """Seal5 llvm config settings."""
-
-    options: dict = field(default_factory=dict)
-
-
-@dataclass
-class LLVMSettings(YAMLSettings):
-    """Seal5 llvm settings."""
-
-    ninja: Optional[bool] = None
-    ccache: Optional[bool] = None
-    clone_depth: Optional[int] = None
-    default_config: Optional[str] = None
-    configs: Optional[Dict[str, LLVMConfig]] = None
-    state: Optional[LLVMState] = None
-
-
-@dataclass
-class RISCVLegalizerSetting(YAMLSettings):
-    """Seal5 riscv legalizer single settings."""
-
-    name: Optional[Union[str, List[str]]] = None
-    types: Optional[Union[str, List[str]]] = None
-    onlyif: Optional[Union[str, List[str]]] = None
-
-
-@dataclass
-class RISCVLegalizerSettings(YAMLSettings):
-    """Seal5 riscv legalizer settings."""
-
-    ops: Optional[List[RISCVLegalizerSetting]] = None
-
-
-@dataclass
-class RISCVSettings(YAMLSettings):
-    """Seal5 riscv settings."""
-
-    xlen: Optional[int] = None
-    features: Optional[List[str]] = None
-    # Used for  baseline extensions, tune and legalizer + pattern gen
-    # default: zicsr,m,(32/64bit),fast-unaligned-access
-    # others: zmmul,a,f,d,zfh,zfinx,zdinx,c,zba,zbb,zbc,zbs,zca,zcb,zcd
-    #   zcmp,zce,e,no-optimized-zero-stride-load,no-default-unroll,...
-    transform_info: Optional[Dict[str, Optional[Union[bool, int]]]] = None
-    # options: see ttiimpl_notes.txt
-    # TODO: processor/pipeline/mcpu/tune -> ProcessorSettings
-    legalization: Optional[Dict[str, RISCVLegalizerSettings]] = None
+    extensions: Optional[Dict[str, ExtensionsSettings]] = None
+    riscv: Optional[RISCVSettings] = None
+    passes: Optional[PassesSettings] = None
 
 
 @dataclass
@@ -582,6 +627,8 @@ class ToolsSettings(YAMLSettings):
 class IntrinsicArg(YAMLSettings):
     arg_name: str
     arg_type: str
+    immediate: bool = False
+    signed: bool = False
 
 
 @dataclass
@@ -590,6 +637,7 @@ class IntrinsicDefn(YAMLSettings):
     intrinsic_name: str
     set_name: Optional[str] = None
     ret_type: Optional[str] = None
+    ret_signed: Optional[bool] = None
     args: Optional[List[IntrinsicArg]] = None
 
 
@@ -613,8 +661,8 @@ class Seal5Settings(YAMLSettings):
     # transform: Optional[TransformSettings] = None  # TODO: make list?
     passes: Optional[PassesSettings] = None  # TODO: make list?
     test: Optional[TestSettings] = None
-    extensions: Optional[Dict[str, ExtensionsSettings]] = None
-    groups: Optional[GroupsSettings] = None  # TODO: make list?
+    models: Optional[Dict[str, ModelSettings]] = None
+    # groups: Optional[GroupsSettings] = None  # TODO: make list?
     inputs: Optional[List[str]] = None
     riscv: Optional[RISCVSettings] = None
     tools: Optional[ToolsSettings] = None
@@ -623,7 +671,7 @@ class Seal5Settings(YAMLSettings):
 
     def reset(self):
         """Reset Seal5 seetings."""
-        self.extensions = {}
+        self.models = {}
         self.patches = []
         self.name = "default"
         self.inputs = []
@@ -638,12 +686,9 @@ class Seal5Settings(YAMLSettings):
             encoding_sizes=FilterSetting(keep=[], drop=[]),
         )
         self.passes = PassesSettings(
-            defaults=PassesSetting(
-                skip=[],
-                only=[],
-                overrides={},
-            ),
-            per_model={},
+            skip=[],
+            only=[],
+            overrides={},
         )
         self.riscv = RISCVSettings(
             xlen=None,

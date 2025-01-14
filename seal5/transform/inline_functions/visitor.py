@@ -162,6 +162,9 @@ def callable_(self: behav.Callable, context):
         return self
 
     statement = function_def.operation.statements[0]
+    ret_dtype = function_def.data_type
+    ret_size = None  # TODO: add sized return types to m2isar functions
+    statement = behav.TypeConv(ret_dtype, ret_size, statement)
     # print("statement", statement)
     while isinstance(statement, behav.Block):
         # print("BLOCK", statement, dir(statement))

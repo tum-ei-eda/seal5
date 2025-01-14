@@ -1,14 +1,528 @@
 ---
-extensions:
+models:
   XCoreVSimd:
-    # feature: XCVsimd
-    # arch: xcvsimd
-    version: "1.0"
-    experimental: false
-    vendor: true
-passes:
-  per_model:
-    XCoreVSimd:
+    extensions:
+      XCoreVSimd:
+        # feature: XCVsimd
+        # arch: xcvsimd
+        version: "1.0"
+        experimental: false
+        vendor: true
+    passes:
       overrides:
         convert_models:
           prefix: "SEAL5_"
+intrinsics:
+  # See: https://github.com/openhwgroup/core-v-sw/blob/master/specifications/corev-builtin-spec.md#listing-of-pulp-816-bit-simd-builtins-xcvsimd
+  intrinsics:
+  # TODO: add SCI variants
+  # TODO: add DIV2/4/8 variants
+  # unary (reg)
+  - &ScalarCoreVSimdGprIntrinsic
+    # TODO: arg name: i
+    args:
+    - arg_name: rs1
+      arg_type: i32
+    set_name: XCoreVSimd
+    instr_name: SEAL5_CV_ABS_B
+    intrinsic_name: simd_abs_b
+    ret_type: i32
+  - <<: *ScalarCoreVSimdGprIntrinsic
+    instr_name: SEAL5_CV_ABS_H
+    intrinsic_name: simd_abs_h
+ # -> cplxconj
+  - <<: *ScalarCoreVSimdGprIntrinsic
+    instr_name: SEAL5_CV_CPLXCONJ
+    intrinsic_name: simd_cplxconj
+  # binary (reg+reg)
+  # -> add/sub
+  - &ScalarCoreVSimdGprGprIntrinsic
+    args:
+    - arg_name: rs1
+      arg_type: i32
+    - arg_name: rs2
+      arg_type: i32
+    set_name: XCoreVSimd
+    instr_name: SEAL5_CV_ADD_B
+    intrinsic_name: simd_add_b
+    ret_type: i32
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_ADD_B_SC
+    intrinsic_name: simd_add_b_sc
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_ADD_H
+    intrinsic_name: simd_add_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_ADD_H_SC
+    intrinsic_name: simd_add_h_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_SUB_B
+    intrinsic_name: simd_sub_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_SUB_B_SC
+    intrinsic_name: simd_sub_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_SUB_H
+    intrinsic_name: simd_sub_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_SUB_H_SC
+    intrinsic_name: simd_sub_h_SC
+  # -> avg/avgu
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_AVG_B
+    intrinsic_name: simd_avg_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_AVG_B_SC
+    intrinsic_name: simd_avg_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_AVG_H
+    intrinsic_name: simd_avg_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_AVG_H_SC
+    intrinsic_name: simd_avg_h_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_AVGU_B
+    intrinsic_name: simd_avgu_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_AVGU_B_SC
+    intrinsic_name: simd_avgu_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_AVGU_H
+    intrinsic_name: simd_avgu_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_AVGU_H_SC
+    intrinsic_name: simd_avgu_h_SC
+  # -> min/minu
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_MIN_B
+    intrinsic_name: simd_min_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_MIN_B_SC
+    intrinsic_name: simd_min_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_MIN_H
+    intrinsic_name: simd_min_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_MIN_H_SC
+    intrinsic_name: simd_min_h_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_MINU_B
+    intrinsic_name: simd_minu_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_MINU_B_SC
+    intrinsic_name: simd_minu_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_MINU_H
+    intrinsic_name: simd_minu_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_MINU_H_SC
+    intrinsic_name: simd_minu_h_SC
+  # -> max/maxu
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_MAX_B
+    intrinsic_name: simd_max_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_MAX_B_SC
+    intrinsic_name: simd_max_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_MAX_H
+    intrinsic_name: simd_max_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_MAX_H_SC
+    intrinsic_name: simd_max_h_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_MAXU_B
+    intrinsic_name: simd_maxu_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_MAXU_B_SC
+    intrinsic_name: simd_maxu_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_MAXU_H
+    intrinsic_name: simd_maxu_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_MAXU_H_SC
+    intrinsic_name: simd_maxu_h_SC
+  # -> slr/sra/sll
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_SLR_B
+    intrinsic_name: simd_slr_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_SLR_B_SC
+    intrinsic_name: simd_slr_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_SLR_H
+    intrinsic_name: simd_slr_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_SLR_H_SC
+    intrinsic_name: simd_slr_h_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_SRA_B
+    intrinsic_name: simd_sra_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_SRA_B_SC
+    intrinsic_name: simd_sra_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_SRA_H
+    intrinsic_name: simd_sra_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_SRA_H_SC
+    intrinsic_name: simd_sra_h_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_SLL_B
+    intrinsic_name: simd_sll_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_SLL_B_SC
+    intrinsic_name: simd_sll_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_SLL_H
+    intrinsic_name: simd_sll_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_SLL_H_SC
+    intrinsic_name: simd_sll_h_SC
+  # -> or/xor/and
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_OR_B
+    intrinsic_name: simd_or_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_OR_B_SC
+    intrinsic_name: simd_or_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_OR_H
+    intrinsic_name: simd_or_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_OR_H_SC
+    intrinsic_name: simd_or_h_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_XOR_B
+    intrinsic_name: simd_xor_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_XOR_B_SC
+    intrinsic_name: simd_xor_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_XOR_H
+    intrinsic_name: simd_xor_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_XOR_H_SC
+    intrinsic_name: simd_xor_h_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_AND_B
+    intrinsic_name: simd_and_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_AND_B_SC
+    intrinsic_name: simd_and_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_AND_H
+    intrinsic_name: simd_and_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_AND_H_SC
+    intrinsic_name: simd_and_h_SC
+  # -> dotup/dotusp/dotsp
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_DOTUP_B
+    intrinsic_name: simd_dotup_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_DOTUP_B_SC
+    intrinsic_name: simd_dotup_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_DOTUP_H
+    intrinsic_name: simd_dotup_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_DOTUP_H_SC
+    intrinsic_name: simd_dotup_h_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_DOTUSP_B
+    intrinsic_name: simd_dotusp_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_DOTUSP_B_SC
+    intrinsic_name: simd_dotusp_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_DOTUSP_H
+    intrinsic_name: simd_dotusp_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_DOTUSP_H_SC
+    intrinsic_name: simd_dotusp_h_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_DOTSP_B
+    intrinsic_name: simd_dotsp_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_DOTSP_B_SC
+    intrinsic_name: simd_dotsp_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_DOTSP_H
+    intrinsic_name: simd_dotsp_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_DOTSP_H_SC
+    intrinsic_name: simd_dotsp_h_SC
+  # -> shuffle
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_SHUFFLE_B
+    intrinsic_name: simd_shuffle_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_SHUFFLE_H
+    intrinsic_name: simd_shuffle_h
+  # -> pack/packh (inconsistent naming?)
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_PACK
+    intrinsic_name: simd_pack
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_PACK_H
+    intrinsic_name: simd_pack_h
+  # -> cmpeq/cmpne/cmpgt/cmpge/cmplt/cmple/cmpgtu/cmpgeu/cmpltu/cmpleu
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPEQ_B
+    intrinsic_name: simd_cmpeq_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPEQ_B_SC
+    intrinsic_name: simd_cmpeq_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPEQ_H
+    intrinsic_name: simd_cmpeq_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPEQ_H_SC
+    intrinsic_name: simd_cmpeq_h_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPNE_B
+    intrinsic_name: simd_cmpne_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPNE_B_SC
+    intrinsic_name: simd_cmpne_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPNE_H
+    intrinsic_name: simd_cmpne_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPNE_H_SC
+    intrinsic_name: simd_cmpne_h_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPGT_B
+    intrinsic_name: simd_cmpgt_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPGT_B_SC
+    intrinsic_name: simd_cmpgt_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPGT_H
+    intrinsic_name: simd_cmpgt_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPGT_H_SC
+    intrinsic_name: simd_cmpgt_h_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPGE_B
+    intrinsic_name: simd_cmpge_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPGE_B_SC
+    intrinsic_name: simd_cmpge_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPGE_H
+    intrinsic_name: simd_cmpge_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPGE_H_SC
+    intrinsic_name: simd_cmpge_h_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPLT_B
+    intrinsic_name: simd_cmplt_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPLT_B_SC
+    intrinsic_name: simd_cmplt_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPLT_H
+    intrinsic_name: simd_cmplt_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPLT_H_SC
+    intrinsic_name: simd_cmplt_h_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPLE_B
+    intrinsic_name: simd_cmple_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPLE_B_SC
+    intrinsic_name: simd_cmple_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPLE_H
+    intrinsic_name: simd_cmple_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPLE_H_SC
+    intrinsic_name: simd_cmple_h_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPGTU_B
+    intrinsic_name: simd_cmpgtu_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPGTU_B_SC
+    intrinsic_name: simd_cmpgtu_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPGTU_H
+    intrinsic_name: simd_cmpgtu_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPGTU_H_SC
+    intrinsic_name: simd_cmpgtu_h_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPGEU_B
+    intrinsic_name: simd_cmpgeu_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPGEU_B_SC
+    intrinsic_name: simd_cmpgeu_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPGEU_H
+    intrinsic_name: simd_cmpgeu_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPGEU_H_SC
+    intrinsic_name: simd_cmpgeu_h_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPLTU_B
+    intrinsic_name: simd_cmpltu_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPLTU_B_SC
+    intrinsic_name: simd_cmpltu_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPLTU_H
+    intrinsic_name: simd_cmpltu_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPLTU_H_SC
+    intrinsic_name: simd_cmpltu_h_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPLEU_B
+    intrinsic_name: simd_cmpleu_b
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPLEU_B_SC
+    intrinsic_name: simd_cmpleu_b_SC
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPLEU_H
+    intrinsic_name: simd_cmpleu_h
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_CMPLEU_H_SC
+    intrinsic_name: simd_cmpleu_h_S
+  # -> subrotmj
+  - <<: *ScalarCoreVSimdGprGprIntrinsic
+    instr_name: SEAL5_CV_SUBROTMJ
+    intrinsic_name: simd_subrotmj
+  # binary (reg+imm)
+  - &ScalarCoreVSimdGprImmIntrinsic
+    args:
+    - arg_name: rs1
+      arg_type: i32
+    - arg_name: Imm6
+      arg_type: i32
+      immediate: true
+    set_name: XCoreVSimd
+    instr_name: SEAL5_CV_EXTRACT_B
+    intrinsic_name: simd_extract_b
+    ret_type: i32
+  - <<: *ScalarCoreVSimdGprImmIntrinsic
+    instr_name: SEAL5_CV_EXTRACT_H
+    intrinsic_name: simd_extract_h
+  # -> shuffle'
+  - <<: *ScalarCoreVSimdGprImmIntrinsic
+    instr_name: SEAL5_CV_SHUFFLE_SCI_B
+    intrinsic_name: simd_shuffle_sci_b
+  - <<: *ScalarCoreVSimdGprImmIntrinsic
+    instr_name: SEAL5_CV_SHUFFLE_SCI_H
+    intrinsic_name: simd_shuffle_sci_h
+  # ternary (reg+reg+reg)
+  # -> sdotup/sdotusp/sdotsp
+  - &ScalarCoreVSimdGprGprGprIntrinsic
+    args:
+    - arg_name: rd
+      arg_type: i32
+    - arg_name: rs1
+      arg_type: i32
+    - arg_name: rs2
+      arg_type: i32
+    set_name: XCoreVSimd
+    instr_name: SEAL5_CV_SDOTUP_B
+    intrinsic_name: simd_sdotup_b
+    ret_type: i32
+  - <<: *ScalarCoreVSimdGprGprGprIntrinsic
+    instr_name: SEAL5_CV_SDOTUP_B_SC
+    intrinsic_name: simd_sdotup_b_sc
+  - <<: *ScalarCoreVSimdGprGprGprIntrinsic
+    instr_name: SEAL5_CV_SDOTUP_H
+    intrinsic_name: simd_sdotup_h
+  - <<: *ScalarCoreVSimdGprGprGprIntrinsic
+    instr_name: SEAL5_CV_SDOTUP_H_SC
+    intrinsic_name: simd_sdotup_h_SC
+  - <<: *ScalarCoreVSimdGprGprGprIntrinsic
+    instr_name: SEAL5_CV_SDOTUSP_B
+    intrinsic_name: simd_sdotusp_b
+  - <<: *ScalarCoreVSimdGprGprGprIntrinsic
+    instr_name: SEAL5_CV_SDOTUSP_B_SC
+    intrinsic_name: simd_sdotusp_b_SC
+  - <<: *ScalarCoreVSimdGprGprGprIntrinsic
+    instr_name: SEAL5_CV_SDOTUSP_H
+    intrinsic_name: simd_sdotusp_h
+  - <<: *ScalarCoreVSimdGprGprGprIntrinsic
+    instr_name: SEAL5_CV_SDOTUSP_H_SC
+    intrinsic_name: simd_sdotusp_h_SC
+  - <<: *ScalarCoreVSimdGprGprGprIntrinsic
+    instr_name: SEAL5_CV_SDOTSP_B
+    intrinsic_name: simd_sdotsp_b
+  - <<: *ScalarCoreVSimdGprGprGprIntrinsic
+    instr_name: SEAL5_CV_SDOTSP_B_SC
+    intrinsic_name: simd_sdotsp_b_SC
+  - <<: *ScalarCoreVSimdGprGprGprIntrinsic
+    instr_name: SEAL5_CV_SDOTSP_H
+    intrinsic_name: simd_sdotsp_h
+  - <<: *ScalarCoreVSimdGprGprGprIntrinsic
+    instr_name: SEAL5_CV_SDOTSP_H_SC
+    intrinsic_name: simd_sdotsp_h_SC
+  # -> shuffle2
+  - <<: *ScalarCoreVSimdGprGprGprIntrinsic
+    instr_name: SEAL5_CV_SHUFFLE2_B
+    intrinsic_name: simd_shuffle2_b
+  - <<: *ScalarCoreVSimdGprGprGprIntrinsic
+    instr_name: SEAL5_CV_SHUFFLE2_H
+    intrinsic_name: simd_shuffle2_h
+  # -> packhi/packlo
+  - <<: *ScalarCoreVSimdGprGprGprIntrinsic
+    instr_name: SEAL5_CV_PACKHI_B
+    intrinsic_name: simd_packhi_b
+  - <<: *ScalarCoreVSimdGprGprGprIntrinsic
+    instr_name: SEAL5_CV_PACKLO_B
+    intrinsic_name: simd_packlo_b
+  # -> cplxmul_r/cplxmul_i
+  - <<: *ScalarCoreVSimdGprGprGprIntrinsic
+    # TODO: arg names i, j, k
+    # TODO: reorder args supported?
+    instr_name: SEAL5_CV_CPLXMUL_R
+    intrinsic_name: simd_cplxmul_r
+  - <<: *ScalarCoreVSimdGprGprGprIntrinsic
+    # TODO: arg names i, j, k
+    # TODO: reorder args supported?
+    instr_name: SEAL5_CV_CPLXMUL_I
+    intrinsic_name: simd_cplxmul_i
+  # TODO: check why upstream uses ScalarCoreVSimdGprGprImmIntrinsic
+  # => div2,div4,div8 via shift arg!
+  # ternary (reg+reg+imm)
+  # -> insert
+  - &ScalarCoreVSimdGprGprImmIntrinsic
+    args:
+    - arg_name: rs1
+      arg_type: i32
+    - arg_name: rs2
+      arg_type: i32
+    - arg_name: Imm6
+      arg_type: i32
+      immediate: true
+    set_name: XCoreVSimd
+    instr_name: SEAL5_CV_INSERT_B
+    intrinsic_name: simd_insert_b
+    ret_type: i32
+  - <<: *ScalarCoreVSimdGprGprImmIntrinsic
+    instr_name: SEAL5_CV_INSERT_H
+    intrinsic_name: simd_insert_h
+  # quaternary (reg+reg+reg+imm)
+  # TODO: introduce shift arg and select div2/div4/div8 automatically...
+  # - &ScalarCoreVSimdGprGprGprImmIntrinsic
+  #   args:
+  #   - arg_name: rs1
+  #     arg_type: i32
+  #   - arg_name: rs2
+  #     arg_type: i32
+  #   - arg_name: rs3
+  #     arg_type: i32
+  #   - arg_name: Imm6
+  #     arg_type: i32
+  #     immediate: true
+  #   set_name: XCoreVSimd
+  #   instr_name: SEAL5_CV_?
+  #   intrinsic_name: simd_?
+  #   ret_type: i32
+  # - <<: *ScalarCoreVSimdGprGprImmIntrinsic
+  #   instr_name: SEAL5_CV_?
+  #   intrinsic_name: simd_?

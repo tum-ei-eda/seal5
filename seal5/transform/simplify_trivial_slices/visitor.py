@@ -176,3 +176,7 @@ def group(self: behav.Group, context):
         return self.expr
 
     return self
+
+
+def break_(self: behav.Break, context):
+    return self

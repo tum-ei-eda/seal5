@@ -1,11 +1,4 @@
-commit db5d38843f9466245955714f0dff02883670ddfe
-Author: Philipp van Kempen <philipp.van-kempen@tum.de>
-Date:   Wed Mar 20 15:52:54 2024 +0100
-
-    uimm12 patch
-
 diff --git a/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp b/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
-index 4adb3bd0d1bf..4088c9ac5c92 100644
 --- a/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
 +++ b/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
 @@ -697,6 +697,7 @@ public:
@@ -14,17 +7,16 @@ index 4adb3bd0d1bf..4088c9ac5c92 100644
    // RISCVAsmParser.cpp - riscv_operands - INSERTION_START
 +  bool isUImm12() const { return IsUImm<12>(); }
    // RISCVAsmParser.cpp - riscv_operands - INSERTION_END
- 
+
    bool isUImm8GE32() const {
 diff --git a/llvm/lib/Target/RISCV/RISCVInstrInfo.td b/llvm/lib/Target/RISCV/RISCVInstrInfo.td
-index ea0d3a0f54ba..e2cf99b53ab5 100644
 --- a/llvm/lib/Target/RISCV/RISCVInstrInfo.td
 +++ b/llvm/lib/Target/RISCV/RISCVInstrInfo.td
 @@ -310,6 +310,7 @@ def simm21_lsb0_jal : Operand<OtherVT> {
  }
- 
+
  // RISCVInstrInfo.td - field_types - INSERTION_START
 +def uimm12 : RISCVUImmLeafOp<12>;
  // RISCVInstrInfo.td - field_types - INSERTION_END
- 
+
  def BareSymbol : AsmOperandClass {

@@ -63,6 +63,8 @@ TRANSFORM_PASS_MAP = [
     ("detect_side_effects", passes.detect_side_effects, {}),
     ("detect_inouts", passes.detect_inouts, {}),
     ("detect_imm_leafs", passes.detect_imm_leafs, {}),
+    ("detect_calls", passes.detect_calls, {}),
+    ("detect_loops", passes.detect_loops, {}),
     ("check_pattern_support", passes.check_pattern_support, {}),
     ("write_cdsl_full", passes.write_cdsl, {"split": False, "compat": False}),
     # TODO: determine static constraints (xlen,...) -> subtargetvmap
@@ -349,6 +351,9 @@ class Seal5Flow:
             kwargs["clone_url"] = pattern_gen_settings.clone_url
         if pattern_gen_settings.ref is not None:
             kwargs["ref"] = pattern_gen_settings.ref
+        llvm_version = self.settings.llvm.state.version
+        if llvm_version is not None:
+            kwargs["llvm_version"] = llvm_version
         cdsl2llvm_dependency = CDSL2LLVMDependency(**kwargs)
         cdsl2llvm_dependency.clone(
             self.settings.deps_dir / "cdsl2llvm",
@@ -407,7 +412,7 @@ class Seal5Flow:
         """Load YAML cfg."""
         assert file.is_file(), f"File does not exist: {file}"
         new_settings: Seal5Settings = Seal5Settings.from_yaml_file(file)
-        self.settings.merge(new_settings, overwrite=overwrite)
+        self.settings.merge(new_settings, overwrite=overwrite, inplace=True)
         self.settings.save()
 
     def load_test(self, file: Path, overwrite: bool = True):
@@ -504,13 +509,16 @@ class Seal5Flow:
         llvm_config = self.settings.llvm.configs.get(config, None)
         assert llvm_config is not None, f"Invalid llvm config: {config}"
         cmake_options = llvm_config.options
+        ccache_settings = self.settings.llvm.ccache
+        if kwargs.get("enable_ccache", False):
+            ccache_settings.enable = True
         llvm.build_llvm(
             Path(self.settings.directory),
             self.settings.get_llvm_build_dir(config=config, fallback=True, check=False),
             cmake_options=cmake_options,
             target=target,
             use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
-            enable_ccache=self.settings.llvm.ccache or kwargs.get("enable_ccache", False),
+            ccache_settings=ccache_settings,
         )
         end = time.time()
         diff = end - start
@@ -538,12 +546,15 @@ class Seal5Flow:
         llvm_config = self.settings.llvm.configs.get(config, None)
         assert llvm_config is not None, f"Invalid llvm config: {config}"
         cmake_options = llvm_config.options
+        ccache_settings = self.settings.llvm.ccache
+        if kwargs.get("enable_ccache", False):
+            ccache_settings.enable = True
         llvm.build_llvm(
             Path(self.settings.directory),
             self.settings.get_llvm_build_dir(config=config, fallback=True, check=True),
             cmake_options=cmake_options,
             use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
-            enable_ccache=self.settings.llvm.ccache or kwargs.get("enable_ccache", False),
+            ccache_settings=ccache_settings,
             target=None,
             install=True,
             install_dir=dest,
@@ -564,11 +575,10 @@ class Seal5Flow:
         metrics = {"passes": []}
         passes_settings = self.settings.passes
         assert passes_settings is not None
-        assert passes_settings.defaults is not None
-        default_skip = passes_settings.defaults.skip
+        default_skip = passes_settings.skip
         if skip is None and default_skip:
             skip = default_skip
-        default_only = passes_settings.defaults.only
+        default_only = passes_settings.only
         if only is None and default_only:
             only = default_only
         # inplace = True
@@ -648,7 +658,7 @@ class Seal5Flow:
                         # override
                         logger.debug("Overriding existing patch settings")
                         new = temp[key]
-                        new.merge(patch_settings)
+                        new.merge(patch_settings, inplace=True)
                         temp[key] = new
                     else:
                         temp[key] = patch_settings
@@ -664,7 +674,7 @@ class Seal5Flow:
                     # override
                     logger.debug("Overriding existing patch settings")
                     new = temp[key]
-                    new.merge(patch_settings)
+                    new.merge(patch_settings, inplace=True)
                     temp[key] = new
                 else:
                     temp[key] = patch_settings
@@ -703,7 +713,10 @@ class Seal5Flow:
         name = patch.name
         target = patch.target
         if patch.enable:
-            logger.info("Applying patch '%s' on '%s'", name, target)
+            if patch.check_enabled(self.settings):
+                logger.info("Applying patch '%s' on '%s'", name, target)
+            else:
+                return
         else:
             logger.info("Skipping patch '%s' on '%s'", name, target)
             return

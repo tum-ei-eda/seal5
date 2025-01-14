@@ -4,5 +4,5 @@
 int test_intrinsic(int a, int b) {
     // CHECK: <test_intrinsic>
     // CHECK: openasip_base_maxu
-    return __builtin_xopenasipbase_openasip_base_maxu(a, b);
+    return __builtin_riscv_xopenasipbase_openasip_base_maxu(a, b);
 }

@@ -1,9 +1,11 @@
 ---
-extensions:
+models:
   X_S4E_MAC:
-    feature: XS4EMAC
-    arch: xs4emac
-    version: "1.0"
-    # experimental: true
-    vendor: true
-    # patches: []
+    extensions:
+      X_S4E_MAC:
+        feature: XS4EMAC
+        arch: xs4emac
+        version: "1.0"
+        # experimental: true
+        vendor: true
+        # patches: []

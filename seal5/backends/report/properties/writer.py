@@ -292,6 +292,7 @@ def main():
                             "may_store": Seal5InstrAttribute.MAY_STORE in attrs,
                             "is_terminator": Seal5InstrAttribute.IS_TERMINATOR in attrs,
                             "is_branch": Seal5InstrAttribute.IS_BRANCH in attrs,
+                            "skip_pattern_gen": Seal5InstrAttribute.SKIP_PATTERN_GEN in attrs,
                             "uses_custom_reg": uses_custom_reg,
                             "defs_custom_reg": defs_custom_reg,
                         }

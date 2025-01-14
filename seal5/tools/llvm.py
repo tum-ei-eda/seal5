@@ -19,6 +19,7 @@
 """LLVM utils for seal5."""
 import re
 import os
+import shutil
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -29,9 +30,18 @@ from tqdm import tqdm
 from seal5 import utils
 from seal5.logging import get_logger
 from seal5.tools.git import get_author_from_settings
-from seal5.settings import GitSettings
+from seal5.settings import GitSettings, CcacheSettings
 
 logger = get_logger()
+
+
+def lookup_ccache():
+    candidates = ["sccache", "ccache"]
+    for candidate in candidates:
+        found = shutil.which(candidate)
+        if found:
+            return found
+    return None  # Not found
 
 
 def check_llvm_repo(path: Path):
@@ -126,7 +136,7 @@ def clone_llvm_repo(
         version_info["major"] = int(major)
         version_info["minor"] = int(minor)
         version_info["patch"] = int(patch)
-        rest = splitted[2]
+        rest = splitted[2] if len(splitted) > 2 else ""
         if "rc" in rest:
             rc = rest.split("-", 1)[0][2:]
             version_info["rc"] = int(rc)
@@ -148,7 +158,7 @@ def build_llvm(
     cmake_options: Optional[dict] = None,
     install: bool = False,
     install_dir: Optional[Union[str, Path]] = None,
-    enable_ccache: bool = False,
+    ccache_settings: Optional[CcacheSettings] = None,
 ):
     if cmake_options is None:
         cmake_options = {}
@@ -156,9 +166,21 @@ def build_llvm(
         assert install_dir is not None
         assert Path(install_dir).parent.is_dir()
         cmake_options["CMAKE_INSTALL_PREFIX"] = str(install_dir)
-    if enable_ccache:
-        cmake_options["CMAKE_C_COMPILER_LAUNCHER"] = "sccache"  # TODO: choose between sccache/ccache
-        cmake_options["CMAKE_CXX_COMPILER_LAUNCHER"] = "sccache"  # TODO: choose between sccache/ccache
+    env = os.environ.copy()
+    if ccache_settings:
+        if ccache_settings.enable:
+            ccache_executable = ccache_settings.executable
+            ccache_directory = ccache_settings.directory
+            if ccache_executable is None:
+                ccache_executable = "auto"
+
+            if ccache_executable == "auto":
+                ccache_executable = lookup_ccache()
+                assert ccache_executable is not None, "Could not resolve ccache executable"
+            cmake_options["CMAKE_C_COMPILER_LAUNCHER"] = ccache_executable
+            cmake_options["CMAKE_CXX_COMPILER_LAUNCHER"] = ccache_executable
+            if ccache_directory is not None:
+                env["CCACHE_DIR"] = ccache_directory
     cmake_args = utils.get_cmake_args(cmake_options)
     dest.mkdir(exist_ok=True)
     utils.cmake(
@@ -167,6 +189,7 @@ def build_llvm(
         use_ninja=use_ninja,
         debug=debug,
         cwd=dest,
+        env=env,
         print_func=logger.info if verbose else logger.debug,
         live=True,
     )

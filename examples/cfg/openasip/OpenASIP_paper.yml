@@ -1,13 +1,13 @@
 ---
-extensions:
+models:
   OpenASIP_paper:
-    version: "1.0"
-    # experimental: true
-    experimental: false
-    vendor: true
-passes:
-  per_model:
-    OpenASIP_paper:
+    extensions:
+      OpenASIP_paper:
+        version: "1.0"
+        # experimental: true
+        experimental: false
+        vendor: true
+    passes:
       overrides:
         convert_models:
           prefix: "SEAL5_"
