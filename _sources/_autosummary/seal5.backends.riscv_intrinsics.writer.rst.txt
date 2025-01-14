@@ -11,6 +11,8 @@ seal5.backends.riscv\_intrinsics.writer
       build_attr
       build_emit
       build_target
+      build_target_new
+      ir_type_lookup_new
       ir_type_to_pattern
       ir_type_to_text
       main

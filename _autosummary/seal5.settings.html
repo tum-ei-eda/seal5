@@ -109,28 +109,28 @@
 <p class="rubric">Classes</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConsoleLoggingSettings</span></code>([level])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">CcacheSettings</span></code>([enable, executable, directory])</p></td>
+<td><p>Seal5 ccache settings.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConsoleLoggingSettings</span></code>([level])</p></td>
 <td><p>Seal5 console logging settings.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ExtensionsSettings</span></code>([feature, predicate, ...])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ExtensionsSettings</span></code>([feature, predicate, ...])</p></td>
 <td><p>Seal5 extensions settings.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">FileLoggingSettings</span></code>([level, limit, rotate])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">FileLoggingSettings</span></code>([level, limit, rotate])</p></td>
 <td><p>Seal5 file logging settings.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">FilterSetting</span></code>(keep, drop)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">FilterSetting</span></code>(keep, drop)</p></td>
 <td><p>Seal5 set/instr/alias/instrinsic/opcode/enc-specific filter settings.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">FilterSettings</span></code>([sets, instructions, ...])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">FilterSettings</span></code>([sets, instructions, ...])</p></td>
 <td><p>Seal5 filter settings.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">GitSettings</span></code>([author, mail, prefix])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">GitSettings</span></code>([author, mail, prefix])</p></td>
 <td><p>Seal5 git settings.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">GroupsSettings</span></code>()</p></td>
-<td><p>Seal5 groups settings.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">IntrinsicArg</span></code>(arg_name, arg_type)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">IntrinsicArg</span></code>(arg_name, arg_type[, ...])</p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">IntrinsicDefn</span></code>(instr_name, intrinsic_name[, ...])</p></td>
@@ -154,11 +154,11 @@
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">LoggingSettings</span></code>(console, file)</p></td>
 <td><p>Seal5 logging settings.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">PassesSetting</span></code>([skip, only, overrides])</p></td>
-<td><p>Seal5 model-specific passes settings.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ModelSettings</span></code>([extensions, riscv, passes])</p></td>
+<td><p>Seal5 model settings.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">PassesSettings</span></code>([defaults, per_model])</p></td>
-<td><p>Seal5 passes settings.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">PassesSettings</span></code>([skip, only, overrides])</p></td>
+<td><p>Seal5 model-specific passes settings.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">PatchSettings</span></code>(name[, target, stage, ...])</p></td>
 <td><p>Seal5 patch settings.</p></td>

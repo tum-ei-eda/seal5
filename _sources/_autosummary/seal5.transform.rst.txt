@@ -16,8 +16,10 @@ seal5.transform
    collect_raises
    collect_register_operands
    converter
+   detect_calls
    detect_imm_leafs
    detect_inouts
+   detect_loops
    detect_registers
    detect_side_effects
    drop_unused

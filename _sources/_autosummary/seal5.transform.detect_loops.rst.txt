@@ -1,0 +1,14 @@
+seal5.transform.detect\_loops
+=============================
+
+.. automodule:: seal5.transform.detect_loops
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   collect
+   visitor

@@ -1,0 +1,14 @@
+seal5.transform.detect\_calls
+=============================
+
+.. automodule:: seal5.transform.detect_calls
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   collect
+   visitor

@@ -1,0 +1,20 @@
+seal5.transform.detect\_calls.collect
+=====================================
+
+.. automodule:: seal5.transform.detect_calls.collect
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_parser
+      main
+      run
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      VisitorContext
+   

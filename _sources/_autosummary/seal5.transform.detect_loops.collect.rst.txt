@@ -1,0 +1,20 @@
+seal5.transform.detect\_loops.collect
+=====================================
+
+.. automodule:: seal5.transform.detect_loops.collect
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_parser
+      main
+      run
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      VisitorContext
+   

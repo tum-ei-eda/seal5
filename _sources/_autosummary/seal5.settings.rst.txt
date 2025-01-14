@@ -14,13 +14,13 @@ seal5.settings
 
    .. autosummary::
    
+      CcacheSettings
       ConsoleLoggingSettings
       ExtensionsSettings
       FileLoggingSettings
       FilterSetting
       FilterSettings
       GitSettings
-      GroupsSettings
       IntrinsicArg
       IntrinsicDefn
       IntrinsicsSettings
@@ -29,7 +29,7 @@ seal5.settings
       LLVMState
       LLVMVersion
       LoggingSettings
-      PassesSetting
+      ModelSettings
       PassesSettings
       PatchSettings
       PatternGenSettings

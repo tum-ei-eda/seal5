@@ -11,4 +11,5 @@ seal5.transform.detect\_inouts
    :recursive:
 
    collect
+   utils
    visitor

@@ -17,8 +17,10 @@ seal5.pass\_list
       convert_llvmir_to_gmir
       convert_models
       detect_behavior_constraints
+      detect_calls
       detect_imm_leafs
       detect_inouts
+      detect_loops
       detect_registers
       detect_side_effects
       drop_unused

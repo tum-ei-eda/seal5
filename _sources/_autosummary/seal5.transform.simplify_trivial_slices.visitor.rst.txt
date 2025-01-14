@@ -10,6 +10,7 @@ seal5.transform.simplify\_trivial\_slices.visitor
    
       assignment
       binary_operation
+      break_
       callable_
       concat_operation
       conditional

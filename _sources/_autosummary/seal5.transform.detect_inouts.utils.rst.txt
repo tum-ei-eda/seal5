@@ -1,0 +1,12 @@
+seal5.transform.detect\_inouts.utils
+====================================
+
+.. automodule:: seal5.transform.detect_inouts.utils
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      IOMode
+   

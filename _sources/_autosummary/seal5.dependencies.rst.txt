@@ -4,6 +4,12 @@ seal5.dependencies
 .. automodule:: seal5.dependencies
 
    
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      pick_coredsl2llvm_ref
+   
    .. rubric:: Classes
 
    .. autosummary::

@@ -18,6 +18,7 @@ seal5.utils
       is_power_of_two
       make
       merge_dicts
+      parse_cond
       python
       str2bool
    
