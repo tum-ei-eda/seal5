@@ -150,7 +150,7 @@ def main():
                 used.add(candidate_name)
         return ret, used
 
-    def filter_tests_by_set(tests, set_def, settings):
+    def filter_tests_by_set(tests, set_def, settings, model_name):
         set_name = set_def.name
         assert isinstance(tests, dict)
         candidates = set()
@@ -160,7 +160,8 @@ def main():
         candidates.add(set_name_alt)
         candidates.add(set_name_alt.lower())
         if settings:
-            extension_settings = settings.extensions.get(set_name)
+            model_settings = settings.models[model_name]
+            extension_settings = model_settings.extensions.get(set_name)
             if extension_settings:
                 arch = extension_settings.get_arch(set_name)
                 feature = extension_settings.get_feature(set_name)
@@ -308,7 +309,7 @@ def main():
                         "result": test_result,
                     }
                     results_data.append(data_)
-            found_tests, used = filter_tests_by_set(instr_tests, set_def, settings)
+            found_tests, used = filter_tests_by_set(instr_tests, set_def, settings, model_name)
             used_keys.update(used)
             data["instr"] = None
             for test_kind, test_file, test_fmt, test_result in found_tests:
