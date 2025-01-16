@@ -98,7 +98,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install APT packages
       run: |
-        sudo apt -qq install -y python3-pip python3-venv cmake make ninja-build python3-pandas 
+        sudo apt -qq install -y python3-pip python3-venv cmake make ninja-build python3-pandas
     - name: Initialize Virtualenv
       run: |
         python -m pip install --upgrade pip
@@ -190,25 +190,25 @@ jobs:
     - name: Upload Seal5 Reports
       uses: actions/upload-artifact@v4
       with:
-        name: demo-${{ steps.ctx.outputs.name }}-reports
+        name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-reports
         path: reports/
     - name: Upload Seal5 Metadata
       uses: actions/upload-artifact@v4
       if: "${{ matrix.export == '1' }}"
       with:
-        name: demo-${{ steps.ctx.outputs.name }}-export
+        name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-export
         path: /tmp/seal5_llvm.tar.gz
     - name: Upload Seal5 LLVM Installation
       uses: actions/upload-artifact@v4
       if: "${{ matrix.install == '1' }}"
       with:
-        name: demo-${{ steps.ctx.outputs.name }}-install
+        name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-install
         path: /tmp/seal5_llvm/.seal5/install/${{ matrix.build_config }}
     - name: Upload Seal5 LLVM Sources Grouped_stat_prop_result_all.md
       uses: actions/upload-artifact@v4
       if: "${{ matrix.deploy == '1' }}"
       with:
-        name: demo-${{ steps.ctx.outputs.name }}-source
+        name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-source
         path: /tmp/seal5_llvm_source.zip
     - name: Aggregate and Publish Test Results
       run: |
@@ -218,7 +218,7 @@ jobs:
         echo "### Summarized and Compact Pass/Test Results" >> $GITHUB_STEP_SUMMARY
         echo >> $GITHUB_STEP_SUMMARY
         cat  Grouped_stat_prop_result_test_wo_instr.html >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY    
+        echo >> $GITHUB_STEP_SUMMARY
         echo "### Summarized and Compact Test Coverage Results" >> $GITHUB_STEP_SUMMARY
         echo >> $GITHUB_STEP_SUMMARY
         cat  Grouped_stat_prop_result_cv_wo_instr.html >> $GITHUB_STEP_SUMMARY
@@ -228,7 +228,7 @@ jobs:
         #echo >> $GITHUB_STEP_SUMMARY
         #cat  Grouped_stat_prop_result_test.html >> $GITHUB_STEP_SUMMARY
         #echo >> $GITHUB_STEP_SUMMARY
-        
+
         #echo "### Summarized Test Coverage Results" >> $GITHUB_STEP_SUMMARY
         #echo >> $GITHUB_STEP_SUMMARY
         #cat  Grouped_stat_prop_result_cv.html >> $GITHUB_STEP_SUMMARY
@@ -243,11 +243,11 @@ jobs:
       uses: actions/upload-artifact@v4
       if: "${{ matrix.deploy == '1' }}"
       with:
-        name: demo-${{ steps.ctx.outputs.name }}-aggregated-test-results
+        name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-aggregated-test-results
         path: |
              Grouped_stat_prop_result_all.html
              Grouped_stat_prop_result_cv.html
              Grouped_stat_prop_result_cv_wo_instr.html
              Grouped_stat_prop_result_test.html
              Grouped_stat_prop_result_test_wo_instr.html
-        
+
