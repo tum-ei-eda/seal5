@@ -55,6 +55,7 @@ TRANSFORM_PASS_MAP = [
     ("explicit_truncations", passes.explicit_truncations, {}),
     ("process_settings", passes.process_settings, {}),
     ("write_yaml", passes.write_yaml, {}),
+    ("process_settings2", passes.process_settings, {}),
     ("detect_behavior_constraints", passes.detect_behavior_constraints, {}),
     ("detect_registers", passes.detect_registers, {}),
     ("collect_register_operands", passes.collect_register_operands, {}),

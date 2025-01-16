@@ -279,6 +279,7 @@ def process_settings(
     assert input_file.is_file(), f"File not found: {input_file}"
     name = input_file.name
     logger.info("Processing settings for %s", name)
+    settings.save()
     args = [
         settings.models_dir / name,
         "--log",
@@ -812,6 +813,7 @@ def write_yaml(
     )
     new_settings: Seal5Settings = Seal5Settings.from_yaml_file(settings.temp_dir / new_name)
     settings.merge(new_settings, overwrite=False, inplace=True)
+    settings.save()
     return PassResult(metrics={})
 
 

@@ -359,7 +359,7 @@ def main():
                 metrics["n_skipped"] += 1
                 metrics["skipped_sets"].append(set_name)
                 continue
-            assert riscv_settings is not None
+            assert riscv_settings_ is not None
             xlen = riscv_settings_.xlen
             assert xlen is not None
             for intrinsic in settings.intrinsics.intrinsics:
