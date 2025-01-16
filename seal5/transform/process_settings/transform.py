@@ -75,8 +75,10 @@ def run(args):
                 assert False
         model_name = top_level.stem
 
-    assert "settings" not in model
-    model["settings"] = settings
+    if "settings" not in model:
+        model["settings"] = settings
+    else:
+        model["settings"].merge(settings, overwrite=True, inplace=True)
 
     for set_name, set_def in model["sets"].items():
         model_settings = settings.models.get(model_name)
@@ -90,8 +92,10 @@ def run(args):
             riscv_settings = RISCVSettings(xlen=set_def.xlen)
         if riscv_settings.xlen is None:
             riscv_settings.xlen = set_def.xlen
-        assert set_def.settings is None
-        set_def.settings = ext_settings  # TODO: decide how to do this properly
+        if set_def.settings is None:
+            set_def.settings = ext_settings  # TODO: decide how to do this properly
+        else:
+            set_def.settings.merge(ext_settings, overwrite=True, inplace=True)
 
     logger.info("dumping model")
     with open(model_path, "wb") as f:

@@ -145,8 +145,8 @@ class Seal5Pass:
                     futures = []
                     passes_settings_ = passes_settings
                     for input_model in inputs:
-                        model_settings = settings.models[input_model]
-                        model_passes_settings = model_settings.passes
+                        model_settings = settings.models.get(input_model)
+                        model_passes_settings = model_settings.passes if model_settings is not None else None
                         kwargs__ = kwargs_.copy()
                         if model_passes_settings is not None:
                             passes_settings_ = passes_settings_.merge(model_passes_settings)
