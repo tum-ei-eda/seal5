@@ -1,0 +1,37 @@
+import "../rv_base/RV32I.core_desc"
+
+InstructionSet XMNN extends RV32I {
+    instructions {
+        // MNN_ADDI {
+        //     encoding: simm12[11:0] :: rs1[4:0] :: 3'b111 :: rd[4:0] :: 7'b0101011;
+        //     assembly: {"mnn.addi", "{name(rd)}, {name(rs1)}, {uimm12}" };
+        //     behavior: {
+        //         if (rd != 0) {
+        //             X[rd] = (signed<32>) (X[rs1] + (signed)simm12 );
+        //         }
+        //     }
+        // }
+        MNN_ADD {
+            encoding: 7'b1111111 :: rs2[4:0] :: rs1[4:0] :: 3'b111 :: rd[4:0] :: 7'b0101011;
+            assembly: {"mnn.add", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+            behavior: {
+                if (rd != 0) {
+                    X[rd] = (signed<32>) (X[rs1] + X[rs2]);
+                }
+            }
+        }
+        MNN_PAIR_EXTRACT {
+             encoding: simm12[11:0] :: rs1[4:0] :: 3'b111 :: rd[4:0] :: 7'b0101011;
+             assembly: {"mnn.pair_extract", "{name(rd)}, {name(rs1)}, {simm12}" };
+             behavior: {
+                 if (rd != 0) {
+                     unsigned<2> pair_sel = (unsigned)simm12;
+                     X[rd] = (unsigned<32>)((unsigned<16>)((signed<16>)((signed<4>)X[rs1][pair_sel*8+7:pair_sel*8+4])) :: ((unsigned<16>)(signed<16>)((signed<4>)X[rs1][pair_sel*8+3:pair_sel*8+0])));
+                     // Alternative (needs bugfix in m2isar)
+                     // X[rd][31:16] = ((unsigned<16>)(signed<16>)((signed<4>)X[rs1][pair_sel*8+7:pair_sel*8+4]));
+                     // X[rd][15:0] =  ((unsigned<16>)(signed<16>)((signed<4>)X[rs1][pair_sel*8+3:pair_sel*8+0]));
+                 }
+             }
+        }
+    }
+}
