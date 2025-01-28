@@ -252,7 +252,7 @@ def analyze_diff(repo, base: str, cur: Optional[str] = None):
             continue
         val, key = x.split(" ", 1)
         val = int(val)
-        if "files changed" in key:
+        if "files changed" in key or "file changed" in key:
             n_files_changed = val
         elif "insertions" in key:
             n_insertions = val
