@@ -28,7 +28,7 @@ InstructionSet XExample extends RV32I {
             assembly: {"xexample.chacha20qr1", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
             behavior: {
                 if (rd != 0) {
-                    X[rd] += rotl32(X[rs1] ^ X[rs2], 7);
+                    X[rd] = rotl32(X[rs1] ^ X[rs2], 16);
                 }
             }
         }
@@ -37,7 +37,7 @@ InstructionSet XExample extends RV32I {
             assembly: {"xexample.chacha20qr2", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
             behavior: {
                 if (rd != 0) {
-                    X[rd] += rotl32(X[rs1] ^ X[rs2], 9);
+                    X[rd] = rotl32(X[rs1] ^ X[rs2], 12);
                 }
             }
         }
@@ -46,7 +46,7 @@ InstructionSet XExample extends RV32I {
             assembly: {"xexample.chacha20qr3", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
             behavior: {
                 if (rd != 0) {
-                    X[rd] += rotl32(X[rs1] ^ X[rs2], 13);
+                    X[rd] = rotl32(X[rs1] ^ X[rs2], 8);
                 }
             }
         }
@@ -55,7 +55,7 @@ InstructionSet XExample extends RV32I {
             assembly: {"xexample.chacha20qr4", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
             behavior: {
                 if (rd != 0) {
-                    X[rd] += rotl32(X[rs1] ^ X[rs2], 18);
+                    X[rd] = rotl32(X[rs1] ^ X[rs2], 7);
                 }
             }
         }

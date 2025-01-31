@@ -2,8 +2,6 @@
 intrinsics:
   intrinsics:
   - args:
-    - arg_name: rd
-      arg_type: i32
     - arg_name: rs1
       arg_type: i32
     - arg_name: rs2
@@ -12,8 +10,6 @@ intrinsics:
     intrinsic_name: chacha20_qr1
     ret_type: i32
   - args:
-    - arg_name: rd
-      arg_type: i32
     - arg_name: rs1
       arg_type: i32
     - arg_name: rs2
@@ -22,8 +18,6 @@ intrinsics:
     intrinsic_name: chacha20_qr2
     ret_type: i32
   - args:
-    - arg_name: rd
-      arg_type: i32
     - arg_name: rs1
       arg_type: i32
     - arg_name: rs2
@@ -32,8 +26,6 @@ intrinsics:
     intrinsic_name: chacha20_qr3
     ret_type: i32
   - args:
-    - arg_name: rd
-      arg_type: i32
     - arg_name: rs1
       arg_type: i32
     - arg_name: rs2
