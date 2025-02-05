@@ -1,0 +1,216 @@
+// import "rv_base/RVC.core_desc"
+import "../rv_base/RV32I.core_desc"
+
+// Extended (48-bit) Instructions
+InstructionSet RV32K extends RV32I {
+    instructions{
+
+        // LSM encoding
+        // funct3: 0b000
+        //  bit  0(msb): I(ncrement)=1     / D(ecrement)=0
+        //  bit 1: B(efore)=1        / A(fter)=0
+        //  bit 2: R(everseOrdered)[Descending]=1 / O(rdered)[Ascending]=0
+        // opcode1: 0b0011111
+        // opcode2 0 (msb): prologue/epologue selector: (increment/decrement one additional word)=1 / update address by bytes written =0
+        // opcode2 1 : lsm selector: 0b1 Load/ 0b0 Store
+        // RVInst48LSM {
+        //     encoding: 2'b?? :: reglist[30:0] :: 3'b??? :: rd[4:0] :: 7'b0011111;
+        //     assembly: {"lsm", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+        //     behavior: {
+        //         // TODO
+        //     }
+        // }
+        // Store multiples
+        K_SMDAON {
+            encoding: 2'b00 :: reglist[30:0] :: 3'b000 :: rd[4:0] :: 7'b0011111;
+            assembly: {"k.smdaon", "{name(rd)}, {reglist(reglist)}"};
+            behavior: {
+                // TODO: handle reglist
+                // TODO: do not allow X0
+                // TODO: behavior
+            }
+        }
+        // TODO: K_SMIAON
+        // TODO: K_SMDBON
+        // TODO: K_SMIBON
+        // TODO: K_SMDARN
+        // TODO: K_SMIARN
+        // TODO: K_SMDBRN
+        // TODO: K_SMIBRN
+        // TODO: K_SMDAOF
+        // TODO: K_SMIAOF
+        // TODO: K_SMDBOF
+        // TODO: K_SMIBOF
+        // TODO: K_SMDARF
+        // TODO: K_SMIARF
+        // TODO: K_SMDBRF
+        // TODO: K_SMIBRF
+
+        // Load multiples
+        K_SMDAON {
+            encoding: 2'b01 :: reglist[30:0] :: 3'b000 :: rd[4:0] :: 7'b0011111;
+            assembly: {"k.lmdaon", "{name(rd)}, {reglist(reglist)}"};
+            behavior: {
+                // TODO: handle reglist
+                // TODO: do not allow X0
+                // TODO: behavior
+            }
+        }
+        // TODO: K_LMIAON
+        // TODO: K_LMDBON
+        // TODO: K_LMIBON
+        // TODO: K_LMDARN
+        // TODO: K_LMIARN
+        // TODO: K_LMDBRN
+        // TODO: K_LMIBRN
+        // TODO: K_LMDAOF
+        // TODO: K_LMIAOF
+        // TODO: K_LMDBOF
+        // TODO: K_LMIBOF
+        // TODO: K_LMDARF
+        // TODO: K_LMIARF
+        // TODO: K_LMDBRF
+        // TODO: K_LMIBRF
+
+        // Immediate value encoding
+        // opcode: 0b1011111
+        // opcode2 set to 0b0000
+        // RVInst48I {
+        //     encoding: 4'b0000 :: imm[31:0] :: rd[4:0] :: 7'b1011111;
+        //     assembly: {"i", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+        //     behavior: {
+        //         // TODO
+        //     }
+        // }
+        K_LLI {
+            encoding: 4'b0000 :: imm[31:0] :: rd[4:0] :: 7'b1011111;
+            assembly: {"k.lli", "{name(rd)}, {imm}"};
+            behavior: {
+                // TODO: regpair? Do not allow X0, X2?
+                // TODO: behavior
+            }
+        }
+
+        // Arithmetic Immediate encoding
+        // opcode: 0b1011111
+        // opcode2: set to 0b0001
+        // funct3:
+        //   0b000: 48.ADDI
+        //   0b001: 48.ANDI
+        //   0b010: 48.XORI
+        //   0b011: 48.ORI
+        //   0b100: OPEN (BENCH or LINUX specific or Unsigned ones)
+        //   0b101: "
+        //   0b110: "
+        //   0b111: "
+        // RVInst48A {
+        //     encoding: 4'b0001 :: imm[18:0] :: rs2[4:0] :: rs1[4:0] :: 3'b??? :: rd[4:0] :: 7'b1011111;
+        //     assembly: {"a", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+        //     behavior: {
+        //         // TODO
+        //     }
+        // }
+
+        // Branches encoding
+        // opcode: 0b1011111
+        // opcode2: set to 0b0010
+        // funct3:
+        //   0b000: 48.BEQ
+        //   0b001: 48.BNE
+        //   0b010: 48.BLT
+        //   0b011: 48.BLTU
+        //   0b100: 48.BGEU
+        //   0b101: OPEN
+        //   0b110: "
+        //   0b111: "
+        // RVInst48B {
+        //     encoding: 4'b0010 :: imm[24:6] :: rs2[4:0] :: rs1[4:0] :: 3'b??? :: imm[5:1] :: 7'b1011111;
+        //     assembly: {"b", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+        //     behavior: {
+        //         // TODO
+        //     }
+        // }
+
+        // MiSO 2-1 Immediate encoding (Multiple Input Single Output)
+        //
+        // Structure:
+        // rd = (rs2 OP1 imm) OP2 rs1
+        // Maby additional:
+        // rd = (rs2 OP1 rs1) OP2 imm
+        //
+        // opcode: 0b1011111
+        // opcode2: set to 0b0011
+        // funct3:
+        //   0b000: 48.SRAIAND ((srai rs2, imm) AND rs1)
+        //   0b001: 48.SLLIAND ((slli rs2, imm) AND rs1)
+        //   0b010: 48.SRAIOR ((srai rs2, imm) OR rs1)
+        //   0b011: 48.SLLIOR ((slli rs2, imm) OR rs1)
+        //   0b100: OPEN
+        //   0b101: "
+        //   0b110: "
+        //   0b111: "
+        // RVInst48MiSo2i {
+        //     encoding: 4'b0011 :: imm[18:0] :: rs2[4:0] :: rs1[4:0] :: 3'b??? :: rd[4:0] :: 7'b1011111;
+        //     assembly: {"miso2i", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+        //     behavior: {
+        //         // TODO
+        //     }
+        // }
+
+        // MiSO 2-1 double Immediate encoding (Multiple Input Single Output)
+        //
+        // Structure:
+        // rd = (rs2 OP1 imm2) OP3 (rs1 OP1 imm1)
+        //
+        // opcode: 0b1011111
+        // opcode2: set to 0b0100
+        // funct4:
+        //   0b0000: OPEN
+        //   0b0001: "
+        //   0b0010: "
+        //   0b0011: "
+        //   0b0100: "
+        //   0b0101: "
+        //   0b0110: "
+        //   0b0111: "
+        //   0b1000: "
+        //   0b1001: "
+        //   0b1010: "
+        //   0b1011: "
+        //   0b1100: "
+        //   0b1101: "
+        //   0b1110: "
+        //   0b1111: "
+        // RVInst482di {
+        //     encoding: 4'b0100 :: 1'b? :: imm2[8:0] :: imm1[8:0] :: rs2[4:0] :: rs1[4:0] :: 3'b??? :: rd[4:0] :: 7'b1011111;
+        //     assembly: {"2di", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+        //     behavior: {
+        //         // TODO
+        //     }
+        // }
+
+        // MiSO 4-1 Immediate encoding (Multiple Input Single Output)
+        //
+        // Structure:
+        // rd = ((rs4 OP4 rs3) OP2 (rs2 OP3 rs1)) OP1 imm
+        //
+        // opcode: 0b1011111
+        // opcode2: set to 0b0101
+        // funct3:
+        //   0b000: OPEN
+        //   0b001: "
+        //   0b010: "
+        //   0b011: "
+        //   0b100: "
+        //   0b101: "
+        //   0b110: "
+        //   0b111: "
+        // RVInst48MiSo4i {
+        //     encoding: 4'b0101 :: imm[8:0] :: rs4[4:0] :: rs3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b??? :: rd[4:0] :: 7'b1011111;
+        //     assembly: {"miso4i", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+        //     behavior: {
+        //         // TODO
+        //     }
+        // }
+    }
+}
