@@ -14,7 +14,8 @@ import pickle
 import sys
 
 from m2isar import M2Error, M2SyntaxError
-from m2isar.metamodel import arch, behav, patch_model
+from m2isar.metamodel import M2_METAMODEL_VERSION, M2Model, arch, behav, patch_model
+from m2isar.metamodel.code_info import CodeInfoBase
 from . import expr_interpreter
 from .architecture_model_builder import ArchitectureModelBuilder
 from .behavior_model_builder import BehaviorModelBuilder
@@ -55,7 +56,6 @@ def main():
     lo = LoadOrder()
     try:
         sets = lo.visit(tree)
-        # print("sets", sets)
     except M2Error as e:
         logger.critical("Error during load order building: %s", e)
         sys.exit(1)
@@ -67,8 +67,6 @@ def main():
     model_path.mkdir(exist_ok=True)
 
     temp_save = {}
-    # models: "dict[str, arch.CoreDef]" = {}
-    models: "dict[str, arch.InstructionSet]" = {}
 
     patch_model(expr_interpreter)
 
@@ -93,15 +91,10 @@ def main():
             )
 
         temp_save[set_name] = (s, arch_builder)
-        # models[core_name] = c[-1]
-        for ss in s:
-            pass
-            # print("ss", ss, ss.constants)
-            # input("?")
 
-        models[set_name] = s[-1]
+        sets[set_name] = s[-1]
 
-    for set_name, set_def in models.items():
+    for set_name, set_def in sets.items():
         logger.info("building behavior model for set %s", set_name)
         # print("set", set_name, set_def, dir(set_def))
 
@@ -322,7 +315,8 @@ def main():
 
     logger.info("dumping model")
     with open(model_path / (abs_top_level.stem + ".m2isarmodel"), "wb") as f:
-        pickle.dump(models, f)
+        model_obj = M2Model(M2_METAMODEL_VERSION, {}, sets, CodeInfoBase.database)
+        pickle.dump(model_obj, f)
 
 
 if __name__ == "__main__":

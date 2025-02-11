@@ -853,7 +853,7 @@ def write_cdsl(
         (settings.temp_dir / new_name).mkdir(exist_ok=True)
         args.append("--splitted")
     if compat:
-        args.append("--compat")
+        args.append("--reduced")
     if gen_metrics_file:
         # TODO: move to .seal5/metrics
         metrics_file = settings.temp_dir / (new_name + "_coredsl2_writer_metrics.csv")

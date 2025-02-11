@@ -12,11 +12,9 @@ import sys
 import argparse
 import logging
 import pathlib
-import pickle
-from typing import Union
 
-from m2isar.metamodel import arch
 import seal5.model as seal5_model
+from seal5.model_utils import load_model, dump_model
 
 logger = logging.getLogger("detect_registers")
 
@@ -69,6 +67,7 @@ def get_parser():
     parser.add_argument("top_level", help="A .m2isarmodel or .seal5model file.")
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument("--output", "-o", type=str, default=None)
+    parser.add_argument("--compat", action="store_true")
     return parser
 
 
@@ -79,32 +78,18 @@ def run(args):
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
 
-    if args.output is None:  # inplace
-        assert top_level.suffix == ".seal5model", "Can not infer model type from file extension."
-        model_path = top_level
-    else:
-        model_path = pathlib.Path(args.output)
+    out_path = (top_level.parent / top_level.stem) if args.output is None else args.output
 
-    logger.info("loading models")
-
-    # load models
-    with open(top_level, "rb") as f:
-        # models: "dict[str, arch.CoreDef]" = pickle.load(f)
-        model: "dict[str, Union[arch.InstructionSet, ...]]" = pickle.load(f)
+    model_obj = load_model(top_level, compat=args.compat)
 
     to_skip = ["Zicsr"]  # TODO: use yaml!
-    for set_name, set_def in model["sets"].items():
+    for set_name, set_def in model_obj.sets.items():
         if set_name in to_skip:
             continue
         logger.info("processing set %s", set_name)
         detect_registers(set_def)
-        # print("set_def.register", set_def.registers)
-        # print("set_def.register_groups", set_def.register_groups)
-        # input("@")
 
-    logger.info("dumping model")
-    with open(model_path, "wb") as f:
-        pickle.dump(model, f)
+    dump_model(model_obj, out_path, compat=args.compat)
 
 
 def main(argv):

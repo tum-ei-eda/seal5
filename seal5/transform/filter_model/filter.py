@@ -13,10 +13,10 @@ import sys
 import argparse
 import logging
 import pathlib
-import pickle
-from typing import Union
 
 from m2isar.metamodel import arch
+
+from seal5.model_utils import load_model, dump_model
 
 logger = logging.getLogger("filter_model")
 
@@ -87,6 +87,7 @@ def get_parser():
     # TODO: filter builtins/aliases
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument("--output", "-o", type=str, default=None)
+    parser.add_argument("--compat", action="store_true")
     return parser
 
 
@@ -96,40 +97,10 @@ def run(args):
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
-    # abs_top_level = top_level.resolve()
 
-    is_seal5_model = False
-    if args.output is None:  # inplace
-        assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
-        if top_level.suffix == ".seal5model":
-            is_seal5_model = True
+    out_path = (top_level.parent / top_level.stem) if args.output is None else args.output
 
-        model_path = top_level
-    else:
-        model_path = pathlib.Path(args.output)
-        assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
-        if top_level.suffix == ".seal5model":
-            is_seal5_model = True
-
-    logger.info("loading models")
-    if not is_seal5_model:
-        raise NotImplementedError
-
-    # load models
-    with open(top_level, "rb") as f:
-        # models: "dict[str, arch.CoreDef]" = pickle.load(f)
-        if is_seal5_model:
-            model: "dict[str, Union[arch.InstructionSet, ...]]" = pickle.load(f)
-            model["cores"] = {}
-        else:  # TODO: core vs. set!
-            temp: "dict[str, Union[arch.InstructionSet, arch.CoreDef]]" = pickle.load(f)
-            assert len(temp) > 0, "Empty model!"
-            if isinstance(list(temp.values())[0], arch.CoreDef):
-                model = {"cores": temp, "sets": {}}
-            elif isinstance(list(temp.values())[0], arch.InstructionSet):
-                model = {"sets": temp, "cores": {}}
-            else:
-                assert False
+    model_obj = load_model(top_level, compat=args.compat)
 
     # preprocess model
     # print("model", model["sets"]["XCoreVMac"].keys())
@@ -242,12 +213,12 @@ def run(args):
             return opcode not in drop
         return True
 
-    model["sets"] = {
+    model_obj.sets = {
         set_name: set_def
-        for set_name, set_def in model["sets"].items()
+        for set_name, set_def in model_obj.sets.items()
         if check_filter_regex(set_name, keep_sets, drop_sets)
     }
-    for set_name, set_def in model["sets"].items():
+    for set_name, set_def in model_obj.sets.items():
         set_def.instructions = {
             key: instr_def
             for key, instr_def in set_def.instructions.items()
@@ -259,21 +230,11 @@ def run(args):
         # for instr_name, instr_def in set_def.instructions.items():
 
     # Remove sets without instructions
-    model["sets"] = {set_name: set_def for set_name, set_def in model["sets"].items() if len(set_def.instructions) > 0}
+    model_obj.sets = {
+        set_name: set_def for set_name, set_def in model_obj.sets.items() if len(set_def.instructions) > 0
+    }
 
-    logger.info("dumping model")
-    with open(model_path, "wb") as f:
-        if is_seal5_model:
-            pickle.dump(model, f)
-        else:
-            if len(model["sets"]) > 0:
-                assert len(model["cores"]) == 0
-                pickle.dump(model["sets"], f)
-            elif len(model["cores"]) > 0:
-                assert len(model["sets"]) == 0
-                pickle.dump(model["cores"], f)
-            else:
-                assert False
+    dump_model(model_obj, out_path, compat=args.compat)
 
 
 def main(argv):

@@ -11,16 +11,16 @@
 import argparse
 import logging
 import pathlib
-import pickle
 import tkinter as tk
 from collections import defaultdict
 from tkinter import ttk
 from anytree import Node, RenderTree
 
-from m2isar.backends.viewer_seal5.utils import TkTreeGenContext, TextTreeGenContext
+from m2isar.metamodel import arch, patch_model
+from seal5.model_utils import load_model
 
-from ...metamodel import arch, patch_model
 from . import treegen
+from .utils import TkTreeGenContext, TextTreeGenContext
 
 logger = logging.getLogger("viewer")
 
@@ -41,6 +41,7 @@ def main():
     parser.add_argument("--text", "-t", action="store_true", help="TODO")
     parser.add_argument("--operation", "-o", action="store_true", help="TODO")
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
+    parser.add_argument("--compat", action="store_true")
     args = parser.parse_args()
 
     # initialize logging
@@ -50,7 +51,7 @@ def main():
     top_level = pathlib.Path(args.top_level)
     abs_top_level = top_level.resolve()
     search_path = abs_top_level.parent.parent
-    model_fname = abs_top_level
+    # model_fname = abs_top_level
 
     if abs_top_level.suffix == ".core_desc":
         logger.warning(".core_desc file passed as input. This is deprecated behavior, please change your scripts!")
@@ -59,16 +60,12 @@ def main():
 
         if not model_path.exists():
             raise FileNotFoundError("Models not generated!")
-        model_fname = model_path / (abs_top_level.stem + ".m2isarmodel")
+        # model_fname = model_path / (abs_top_level.stem + ".m2isarmodel")
 
     output_base_path = search_path.joinpath("gen_output")
     output_base_path.mkdir(exist_ok=True)
 
-    logger.info("loading models")
-
-    # load models
-    with open(model_fname, "rb") as f:
-        models: "dict[str, dict]" = pickle.load(f)
+    model_obj = load_model(top_level, compat=args.compat)
 
     # preprocess model
     # for core_name, core in models.items():
@@ -100,7 +97,7 @@ def main():
         tree.heading(1, text="Value")
 
     # add each core to the treeview
-    for set_name, set_def in sorted(models["sets"].items()):
+    for set_name, set_def in sorted(model_obj.sets.items()):
         if args.text:
             set_node = Node("Set", parent=sets_node, value=set_name)
             # add constants to tree

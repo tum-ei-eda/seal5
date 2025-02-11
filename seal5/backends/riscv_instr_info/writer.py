@@ -11,8 +11,7 @@
 import argparse
 import logging
 import pathlib
-import pickle
-from typing import Union, Optional
+from typing import Optional
 
 import pandas as pd
 
@@ -23,6 +22,7 @@ from m2isar.metamodel import arch
 from seal5.index import NamedPatch, File, write_index_yaml
 from seal5.utils import is_power_of_two
 from seal5.settings import IntrinsicDefn, ExtensionsSettings
+from seal5.model_utils import load_model
 
 # from seal5.settings import ExtensionsSettings
 
@@ -257,6 +257,7 @@ def main():
         action="store_false",
         help="Suppress patterns for intrinsic functions",
     )
+    parser.add_argument("--compat", action="store_true")
     args = parser.parse_args()
 
     # initialize logging
@@ -264,39 +265,9 @@ def main():
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
-    # abs_top_level = top_level.resolve()
+    out_path = pathlib.Path(args.output)
 
-    is_seal5_model = False
-    # print("top_level", top_level)
-    # print("suffix", top_level.suffix)
-    if top_level.suffix == ".seal5model":
-        is_seal5_model = True
-    if args.output is not None:
-        out_path = pathlib.Path(args.output)
-    else:
-        assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
-        # out_path = top_level.parent / (top_level.stem + ".core_desc")
-        raise NotImplementedError
-
-    logger.info("loading models")
-    if not is_seal5_model:
-        raise NotImplementedError
-
-    # load models
-    with open(top_level, "rb") as f:
-        # models: "dict[str, arch.CoreDef]" = pickle.load(f)
-        if is_seal5_model:
-            model: "dict[str, Union[arch.InstructionSet, ...]]" = pickle.load(f)
-            model["cores"] = {}
-        else:  # TODO: core vs. set!
-            temp: "dict[str, Union[arch.InstructionSet, arch.CoreDef]]" = pickle.load(f)
-            assert len(temp) > 0, "Empty model!"
-            if isinstance(list(temp.values())[0], arch.CoreDef):
-                model = {"cores": temp, "sets": {}}
-            elif isinstance(list(temp.values())[0], arch.InstructionSet):
-                model = {"sets": temp, "cores": {}}
-            else:
-                assert False
+    model_obj = load_model(top_level, compat=args.compat)
 
     metrics = {
         "n_sets": 0,
@@ -313,13 +284,13 @@ def main():
     }
     # preprocess model
     # print("model", model)
-    settings = model.get("settings", None)
+    settings = model_obj.settings
     artifacts = {}
     artifacts[None] = []  # used for global artifacts
     if args.splitted:
         content = ""
         # errs = []
-        for set_name, set_def in model["sets"].items():
+        for set_name, set_def in model_obj.sets.items():
             metrics["n_sets"] += 1
             set_name_lower = set_name.lower()
             artifacts[set_name] = []

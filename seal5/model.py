@@ -26,8 +26,9 @@ from m2isar.metamodel.arch import (
     SizedRefOrConst,
 )
 from m2isar.metamodel.behav import Operation, BinaryOperation, Operator, NamedReference, IntLiteral, SliceOperation
+from m2isar.metamodel import M2Model
 
-from seal5.settings import ExtensionsSettings
+from seal5.settings import Seal5Settings, ExtensionsSettings
 
 
 class Seal5InstructionSet(InstructionSet):
@@ -305,11 +306,12 @@ class Seal5Instruction(Instruction):
         mnemonic: str,
         assembly: str,
         operation: Operation,
+        function_info: "FunctionInfo",
         constraints: "list[Seal5Constraint]",
         operands: "dict[str, Seal5Operand]",
     ):
         del operands  # TODO: use
-        super().__init__(name, attributes, encoding, mnemonic, assembly, operation)
+        super().__init__(name, attributes, encoding, mnemonic, assembly, operation, function_info)
         self.constraints = constraints
         self.operands = {}
         self._llvm_asm_str = None
@@ -598,3 +600,10 @@ class Seal5Instruction(Instruction):
 
         # raise NotImplementedError
         return ret
+
+
+SEAL5_METAMODEL_VERSION = 2
+
+
+class Seal5Model(M2Model):
+    settings: Seal5Settings = None
