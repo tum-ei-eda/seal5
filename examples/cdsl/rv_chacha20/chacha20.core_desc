@@ -17,20 +17,14 @@ import "../rv_base/RV32I.core_desc"
 
 // InstructionSet XChaCha extends RISCVBase {
 InstructionSet XExample extends RV32I {
-    functions {
-        unsigned<32> rotl32(unsigned<32> x, unsigned<32> n) [[inline]] {
-            return (x << n) | (x >> (32 - n));
-            // return (x << n) | (x >> (-(n)&31));
-        }
-    }
-
     instructions {
         CV_CHACHA20QR1 {
             encoding: 7'b0000000 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b0001011;
             assembly: "xexample.chacha20qr1, {name(rd)}, {name(rs1)}, {name(rs2)}";
             behavior: {
                 if (rd != 0) {
-                    X[rd] = rotl32(X[rs1] ^ X[rs2], 16);
+                    unsigned<32> xor = X[rs1] ^ X[rs2];
+                    X[rd] = (xor << 16) | (xor >> 16);
                 }
             }
         }
@@ -39,7 +33,8 @@ InstructionSet XExample extends RV32I {
             assembly: "xexample.chacha20qr2, {name(rd)}, {name(rs1)}, {name(rs2)}";
             behavior: {
                 if (rd != 0) {
-                    X[rd] = rotl32(X[rs1] ^ X[rs2], 12);
+                    unsigned<32> xor = X[rs1] ^ X[rs2];
+                    X[rd] = (xor << 12) | (xor >> 20);
                 }
             }
         }
@@ -48,7 +43,8 @@ InstructionSet XExample extends RV32I {
             assembly: "xexample.chacha20qr3, {name(rd)}, {name(rs1)}, {name(rs2)}";
             behavior: {
                 if (rd != 0) {
-                    X[rd] = rotl32(X[rs1] ^ X[rs2], 8);
+                    unsigned<32> xor = X[rs1] ^ X[rs2];
+                    X[rd] = (xor << 8) | (xor >> 24);
                 }
             }
         }
@@ -57,9 +53,8 @@ InstructionSet XExample extends RV32I {
             assembly: "xexample.chacha20qr4, {name(rd)}, {name(rs1)}, {name(rs2)}";
             behavior: {
                 if (rd != 0) {
-                    X[rd] = rotl32(X[rs1] ^ X[rs2], 7);
+                    unsigned<32> xor = X[rs1] ^ X[rs2];
+                    X[rd] = (xor << 7) | (xor >> 25);
                 }
             }
         }
-    }
-}
