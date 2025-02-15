@@ -501,7 +501,6 @@ class Seal5Flow:
 
     def build(self, config=None, target="all", verbose: bool = False, **kwargs):
         """Build Seal5 LLVM."""
-        del verbose  # unused
         logger.info("Building Seal5 LLVM (%s)", target)
         start = time.time()
         metrics = {}
@@ -520,6 +519,7 @@ class Seal5Flow:
             target=target,
             use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
             ccache_settings=ccache_settings,
+            verbose=verbose,
         )
         end = time.time()
         diff = end - start
@@ -532,7 +532,6 @@ class Seal5Flow:
 
     def install(self, dest: Optional[Union[str, Path]] = None, config=None, verbose: bool = False, **kwargs):
         """Install Seal5 LLVM."""
-        del verbose  # unused
         # TODO: implement compress?
         if dest is None:
             dest = self.settings.install_dir / config
@@ -559,6 +558,7 @@ class Seal5Flow:
             target=None,
             install=True,
             install_dir=dest,
+            verbose=verbose,
         )
         end = time.time()
         diff = end - start
