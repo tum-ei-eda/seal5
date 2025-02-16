@@ -141,7 +141,9 @@ def handle_meta_dir(meta_dir: Optional[Union[str, Path]], directory: Union[str, 
     """Handle selection of meta directory."""
     # TODO: handle environment vars
     if meta_dir is None:
-        meta_dir = "default"
+        meta_dir = os.getenv("SEAL5_META_DIR")
+        if meta_dir is None:
+            meta_dir = "default"
     if meta_dir == "default":
         if not isinstance(directory, Path):
             assert isinstance(directory, str)
@@ -182,7 +184,7 @@ class Seal5Flow:
         self, directory: Optional[Path] = None, meta_dir: Optional[Union[str, Path]] = None, name: Optional[str] = None
     ):
         self.directory: Path = handle_directory(directory)
-        self.meta_dir: Path = handle_meta_dir(meta_dir, directory, name)
+        self.meta_dir: Path = handle_meta_dir(meta_dir, self.directory, name)
         self.name: str = name
         self.state: Seal5State = Seal5State.UNKNOWN
         self.passes: List[Seal5Pass] = []
