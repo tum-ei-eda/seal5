@@ -37,8 +37,19 @@ def str2bool(value, allow_none=False):
         return value
     if isinstance(value, (int, bool)):
         return bool(value)
-    assert isinstance(value, str)
-    return bool(distutils.util.strtobool(value))
+    assert isinstance(value, str), "Expected str value"
+    # return bool(distutils.util.strtobool(value))
+    value = value.strip()
+    if value.isdigit():
+        return bool(int(value))
+    value = value.lower()
+    if value in ["true", "on", "yes"]:
+        return True
+    if value in ["false", "off", "no"]:
+        return False
+    assert False, f"Unhandled case: {value}"
+
+
 
 
 def copy(src, dest):
