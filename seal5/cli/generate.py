@@ -17,7 +17,6 @@
 # limitations under the License.
 #
 """Generating Seal5 patches"""
-from os import getenv
 
 from seal5.flow import Seal5Flow
 from seal5.logging import get_logger
@@ -55,12 +54,6 @@ def get_parser(subparsers):
 
 def handle(args):
     """Callback function which will be called to process the generate subcommand"""
-    if args.dir is None:
-        home_dir = getenv("SEAL5_HOME")
-        if home_dir is not None:
-            args.dir = home_dir
-        else:
-            logger.error("Seal5_HOME Env var not specified !!!")
     seal5_flow = Seal5Flow(args.dir, name=args.name)
     seal5_flow.generate(
         verbose=args.verbose,

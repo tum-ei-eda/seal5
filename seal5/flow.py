@@ -128,7 +128,10 @@ def handle_directory(directory: Optional[Path]):
     """Process passed directory."""
     # TODO: handle environment vars
     if directory is None:
-        assert NotImplementedError
+        home_dir = os.getenv("SEAL5_HOME")
+        if home_dir is None:
+            raise RuntimeError("Unable to resolve SEAL5_HOME")
+        directory = home_dir
     if not isinstance(directory, Path):
         directory = Path(directory)
     return directory.resolve()
