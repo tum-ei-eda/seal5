@@ -174,7 +174,8 @@ def run_seal5_flow(
 
     if install:
         # Install final LLVM
-        seal5_flow.install(dest=out_dir, verbose=verbose, config=build_config, enable_ccache=ccache)
+        install_dir = None if out_dir is None else Path(out_dir) / "seal5_llvm_instal"
+        seal5_flow.install(dest=install_dir, verbose=verbose, config=build_config, enable_ccache=ccache)
 
     if deploy:
         # Deploy patched LLVM (export sources)
