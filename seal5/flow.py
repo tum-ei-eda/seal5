@@ -203,6 +203,7 @@ class Seal5Flow:
                     console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level
                 )
         self.name = self.settings.name if name is None else name
+        self.name = "default" if self.name is None else self.name
         self.settings.name = self.name
         self.settings.name = self.settings.name if name is None else name
         self.reset_passes()
