@@ -79,7 +79,7 @@ jobs:
         - "1"
         llvm-ref:
         - "llvmorg-18.1.0-rc3"
-        - "llvmorg-19.1.0"
+        - "llvmorg-19.1.7"
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
@@ -250,4 +250,3 @@ jobs:
              Grouped_stat_prop_result_cv_wo_instr.html
              Grouped_stat_prop_result_test.html
              Grouped_stat_prop_result_test_wo_instr.html
-

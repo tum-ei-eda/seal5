@@ -49,7 +49,7 @@ RUN . /venv/bin/activate && pip install . --no-cache-dir
 CMD ["seal5"]
 
 ARG LLVM_REPO="https://github.com/llvm/llvm-project.git"
-ARG LLVM_REF="llvmorg-19.1.6"
+ARG LLVM_REF="llvmorg-19.1.7"
 ARG CLONE_DEPTH=1
 FROM seal5-base AS seal5-quickstart
 WORKDIR /seal5

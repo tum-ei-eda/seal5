@@ -18,7 +18,7 @@ on:
       llvm-ref:
         description: "LLVM Version"
         required: true
-        default: "llvmorg-19.1.6"
+        default: "llvmorg-19.1.7"
 
 jobs:
   image-deps:
