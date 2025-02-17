@@ -20,7 +20,7 @@
 import os
 import sys
 import shutil
-import distutils
+# import distutils
 import subprocess
 import multiprocessing
 from pathlib import Path
@@ -48,8 +48,6 @@ def str2bool(value, allow_none=False):
     if value in ["false", "off", "no"]:
         return False
     assert False, f"Unhandled case: {value}"
-
-
 
 
 def copy(src, dest):

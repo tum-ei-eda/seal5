@@ -18,7 +18,6 @@
 #
 """Command line subcommand for Exporting Seal5 artifacts"""
 
-from seal5.flow import Seal5Flow
 from seal5.logging import get_logger
 from seal5.wrapper import run_seal5_flow
 
