@@ -538,6 +538,10 @@ class Seal5Flow:
 
     def install(self, dest: Optional[Union[str, Path]] = None, config=None, verbose: bool = False, **kwargs):
         """Install Seal5 LLVM."""
+        start = time.time()
+        metrics = {}
+        if config is None:
+            config = self.settings.llvm.default_config
         # TODO: implement compress?
         if dest is None:
             dest = self.settings.install_dir / config
@@ -545,10 +549,6 @@ class Seal5Flow:
             dest = Path(dest)
         dest.mkdir(exist_ok=True)
         logger.info("Installing Seal5 LLVM to: %s", dest)
-        start = time.time()
-        metrics = {}
-        if config is None:
-            config = self.settings.llvm.default_config
         llvm_config = self.settings.llvm.configs.get(config, None)
         assert llvm_config is not None, f"Invalid llvm config: {config}"
         cmake_options = llvm_config.options
