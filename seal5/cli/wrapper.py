@@ -18,33 +18,37 @@
 #
 """Command line subcommand for Exporting Seal5 artifacts"""
 
-from seal5.flow import Seal5Flow
 from seal5.logging import get_logger
+from seal5.wrapper import run_seal5_flow
 
 
 logger = get_logger()
 
 
-def add_export_options(parser):
-    """Setup parser for export argument group."""
-    export_parser = parser.add_argument_group("export options")
-    export_parser.add_argument(
-        "--dest",
+def add_wrapper_options(parser):
+    """Setup parser for wrapper argument group."""
+    wrapper_parser = parser.add_argument_group("wrapper options")
+    wrapper_parser.add_argument(
+        "files",
+        nargs="*",
+        help="Input files for seal5 flow",
+    )
+    wrapper_parser.add_argument(
+        "--out-dir",
         type=str,
         default=None,
-        help="Path to which compressed artifacts should go",
+        help="Destination of artifacts",
     )
 
 
 def get_parser(subparsers):
-    """ "Define and return a subparser for the export subcommand."""
-    parser = subparsers.add_parser("export", description="Export Seal5 artifacts.")
+    """ "Define and return a subparser for the wrapper subcommand."""
+    parser = subparsers.add_parser("wrapper", description="Run Seal5 Wrapper.")
     parser.set_defaults(func=handle)
-    add_export_options(parser)
+    add_wrapper_options(parser)
     return parser
 
 
 def handle(args):
     """Callback function which will be called to process the export subcommand"""
-    seal5_flow = Seal5Flow(args.dir, name=args.name)
-    seal5_flow.export(dest=args.dest, verbose=args.verbose)
+    run_seal5_flow(args.files, dest=args.dir, out_dir=args.out_dir)

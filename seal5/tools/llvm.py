@@ -88,7 +88,7 @@ def clone_llvm_repo(
     sha = None
     version_info = {}
     repo = None
-    if dest.is_dir():
+    if dest.is_dir() and utils.is_populated(dest):
         if refresh:
             logger.debug("Refreshing LLVM repository: %s", dest)
             repo = git.Repo(dest)

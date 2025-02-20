@@ -1,0 +1,89 @@
+# Docker Images for Seal5
+
+## Prerequisites
+
+In addition to a regular Docker installation, `buildx` is required for building the Seal5 images.
+
+```sh
+sudo apt install docker-buildx-plugin
+```
+
+## Container/Image Types
+
+### Deps
+
+The `seal5-deps` image is an Ubuntu images with all the operating system packages required by Seal5 and its dependencies.
+
+### Base
+
+The `seal5-base` image contains an installation of the Seal5 Python package with all dependencies. Use this if you want to initialize your own `SEAL5_HOME` on a host directory mounted within the container.
+
+### Quickstart
+
+The image `seal5-quickstart` builds up on the user `seal5-base` image by initializing and installing a specific environment on it. The defined LLVM version is cloned and the initial (`STAGE_0`) Seal5 passes already applied. This offers the fastest experience which should produce a patched LLVM version within a few minutes. The `SEAL5_HOME` has to be located inside the container, build artifacts can be accessed via docker volumes/mount points (see below).
+
+## Usage
+
+### Pulling Prebuilt Images
+
+TODO
+
+### Building Images
+
+#### Available Dockerfiles
+
+#### Command line (local)
+
+You can build the images as follows:
+
+```sh
+# Execute from top level of repository
+
+# Build seal5-deps image
+docker buildx build . -f docker/Dockerfile --tag tumeda/seal5-deps:latest-ubuntu-20.04 --target seal5-deps
+
+# Build seal5-base image
+docker buildx build . -f docker/Dockerfile --tag tumeda/seal5-base:latest-ubuntu-20.04 --target seal5-base
+
+# Build seal5-quickstart image (takes a long time)
+docker buildx build . -f docker/Dockerfile --tag tumeda/seal5-quickstart:latest-ubuntu-20.04-llvmorg-19.1.6 --target seal5-quickstart
+```
+
+Build times (excluding pulling of base image) on 18-core workstation:
+
+- `seal5-deps`: 56s
+- `seal5-base`: 71s full, 25s incremental
+- `seal5-quickstart`: 1054s full, 984s incremental
+
+Image sizes:
+
+- `seal5-deps`: `723MB`
+- `seal5-base`: `895MB`
+- `seal5-quickstart`: `8.91GB`
+
+#### Via GitHub Actions (online)
+
+**Manual builds**
+
+Use the `Run Workflow` button on https://github.com/tum-ei-eda/seal5/actions/workflows/container.yml to build images for a specific OS & LLVM version.
+
+**CI Setup for DockerHub**
+
+If you want to use the actions on a fork, they will fail due to missing docker credentials. Please export the followinf variables via `Settings -> Secrets -> Actions` to tell the jobs about your username and password:
+
+- `DOCKER_PASSWORD`
+- `DOCKER_USERNAME` (i.e. `tumeda`)
+- `DOCKER_REGISTRY` (i.e. `docker.io`, `ghcr.io`)
+- `DOCKER_NAMESPACE` (i.e. `tumeda`, `path/to/container`)
+
+### Running the Images in Docker Containers
+
+To use the previously built images, run the following commands
+
+```sh
+# seal5-base
+docker run -it --rm -v $(pwd):$(pwd) -v /tmp/seal5_llvm:/seal5_llvm tumeda/seal5-base seal5 --dir /seal5_llvm wrapper $(pwd)/examples/cdsl/rv_example/Example.core_desc $(pwd)/examples/cfg/patches.yml $(pwd)/examples/cfg/git.yml $(pwd)/examples/cfg/llvm.yml $(pwd)/examples/cfg/filter.yml
+
+# seal5-quickstart
+docker run -it --rm -v $(pwd):$(pwd) -v /tmp/seal5_out:/out tumeda/seal5-quickstart seal5 wrapper $(pwd)/examples/cdsl/rv_example/Example.core_desc --out /out
+```

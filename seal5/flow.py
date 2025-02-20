@@ -128,7 +128,10 @@ def handle_directory(directory: Optional[Path]):
     """Process passed directory."""
     # TODO: handle environment vars
     if directory is None:
-        assert NotImplementedError
+        home_dir = os.getenv("SEAL5_HOME")
+        if home_dir is None:
+            raise RuntimeError("Unable to resolve SEAL5_HOME")
+        directory = home_dir
     if not isinstance(directory, Path):
         directory = Path(directory)
     return directory.resolve()
@@ -138,7 +141,9 @@ def handle_meta_dir(meta_dir: Optional[Union[str, Path]], directory: Union[str, 
     """Handle selection of meta directory."""
     # TODO: handle environment vars
     if meta_dir is None:
-        meta_dir = "default"
+        meta_dir = os.getenv("SEAL5_META_DIR")
+        if meta_dir is None:
+            meta_dir = "default"
     if meta_dir == "default":
         if not isinstance(directory, Path):
             assert isinstance(directory, str)
@@ -179,11 +184,13 @@ class Seal5Flow:
         self, directory: Optional[Path] = None, meta_dir: Optional[Union[str, Path]] = None, name: Optional[str] = None
     ):
         self.directory: Path = handle_directory(directory)
-        self.meta_dir: Path = handle_meta_dir(meta_dir, directory, name)
+        self.meta_dir: Path = handle_meta_dir(meta_dir, self.directory, name)
         self.name: str = name
         self.state: Seal5State = Seal5State.UNKNOWN
         self.passes: List[Seal5Pass] = []
-        self.repo: Optional[git.Repo] = git.Repo(self.directory) if self.directory.is_dir() else None
+        self.repo: Optional[git.Repo] = (
+            git.Repo(self.directory) if self.directory.is_dir() and utils.is_populated(self.directory) else None
+        )
         self.check()
         self.settings: Seal5Settings = Seal5Settings.from_dict({"meta_dir": str(self.meta_dir), **DEFAULT_SETTINGS})
         # self.settings: Seal5Settings = Seal5Settings(directory=self.directory)
@@ -198,6 +205,7 @@ class Seal5Flow:
                     console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level
                 )
         self.name = self.settings.name if name is None else name
+        self.name = "default" if self.name is None else self.name
         self.settings.name = self.name
         self.settings.name = self.settings.name if name is None else name
         self.reset_passes()
@@ -501,7 +509,6 @@ class Seal5Flow:
 
     def build(self, config=None, target="all", verbose: bool = False, **kwargs):
         """Build Seal5 LLVM."""
-        del verbose  # unused
         logger.info("Building Seal5 LLVM (%s)", target)
         start = time.time()
         metrics = {}
@@ -520,6 +527,7 @@ class Seal5Flow:
             target=target,
             use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
             ccache_settings=ccache_settings,
+            verbose=verbose,
         )
         end = time.time()
         diff = end - start
@@ -532,7 +540,10 @@ class Seal5Flow:
 
     def install(self, dest: Optional[Union[str, Path]] = None, config=None, verbose: bool = False, **kwargs):
         """Install Seal5 LLVM."""
-        del verbose  # unused
+        start = time.time()
+        metrics = {}
+        if config is None:
+            config = self.settings.llvm.default_config
         # TODO: implement compress?
         if dest is None:
             dest = self.settings.install_dir / config
@@ -540,10 +551,6 @@ class Seal5Flow:
             dest = Path(dest)
         dest.mkdir(exist_ok=True)
         logger.info("Installing Seal5 LLVM to: %s", dest)
-        start = time.time()
-        metrics = {}
-        if config is None:
-            config = self.settings.llvm.default_config
         llvm_config = self.settings.llvm.configs.get(config, None)
         assert llvm_config is not None, f"Invalid llvm config: {config}"
         cmake_options = llvm_config.options
@@ -559,6 +566,7 @@ class Seal5Flow:
             target=None,
             install=True,
             install_dir=dest,
+            verbose=verbose,
         )
         end = time.time()
         diff = end - start
