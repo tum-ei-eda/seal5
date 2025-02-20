@@ -15,7 +15,7 @@ import pathlib
 
 import pandas as pd
 
-from m2isar.metamodel import behav, patch_model
+from m2isar.metamodel import arch, behav, patch_model
 
 from seal5.model_utils import load_model
 

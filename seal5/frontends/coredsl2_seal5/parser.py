@@ -14,7 +14,7 @@ import pickle
 import sys
 
 from m2isar import M2Error, M2SyntaxError
-from m2isar.metamodel import M2_METAMODEL_VERSION, M2Model, arch, behav, patch_model
+from m2isar.metamodel import M2_METAMODEL_VERSION, M2Model, behav, patch_model
 from m2isar.metamodel.code_info import CodeInfoBase
 from . import expr_interpreter
 from .architecture_model_builder import ArchitectureModelBuilder
