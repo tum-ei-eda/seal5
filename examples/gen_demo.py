@@ -35,11 +35,7 @@ DEST = os.environ.get("DEST", DEST_DIR + "/seal5_llvm_corev").rstrip("/")
 FILES = [
     # CoreDSL inputs
     # EXAMPLES_DIR / "cdsl" / "rv_gen" / "all_v7.core_desc",
-    EXAMPLES_DIR
-    / "cdsl"
-    / "rv_gen"
-    / "all_v9.core_desc",
-
+    EXAMPLES_DIR / "cdsl" / "rv_gen" / "all_v9.core_desc",
     # YAML inputs
     EXAMPLES_DIR / "cfg" / "gen" / "all.yml",
     EXAMPLES_DIR / "cfg" / "gen" / "riscv.yml",

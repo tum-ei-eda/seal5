@@ -40,7 +40,6 @@ FILES = [
     EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVSimd.core_desc",
     EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVMem.core_desc",
     # EXAMPLES_DIR / "cdsl" / "rv_xcorev" / "XCoreVBranchImmediate.core_desc",
-
     # Test inputs
     EXAMPLES_DIR / "tests" / "xcorev" / "alu" / "*.c",
     EXAMPLES_DIR / "tests" / "xcorev" / "alu" / "*.s",
@@ -56,7 +55,6 @@ FILES = [
     # EXAMPLES_DIR / "tests" / "xcorev" / "simd" / "*.ll",
     # EXAMPLES_DIR / "tests" / "xcorev" / "mem" / "*.s",
     # EXAMPLES_DIR / "tests" / "xcorev" / "mem" / "*.ll",
-
     # YAML inputs
     EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVMac.yml",
     EXAMPLES_DIR / "cfg" / "xcorev" / "XCoreVAlu.yml",
