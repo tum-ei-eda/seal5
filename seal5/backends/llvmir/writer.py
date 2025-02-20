@@ -12,16 +12,13 @@ import os
 import argparse
 import logging
 import pathlib
-import pickle
-from typing import Union
-
-from m2isar.metamodel import arch
 
 import pandas as pd
 
 from seal5.tools import cdsl2llvm
 from seal5.model import Seal5InstrAttribute
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
+from seal5.model_utils import load_model
 
 logger = logging.getLogger("llvmir_behavior_writer")
 
@@ -37,6 +34,7 @@ def main():
     parser.add_argument("--splitted", action="store_true", help="Split per set and instruction")
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
     parser.add_argument("--ext", type=str, default="ll", help="Default file extension (if using --splitted)")
+    parser.add_argument("--compat", action="store_true")
     args = parser.parse_args()
 
     # initialize logging
@@ -44,40 +42,10 @@ def main():
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
-    # abs_top_level = top_level.resolve()
+    out_path = pathlib.Path(args.output)
+    model_name = top_level.stem
 
-    is_seal5_model = False
-    # print("top_level", top_level)
-    # print("suffix", top_level.suffix)
-    if top_level.suffix == ".seal5model":
-        is_seal5_model = True
-    if args.output is not None:
-        out_path = pathlib.Path(args.output)
-    else:
-        assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
-        # out_path = top_level.parent / (top_level.stem + ".core_desc")
-        raise NotImplementedError
-
-    logger.info("loading models")
-    if not is_seal5_model:
-        raise NotImplementedError
-
-    # load models
-    with open(top_level, "rb") as f:
-        # models: "dict[str, arch.CoreDef]" = pickle.load(f)
-        if is_seal5_model:
-            model: "dict[str, Union[arch.InstructionSet, ...]]" = pickle.load(f)
-            model["cores"] = {}
-        else:  # TODO: core vs. set!
-            temp: "dict[str, Union[arch.InstructionSet, arch.CoreDef]]" = pickle.load(f)
-            assert len(temp) > 0, "Empty model!"
-            if isinstance(list(temp.values())[0], arch.CoreDef):
-                model = {"cores": temp, "sets": {}}
-            elif isinstance(list(temp.values())[0], arch.InstructionSet):
-                model = {"sets": temp, "cores": {}}
-            else:
-                assert False
-        model_name = top_level.stem
+    model_obj = load_model(top_level, compat=args.compat)
 
     # preprocess model
     # print("model", model)
@@ -91,7 +59,7 @@ def main():
         "failed_instructions": [],
         "success_instructions": [],
     }
-    settings = model.get("settings", None)
+    settings = model_obj.settings
     if args.splitted:
         # errs = []
         # model_includes = []
@@ -106,7 +74,7 @@ def main():
             riscv_settings = None
 
         assert out_path.is_dir(), "Expecting output directory when using --splitted"
-        for set_name, set_def in model["sets"].items():
+        for set_name, set_def in model_obj.sets.items():
             xlen = set_def.xlen
             metrics["n_sets"] += 1
             ext_settings = set_def.settings
@@ -142,7 +110,7 @@ def main():
                 features = [*default_features]
                 if ext_settings is not None:
                     arch_ = ext_settings.get_arch(name=set_name)
-                    if arch is not None:
+                    if arch_ is not None:
                         features.append(arch_)
                     riscv_settings = ext_settings.riscv
                     if riscv_settings is not None:

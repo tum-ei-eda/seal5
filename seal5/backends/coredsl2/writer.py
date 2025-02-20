@@ -12,12 +12,12 @@ import copy
 import argparse
 import logging
 import pathlib
-import pickle
-from typing import Union
 
 import pandas as pd
 
 from m2isar.metamodel import arch, behav, patch_model
+
+from seal5.model_utils import load_model
 
 from . import visitor
 
@@ -25,10 +25,10 @@ logger = logging.getLogger("coredsl2_writer")
 
 
 class CoreDSL2Writer:
-    # def __init__(self, compat=False):
-    def __init__(self, compat=True, version="coredsl2"):
+    # def __init__(self, reduced=False):
+    def __init__(self, reduced=True, version="coredsl2"):
         self.version = version
-        self.compat = compat  # Reduced syntax for cdsl2llvm parser
+        self.reduced = reduced  # Reduced syntax for cdsl2llvm parser
         self.text = ""
         self.indent_str = "    "
         self.level = 0
@@ -106,7 +106,7 @@ class CoreDSL2Writer:
         if val is not None:
             if isinstance(val, list) and len(val) == 0:
                 val = None
-        if self.compat and val is not None:
+        if self.reduced and val is not None:
             return
         self.write("[[")
         self.write(attr.name.lower())
@@ -168,7 +168,7 @@ class CoreDSL2Writer:
         # self.leave_block()
 
     def write_functions(self, functions):
-        if self.compat:
+        if self.reduced:
             return
         self.write("functions")
         # TODO: attributes
@@ -212,7 +212,7 @@ class CoreDSL2Writer:
                     self.write(";", nl=True)
 
     def write_instruction_constraints(self, constraints, operands):
-        if self.compat:
+        if self.reduced:
             return
         self.write("constraints: ")
         if len(constraints) == 0:
@@ -255,24 +255,24 @@ class CoreDSL2Writer:
         self.write("assembly: ")
         mnemonic = instruction.mnemonic
         assembly = instruction.assembly
-        if mnemonic and not self.compat:
+        if mnemonic and not self.reduced:
             self.write("{")
             self.write(f'"{mnemonic}"')
             self.write(", ")
         if assembly is None:
             assembly = ""
         self.write(f'"{assembly}"')
-        if mnemonic and not self.compat:
+        if mnemonic and not self.reduced:
             self.write("}")
         self.write(";", nl=True)
 
     def write_behavior(self, instruction):
         self.write("behavior: ")
         op = instruction.operation
-        if self.compat:
+        if self.reduced:
             self.enter_block()
         op.generate(self)
-        if self.compat:
+        if self.reduced:
             self.leave_block()
         # self.write(";", nl=True)
 
@@ -334,10 +334,11 @@ def main():
     parser.add_argument("top_level", help="A .m2isarmodel or .seal5model file.")
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument("--output", "-o", type=str, default=None)
-    parser.add_argument("--compat", action="store_true", help="Generate pattern-gen compatible syntax")
+    parser.add_argument("--reduced", action="store_true", help="Generate pattern-gen compatible syntax")
     parser.add_argument("--splitted", action="store_true", help="Split per set and instruction")
     parser.add_argument("--ext", type=str, default="core_desc", help="Default file extension (if using --splitted)")
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
+    parser.add_argument("--compat", action="store_true")
     args = parser.parse_args()
 
     # initialize logging
@@ -345,39 +346,9 @@ def main():
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
-    # abs_top_level = top_level.resolve()
+    out_path = pathlib.Path(args.output)
 
-    is_seal5_model = False
-    # print("top_level", top_level)
-    # print("suffix", top_level.suffix)
-    if top_level.suffix == ".seal5model":
-        is_seal5_model = True
-    if args.output is None:
-        assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
-
-        out_path = top_level.parent / (top_level.stem + ".core_desc")
-    else:
-        out_path = pathlib.Path(args.output)
-
-    logger.info("loading models")
-    if not is_seal5_model:
-        raise NotImplementedError
-
-    # load models
-    with open(top_level, "rb") as f:
-        # models: "dict[str, arch.CoreDef]" = pickle.load(f)
-        if is_seal5_model:
-            model: "dict[str, Union[arch.InstructionSet, ...]]" = pickle.load(f)
-            model["cores"] = {}
-        else:  # TODO: core vs. set!
-            temp: "dict[str, Union[arch.InstructionSet, arch.CoreDef]]" = pickle.load(f)
-            assert len(temp) > 0, "Empty model!"
-            if isinstance(list(temp.values())[0], arch.CoreDef):
-                model = {"cores": temp, "sets": {}}
-            elif isinstance(list(temp.values())[0], arch.InstructionSet):
-                model = {"sets": temp, "cores": {}}
-            else:
-                assert False
+    model_obj = load_model(top_level, compat=args.compat)
 
     # preprocess model
     # print("model", model)
@@ -396,11 +367,11 @@ def main():
     }
     if args.splitted:
         assert out_path.is_dir(), "Expecting output directory when using --splitted"
-        for set_name, set_def in model["sets"].items():
+        for set_name, set_def in model_obj.sets.items():
             metrics["n_sets"] += 1
             for instr_def in set_def.instructions.values():
                 metrics["n_instructions"] += 1
-                writer = CoreDSL2Writer(compat=args.compat)
+                writer = CoreDSL2Writer(reduced=args.reduced)
                 logger.debug("writing instr %s/%s", set_def.name, instr_def.name)
                 patch_model(visitor)
                 set_def_ = copy.deepcopy(set_def)
@@ -424,8 +395,8 @@ def main():
                     metrics["n_failed"] += 1
                     metrics["failed_instructions"].append(instr_def.name)
     else:
-        writer = CoreDSL2Writer(compat=args.compat)
-        for set_name, set_def in model["sets"].items():
+        writer = CoreDSL2Writer(reduced=args.reduced)
+        for set_name, set_def in model_obj.sets.items():
             metrics["n_sets"] += 1
             # print("set", set_def)
             # print("instrs", set_def.instructions)
