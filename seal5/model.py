@@ -322,6 +322,7 @@ class Seal5Instruction(Instruction):
         self._llvm_writes = None
         self._llvm_ins_str = None
         self._llvm_outs_str = None
+        self._llvm_imm_types = None
         self._process_fields()
 
     def _process_fields(self):
@@ -392,7 +393,9 @@ class Seal5Instruction(Instruction):
         asm_order = self.llvm_asm_order
         operands = self.operands
         # check that number of operands is equal
-        assert len(asm_order) == len(operands), "Number of operands does not match (asm vs. CDSL)"
+        assert len(asm_order) == len(
+            operands
+        ), f"Number of operands does not match ({asm_order} vs. {list(operands.keys())})"
         # check that order of operands matches asm syntax
         # for op_idx, op_name in enumerate(operands.keys()):
         #     asm_idx = asm_order.index(f"${op_name}")
@@ -404,6 +407,7 @@ class Seal5Instruction(Instruction):
         writes = []
         constraints = []
         self._llvm_check_operands()
+        imm_types = set()
         for op_name, op in operands.items():
             if len(op.constraints) > 0:
                 raise NotImplementedError
@@ -418,6 +422,7 @@ class Seal5Instruction(Instruction):
                 assert ty[0] in ["u", "s"]
                 sz = int(ty[1:])
                 pre = f"{ty[0]}imm{sz}"
+                imm_types.add(pre)
 
             if Seal5OperandAttribute.INOUT in op.attributes or (
                 Seal5OperandAttribute.OUT in op.attributes and Seal5OperandAttribute.IN in op.attributes
@@ -438,6 +443,7 @@ class Seal5Instruction(Instruction):
         self._llvm_constraints = constraints
         self._llvm_reads = reads
         self._llvm_writes = writes
+        self._llvm_imm_types = imm_types
 
     def _llvm_process_assembly(self):
         asm_str = self.assembly

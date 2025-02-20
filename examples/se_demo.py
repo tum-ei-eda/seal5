@@ -30,22 +30,19 @@ set_log_level(console_level="DEBUG", file_level="DEBUG")
 
 EXAMPLES_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
 DEST_DIR = os.environ.get("DEST_DIR", "/tmp")
-DEST = os.environ.get("DEST", DEST_DIR + "/seal5_llvm_tumeda").rstrip("/")
+DEST = os.environ.get("DEST", DEST_DIR + "/seal5_llvm_se").rstrip("/")
 
 FILES = [
     # CoreDSL inputs
-    EXAMPLES_DIR / "cdsl" / "rv_tumeda" / "XCoreVNand.core_desc",
+    EXAMPLES_DIR / "cdsl" / "riscv-scalar-efficiency" / "insts" / "out_encoded_etiss.core_desc",
     # Test inputs
-    EXAMPLES_DIR / "tests" / "tumeda" / "*.s",
-    EXAMPLES_DIR / "tests" / "tumeda" / "*.ll",
-    EXAMPLES_DIR / "tests" / "tumeda" / "*.c",
     # YAML inputs
+    # EXAMPLES_DIR / "cfg" / "se" / "riscv.yml",
     EXAMPLES_DIR / "cfg" / "llvm.yml",
     EXAMPLES_DIR / "cfg" / "filter.yml",
     EXAMPLES_DIR / "cfg" / "patches.yml",
     EXAMPLES_DIR / "cfg" / "tests.yml",
     EXAMPLES_DIR / "cfg" / "passes.yml",
     EXAMPLES_DIR / "cfg" / "git.yml",
-    EXAMPLES_DIR / "cfg" / "tumeda" / "intrinsics.yml",
 ]
-run_seal5_flow(FILES, name="tumeda", dest=DEST)
+run_seal5_flow(FILES, name="se", dest=DEST)

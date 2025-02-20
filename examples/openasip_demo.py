@@ -30,7 +30,7 @@ set_log_level(console_level="DEBUG", file_level="DEBUG")
 
 EXAMPLES_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
 DEST_DIR = os.environ.get("DEST_DIR", "/tmp")
-DEST = os.environ.get("DEST", DEST_DIR + "/seal5_llvm_corev").rstrip("/")
+DEST = os.environ.get("DEST", DEST_DIR + "/seal5_llvm_openasip").rstrip("/")
 
 FILES = [
     # CoreDSL inputs

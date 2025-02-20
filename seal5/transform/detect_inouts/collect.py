@@ -90,22 +90,20 @@ def run(args):
             try:
                 instr_def.operation.generate(context)
                 for op_name, op_def in instr_def.operands.items():
-                    if seal5.model.Seal5OperandAttribute.IS_IMM in op_def.attributes:
-                        if seal5.model.Seal5OperandAttribute.IN not in op_def.attributes:
+                    if op_name in context.reads and op_name in context.writes:
+                        if seal5.model.Seal5OperandAttribute.INOUT not in instr_def.attributes:
+                            op_def.attributes[seal5.model.Seal5OperandAttribute.INOUT] = []
+                    elif op_name in context.reads:
+                        if seal5.model.Seal5OperandAttribute.IN not in instr_def.attributes:
                             op_def.attributes[seal5.model.Seal5OperandAttribute.IN] = []
-                    else:
-                        if op_name in context.reads and op_name in context.writes:
-                            if seal5.model.Seal5OperandAttribute.INOUT not in op_def.attributes:
-                                op_def.attributes[seal5.model.Seal5OperandAttribute.INOUT] = []
-                        elif op_name in context.reads:
-                            if seal5.model.Seal5OperandAttribute.IN not in op_def.attributes:
-                                op_def.attributes[seal5.model.Seal5OperandAttribute.IN] = []
-                        elif op_name in context.writes:
-                            if seal5.model.Seal5OperandAttribute.OUT not in op_def.attributes:
-                                op_def.attributes[seal5.model.Seal5OperandAttribute.OUT] = []
+                    elif op_name in context.writes:
+                        if seal5.model.Seal5OperandAttribute.OUT not in instr_def.attributes:
+                            op_def.attributes[seal5.model.Seal5OperandAttribute.OUT] = []
                 # print("---")
                 # print("instr_def.scalars.keys()", instr_def.scalars.keys())
                 for reg_name in context.reads:
+                    if reg_name == "PC":
+                        continue
                     # print("reg_name1", reg_name)
                     if reg_name in instr_def.operands.keys():
                         continue
@@ -120,6 +118,8 @@ def run(args):
                     instr_def.attributes[seal5.model.Seal5InstrAttribute.USES] = uses
                 for reg_name in context.writes:
                     # print("reg_name2", reg_name)
+                    if reg_name == "PC":
+                        continue
                     if reg_name in instr_def.operands.keys():
                         continue
                     if reg_name in instr_def.scalars.keys():
