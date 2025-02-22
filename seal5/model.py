@@ -24,9 +24,9 @@ from m2isar.metamodel.arch import (
     BitVal,
     DataType,
     SizedRefOrConst,
-    FunctionInfo,
 )
 from m2isar.metamodel.behav import Operation, BinaryOperation, Operator, NamedReference, IntLiteral, SliceOperation
+from m2isar.metamodel.code_info import FunctionInfo
 from m2isar.metamodel import M2Model
 
 from seal5.settings import Seal5Settings, ExtensionsSettings
