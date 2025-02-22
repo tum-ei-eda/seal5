@@ -142,7 +142,7 @@ def main():
 
         model_obj = load_model(top_level, compat=args.compat)
 
-        for set_name, set_def in model_obj.items():
+        for set_name, set_def in model_obj.sets.items():
             xlen = set_def.xlen
             model = top_level.stem
             filtered_metrics = process_metrics(settings, model=model)
