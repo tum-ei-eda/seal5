@@ -34,16 +34,16 @@ DEST = os.environ.get("DEST", DEST_DIR + "/seal5_llvm_gen").rstrip("/")
 
 FILES = [
     # CoreDSL inputs
-    # EXAMPLES_DIR / "cdsl" / "rv_gen" / "all_v7.core_desc",
-    EXAMPLES_DIR / "cdsl" / "rv_gen" / "all_v9.core_desc",
+    # EXAMPLES_DIR / "gen" / "cdsl" / "all_v7.core_desc",
+    EXAMPLES_DIR / "gen" / "cdsl" / "all_v9.core_desc",
     # YAML inputs
-    EXAMPLES_DIR / "cfg" / "gen" / "all.yml",
-    EXAMPLES_DIR / "cfg" / "gen" / "riscv.yml",
-    EXAMPLES_DIR / "cfg" / "llvm.yml",
-    EXAMPLES_DIR / "cfg" / "filter.yml",
-    EXAMPLES_DIR / "cfg" / "patches.yml",
-    EXAMPLES_DIR / "cfg" / "tests.yml",
-    EXAMPLES_DIR / "cfg" / "passes.yml",
-    EXAMPLES_DIR / "cfg" / "git.yml",
+    EXAMPLES_DIR / "gen" / "cfg" / "all.yml",
+    EXAMPLES_DIR / "gen" / "cfg" / "riscv.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "llvm.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "filter.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "patches.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "tests.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "passes.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "git.yml",
 ]
 run_seal5_flow(FILES, name="gen", dest=DEST)

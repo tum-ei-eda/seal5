@@ -1,18 +1,18 @@
 [submodule "examples/cdsl/rv_base"]
-	path = examples/cdsl/rv_base
+	path = examples/common/cdsl/rv_base
 	url = https://github.com/tum-ei-eda/RISCV_ISA_CoreDSL.git
 [submodule "examples/cdsl/rv_xcorev"]
-	path = examples/cdsl/rv_xcorev
+	path = examples/corev/cdsl
 	url = https://github.com/tum-ei-eda/CoreV_ISA_CoreDSL.git
 [submodule "examples/cdsl/rv_s4e"]
-	path = examples/cdsl/rv_s4e
+	path = examples/s4e/cdsl
 	url = https://github.com/DLR-SE/riscv-coredsl-extensions.git
 [submodule "examples/cdsl/rv_gen"]
-	path = examples/cdsl/rv_gen
+	path = examples/gen/cdsl
 	url = https://github.com/PhilippvK/Gen_ISA_CoreDSL.git
 [submodule "examples/cdsl/rv_openasip"]
-	path = examples/cdsl/rv_openasip
+	path = examples/openasip/cdsl
 	url = https://github.com/PhilippvK/OpenASIP_ISA_CoreDSL.git
 [submodule "examples/cdsl/riscv-scalar-efficiency"]
-	path = examples/cdsl/riscv-scalar-efficiency
+	path = examples/se/cdsl
 	url = https://github.com/PhilippvK/riscv-scalar-efficiency.git

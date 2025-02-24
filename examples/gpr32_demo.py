@@ -34,13 +34,13 @@ DEST = os.environ.get("DEST", DEST_DIR + "/seal5_llvm_gpr32v").rstrip("/")
 
 FILES = [
     # CoreDSL inputs
-    EXAMPLES_DIR / "cdsl" / "ExampleGPR32Pair.core_desc",
+    EXAMPLES_DIR / "grp32" / "cdsl" / "ExampleGPR32Pair.core_desc",
     # YAML inputs
-    EXAMPLES_DIR / "cfg" / "llvm.yml",
-    EXAMPLES_DIR / "cfg" / "filter.yml",
-    EXAMPLES_DIR / "cfg" / "patches.yml",
-    EXAMPLES_DIR / "cfg" / "tests.yml",
-    EXAMPLES_DIR / "cfg" / "passes.yml",
-    EXAMPLES_DIR / "cfg" / "git.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "llvm.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "filter.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "patches.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "tests.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "passes.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "git.yml",
 ]
 run_seal5_flow(FILES, name="gpr32", dest=DEST)

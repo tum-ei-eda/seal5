@@ -34,22 +34,22 @@ DEST = os.environ.get("DEST", DEST_DIR + "/seal5_llvm_openasip").rstrip("/")
 
 FILES = [
     # CoreDSL inputs
-    EXAMPLES_DIR / "cdsl" / "rv_openasip" / "OpenASIP_base.core_desc",
-    EXAMPLES_DIR / "cdsl" / "rv_openasip" / "OpenASIP_paper.core_desc",
+    EXAMPLES_DIR / "openasip" / "cdsl" / "OpenASIP_base.core_desc",
+    EXAMPLES_DIR / "openasip" / "cdsl" / "OpenASIP_paper.core_desc",
     # Test inputs
-    EXAMPLES_DIR / "tests" / "xopenasip" / "base" / "*.c",
-    EXAMPLES_DIR / "tests" / "xopenasip" / "base" / "*.s",
-    EXAMPLES_DIR / "tests" / "xopenasip" / "base" / "*.ll",
-    EXAMPLES_DIR / "tests" / "xopenasip" / "base" / "*.mir",
+    EXAMPLES_DIR / "openasip" / "tests" / "base" / "*.c",
+    EXAMPLES_DIR / "openasip" / "tests" / "base" / "*.s",
+    EXAMPLES_DIR / "openasip" / "tests" / "base" / "*.ll",
+    EXAMPLES_DIR / "openasip" / "tests" / "base" / "*.mir",
     # YAML inputs
-    EXAMPLES_DIR / "cfg" / "openasip" / "OpenASIP_paper.yml",
-    EXAMPLES_DIR / "cfg" / "openasip" / "OpenASIP_base.yml",
-    EXAMPLES_DIR / "cfg" / "openasip" / "intrinsics.yml",
-    EXAMPLES_DIR / "cfg" / "llvm.yml",
-    EXAMPLES_DIR / "cfg" / "filter.yml",
-    EXAMPLES_DIR / "cfg" / "patches.yml",
-    EXAMPLES_DIR / "cfg" / "tests.yml",
-    EXAMPLES_DIR / "cfg" / "passes.yml",
-    EXAMPLES_DIR / "cfg" / "git.yml",
+    EXAMPLES_DIR / "openasip" / "cfg" / "OpenASIP_paper.yml",
+    EXAMPLES_DIR / "openasip" / "cfg" / "OpenASIP_base.yml",
+    EXAMPLES_DIR / "openasip" / "cfg" / "intrinsics.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "llvm.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "filter.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "patches.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "tests.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "passes.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "git.yml",
 ]
 run_seal5_flow(FILES, name="openasip", dest=DEST)

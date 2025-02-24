@@ -34,15 +34,15 @@ DEST = os.environ.get("DEST", DEST_DIR + "/seal5_llvm_rvp").rstrip("/")
 
 FILES = [
     # CoreDSL inputs
-    EXAMPLES_DIR / "cdsl" / "RV32P.core_desc",
-    # EXAMPLES_DIR / "cdsl" / "RVP.core_desc",
+    EXAMPLES_DIR / "rvp" / "cdsl" / "RV32P.core_desc",
+    # EXAMPLES_DIR / "rvp" / "cdsl" / "RVP.core_desc",
     # Test inputs
     # YAML inputs
-    EXAMPLES_DIR / "cfg" / "llvm.yml",
-    EXAMPLES_DIR / "cfg" / "filter.yml",
-    EXAMPLES_DIR / "cfg" / "patches.yml",
-    EXAMPLES_DIR / "cfg" / "tests.yml",
-    EXAMPLES_DIR / "cfg" / "passes.yml",
-    EXAMPLES_DIR / "cfg" / "git.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "llvm.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "filter.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "patches.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "tests.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "passes.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "git.yml",
 ]
 run_seal5_flow(FILES, name="rvp", dest=DEST)

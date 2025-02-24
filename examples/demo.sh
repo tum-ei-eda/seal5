@@ -37,9 +37,9 @@ set -e
 export DEST=${DEST:-"/tmp/seal5_llvm_cli_demo"}
 # export NAME=${NAME:-"cli_demo"}
 
-Example_files=examples/cdsl/rv_example/Example.core_desc
+Example_files=examples/example/cdsl/Example.core_desc
 export SEAL5_HOME=$DEST
-Config_files=(examples/cfg/llvm.yml examples/cfg/filter.yml examples/cfg/patches.yml examples/cfg/riscv.yml examples/cfg/tests.yml examples/cfg/passes.yml examples/cfg/git.yml)
-Test_files=(examples/tests/xexample/xexample-*.s examples/tests/xexample/xexample-*.ll examples/tests/xexample/xexample-*.c)
+Config_files=(examples/common/cfg/llvm.yml examples/common/cfg/filter.yml examples/common/cfg/patches.yml examples/common/cfg/riscv.yml examples/common/cfg/tests.yml examples/common/cfg/passes.yml examples/common/cfg/git.yml)
+Test_files=(examples/example/tests/xexample-*.s examples/example/tests/xexample-*.ll examples/example/tests/xexample-*.c)
 
 seal5 --verbose --dir ${SEAL5_HOME} wrapper ${Example_files} ${Config_files[@]} ${Test_files[@]}

@@ -34,17 +34,17 @@ DEST = os.environ.get("DEST", DEST_DIR + "/seal5_llvm_rvc").rstrip("/")
 
 FILES = [
     # CoreDSL inputs
-    EXAMPLES_DIR / "cdsl" / "rv_example" / "ExampleRV32C.core_desc",
+    EXAMPLES_DIR / "example" / "cdsl" / "ExampleRV32C.core_desc",
     # Test inputs
-    EXAMPLES_DIR / "tests" / "xrvc" / "*.s",
-    EXAMPLES_DIR / "tests" / "xrvc" / "*.ll",
-    EXAMPLES_DIR / "tests" / "xrvc" / "*.c",
+    EXAMPLES_DIR / "example" / "tests" / "xrvc" / "*.s",
+    EXAMPLES_DIR / "example" / "tests" / "xrvc" / "*.ll",
+    EXAMPLES_DIR / "example" / "tests" / "xrvc" / "*.c",
     # YAML inputs
-    EXAMPLES_DIR / "cfg" / "llvm.yml",
-    EXAMPLES_DIR / "cfg" / "filter.yml",
-    EXAMPLES_DIR / "cfg" / "patches.yml",
-    EXAMPLES_DIR / "cfg" / "tests.yml",
-    EXAMPLES_DIR / "cfg" / "passes.yml",
-    EXAMPLES_DIR / "cfg" / "git.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "llvm.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "filter.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "patches.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "tests.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "passes.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "git.yml",
 ]
 run_seal5_flow(FILES, name="rvc", dest=DEST)

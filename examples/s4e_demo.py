@@ -34,19 +34,19 @@ DEST = os.environ.get("DEST", DEST_DIR + "/seal5_llvm_s4e").rstrip("/")
 
 FILES = [
     # CoreDSL inputs
-    EXAMPLES_DIR / "cdsl" / "rv_s4e" / "s4e-mac.core_desc",
+    EXAMPLES_DIR / "s4e" / "cdsl" / "s4e-mac.core_desc",
     # Test inputs
-    EXAMPLES_DIR / "tests" / "xs4e" / "*.s",
-    # EXAMPLES_DIR / "tests" / "xs4e" / "*.ll",
-    EXAMPLES_DIR / "tests" / "xs4e" / "*.c",
+    EXAMPLES_DIR / "s4e" / "tests" / "*.s",
+    # EXAMPLES_DIR / "s4e" / "tests" / "*.ll",
+    EXAMPLES_DIR / "s4e" / "tests" / "*.c",
     # YAML inputs
-    EXAMPLES_DIR / "cfg" / "s4e" / "s4e-mac.yml",
-    EXAMPLES_DIR / "cfg" / "llvm.yml",
-    EXAMPLES_DIR / "cfg" / "filter.yml",
-    EXAMPLES_DIR / "cfg" / "patches.yml",
-    EXAMPLES_DIR / "cfg" / "riscv.yml",
-    EXAMPLES_DIR / "cfg" / "tests.yml",
-    EXAMPLES_DIR / "cfg" / "passes.yml",
-    EXAMPLES_DIR / "cfg" / "git.yml",
+    EXAMPLES_DIR / "s4e" / "cfg" / "s4e-mac.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "llvm.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "filter.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "patches.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "riscv.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "tests.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "passes.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "git.yml",
 ]
 run_seal5_flow(FILES, name="s4e", dest=DEST)
