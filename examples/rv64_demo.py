@@ -36,9 +36,9 @@ FILES = [
     # CoreDSL inputs
     EXAMPLES_DIR / "example" / "cdsl" / "ExampleRV64.core_desc",
     # Test inputs
-    EXAMPLES_DIR / "tests" / "xexample" / "xexample64-*.s",
-    EXAMPLES_DIR / "tests" / "xexample" / "xexample64-*.ll",
-    EXAMPLES_DIR / "tests" / "xexample" / "xexample64-*.c",
+    EXAMPLES_DIR / "example" / "tests" / "xexample64-*.s",
+    EXAMPLES_DIR / "example" / "tests" / "xexample64-*.ll",
+    EXAMPLES_DIR / "example" / "tests" / "xexample64-*.c",
     # YAML inputs
     EXAMPLES_DIR / "common" / "cfg" / "llvm.yml",
     EXAMPLES_DIR / "common" / "cfg" / "filter.yml",
