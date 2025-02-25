@@ -54,7 +54,7 @@ INIT = str2bool(os.environ.get("INIT", 1))
 SETUP = str2bool(os.environ.get("SETUP", 1))
 PROGRESS = str2bool(os.environ.get("PROGRESS", 1))
 CCACHE = str2bool(os.environ.get("CCACHE", 0))
-CLONE_DEPTH = str2bool(os.environ.get("CLONE_DEPTH", None), allow_none=True)
+CLONE_DEPTH = int(os.environ.get("CLONE_DEPTH", -1))
 NAME = os.environ.get("NAME", None)
 
 
