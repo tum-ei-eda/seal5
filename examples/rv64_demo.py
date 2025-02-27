@@ -31,6 +31,7 @@ DEST = os.environ.get("DEST", DEST_DIR + "/seal5_llvm_rv64").rstrip("/")
 FILES = [
     # CoreDSL inputs
     EXAMPLES_DIR / "example" / "cdsl" / "Example64.core_desc",
+    EXAMPLES_DIR / "example" / "cdsl" / "Example64Mem.core_desc",
     # Test inputs
     EXAMPLES_DIR / "example" / "tests" / "xexample64-*.s",
     EXAMPLES_DIR / "example" / "tests" / "xexample64-*.ll",
