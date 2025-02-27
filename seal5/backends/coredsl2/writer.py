@@ -108,6 +108,10 @@ class CoreDSL2Writer:
                 val = None
         if self.reduced and val is not None:
             return
+        # TODO: allow atrbitrary attrs in cdsl2llvm parser, not only for operands
+        allowed_attrs = ["is_unsigned", "is_signed", "is_imm", "is_reg", "in", "out", "inout", "is_32_bit"]
+        if self.reduced and attr.name.lower() not in allowed_attrs:
+            return
         self.write("[[")
         self.write(attr.name.lower())
         if val is not None:
