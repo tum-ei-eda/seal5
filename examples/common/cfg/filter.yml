@@ -25,5 +25,6 @@ filter:
     - OP
   encoding_sizes:
     keep:
+    - 48
     - 32
     - 16

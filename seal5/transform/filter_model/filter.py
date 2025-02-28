@@ -193,7 +193,7 @@ def run(args):
             else:
                 assert False
             size += length
-        assert size in [16, 32, 64, 128], f"Invalid size: {size} (Instruction: {name})"
+        assert size in [16, 32, 48, 64, 128], f"Invalid size: {size} (Instruction: {name})"
         ret = True
         if drop2 and keep2:
             ret = size not in drop2 and size in keep2
