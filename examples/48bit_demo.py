@@ -75,27 +75,28 @@ seal5_flow.initialize(
 
 # Load CoreDSL inputs
 cdsl_files = [
-    EXAMPLES_DIR / "cdsl" / "rv_example" / "ExampleRV32K.core_desc",
+    # TODO: merge with example
+    EXAMPLES_DIR / "48bit" / "cdsl" / "ExampleRV32K.core_desc",
 ]
 seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
 # Load test inputs
 # test_files = [
-#     EXAMPLES_DIR / "tests" / "48bit" / "*.s",
-#     EXAMPLES_DIR / "tests" / "48bit" / "*.ll",
-#     EXAMPLES_DIR / "tests" / "48bit" / "*.c",
+#     EXAMPLES_DIR / "48bit" / "tests" / "*.s",
+#     EXAMPLES_DIR / "48bit" / "tests" / "*.ll",
+#     EXAMPLES_DIR / "48bit" / "tests" / "*.c",
 # ]
 # seal5_flow.load(test_files, verbose=VERBOSE, overwrite=True)
 
 # Load YAML inputs
 cfg_files = [
     # TODO
-    EXAMPLES_DIR / "cfg" / "llvm.yml",
-    EXAMPLES_DIR / "cfg" / "filter.yml",
-    EXAMPLES_DIR / "cfg" / "patches.yml",
-    EXAMPLES_DIR / "cfg" / "tests.yml",
-    EXAMPLES_DIR / "cfg" / "passes.yml",
-    EXAMPLES_DIR / "cfg" / "git.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "llvm.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "filter.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "patches.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "tests.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "passes.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "git.yml",
 ]
 seal5_flow.load(cfg_files, verbose=VERBOSE, overwrite=False)
 
