@@ -19,6 +19,8 @@
 """Demo script for Seal5 Python API."""
 import os
 
+# TODO: use wrapper.py
+
 # import logging
 from pathlib import Path
 
