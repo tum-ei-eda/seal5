@@ -47,7 +47,7 @@ InstructionSet RV32K extends RV32I {
         // TODO: K_SMIBRF
 
         // Load multiples
-        K_SMDAON {
+        K_LMDAON {
             encoding: 2'b01 :: reglist[30:0] :: 3'b000 :: rd[4:0] :: 7'b0011111;
             assembly: {"k.lmdaon", "{name(rd)}, {reglist(reglist)}"};
             behavior: {
@@ -86,8 +86,9 @@ InstructionSet RV32K extends RV32I {
             encoding: 4'b0000 :: imm[31:0] :: rd[4:0] :: 7'b1011111;
             assembly: {"k.lli", "{name(rd)}, {imm}"};
             behavior: {
-                // TODO: regpair? Do not allow X0, X2?
-                // TODO: behavior
+            if ((rd % RFS) != 0)
+                // imm -> unsigned!
+                X[rd % RFS] = (unsigned<XLEN>) ((unsigned) imm);
             }
         }
 
@@ -104,12 +105,30 @@ InstructionSet RV32K extends RV32I {
         //   0b110: "
         //   0b111: "
         // RVInst48A {
-        //     encoding: 4'b0001 :: imm[18:0] :: rs2[4:0] :: rs1[4:0] :: 3'b??? :: rd[4:0] :: 7'b1011111;
-        //     assembly: {"a", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+        //     encoding: 4'b0001 :: imm[23:0] :: rs1[4:0] :: 3'b??? :: rd[4:0] :: 7'b1011111;
+        //     assembly: {"a", "{name(rd)}, {name(rs1)}, {imm}"};
         //     behavior: {
         //         // TODO
         //     }
         // }
+        K_ADDI {
+            encoding: 4'b0001 :: imm[23:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1011111;
+            assembly: {"k.addi", "{name(rd)}, {name(rs1)}, {imm}"};
+            behavior: {
+                if ((rd % RFS) != 0) {
+                    X[rd % RFS] = X[rs1 % RFS] + (signed)imm;
+                }
+            }
+        }
+        K_ANDI {
+            encoding: 4'b0001 :: imm[23:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1011111;
+            assembly: {"k.andi", "{name(rd)}, {name(rs1)}, {imm}"};
+            behavior: {
+                if ((rd % RFS) != 0) {
+                    X[rd % RFS] = X[rs1 % RFS] & (unsigned)imm;
+                }
+            }
+        }
 
         // Branches encoding
         // opcode: 0b1011111
