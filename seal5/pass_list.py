@@ -1614,8 +1614,11 @@ def convert_llvmir_to_gmir(
                 # TODO: populate model in yaml backend!
                 for insn_name in insn_names:
                     ll_file = settings.temp_dir / model_name / set_name / f"{insn_name}.ll"
-                    if not ll_file.is_file():
+                    ll_err_file = settings.temp_dir / model_name / set_name / f"{insn_name}.ll.err"
+                    if ll_err_file.is_file():
                         logger.warning("Skipping %s due to errors.", insn_name)
+                    elif not ll_file.is_file():
+                        logger.info("Skipping %s (unsupported).", insn_name)
                         continue
                     output_file = ll_file.parent / (ll_file.stem + ".gmir")
                     name = ll_file.name
