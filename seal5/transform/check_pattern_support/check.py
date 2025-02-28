@@ -105,9 +105,9 @@ def run(args):
                     is_noop
                     or is_rvc
                     or (num_ins == 0)
-                    or (num_outs != 1)
-                    or may_load
-                    or may_store
+                    or ((num_outs != 1) and not may_store)
+                    # or may_load  # TODO: only allow for LLVM19+
+                    # or may_store  # TODO: only allow for LLVM19+
                     or is_branch
                     or has_loop
                     or has_call
