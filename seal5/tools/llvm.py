@@ -106,6 +106,7 @@ def clone_llvm_repo(
             clone_progress = None
         no_checkout = ref is not None
         branch = None
+        depth = depth if depth is not None and depth >= 0 else None
         if depth is not None and ref is not None:
             # assert "llvmorg" in ref  # Needs to be a valid branch name, not a tag
             branch = ref
