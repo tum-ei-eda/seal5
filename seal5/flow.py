@@ -373,12 +373,14 @@ class Seal5Flow:
         )
         integrated_pattern_gen = self.settings.tools.pattern_gen.integrated
         if integrated_pattern_gen:
-            logger.info("Adding PatternGen to target LLVM")
-            patch_settings = cdsl2llvm.get_pattern_gen_patches(
-                self.settings.deps_dir / "cdsl2llvm",
-                self.settings.temp_dir,
-            )
-            self.settings.add_patch(patch_settings)
+            has_patterngen_patch = any(patch.name == "pattern_gen_support" for patch in self.settings.patches)
+            if not has_patterngen_patch:
+                logger.info("Adding PatternGen to target LLVM")
+                patch_settings = cdsl2llvm.get_pattern_gen_patches(
+                    self.settings.deps_dir / "cdsl2llvm",
+                    self.settings.temp_dir,
+                )
+                self.settings.add_patch(patch_settings)
         else:
             logger.info("Building PatternGen")
             llvm_config = LLVMConfig(
