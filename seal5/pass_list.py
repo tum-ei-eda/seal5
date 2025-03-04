@@ -1617,6 +1617,7 @@ def convert_llvmir_to_gmir(
                     ll_err_file = settings.temp_dir / model_name / set_name / f"{insn_name}.ll.err"
                     if ll_err_file.is_file():
                         logger.warning("Skipping %s due to errors.", insn_name)
+                        continue
                     elif not ll_file.is_file():
                         logger.info("Skipping %s (unsupported).", insn_name)
                         continue
