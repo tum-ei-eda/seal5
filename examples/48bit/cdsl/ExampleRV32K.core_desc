@@ -1,5 +1,5 @@
 // import "rv_base/RVC.core_desc"
-import "../rv_base/RV32I.core_desc"
+import "../../common/cdsl/rv_base/RV32I.core_desc"
 
 // Extended (48-bit) Instructions
 InstructionSet RV32K extends RV32I {
