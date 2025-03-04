@@ -13,5 +13,132 @@ InstructionSet XExample extends RV32I {
         }
       }
     }
+    SLLI_ADD {
+      encoding: imm[7:0] :: rs2[4:0] :: rs1[4:0] :: rd[4:0] :: 9'b000001011;
+      assembly: {"32.slli_add", "{name(rd)}, {name(rs1)}, {name(rs2)}, {imm}"};
+      behavior: {
+        if ((rd) != 0) X[rd] = (X[rs1] + (X[rs2] << (signed)imm));
+      }
+    }
+
+    ADDI_SUB {
+      encoding: imm[7:0] :: rs2[4:0] :: rs1[4:0] :: rd[4:0] :: 9'b000101011;
+      assembly: {"32.addi_sub", "{name(rd)}, {name(rs1)}, {name(rs2)}, {imm}"};
+      behavior: {
+        if ((rd) != 0) X[rd] = (X[rs1] - (X[rs2] + (signed)imm));
+      }
+    }
+
+    SLLI_ADD_ADD {
+      encoding: imm[2:0] :: rs3[4:0] :: rs2[4:0] :: rs1[4:0] :: rd[4:0] :: 9'b001010111;
+      assembly: {"32.slli_add_add", "{name(rd)}, {name(rs1)}, {name(rs2)}, {name(rs3)}, {imm}"};
+      behavior: {
+        if ((rd) != 0) X[rd] = (X[rs1] + (X[rs2] + (X[rs3] << (signed)imm)));
+      }
+    }
+
+    ADDI_ADD {
+      encoding: imm[7:0] :: rs2[4:0] :: rs1[4:0] :: rd[4:0] :: 9'b001110111;
+      assembly: {"32.addi_add", "{name(rd)}, {name(rs1)}, {name(rs2)}, {imm}"};
+      behavior: {
+        if ((rd) != 0) X[rd] = (X[rs1] + (X[rs2] + (signed)imm));
+      }
+    }
+
+    SLLI_OR {
+      encoding: imm[7:0] :: rs2[4:0] :: rs1[4:0] :: rd[4:0] :: 9'b010001011;
+      assembly: {"32.slli_or", "{name(rd)}, {name(rs1)}, {name(rs2)}, {imm}"};
+      behavior: {
+        if ((rd) != 0) X[rd] = (X[rs1] | (X[rs2] << (signed)imm));
+      }
+    }
+
+    SLT_SUB {
+      encoding: 3'b000 :: rs3[4:0] :: rs2[4:0] :: rs1[4:0] :: rd[4:0] :: 9'b010101011;
+      assembly: {"32.slt_sub", "{name(rd)}, {name(rs1)}, {name(rs2)}, {name(rs3)}"};
+      behavior: {
+        if ((rd) != 0) X[rd] = (X[rs1] - (X[rs2] < X[rs3]));
+      }
+    }
+
+    SUB_AND {
+      encoding: 3'b000 :: rs3[4:0] :: rs2[4:0] :: rs1[4:0] :: rd[4:0] :: 9'b011010111;
+      assembly: {"32.sub_and", "{name(rd)}, {name(rs1)}, {name(rs2)}, {name(rs3)}"};
+      behavior: {
+        if ((rd) != 0) X[rd] = (X[rs1] & (X[rs2] - X[rs3]));
+      }
+    }
+
+    SUB_SUB {
+      encoding: 3'b000 :: rs3[4:0] :: rs2[4:0] :: rs1[4:0] :: rd[4:0] :: 9'b011110111;
+      assembly: {"32.sub_sub", "{name(rd)}, {name(rs1)}, {name(rs2)}, {name(rs3)}"};
+      behavior: {
+        if ((rd) != 0) X[rd] = (X[rs1] - (X[rs2] - X[rs3]));
+      }
+    }
+
+    AUIPC_ADD {
+      encoding: imm[12:0] :: rs1[4:0] :: rd[4:0] :: 9'b100001011;
+      assembly: {"32.auipc_add", "{name(rd)}, {name(rs1)}, {imm}"};
+      behavior: {
+        if ((rd) != 0) X[rd] = (X[rs1] + ((PC + (signed)imm)));
+      }
+    }
+
+    ADD_SLTU {
+      encoding: 3'b000 :: rs3[4:0] :: rs2[4:0] :: rs1[4:0] :: rd[4:0] :: 9'b100101011;
+      assembly: {"32.add_sltu", "{name(rd)}, {name(rs1)}, {name(rs2)}, {name(rs3)}"};
+      behavior: {
+        if ((rd) != 0) X[rd] = (X[rs1] < (X[rs2] + X[rs3]));
+      }
+    }
+
+    SRAI_MUL {
+      encoding: imm[7:0] :: rs2[4:0] :: rs1[4:0] :: rd[4:0] :: 9'b101010111;
+      assembly: {"32.srai_mul", "{name(rd)}, {name(rs1)}, {name(rs2)}, {imm}"};
+      behavior: {
+        if ((rd) != 0) X[rd] = (X[rs1] * (X[rs2] >> (signed)imm));
+      }
+    }
+
+    ADDI_REM {
+      encoding: imm[7:0] :: rs2[4:0] :: rs1[4:0] :: rd[4:0] :: 9'b101110111;
+      assembly: {"32.addi_rem", "{name(rd)}, {name(rs1)}, {name(rs2)}, {imm}"};
+      behavior: {
+        if ((rd) != 0) X[rd] = (X[rs1] % (X[rs2] + (signed)imm));
+      }
+    }
+
+    SRLI_OR {
+      encoding: imm[7:0] :: rs2[4:0] :: rs1[4:0] :: rd[4:0] :: 9'b110001011;
+      assembly: {"32.srli_or", "{name(rd)}, {name(rs1)}, {name(rs2)}, {imm}"};
+      behavior: {
+        if ((rd) != 0) X[rd] = (X[rs1] | (X[rs2] >> (signed)imm));
+      }
+    }
+
+    SRLI_ADD {
+      encoding: imm[7:0] :: rs2[4:0] :: rs1[4:0] :: rd[4:0] :: 9'b110101011;
+      assembly: {"32.srli_add", "{name(rd)}, {name(rs1)}, {name(rs2)}, {imm}"};
+      behavior: {
+        if ((rd) != 0) X[rd] = (X[rs1] + (X[rs2] >> (signed)imm));
+      }
+    }
+
+    SRAI_ADD {
+      encoding: imm[7:0] :: rs2[4:0] :: rs1[4:0] :: rd[4:0] :: 9'b111010111;
+      assembly: {"32.srai_add", "{name(rd)}, {name(rs1)}, {name(rs2)}, {imm}"};
+      behavior: {
+        if ((rd) != 0) X[rd] = (X[rs1] + (X[rs2] >> (signed)imm));
+      }
+    }
+
+    ANDI_SUB {
+      encoding: imm[7:0] :: rs2[4:0] :: rs1[4:0] :: rd[4:0] :: 9'b111110111;
+      assembly: {"32.andi_sub", "{name(rd)}, {name(rs1)}, {name(rs2)}, {imm}"};
+      behavior: {
+        if ((rd) != 0) X[rd] = (X[rs1] - (X[rs2] & (unsigned<XLEN>)((signed)imm)));
+      }
+    }
   }
 }
