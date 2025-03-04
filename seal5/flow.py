@@ -520,6 +520,7 @@ class Seal5Flow:
             target=target,
             use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
             ccache_settings=ccache_settings,
+            verbose=verbose,
         )
         end = time.time()
         diff = end - start
@@ -559,6 +560,7 @@ class Seal5Flow:
             target=None,
             install=True,
             install_dir=dest,
+            verbose=verbose,
         )
         end = time.time()
         diff = end - start
