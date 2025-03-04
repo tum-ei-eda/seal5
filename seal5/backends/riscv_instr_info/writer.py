@@ -257,6 +257,7 @@ def main():
         action="store_false",
         help="Suppress patterns for intrinsic functions",
     )
+    parser.add_argument("--ignore-failing", action="store_true", help="Do not crash in case of errors.")
     parser.add_argument("--compat", action="store_true")
     args = parser.parse_args()
 
@@ -353,6 +354,13 @@ def main():
                 artifacts[set_name].append(set_td_includes_patch)
     else:
         raise NotImplementedError
+    if not args.ignore_failing:
+        n_failed = metrics["n_failed"]
+        if n_failed > 0:
+            failed = metrics["failed_instructions"]
+            failing_str = ", ".join(failed)
+            logger.error("%s intructions failed: %s", n_failed, failing_str)
+            raise RuntimeError("Abort due to errors")
     if args.metrics:
         metrics_file = args.metrics
         metrics_df = pd.DataFrame({key: [val] for key, val in metrics.items()})
