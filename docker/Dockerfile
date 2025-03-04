@@ -64,7 +64,7 @@ ENV SETUP=0
 ENV SEAL5_HOME="/seal5_llvm"
 
 RUN . /venv/bin/activate && seal5 --verbose --dir ${SEAL5_HOME} init --non-interactive --clone --clone-url ${LLVM_REPO} --clone-ref ${LLVM_REF} --clone-depth ${CLONE_DEPTH}
-RUN . /venv/bin/activate && seal5 --verbose load --overwrite --files /seal5/examples/cfg/filter.yml /seal5/examples/cfg/git.yml /seal5/examples/cfg/llvm.yml /seal5/examples/cfg/patches.yml /seal5/examples/cfg/riscv.yml /seal5/examples/cfg/tools.yml
+RUN . /venv/bin/activate && seal5 --verbose load --overwrite --files /seal5/examples/common/cfg/filter.yml /seal5/examples/common/cfg/git.yml /seal5/examples/common/cfg/llvm.yml /seal5/examples/common/cfg/patches.yml /seal5/examples/common/cfg/riscv.yml /seal5/examples/common/cfg/tools.yml
 RUN . /venv/bin/activate && seal5 --verbose setup
 RUN . /venv/bin/activate && seal5 --verbose patch -s 0
 RUN . /venv/bin/activate && seal5 --verbose build --ccache
