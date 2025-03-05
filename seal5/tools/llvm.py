@@ -232,3 +232,22 @@ def test_llvm(base: Path, build_dir: Path, test_paths: Optional[List[str]] = Non
             passed_tests.extend(passed)
 
     return passed_tests, failing_tests
+
+
+def detect_llvm_imm_types(llvm_dir: Union[str, Path]):
+    def get_grep_cmd(prefix):
+        return f"grep -r \"def {prefix}imm\" llvm/lib/Target/RISCV | cut -d':' -f2 | tr -s ' ' | sed -e \"s/def //g\""
+
+    def _parse_output(output):
+        output = output.strip()
+        return set(map(lambda x: x.strip(), output.splitlines()))
+
+    uimm_types = _parse_output(
+        utils.exec_getout(get_grep_cmd("u"), shell=True, print_func=lambda *_: None, live=False, cwd=llvm_dir)
+    )
+    simm_types = _parse_output(
+        utils.exec_getout(get_grep_cmd("s"), shell=True, print_func=lambda *_: None, live=False, cwd=llvm_dir)
+    )
+
+    imm_types = uimm_types | simm_types
+    return imm_types
