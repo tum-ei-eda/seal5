@@ -1457,7 +1457,7 @@ def gen_riscv_gisel_legalizer_patch(
     # name = input_file.name
     # new_name = name.replace(".seal5model", "")
     logger.info("Writing RISCVLegalizerInfo.cpp patch")
-    out_dir = settings.patches_dir / "Seal5"
+    out_dir = settings.patches_dir / "seal5"
     out_dir.mkdir(exist_ok=True)
 
     args = [
