@@ -99,7 +99,7 @@ DEFAULT_SETTINGS = {
         # "paths": ["MC/RISCV", "CodeGen/RISCV"],
     },
     "llvm": {
-        "state": {"version": "auto", "base_commit": "unknown"},
+        "state": {"version": "auto", "base_commit": "unknown", "supported_imm_types": []},
         "ninja": True,
         "ccache": {
             "enable": False,
@@ -464,6 +464,7 @@ class LLVMState(YAMLSettings):
 
     base_commit: Optional[str] = None
     version: Optional[Union[str, LLVMVersion]] = None
+    supported_imm_types: Optional[List[str]] = None
 
 
 @dataclass
@@ -542,6 +543,7 @@ class ExtensionsSettings(YAMLSettings):
     instructions: Optional[List[str]] = None
     riscv: Optional[RISCVSettings] = None
     passes: Optional[PassesSettings] = None
+    required_imm_types: Optional[List[str]] = None
     # patches
 
     def get_version(self):
