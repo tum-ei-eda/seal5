@@ -96,6 +96,8 @@ def run(args):
                 has_call = Seal5InstrAttribute.HAS_CALL in attributes
                 uses_custom_reg = len(attributes.get(Seal5InstrAttribute.USES, []))
                 defs_custom_reg = len(attributes.get(Seal5InstrAttribute.DEFS, []))
+                # TODO: check if PC is being read/written -> not supported
+                # uses_pc = ?
                 skip_pattern_gen = (
                     is_noop
                     or is_rvc
