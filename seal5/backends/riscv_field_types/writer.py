@@ -19,10 +19,27 @@ from seal5.settings import Seal5Settings
 
 logger = logging.getLogger("riscv_field_types")
 
+SEAL5_RISCV_FIELDS_SUPPORT = """class Seal5RISCVUImmOp<int bitsNum> : RISCVOp {
+  let ParserMatchClass = UImmAsmOperand<bitsNum>;
+  let DecoderMethod = "decodeUImmOperand<" # bitsNum # ">";
+  let OperandType = "SEAL5_OPERAND_UIMM" # bitsNum;
+}
+class Seal5RISCVUImmLeafOp<int bitsNum> :
+  Seal5RISCVUImmOp<bitsNum>, ImmLeaf<XLenVT, "return isUInt<" # bitsNum # ">(Imm);">;
+class Seal5RISCVSImmOp<int bitsNum> : RISCVOp {
+  let ParserMatchClass = SImmAsmOperand<bitsNum>;
+  let EncoderMethod = "getImmOpValue";
+  let DecoderMethod = "decodeSImmOperand<" # bitsNum # ">";
+  let OperandType = "SEAL5_OPERAND_SIMM" # bitsNum;
+}
+class Seal5RISCVSImmLeafOp<int bitsNum> :
+  Seal5RISCVSImmOp<bitsNum>, ImmLeaf<XLenVT, "return isInt<" # bitsNum # ">(Imm);">;
+"""
+
 
 def gen_riscv_field_types_str(field_types):
     # print("gen_riscv_field_types_str", field_types)
-    riscv_field_types_contents = []
+    riscv_field_types_contents = [SEAL5_RISCV_FIELDS_SUPPORT]
     riscv_operands_asm_contents = []
     riscv_operands_enum_contents = []
 
@@ -43,10 +60,10 @@ def gen_riscv_field_types_str(field_types):
         # TODO: leaf or not?
         is_leaf = True
         if sign_letter == "u":
-            cls = "RISCVUImmLeafOp" if is_leaf else "RISCVUImmOp"
+            cls = "Seal5RISCVUImmLeafOp" if is_leaf else "Seal5RISCVUImmOp"
             temp = f"def {field_type} : {cls}<{imm_size}>;"
         elif sign_letter == "s":
-            cls = "RISCVSImmLeafOp" if is_leaf else "RISCVSImmOp"
+            cls = "Seal5RISCVSImmLeafOp" if is_leaf else "Seal5RISCVSImmOp"
             # Warning: RISCVSImmOp not tested yet
             temp = f"""def {field_type} : {cls}<{imm_size}> {{
   let MCOperandPredicate = [{{
@@ -80,7 +97,7 @@ def gen_riscv_field_types_str(field_types):
             assert False  # Should not be reached
         riscv_operands_asm_contents.append(temp)
         field_type_upper = field_type.upper()
-        temp = f"  OPERAND_{field_type_upper},"
+        temp = f"  SEAL5_OPERAND_{field_type_upper},"
         riscv_operands_enum_contents.append(temp)
 
     riscv_field_types_content = "\n".join(riscv_field_types_contents)
