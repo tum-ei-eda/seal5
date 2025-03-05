@@ -48,6 +48,8 @@ def str2bool(value, allow_none=False):
         return True
     if value in ["false", "off", "no"]:
         return False
+    if len(value) == 0:
+        return False
     assert False, f"Unhandled case: {value}"
 
 
