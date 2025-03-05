@@ -80,7 +80,7 @@ def gen_riscv_field_types_str(field_types):
             assert False  # Should not be reached
         riscv_operands_asm_contents.append(temp)
         field_type_upper = field_type.upper()
-        temp = f"OPERAND_{field_type_upper},"
+        temp = f"  OPERAND_{field_type_upper},"
         riscv_operands_enum_contents.append(temp)
 
     riscv_field_types_content = "\n".join(riscv_field_types_contents)
