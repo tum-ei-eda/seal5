@@ -113,13 +113,15 @@ def main():
                         }
                         OPCODE_LOOKUP_REV = {v: k for k, v in OPCODE_LOOKUP.items()}
                         size = 0  # TODO: use instr_def.size
+                        opcode = None
                         for e in reversed(instr_def.encoding):
                             # print("e", e, dir(e))
                             if isinstance(e, arch.BitVal):
                                 length = e.length
                                 if size == 0:
-                                    if length == 7:
-                                        val = e.value
+                                    val = e.value
+                                    if length >= 7:
+                                        val = val & 0b1111111
                                         opcode = val >> 2
                             elif isinstance(e, arch.BitField):
                                 length = e.range.length
