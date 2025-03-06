@@ -45,8 +45,8 @@ TRANSFORM_PASS_MAP = [
     ("convert_models", passes.convert_models, {}),
     ("filter_models", passes.filter_model, {}),
     ("drop_unused", passes.drop_unused, {}),
-    ("eliminate_rd_cmp_zero", passes.eliminate_rd_cmp_zero, {}),
     ("eliminate_mod_rfs", passes.eliminate_mod_rfs, {}),
+    ("eliminate_rd_cmp_zero", passes.eliminate_rd_cmp_zero, {}),
     ("drop_unused2", passes.drop_unused, {}),
     ("inline_functions", passes.inline_functions, {}),
     ("optimize_model", passes.optimize_model, {}),
@@ -61,6 +61,8 @@ TRANSFORM_PASS_MAP = [
     ("collect_register_operands", passes.collect_register_operands, {}),
     ("collect_immediate_operands", passes.collect_immediate_operands, {}),
     ("collect_operand_types", passes.collect_operand_types, {}),
+    ("write_yaml2", passes.write_yaml, {}),
+    ("process_settings3", passes.process_settings, {}),
     ("detect_side_effects", passes.detect_side_effects, {}),
     ("detect_inouts", passes.detect_inouts, {}),
     ("detect_imm_leafs", passes.detect_imm_leafs, {}),
@@ -86,6 +88,7 @@ GENERATE_PASS_MAP = [
     ("riscv_isa_infos", passes.gen_riscv_isa_info_patch, {}),
     # ("riscv_instr_formats", passes.gen_riscv_instr_formats_patch, {}),
     ("riscv_register_info", passes.gen_riscv_register_info_patch, {}),
+    ("riscv_field_types", passes.gen_riscv_field_types_patch, {}),
     ("riscv_instr_info", passes.gen_riscv_instr_info_patch, {}),
     ("riscv_intrinsics", passes.gen_riscv_intrinsics, {}),
     # subtarget_tests
@@ -257,7 +260,7 @@ class Seal5Flow:
 
         # Generates
         for pass_name, pass_handler, pass_options in GENERATE_PASS_MAP:
-            if pass_name in ["seal5_td", "riscv_gisel_legalizer"]:
+            if pass_name in ["seal5_td", "riscv_gisel_legalizer", "riscv_field_types"]:  # TODO: refactor
                 pass_scope = PassScope.GLOBAL
             else:
                 pass_scope = PassScope.MODEL
@@ -327,6 +330,8 @@ class Seal5Flow:
             self.settings.llvm.state.version = llvm_version
         if sha:
             self.settings.llvm.state.base_commit = sha
+        supported_imm_types = llvm.detect_llvm_imm_types(self.directory)
+        self.settings.llvm.state.supported_imm_types = list(supported_imm_types)
         self.settings.save()
         set_log_file(self.settings.log_file_path)
         set_log_level(console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level)

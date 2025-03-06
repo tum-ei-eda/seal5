@@ -342,7 +342,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("top_level", help="A .m2isarmodel or .seal5model file.")
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
-    parser.add_argument("--output", "-o", type=str, default=None)
+    parser.add_argument("--output", "-o", type=str, required=True, default=None)
     parser.add_argument("--reduced", action="store_true", help="Generate pattern-gen compatible syntax")
     parser.add_argument("--splitted", action="store_true", help="Split per set and instruction")
     parser.add_argument("--ext", type=str, default="core_desc", help="Default file extension (if using --splitted)")
@@ -355,6 +355,7 @@ def main():
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
+    assert args.output is not None
     out_path = pathlib.Path(args.output)
 
     model_obj = load_model(top_level, compat=args.compat)

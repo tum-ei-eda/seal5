@@ -63,8 +63,11 @@ def main():
         riscv_data = {}
         riscv_data["xlen"] = set_def.xlen
         set_data["riscv"] = riscv_data
+        llvm_imm_types = set()
         for instr in set_def.instructions.values():
             set_data["instructions"].append(instr.name)
+            llvm_imm_types.update(instr.llvm_imm_types)
+        set_data["required_imm_types"] = list(llvm_imm_types)
         data["extensions"][set_name] = set_data
     data = {"models": {model_name: data}}
     with open(out_path, "w", encoding="utf-8") as f:

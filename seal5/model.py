@@ -423,6 +423,8 @@ class Seal5Instruction(Instruction):
                 sz = int(ty[1:])
                 pre = f"{ty[0]}imm{sz}"
                 imm_types.add(pre)
+                # TODO: handle lsb0, lsb00,...
+                # TODO: annotate operands via attributes
 
             if Seal5OperandAttribute.INOUT in op.attributes or (
                 Seal5OperandAttribute.OUT in op.attributes and Seal5OperandAttribute.IN in op.attributes
@@ -489,6 +491,12 @@ class Seal5Instruction(Instruction):
         if self._llvm_writes is None:
             self._llvm_process_operands()
         return self._llvm_writes
+
+    @property
+    def llvm_imm_types(self):
+        if self._llvm_imm_types is None:
+            self._llvm_process_operands()
+        return self._llvm_imm_types
 
     @property
     def llvm_ins_str(self):
