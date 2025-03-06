@@ -21,15 +21,15 @@ InstructionSet RV32K extends RV32I {
         //     }
         // }
         // Store multiples
-        K_SMDAON {
-            encoding: 2'b00 :: reglist[30:0] :: 3'b000 :: rd[4:0] :: 7'b0011111;
-            assembly: {"k.smdaon", "{name(rd)}, {reglist(reglist)}"};
-            behavior: {
-                // TODO: handle reglist
-                // TODO: do not allow X0
-                // TODO: behavior
-            }
-        }
+        // K_SMDAON {
+        //     encoding: 2'b00 :: reglist[30:0] :: 3'b000 :: rd[4:0] :: 7'b0011111;
+        //     assembly: {"k.smdaon", "{name(rd)}, {reglist(reglist)}"};
+        //     behavior: {
+        //         // TODO: handle reglist
+        //         // TODO: do not allow X0
+        //         // TODO: behavior
+        //     }
+        // }
         // TODO: K_SMIAON
         // TODO: K_SMDBON
         // TODO: K_SMIBON
@@ -47,15 +47,15 @@ InstructionSet RV32K extends RV32I {
         // TODO: K_SMIBRF
 
         // Load multiples
-        K_LMDAON {
-            encoding: 2'b01 :: reglist[30:0] :: 3'b000 :: rd[4:0] :: 7'b0011111;
-            assembly: {"k.lmdaon", "{name(rd)}, {reglist(reglist)}"};
-            behavior: {
-                // TODO: handle reglist
-                // TODO: do not allow X0
-                // TODO: behavior
-            }
-        }
+        // K_LMDAON {
+        //     encoding: 2'b01 :: reglist[30:0] :: 3'b000 :: rd[4:0] :: 7'b0011111;
+        //     assembly: {"k.lmdaon", "{name(rd)}, {reglist(reglist)}"};
+        //     behavior: {
+        //         // TODO: handle reglist
+        //         // TODO: do not allow X0
+        //         // TODO: behavior
+        //     }
+        // }
         // TODO: K_LMIAON
         // TODO: K_LMDBON
         // TODO: K_LMIBON
