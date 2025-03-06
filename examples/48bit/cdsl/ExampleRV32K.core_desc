@@ -129,6 +129,24 @@ InstructionSet RV32K extends RV32I {
                 }
             }
         }
+        K_XORI2 {
+            encoding: 4'b0001 :: imm[23:0] :: rs1[4:0] :: 3'b010 :: rd[4:0] :: 7'b1011111;
+            assembly: {"k.xori2", "{name(rd)}, {name(rs1)}, {imm}"};
+            behavior: {
+                if ((rd % RFS) != 0) {
+                    X[rd % RFS] = X[rs1 % RFS] ^ (unsigned)imm;
+                }
+            }
+        }
+        K_ORI2 {
+            encoding: 4'b0001 :: imm[23:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b1011111;
+            assembly: {"k.ori2", "{name(rd)}, {name(rs1)}, {imm}"};
+            behavior: {
+                if ((rd % RFS) != 0) {
+                    X[rd % RFS] = X[rs1 % RFS] | (unsigned)imm;
+                }
+            }
+        }
 
         // Branches encoding
         // opcode: 0b1011111
