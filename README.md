@@ -160,7 +160,7 @@ N/A
 
 - **Seal5: Semi-Automated LLVM Support for RISC-V ISA Extensions Including Autovectorization** ([https://ieeexplore.ieee.org/abstract/document/10741856](https://ieeexplore.ieee.org/abstract/document/10741856))
 
-  *CODAI '2024 27th Euromicro Conference on Digital System Design (DSD)*
+  *2024 27th Euromicro Conference on Digital System Design (DSD)*
 
   BibTeX
 
