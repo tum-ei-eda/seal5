@@ -1,0 +1,62 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Seal5
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: 'Philipp '
+    family-names: Van Kempen
+    email: philipp.van-kempen@tum.de
+    orcid: 'https://orcid.org/0000-0002-1135-8070'
+    affiliation: Technical University of Munich
+  - given-names: 'Mathis '
+    family-names: Salmen
+    affiliation: Technical University of Munich
+    orcid: 'https://orcid.org/0009-0006-3449-1460'
+  - given-names: Daniel
+    family-names: Mueller-Gritschneder
+    orcid: 'https://orcid.org/0000-0003-0903-631X'
+    affiliation: TU Wien
+  - given-names: Ulf
+    family-names: Schlichtmann
+    affiliation: Technical University of Munich
+    orcid: 'https://orcid.org/0000-0003-4431-7619'
+identifiers:
+  - type: doi
+    value: 10.1109/DSD64264.2024.00052
+repository-code: 'https://github.com/tum-ei-eda/seal5'
+url: 'https://tum-ei-eda.github.io/seal5/'
+abstract: >-
+  The RISC-V instruction set architecture (ISA) is popular
+  for its extensibility, allowing easy integration of custom
+  vendor-defined instructions tailored to specific
+  applications. However, a quick exploration of instruction
+  candidates fails due to the lack of tools to auto-generate
+  embedded software toolchain support. In particular,
+  exploiting SIMD instructions to accelerate typical DSP and
+  machine learning workloads needs specialized integration.
+  This work establishes a semi-automated flow to generate
+  LLVM compiler support for custom instructions based on a
+  C-style ISA description language. The implemented Seal5
+  tool is capable of generating support for functionalities
+  ranging from baseline assembler-level support, over
+  builtin functions to compiler code generation patterns for
+  scalar as well as vector instructions, while requiring no
+  deeper compiler know-how. This paper focuses primarily on
+  a novel pattern generator approach for the optimized code
+  generation for SIMD instructions, including support for
+  autovectorization. The auto generated LLVM toolchain
+  reduces development times drastically while performing
+  similarly or better compared to the existing, manually
+  implemented Core-V reference LLVM toolchain on a wide
+  variety of benchmarks. Seal5 further allows the addition
+  of compiler code generation support for the Core-VSIMD
+  instructions, which is not yet available in the reference
+  toolchain. Additionally, Seal5 facilitates a quick
+  exploration of custom instruction candidates as
+  demonstrated for a cryptography extension.
+license: Apache-2.0
