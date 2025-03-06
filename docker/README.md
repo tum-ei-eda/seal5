@@ -24,10 +24,6 @@ The image `seal5-quickstart` builds up on the user `seal5-base` image by initial
 
 ## Usage
 
-### Pulling Prebuilt Images
-
-TODO
-
 ### Building Images
 
 #### Available Dockerfiles
@@ -40,13 +36,13 @@ You can build the images as follows:
 # Execute from top level of repository
 
 # Build seal5-deps image
-docker buildx build . -f docker/Dockerfile --tag tumeda/seal5-deps:latest-ubuntu-20.04 --target seal5-deps
+docker buildx build . -f docker/Dockerfile --tag tumeda/seal5-deps:latest-default-ubuntu-20.04 --target seal5-deps
 
 # Build seal5-base image
-docker buildx build . -f docker/Dockerfile --tag tumeda/seal5-base:latest-ubuntu-20.04 --target seal5-base
+docker buildx build . -f docker/Dockerfile --tag tumeda/seal5-base:latest-default-ubuntu-20.04 --target seal5-base
 
 # Build seal5-quickstart image (takes a long time)
-docker buildx build . -f docker/Dockerfile --tag tumeda/seal5-quickstart:latest-ubuntu-20.04-llvmorg-19.1.6 --target seal5-quickstart
+docker buildx build . -f docker/Dockerfile --tag tumeda/seal5-quickstart:latest-default-ubuntu-20.04-llvmorg-19.1.7 --target seal5-quickstart
 ```
 
 Build times (excluding pulling of base image) on 18-core workstation:
@@ -87,3 +83,5 @@ docker run -it --rm -v $(pwd):$(pwd) -v /tmp/seal5_llvm:/seal5_llvm tumeda/seal5
 # seal5-quickstart
 docker run -it --rm -v $(pwd):$(pwd) -v /tmp/seal5_out:/out tumeda/seal5-quickstart seal5 wrapper $(pwd)/examples/cdsl/rv_example/Example.core_desc --out /out
 ```
+
+Depending on the types of patches being applied and the system used for running the containers, the `seal5-quickstart` image can generate a prebuilt & patched LLVM in just a few minutes (210s on an 18-core workstation).
