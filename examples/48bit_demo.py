@@ -79,7 +79,10 @@ seal5_flow.initialize(
 # Load CoreDSL inputs
 cdsl_files = [
     # TODO: merge with example
-    EXAMPLES_DIR / "48bit" / "cdsl" / "ExampleRV32K.core_desc",
+    EXAMPLES_DIR
+    / "48bit"
+    / "cdsl"
+    / "ExampleRV32K.core_desc",
 ]
 seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
