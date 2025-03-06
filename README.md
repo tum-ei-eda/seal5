@@ -159,6 +159,25 @@ CoreDSL2LLVM/PatternGen issue tracker: https://github.com/mathis-s/CoreDSL2LLVM/
 
 N/A
 
+
+- **Seal5: Semi-Automated LLVM Support for RISC-V ISA Extensions Including Autovectorization** ([https://ieeexplore.ieee.org/abstract/document/10741856](https://ieeexplore.ieee.org/abstract/document/10741856))
+
+  *CODAI '2024 27th Euromicro Conference on Digital System Design (DSD)*
+
+  BibTeX
+
+  ```bibtex
+  @inproceedings{van2024seal5,
+    title={Seal5: Semi-Automated LLVM Support for RISC-V ISA Extensions Including Autovectorization},
+    author={Van Kempen, Philipp and Salmen, Mathis and Mueller-Gritschneder, Daniel and Schlichtmann, Ulf},
+    booktitle={2024 27th Euromicro Conference on Digital System Design (DSD)},
+    pages={335--342},
+    year={2024},
+    organization={IEEE}
+  }
+  ```
+
+
 ## Acknowledgment
 
 <img src="./BMBF_gefoerdert_2017_en.jpg" alt="drawing" height="75" align="left" >
