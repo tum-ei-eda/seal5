@@ -35,24 +35,28 @@ def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings, llvm_set
     predicate = ext_settings.get_predicate(name=name)
     version = ext_settings.get_version()
     experimental = ext_settings.experimental
+    vendor = ext_settings.vendor
 
     if requires:
         raise NotImplementedError
 
     legacy = True
+    slim = False
     if llvm_settings:
         llvm_state = llvm_settings.state
         if llvm_state:
             llvm_version = llvm_state.version  # unused today, but needed very soon
             if llvm_version.major >= 19:
                 legacy = False
+                if llvm_version.major >= 20:
+                    slim = True
     if legacy:
         template_name = "riscv_features"
     else:
         if experimental:
-            template_name = "riscv_features_experimental_new"
+            template_name = "riscv_features_experimental_new_slim" if slim else "riscv_features_experimental_new"
         else:
-            template_name = "riscv_features_new"
+            template_name = "riscv_features_new_slim" if slim else "riscv_features_new"
 
     # TODO: make util!
     if not isinstance(version, str):
@@ -61,6 +65,10 @@ def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings, llvm_set
     major, minor = list(map(int, version.split(".", 1)))
 
     content_template = Template(filename=str(template_dir / f"{template_name}.mako"))
+    if slim:
+        # TODO: support experimental- prefix
+        assert feature.lower() == arch_, "LLVM 20 requires matching arch and feature names"
+        assert predicate == (f"Vendor{feature}" if vendor else f"StdExt{feature}")
     content_text = content_template.render(
         predicate=predicate, feature=feature, arch=arch_, description=description, major=major, minor=minor
     )
