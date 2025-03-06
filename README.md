@@ -3,9 +3,7 @@
 > [!NOTE]
 > Starting **July 11, 2024** we will be offering (monthly) Seal5 Development/User meetings.
 >
-> Next call: **Sep 12, 2024, 11:00**
->
-> Click [here](https://github.com/tum-ei-eda/seal5/discussions/104) for details, if you are interested!
+> Click [here](https://github.com/tum-ei-eda/seal5/discussions/104) for details (slides, next dates,...), if you are interested!
 
 > [!NOTE]
 > Seal5 was recently presented at the RISC-V Summit Europe 2024. Click [here](https://github.com/tum-ei-eda/seal5/discussions/107) to access the poster, slides & recording.
