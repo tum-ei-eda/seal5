@@ -114,7 +114,9 @@ def pick_coredsl2llvm_ref(ref: str, llvm_version: LLVMVersion):
 
     major, minor, patch = llvm_version.triple
 
-    if major == 19:
+    if major == 20:
+        ref = "llvm-20.1.0"
+    elif major == 19:
         ref = "llvm-19.1.0"
     elif major == 18:
         ref = "philippvk5"

@@ -537,7 +537,6 @@ class ExtensionsSettings(YAMLSettings):
     version: Optional[str] = None
     experimental: Optional[bool] = None
     vendor: Optional[bool] = None
-    std: Optional[bool] = None
     description: Optional[str] = None
     requires: Optional[List[str]] = None
     instructions: Optional[List[str]] = None
@@ -592,12 +591,9 @@ class ExtensionsSettings(YAMLSettings):
             feature = self.get_feature(name=name)
             assert feature is not None
             if self.vendor:
-                assert not self.std
                 prefix = "Vendor"
-            elif self.std:
-                prefix = "StdExt"
             else:
-                prefix = "Ext"
+                prefix = "StdExt"
             if with_has:
                 prefix = "Has" + prefix
             return prefix + feature
