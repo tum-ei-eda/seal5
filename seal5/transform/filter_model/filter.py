@@ -198,12 +198,18 @@ def run(args):
             return opcode not in drop
         return True
 
+    before = len(model_obj.sets)
     model_obj.sets = {
         set_name: set_def
         for set_name, set_def in model_obj.sets.items()
         if check_filter_regex(set_name, keep_sets, drop_sets)
     }
+    after = len(model_obj.sets)
+    diff = before - after
+    if diff > 0:
+        logger.debug("Filtered %d sets", diff)
     for set_name, set_def in model_obj.sets.items():
+        before = len(set_def.instructions)
         set_def.instructions = {
             key: instr_def
             for key, instr_def in set_def.instructions.items()
@@ -212,7 +218,10 @@ def run(args):
                 instr_def.name, instr_def.encoding, keep_opcodes, drop_opcodes, keep_encoding_sizes, drop_encoding_sizes
             )
         }
-        # for instr_name, instr_def in set_def.instructions.items():
+        after = len(set_def.instructions)
+        diff = before - after
+        if diff > 0:
+            logger.debug("Filtered %d instructions for set %s", diff, set_name)
 
     # Remove sets without instructions
     model_obj.sets = {
