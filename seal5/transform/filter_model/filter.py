@@ -57,21 +57,6 @@ OPCODE_LOOKUP = {
 }
 
 
-class DropUnusedContext:
-    def __init__(self, names: "list[str]"):
-        self.names = names
-        self.to_keep = set()
-
-    @property
-    def to_drop(self):
-        return set(name for name in self.names if name not in self.to_keep)
-
-    def track(self, name: str):
-        if name in self.names:
-            # logger.debug("Tracked use of %s", name)
-            self.to_keep.add(name)
-
-
 def get_parser():
     # read command line args
     parser = argparse.ArgumentParser()
