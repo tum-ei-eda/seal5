@@ -78,10 +78,10 @@ To use the previously built images, run the following commands
 
 ```sh
 # seal5-base
-docker run -it --rm -v $(pwd):$(pwd) -v /tmp/seal5_llvm:/seal5_llvm tumeda/seal5-base seal5 --dir /seal5_llvm wrapper $(pwd)/examples/cdsl/rv_example/Example.core_desc $(pwd)/examples/cfg/patches.yml $(pwd)/examples/cfg/git.yml $(pwd)/examples/cfg/llvm.yml $(pwd)/examples/cfg/filter.yml
+docker run -it --rm -v $(pwd):$(pwd) -v /tmp/seal5_llvm:/seal5_llvm tumeda/seal5-base seal5 --dir /seal5_llvm wrapper $(pwd)/examples/example/cdsl/Example.core_desc $(pwd)/examples/common/cfg/patches.yml $(pwd)/examples/common/cfg/git.yml $(pwd)/examples/common/cfg/llvm.yml $(pwd)/examples/common/cfg/filter.yml
 
 # seal5-quickstart
-docker run -it --rm -v $(pwd):$(pwd) -v /tmp/seal5_out:/out tumeda/seal5-quickstart seal5 wrapper $(pwd)/examples/cdsl/rv_example/Example.core_desc --out /out
+docker run -it --rm -v $(pwd):$(pwd) -v /tmp/seal5_out:/out tumeda/seal5-quickstart seal5 wrapper $(pwd)/examples/example/cdsl/Example.core_desc --out /out
 ```
 
 Depending on the types of patches being applied and the system used for running the containers, the `seal5-quickstart` image can generate a prebuilt & patched LLVM in just a few minutes (210s on an 18-core workstation).
