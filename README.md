@@ -3,9 +3,7 @@
 > [!NOTE]
 > Starting **July 11, 2024** we will be offering (monthly) Seal5 Development/User meetings.
 >
-> Next call: **Sep 12, 2024, 11:00**
->
-> Click [here](https://github.com/tum-ei-eda/seal5/discussions/104) for details, if you are interested!
+> Click [here](https://github.com/tum-ei-eda/seal5/discussions/104) for details (slides, next dates,...), if you are interested!
 
 > [!NOTE]
 > Seal5 was recently presented at the RISC-V Summit Europe 2024. Click [here](https://github.com/tum-ei-eda/seal5/discussions/107) to access the poster, slides & recording.
@@ -158,6 +156,25 @@ CoreDSL2LLVM/PatternGen issue tracker: https://github.com/mathis-s/CoreDSL2LLVM/
 ## References
 
 N/A
+
+
+- **Seal5: Semi-Automated LLVM Support for RISC-V ISA Extensions Including Autovectorization** ([https://ieeexplore.ieee.org/abstract/document/10741856](https://ieeexplore.ieee.org/abstract/document/10741856))
+
+  *CODAI '2024 27th Euromicro Conference on Digital System Design (DSD)*
+
+  BibTeX
+
+  ```bibtex
+  @inproceedings{van2024seal5,
+    title={Seal5: Semi-Automated LLVM Support for RISC-V ISA Extensions Including Autovectorization},
+    author={Van Kempen, Philipp and Salmen, Mathis and Mueller-Gritschneder, Daniel and Schlichtmann, Ulf},
+    booktitle={2024 27th Euromicro Conference on Digital System Design (DSD)},
+    pages={335--342},
+    year={2024},
+    organization={IEEE}
+  }
+  ```
+
 
 ## Acknowledgment
 
