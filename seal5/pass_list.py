@@ -1592,7 +1592,9 @@ def convert_llvmir_to_gmir(
         for model_name, model_settings in settings.models.items():
             if model_name != input_model:
                 continue
-            assert len(model_settings.extensions) > 0, "No sets found"
+            if len(model_settings.extensions) == 0:
+                logger.warning("No sets found in model %s", model_name)
+                continue
             for set_name, ext_settings in model_settings.extensions.items():
                 insn_names = ext_settings.instructions
                 riscv_settings = ext_settings.riscv
