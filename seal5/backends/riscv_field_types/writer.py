@@ -39,7 +39,7 @@ class Seal5RISCVSImmLeafOp<int bitsNum> :
 
 def gen_riscv_field_types_str(field_types):
     # print("gen_riscv_field_types_str", field_types)
-    riscv_field_types_contents = [SEAL5_RISCV_FIELDS_SUPPORT]
+    riscv_field_types_contents = [SEAL5_RISCV_FIELDS_SUPPORT] if len(field_types) > 0 else []
     riscv_operands_asm_contents = []
     riscv_operands_enum_contents = []
 
@@ -168,9 +168,12 @@ def main():
     artifacts = {}
     artifacts[None] = []  # used for global artifacts
     # TODO: error handling?
-    field_types_content, riscv_operands_asm_content, riscv_operands_enum_content = gen_riscv_field_types_str(
-        missing_imm_types
-    )
+    if len(missing_imm_types) > 0:
+        field_types_content, riscv_operands_asm_content, riscv_operands_enum_content = gen_riscv_field_types_str(
+            missing_imm_types
+        )
+    else:
+        field_types_content, riscv_operands_asm_content, riscv_operands_enum_content = "", "", ""
     metrics["n_imm"] = len(missing_imm_types)
     metrics["n_success"] = len(missing_imm_types)
     # print("field_types_content", field_types_content)
