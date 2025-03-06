@@ -58,3 +58,5 @@ InstructionSet XExample extends RV32I {
                 }
             }
         }
+    }
+}
