@@ -29,7 +29,7 @@ OPCODE_LOOKUP = {
     "OP-IMM": 0b00100,
     "AUIPC": 0b00101,
     "OP-IMM-32": 0b00110,
-    # "48bit": 0b00111,
+    "48bit": 0b00111,
     "STORE": 0b01000,
     "STORE-FP": 0b01001,
     "custom-1": 0b01010,
@@ -45,7 +45,7 @@ OPCODE_LOOKUP = {
     "OP-FP": 0b10100,
     "OP-V": 0b10101,
     "custom-2": 0b10110,  # rv128i
-    # "48bit2": 0b10111,
+    "48bit2": 0b10111,
     "BRANCH": 0b11000,
     "JALR": 0b11001,
     # "reserved": 0b11010,
