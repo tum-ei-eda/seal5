@@ -8,12 +8,12 @@ message: >-
   metadata from this file.
 type: software
 authors:
-  - given-names: 'Philipp '
+  - given-names: Philipp
     family-names: Van Kempen
     email: philipp.van-kempen@tum.de
     orcid: 'https://orcid.org/0000-0002-1135-8070'
     affiliation: Technical University of Munich
-  - given-names: 'Mathis '
+  - given-names: Mathis
     family-names: Salmen
     affiliation: Technical University of Munich
     orcid: 'https://orcid.org/0009-0006-3449-1460'
