@@ -1,0 +1,27 @@
+import "../../common/cdsl/rv_base/RVF.core_desc"
+
+// InstructionSet XExample extends RISCVBase {
+InstructionSet XExampleFP32 extends RV32F {
+  functions {
+    extern unsigned<32> llvm_uitofp_fp32(unsigned<32>);
+    extern unsigned<32> llvm_fadd_fp32(unsigned<32>, unsigned<32>);
+    extern unsigned<32> llvm_fdiv_fp32(unsigned<32>, unsigned<32>);
+    extern unsigned<32> llvm_fmuladd_fp32(unsigned<32>, unsigned<32>, unsigned<32>);
+  }
+  instructions {
+    MEAN {
+      encoding: 7'b0101000 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+      assembly: "{fname(rd)}, {fname(rs1)}, {fname(rs2)}";
+      behavior: {
+        F[rd] = llvm_fdiv_fp32(llvm_fadd_fp32(F[rs1], F[rs2]), llvm_uitofp_fp32(2));
+      }
+    }
+    MAC {
+      encoding: 7'b0101000 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+      assembly: "{fname(rd)}, {fname(rs1)}, {fname(rs2)}";
+      behavior: {
+        F[rd] = llvm_fmuladd_fp32(F[rs1], F[rs2], F[rd]);
+      }
+    }
+  }
+}
