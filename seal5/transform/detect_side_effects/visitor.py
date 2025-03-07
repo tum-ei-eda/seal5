@@ -162,7 +162,9 @@ def indexed_reference(self: behav.IndexedReference, context):
     # print("indexed_reference")
     assert isinstance(self.reference, arch.Memory)
     # name = self.reference.name
-    if arch.MemoryAttribute.IS_MAIN_MEM in self.reference.attributes:
+    # TODO: support other memory types (MEM8,...)
+    is_mem = arch.MemoryAttribute.IS_MAIN_MEM in self.reference.attributes or "MEM" in self.reference.name
+    if is_mem:
         if context.is_write:
             context.may_store = True
         elif context.is_read:
