@@ -353,6 +353,7 @@ class Seal5Instruction(Instruction):
             name = "{" + name + "}"
             # print("name", name)
             return name
+
         asm_str = ", ".join([helper(op) for op in sorted_operands])
         # print("asm_str", asm_str)
         # input(">")
