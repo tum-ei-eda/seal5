@@ -325,6 +325,40 @@ class Seal5Instruction(Instruction):
         self._llvm_imm_types = None
         self._process_fields()
 
+    def get_asm_str(self):
+        if self.assembly is not None:
+            assert isinstance(self.assembly, str)
+            return self.assembly
+        assert self.operands is not None
+        # print("self.operands", self.operands)
+        # TODO: detect reg/imm and in/out/inout here!
+        # imm_operands = [op for op in self.operands.values() if Seal5OperandAttribute.IS_IMM in op.attributes]
+        # reg_operands = [op for op in self.operands.values() if Seal5OperandAttribute.IS_REG in op.attributes]
+        # sorted_operands = reg_operands + imm_operands
+        # assert len(sorted_operands) == len(self.operands), "Some operands are not imm or reg"
+        # TODO: only sort operands if not user-provided?
+        # just sort by first use?
+        sorted_operands = list(self.operands.values())
+
+        # Fallback to automatically generated asm string
+        def helper(op):
+            name = op.name
+            attributes = op.attributes
+            is_reg = Seal5OperandAttribute.IS_REG in attributes
+            is_imm = Seal5OperandAttribute.IS_IMM in attributes
+            if is_reg:
+                name = f"name({name})"
+            else:
+                assert is_imm, f"Operand {name} is not a reg or imm"
+            name = "{" + name + "}"
+            # print("name", name)
+            return name
+        asm_str = ", ".join([helper(op) for op in sorted_operands])
+        # print("asm_str", asm_str)
+        # input(">")
+        self.assembly = asm_str
+        return self.assembly
+
     def _process_fields(self):
         for field_name, field in self.fields.items():
             if field_name in self.operands:
@@ -448,7 +482,8 @@ class Seal5Instruction(Instruction):
         self._llvm_imm_types = imm_types
 
     def _llvm_process_assembly(self):
-        asm_str = self.assembly
+        asm_str = self.get_asm_str()
+        assert asm_str is not None
         asm_str = re.sub(r"name\(([a-zA-Z0-9_\+]+)\)", r"\g<1>", asm_str)
         asm_str = re.sub(r"{([a-zA-Z0-9_\+]+):[#0-9a-zA-Z\._]+}", r"{\g<1>}", asm_str)
         asm_str = re.sub(r"{([a-zA-Z0-9_\+]+)}", r"$\g<1>", asm_str)
