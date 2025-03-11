@@ -442,6 +442,11 @@ class Seal5Instruction(Instruction):
             elif Seal5OperandAttribute.IN in op.attributes:
                 op_str = f"{pre}:${op_name}"
                 reads.append(op_str)
+            elif Seal5OperandAttribute.UNUSED in op.attributes:
+                # TODO: alternatively we could silently drop it or default to zeros?
+                raise RuntimeError(f"Found unused operand: {op_name}")
+            else:
+                raise RuntimeError(f"Found unused operand: {op_name}")
         self._llvm_constraints = constraints
         self._llvm_reads = reads
         self._llvm_writes = writes
