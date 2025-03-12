@@ -425,14 +425,14 @@ def detect_registers(
         log_level,
     ]
     if not use_subprocess:
-        from seal5.transform.detect_registers import main as DetectRegisters
+        from seal5.transform.detect_registers import DetectRegisters
 
         args = sanitize_args(args)
         DetectRegisters(args)
     else:
         utils.python(
             "-m",
-            "seal5.transform.detect_registers",
+            "seal5.transform.detect_registers.detect",
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
