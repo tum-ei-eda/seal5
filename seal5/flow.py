@@ -53,6 +53,7 @@ TRANSFORM_PASS_MAP = [
     ("infer_types", passes.infer_types, {}),
     ("simplify_trivial_slices", passes.simplify_trivial_slices, {}),
     ("explicit_truncations", passes.explicit_truncations, {}),
+    ("explicit_extends", passes.explicit_extends, {}),
     ("process_settings", passes.process_settings, {}),
     ("write_yaml", passes.write_yaml, {}),
     ("process_settings2", passes.process_settings, {}),
