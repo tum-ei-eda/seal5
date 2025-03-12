@@ -42,34 +42,34 @@ logger = get_logger()
 
 TRANSFORM_PASS_MAP = [
     # TODO: Global -> Model
-    ("convert_models", passes.convert_models, {}),
-    ("filter_models", passes.filter_model, {}),
-    ("drop_unused", passes.drop_unused, {}),
-    ("eliminate_mod_rfs", passes.eliminate_mod_rfs, {}),
-    ("eliminate_rd_cmp_zero", passes.eliminate_rd_cmp_zero, {}),
-    ("drop_unused2", passes.drop_unused, {}),
-    ("inline_functions", passes.inline_functions, {}),
-    ("optimize_model", passes.optimize_model, {}),
-    ("infer_types", passes.infer_types, {}),
-    ("simplify_trivial_slices", passes.simplify_trivial_slices, {}),
-    ("explicit_truncations", passes.explicit_truncations, {}),
-    ("process_settings", passes.process_settings, {}),
-    ("write_yaml", passes.write_yaml, {}),
-    ("process_settings2", passes.process_settings, {}),
-    ("detect_behavior_constraints", passes.detect_behavior_constraints, {}),
-    ("detect_registers", passes.detect_registers, {}),
-    ("collect_register_operands", passes.collect_register_operands, {}),
-    ("collect_immediate_operands", passes.collect_immediate_operands, {}),
-    ("collect_operand_types", passes.collect_operand_types, {}),
-    ("write_yaml2", passes.write_yaml, {}),
-    ("process_settings3", passes.process_settings, {}),
-    ("detect_side_effects", passes.detect_side_effects, {}),
-    ("detect_inouts", passes.detect_inouts, {}),
-    ("detect_imm_leafs", passes.detect_imm_leafs, {}),
-    ("detect_calls", passes.detect_calls, {}),
-    ("detect_loops", passes.detect_loops, {}),
-    ("check_pattern_support", passes.check_pattern_support, {}),
-    ("write_cdsl_full", passes.write_cdsl, {"split": False, "compat": False}),
+    ("convert_models", passes.convert_models, {}, PassScope.MODEL),
+    ("filter_models", passes.filter_model, {}, PassScope.MODEL),
+    ("drop_unused", passes.drop_unused, {}, PassScope.MODEL),
+    ("eliminate_mod_rfs", passes.eliminate_mod_rfs, {}, PassScope.MODEL),
+    ("eliminate_rd_cmp_zero", passes.eliminate_rd_cmp_zero, {}, PassScope.MODEL),
+    ("drop_unused2", passes.drop_unused, {}, PassScope.MODEL),
+    ("inline_functions", passes.inline_functions, {}, PassScope.MODEL),
+    ("optimize_model", passes.optimize_model, {}, PassScope.MODEL),
+    ("infer_types", passes.infer_types, {}, PassScope.MODEL),
+    ("simplify_trivial_slices", passes.simplify_trivial_slices, {}, PassScope.MODEL),
+    ("explicit_truncations", passes.explicit_truncations, {}, PassScope.MODEL),
+    ("process_settings", passes.process_settings, {}, PassScope.MODEL),
+    ("write_yaml", passes.write_yaml, {}, PassScope.MODEL),
+    ("process_settings2", passes.process_settings, {}, PassScope.MODEL),
+    ("detect_behavior_constraints", passes.detect_behavior_constraints, {}, PassScope.MODEL),
+    ("detect_registers", passes.detect_registers, {}, PassScope.MODEL),
+    ("collect_register_operands", passes.collect_register_operands, {}, PassScope.MODEL),
+    ("collect_immediate_operands", passes.collect_immediate_operands, {}, PassScope.MODEL),
+    ("collect_operand_types", passes.collect_operand_types, {}, PassScope.MODEL),
+    ("write_yaml2", passes.write_yaml, {}, PassScope.MODEL),
+    ("process_settings3", passes.process_settings, {}, PassScope.MODEL),
+    ("detect_side_effects", passes.detect_side_effects, {}, PassScope.MODEL),
+    ("detect_inouts", passes.detect_inouts, {}, PassScope.MODEL),
+    ("detect_imm_leafs", passes.detect_imm_leafs, {}, PassScope.MODEL),
+    ("detect_calls", passes.detect_calls, {}, PassScope.MODEL),
+    ("detect_loops", passes.detect_loops, {}, PassScope.MODEL),
+    ("check_pattern_support", passes.check_pattern_support, {}, PassScope.MODEL),
+    ("write_cdsl_full", passes.write_cdsl, {"split": False, "compat": False}, PassScope.MODEL),
     # TODO: determine static constraints (xlen,...) -> subtargetvmap
     # detect memory adressing modes
     # self.detect_adressing_modes(verbose)  # TODO
@@ -81,31 +81,27 @@ TRANSFORM_PASS_MAP = [
 ]
 
 GENERATE_PASS_MAP = [
-    ("seal5_td", passes.gen_seal5_td, {}),
+    ("seal5_td", passes.gen_seal5_td, {}, PassScope.GLOBAL),
     # ("model_td", passes.gen_model_td, {}),
-    ("set_td", passes.gen_set_td, {}),
-    ("riscv_features", passes.gen_riscv_features_patch, {}),
-    ("riscv_isa_infos", passes.gen_riscv_isa_info_patch, {}),
+    ("set_td", passes.gen_set_td, {}, PassScope.MODEL),
+    ("riscv_features", passes.gen_riscv_features_patch, {}, PassScope.MODEL),
+    ("riscv_isa_infos", passes.gen_riscv_isa_info_patch, {}, PassScope.MODEL),
     # ("riscv_instr_formats", passes.gen_riscv_instr_formats_patch, {}),
-    ("riscv_register_info", passes.gen_riscv_register_info_patch, {}),
-    ("riscv_field_types", passes.gen_riscv_field_types_patch, {}),
-    ("riscv_instr_info", passes.gen_riscv_instr_info_patch, {}),
-    ("riscv_intrinsics", passes.gen_riscv_intrinsics, {}),
+    ("riscv_register_info", passes.gen_riscv_register_info_patch, {}, PassScope.MODEL),
+    ("riscv_field_types", passes.gen_riscv_field_types_patch, {}, PassScope.GLOBAL),
+    ("riscv_instr_info", passes.gen_riscv_instr_info_patch, {}, PassScope.MODEL),
+    ("riscv_intrinsics", passes.gen_riscv_intrinsics, {}, PassScope.MODEL),
     # subtarget_tests
-    # register_types
-    # operand_types
     # instruction_formats
     # instruction_infos
-    # disassembler
     # mc_tests
     # selection_dag_legalizer
     # scalar_costs
     # simd_costs
-    # isel_patterns
     # codegen_test
-    ("riscv_gisel_legalizer", passes.gen_riscv_gisel_legalizer_patch, {}),
+    ("riscv_gisel_legalizer", passes.gen_riscv_gisel_legalizer_patch, {}, PassScope.GLOBAL),
     # TODO: nested pass lists?
-    ("pattern_gen", passes.pattern_gen_pass, {}),
+    ("pattern_gen", passes.pattern_gen_pass, {}, PassScope.MODEL),
 ]
 
 
@@ -254,16 +250,11 @@ class Seal5Flow:
     def create_passes(self):
         """Creation of Seal5 pass pipelines."""
         # Transforms
-        for pass_name, pass_handler, pass_options in TRANSFORM_PASS_MAP:
-            pass_scope = PassScope.MODEL
+        for pass_name, pass_handler, pass_options, pass_scope in TRANSFORM_PASS_MAP:
             self.add_pass(Seal5Pass(pass_name, PassType.TRANSFORM, pass_scope, pass_handler, options=pass_options))
 
         # Generates
-        for pass_name, pass_handler, pass_options in GENERATE_PASS_MAP:
-            if pass_name in ["seal5_td", "riscv_gisel_legalizer", "riscv_field_types"]:  # TODO: refactor
-                pass_scope = PassScope.GLOBAL
-            else:
-                pass_scope = PassScope.MODEL
+        for pass_name, pass_handler, pass_options, pass_scope in GENERATE_PASS_MAP:
             self.add_pass(Seal5Pass(pass_name, PassType.GENERATE, pass_scope, pass_handler, options=pass_options))
 
     def check(self):
