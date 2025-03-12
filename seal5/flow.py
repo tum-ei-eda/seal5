@@ -57,7 +57,11 @@ TRANSFORM_PASS_MAP = [
     ("write_yaml", passes.write_yaml, {}, PassScope.MODEL),
     ("process_settings2", passes.process_settings, {}, PassScope.MODEL),
     ("detect_behavior_constraints", passes.detect_behavior_constraints, {}, PassScope.MODEL),
-    ("detect_registers", passes.detect_registers, {}, PassScope.MODEL),
+    # ("detect_registers", passes.detect_registers, {}, PassScope.MODEL),
+    # ("detect_registers", PassFunc("detect_registers", seal5.transform.detect_registers.DetectRegisters, type=metrics=False, ???).func, {}, PassScope.MODEL),
+    ("detect_registers", TransformPassFunc("detect_registers", seal5.transform.detect_registers.DetectRegisters, metrics=False).func, {}, PassScope.MODEL),
+    # scope=PassScope.GLOBAL
+    # Next: ("detect_registers", DetectRegistersPass().func, {}, PassScope.MODEL),
     ("collect_register_operands", passes.collect_register_operands, {}, PassScope.MODEL),
     ("collect_immediate_operands", passes.collect_immediate_operands, {}, PassScope.MODEL),
     ("collect_operand_types", passes.collect_operand_types, {}, PassScope.MODEL),
