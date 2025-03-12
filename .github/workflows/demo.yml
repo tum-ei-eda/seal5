@@ -87,6 +87,8 @@ on:
 jobs:
   demo:
     runs-on: ${{ matrix.os }}
+    env:
+      SEAL5_NUM_THREADS: 1
     strategy:
       matrix:
         python-version: ["3.10"]
