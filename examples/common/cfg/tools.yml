@@ -1,0 +1,8 @@
+---
+tools:
+  pattern_gen:
+    integrated: true
+    # clone_url: ?
+    # ref: ?
+    clone_depth: 1
+    sparse_checkout: false

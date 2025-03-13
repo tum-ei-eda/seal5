@@ -28,6 +28,10 @@ def operation(self: behav.Operation, context):
 
 def binary_operation(self: behav.BinaryOperation, context):
     if self.op.value == "!=":
+        lhs = self.left
+        while isinstance(lhs, behav.Group):
+            lhs = lhs.expr
+        self.left = lhs
         if isinstance(self.left, behav.NamedReference):
             if self.left.reference.name == "rd":
                 if isinstance(self.right, behav.NumberLiteral):

@@ -23,10 +23,14 @@ from dataclasses import dataclass, field, asdict, fields, replace
 from typing import List, Union, Optional, Dict
 
 import yaml
+import dacite
 from dacite import from_dict, Config
 
 from seal5.types import PatchStage
 from seal5.utils import parse_cond
+from seal5.logging import get_logger
+
+logger = get_logger()
 
 
 DEFAULT_SETTINGS = {
@@ -95,7 +99,7 @@ DEFAULT_SETTINGS = {
         # "paths": ["MC/RISCV", "CodeGen/RISCV"],
     },
     "llvm": {
-        "state": {"version": "auto", "base_commit": "unknown"},
+        "state": {"version": "auto", "base_commit": "unknown", "supported_imm_types": []},
         "ninja": True,
         "ccache": {
             "enable": False,
@@ -178,7 +182,11 @@ class YAMLSettings:  # TODO: make abstract
     @classmethod
     def from_dict(cls, data: dict):
         """Convert dict into instance of YAMLSettings."""
-        return from_dict(data_class=cls, data=data, config=Config(strict=True))
+        try:
+            return from_dict(data_class=cls, data=data, config=Config(strict=True))
+        except dacite.exceptions.UnexpectedDataError as err:
+            logger.error("Unexpected key in Seal5Settings. Check for missmatch between Seal5 versions!")
+            raise err
 
     @classmethod
     def from_yaml(cls, text: str):
@@ -456,6 +464,7 @@ class LLVMState(YAMLSettings):
 
     base_commit: Optional[str] = None
     version: Optional[Union[str, LLVMVersion]] = None
+    supported_imm_types: Optional[List[str]] = None
 
 
 @dataclass
@@ -534,6 +543,7 @@ class ExtensionsSettings(YAMLSettings):
     instructions: Optional[List[str]] = None
     riscv: Optional[RISCVSettings] = None
     passes: Optional[PassesSettings] = None
+    required_imm_types: Optional[List[str]] = None
     # patches
 
     def get_version(self):

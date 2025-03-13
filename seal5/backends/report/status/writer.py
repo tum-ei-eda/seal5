@@ -11,13 +11,11 @@
 import argparse
 import logging
 import pathlib
-import pickle
-from typing import Union
 
 import pandas as pd
 
-from m2isar.metamodel import arch
 from seal5.settings import Seal5Settings
+from seal5.model_utils import load_model
 
 logger = logging.getLogger("status_writer")
 
@@ -34,6 +32,7 @@ def main():
     parser.add_argument("--yaml", type=str, default=None)
     parser.add_argument("--compact", action="store_true")
     parser.add_argument("--markdown-icons", action="store_true")
+    parser.add_argument("--compat", action="store_true")
     args = parser.parse_args()
 
     # initialize logging
@@ -141,31 +140,9 @@ def main():
         top_level = pathlib.Path(top_level)
         # abs_top_level = top_level.resolve()
 
-        is_seal5_model = False
-        if top_level.suffix == ".seal5model":
-            is_seal5_model = True
+        model_obj = load_model(top_level, compat=args.compat)
 
-        logger.info("loading models")
-        if not is_seal5_model:
-            raise NotImplementedError
-
-        # load models
-        with open(top_level, "rb") as f:
-            # models: "dict[str, arch.CoreDef]" = pickle.load(f)
-            if is_seal5_model:
-                model: "dict[str, Union[arch.InstructionSet, ...]]" = pickle.load(f)
-                model["cores"] = {}
-            else:  # TODO: core vs. set!
-                temp: "dict[str, Union[arch.InstructionSet, arch.CoreDef]]" = pickle.load(f)
-                assert len(temp) > 0, "Empty model!"
-                if isinstance(list(temp.values())[0], arch.CoreDef):
-                    model = {"cores": temp, "sets": {}}
-                elif isinstance(list(temp.values())[0], arch.InstructionSet):
-                    model = {"sets": temp, "cores": {}}
-                else:
-                    assert False
-
-        for set_name, set_def in model["sets"].items():
+        for set_name, set_def in model_obj.sets.items():
             xlen = set_def.xlen
             model = top_level.stem
             filtered_metrics = process_metrics(settings, model=model)
@@ -220,7 +197,7 @@ def main():
         # status_df.to_markdown(out_path, tablefmt="grid", index=False)
         if args.markdown_icons:
 
-            def helper(x):
+            def helper2(x):
                 x = x.replace("success", "success :heavy_check_mark:")
                 x = x.replace("skipped", "skipped :question:")
                 x = x.replace("failed", "failed :x:")
@@ -230,7 +207,7 @@ def main():
                 x = x.replace("bad", "bad :red_circle:")
                 return x
 
-            status_df["status"] = status_df["status"].apply(helper)
+            status_df["status"] = status_df["status"].apply(helper2)
         status_df.to_markdown(out_path, index=False)
     else:
         raise ValueError(f"Unsupported fmt: {fmt}")

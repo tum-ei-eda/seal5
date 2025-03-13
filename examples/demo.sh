@@ -18,101 +18,28 @@
 # limitations under the License.
 #
 
-
 set -e
-#Use this if no commands found: export PYTHONPATH=$(pwd):$PYTHONPATH
 
-VERBOSE=${VERBOSE:-0}
-SKIP_PATTERNS=${SKIP_PATTERNS:-0}
-INTERACTIVE=${INTERACTIVE:-0}
-# PREPATCHED=${PREPATCHED:-0}
-BUILD_CONFIG=${BUILD_CONFIG:-"release"}
-IGNORE_ERROR=${IGNORE_ERROR:-1}
-TEST=${TEST:-1}
-INSTALL=${INSTALL:-1}
-DEPLOY=${DEPLOY:-1}
-EXPORT=${EXPORT:-1}
-CLEANUP=${CLEANUP:-0}
-PROGRESS=${PROGRESS:-1}
-CCACHE=${PROGRESS:-0}
-CLONE_DEPTH=${CLONE_DEPTH:-1}
-DEST=${DEST:-"/tmp/seal5_llvm_cli_demo"}
-NAME=${NAME:-"cli_demo"}
+# export VERBOSE=${VERBOSE:-0}
+# export SKIP_PATTERNS=${SKIP_PATTERNS:-0}
+# export INTERACTIVE=${INTERACTIVE:-0}
+# export # PREPATCHED=${PREPATCHED:-0}
+# export BUILD_CONFIG=${BUILD_CONFIG:-"release"}
+# export IGNORE_ERROR=${IGNORE_ERROR:-1}
+# export TEST=${TEST:-1}
+# export INSTALL=${INSTALL:-1}
+# export DEPLOY=${DEPLOY:-1}
+# export EXPORT=${EXPORT:-1}
+# export CLEANUP=${CLEANUP:-0}
+# export PROGRESS=${PROGRESS:-1}
+# export CCACHE=${PROGRESS:-0}
+# export CLONE_DEPTH=${CLONE_DEPTH:-1}
+export DEST=${DEST:-"/tmp/seal5_llvm_cli_demo"}
+# export NAME=${NAME:-"cli_demo"}
 
-Example_files=examples/cdsl/rv_example/Example.core_desc
+Example_files=examples/example/cdsl/Example.core_desc
 export SEAL5_HOME=$DEST
-Config_files=(examples/cfg/llvm.yml examples/cfg/filter.yml examples/cfg/patches.yml examples/cfg/riscv.yml examples/cfg/tests.yml examples/cfg/passes.yml examples/cfg/git.yml)
-Test_files=(examples/tests/xexample/xexample-*.s examples/tests/xexample/xexample-*.ll examples/tests/xexample/xexample-*.c)
+Config_files=(examples/common/cfg/llvm.yml examples/common/cfg/filter.yml examples/common/cfg/patches.yml examples/common/cfg/riscv.yml examples/common/cfg/tests.yml examples/common/cfg/passes.yml examples/common/cfg/git.yml)
+Test_files=(examples/example/tests/xexample-*.s examples/example/tests/xexample-*.ll examples/example/tests/xexample-*.c)
 
-echo Example_files:;
-echo ${Example_files};
-echo Config_files:;
-echo ${Config_files[@]};
-echo Seal5 Build Home:;
-echo ${SEAL5_HOME};
-
-PROGRESS_ARGS=""
-if [[ $PROGRESS -eq 1 ]]
-then
-    PROGRESS_ARGS="--progress"
-fi
-
-INTERACTIVE_ARGS=""
-if [[ $INTERACTIVE -eq 0 ]]
-then
-    INTERACTIVE_ARGS="--non-interactive"
-fi
-
-CCACHE_ARGS=""
-if [[ $CCACHE -eq 1 ]]
-then
-    CCACHE_ARGS="--ccache"
-fi
-
-
-seal5 --verbose --dir ${SEAL5_HOME} reset  --settings
-seal5 --verbose --dir ${SEAL5_HOME} clean --temp --patches --models --inputs
-seal5 --verbose --dir ${SEAL5_HOME} init $INTERACTIVE_ARGS -c --clone-depth $CLONE_DEPTH $PROGRESS_ARGS -f
-seal5 --verbose load --files ${Example_files}
-seal5 --verbose load --files ${Config_files[@]}
-seal5 --verbose load --files ${Test_files[@]}
-seal5 --verbose setup $PROGRESS_ARGS
-seal5 --verbose patch -s 0
-seal5 --verbose build --config $BUILD_CONFIG $CCACHE_ARGS
-seal5 --verbose transform
-seal5 --verbose generate --skip pattern_gen
-seal5 --verbose patch -s 1 2
-if [[ "$SKIP_PATTERNS" == "0" ]]
-then
-    seal5 --verbose build --config $BUILD_CONFIG $CCACHE_ARGS
-    seal5 --verbose build --config $BUILD_CONFIG -t pattern-gen $CCACHE_ARGS
-    seal5 --verbose build --config $BUILD_CONFIG -t llc $CCACHE_ARGS
-    seal5 --verbose generate --only pattern_gen
-fi
-seal5 --verbose patch -s 3 4 5
-seal5 --verbose build --config $BUILD_CONFIG $CCACHE_ARGS
-
-if [[ "$TEST" == "1" ]]
-then
-    TEST_EXTRA_ARGS=""
-    if [[ $IGNORE_ERROR == "1" ]]
-    then
-        TEST_EXTRA_ARGS="$TEST_EXTRA_ARGS --ignore-error"
-    fi
-    seal5 --verbose test $TEST_EXTRA_ARGS
-fi
-
-if [[ "$INSTALL" == 1 ]]
-then
-    seal5 --verbose install --config $BUILD_CONFIG $CCACHE_ARGS
-fi
-
-if [[ "$DEPLOY" == "1" ]]
-then
-    seal5 --verbose deploy --dest ${DEST%/}_source.zip
-fi
-
-if [[ "$EXPORT" == "1" ]]
-then
-    seal5 --verbose export --dest ${DEST%/}.tar.gz
-fi
+seal5 --verbose --dir ${SEAL5_HOME} wrapper ${Example_files} ${Config_files[@]} ${Test_files[@]}

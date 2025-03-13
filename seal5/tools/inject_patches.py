@@ -93,6 +93,7 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
                     start_mark += line
         if start_mark is None:
             # fallback
+            logger.warning("Marker not found: {path}, {key}. Retrying without key...")
             if key:
                 return find_site(path, None)
             assert False, f"Marker not found: {path}, {key}"
@@ -252,7 +253,7 @@ def analyze_diff(repo, base: str, cur: Optional[str] = None):
             continue
         val, key = x.split(" ", 1)
         val = int(val)
-        if "files changed" in key:
+        if "files changed" in key or "file changed" in key:
             n_files_changed = val
         elif "insertions" in key:
             n_insertions = val

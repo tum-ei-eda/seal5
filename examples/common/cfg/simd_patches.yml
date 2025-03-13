@@ -1,0 +1,44 @@
+---
+patches:
+  # manual simd patches
+  - name: ?
+    target: llvm
+    stage: 0
+    comment: "RISCVLegalizerInfo.cpp: Support GPR32V"
+    file: llvm/?
+  - name: ?
+    target: llvm
+    stage: 0
+    comment: "GPR32V feature, register class and heuristics"
+    file: llvm/?
+  - name: ?
+    target: llvm
+    stage: 0
+    comment: "RISCVLegalizerInfo.cpp: lower SHUFFLE_VECTOR instrs"  # TODO: squash
+    file: llvm/?
+  - name: ?
+    target: llvm
+    stage: 0
+    comment: "RISCVLegalizerInfo.cpp: handle G_VECREDUCE_ADD (always lower?)"  # TODO: squash
+    file: llvm/?
+  - name: ?
+    target: llvm
+    stage: 0
+    comment: "llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp: legalize G_EXTRACT_VECTOR_ELT & G_INSERT_VECTOR_ELT for GPR32V"  # TODO: squash
+    file: llvm/?
+  # - name: ?
+  #   target: llvm
+  #   stage: 0
+  #   comment: "PatternGen: Integrate RISCV::G_UDOT and RISCV::G_SDOT"
+  #   file: llvm/?
+  # - name: ?
+  #   target: llvm
+  #   stage: 0
+  #   comment: "port "vecreduce_add(mul(ext(x), ext(y))) -> vecreduce_add(udot(x, y))" combine from aarch64"
+  #   file: llvm/?
+  # TODO:  automatially select patch depending on llvm version
+  # generated patch (TODO: implement)
+  # - name: ???
+  #   target: llvm
+  #   stage: ?  # allows overriding default stage
+  #   enable: false  # can be used to skip patches

@@ -1,4 +1,4 @@
-import "../rv_base/RV32I.core_desc"
+import "../../common/cdsl/rv_base/RV32I.core_desc"
 
 // InstructionSet XExample extends RISCVBase {
 InstructionSet XExample extends RV32I {
@@ -11,6 +11,13 @@ InstructionSet XExample extends RV32I {
         if (rd != 0) {
           X[rd] += X[rs1] - X[rs2] + 1;
         }
+      }
+    }
+    SLLI_ADD_ADDI {
+      encoding: imm[2:0] :: imm2[4:0] :: rs2[4:0] :: rs1[4:0] :: rd[4:0] :: 9'b001010111;
+      assembly: {"xexample.slli_add_addi", "{name(rd)}, {name(rs1)}, {name(rs2)}, {imm}, {imm2}"};
+      behavior: {
+        if ((rd) != 0) X[rd] = ((X[rs1] + (X[rs2] << (signed)imm)) + imm2);
       }
     }
   }

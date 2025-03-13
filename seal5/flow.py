@@ -45,8 +45,8 @@ TRANSFORM_PASS_MAP = [
     ("convert_models", passes.convert_models, {}),
     ("filter_models", passes.filter_model, {}),
     ("drop_unused", passes.drop_unused, {}),
-    ("eliminate_rd_cmp_zero", passes.eliminate_rd_cmp_zero, {}),
     ("eliminate_mod_rfs", passes.eliminate_mod_rfs, {}),
+    ("eliminate_rd_cmp_zero", passes.eliminate_rd_cmp_zero, {}),
     ("drop_unused2", passes.drop_unused, {}),
     ("inline_functions", passes.inline_functions, {}),
     ("optimize_model", passes.optimize_model, {}),
@@ -61,6 +61,8 @@ TRANSFORM_PASS_MAP = [
     ("collect_register_operands", passes.collect_register_operands, {}),
     ("collect_immediate_operands", passes.collect_immediate_operands, {}),
     ("collect_operand_types", passes.collect_operand_types, {}),
+    ("write_yaml2", passes.write_yaml, {}),
+    ("process_settings3", passes.process_settings, {}),
     ("detect_side_effects", passes.detect_side_effects, {}),
     ("detect_inouts", passes.detect_inouts, {}),
     ("detect_imm_leafs", passes.detect_imm_leafs, {}),
@@ -86,6 +88,7 @@ GENERATE_PASS_MAP = [
     ("riscv_isa_infos", passes.gen_riscv_isa_info_patch, {}),
     # ("riscv_instr_formats", passes.gen_riscv_instr_formats_patch, {}),
     ("riscv_register_info", passes.gen_riscv_register_info_patch, {}),
+    ("riscv_field_types", passes.gen_riscv_field_types_patch, {}),
     ("riscv_instr_info", passes.gen_riscv_instr_info_patch, {}),
     ("riscv_intrinsics", passes.gen_riscv_intrinsics, {}),
     # subtarget_tests
@@ -128,7 +131,10 @@ def handle_directory(directory: Optional[Path]):
     """Process passed directory."""
     # TODO: handle environment vars
     if directory is None:
-        assert NotImplementedError
+        home_dir = os.getenv("SEAL5_HOME")
+        if home_dir is None:
+            raise RuntimeError("Unable to resolve SEAL5_HOME")
+        directory = home_dir
     if not isinstance(directory, Path):
         directory = Path(directory)
     return directory.resolve()
@@ -138,7 +144,9 @@ def handle_meta_dir(meta_dir: Optional[Union[str, Path]], directory: Union[str, 
     """Handle selection of meta directory."""
     # TODO: handle environment vars
     if meta_dir is None:
-        meta_dir = "default"
+        meta_dir = os.getenv("SEAL5_META_DIR")
+        if meta_dir is None:
+            meta_dir = "default"
     if meta_dir == "default":
         if not isinstance(directory, Path):
             assert isinstance(directory, str)
@@ -179,11 +187,13 @@ class Seal5Flow:
         self, directory: Optional[Path] = None, meta_dir: Optional[Union[str, Path]] = None, name: Optional[str] = None
     ):
         self.directory: Path = handle_directory(directory)
-        self.meta_dir: Path = handle_meta_dir(meta_dir, directory, name)
+        self.meta_dir: Path = handle_meta_dir(meta_dir, self.directory, name)
         self.name: str = name
         self.state: Seal5State = Seal5State.UNKNOWN
         self.passes: List[Seal5Pass] = []
-        self.repo: Optional[git.Repo] = git.Repo(self.directory) if self.directory.is_dir() else None
+        self.repo: Optional[git.Repo] = (
+            git.Repo(self.directory) if self.directory.is_dir() and utils.is_populated(self.directory) else None
+        )
         self.check()
         self.settings: Seal5Settings = Seal5Settings.from_dict({"meta_dir": str(self.meta_dir), **DEFAULT_SETTINGS})
         # self.settings: Seal5Settings = Seal5Settings(directory=self.directory)
@@ -198,6 +208,7 @@ class Seal5Flow:
                     console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level
                 )
         self.name = self.settings.name if name is None else name
+        self.name = "default" if self.name is None else self.name
         self.settings.name = self.name
         self.settings.name = self.settings.name if name is None else name
         self.reset_passes()
@@ -249,7 +260,7 @@ class Seal5Flow:
 
         # Generates
         for pass_name, pass_handler, pass_options in GENERATE_PASS_MAP:
-            if pass_name in ["seal5_td", "riscv_gisel_legalizer"]:
+            if pass_name in ["seal5_td", "riscv_gisel_legalizer", "riscv_field_types"]:  # TODO: refactor
                 pass_scope = PassScope.GLOBAL
             else:
                 pass_scope = PassScope.MODEL
@@ -319,6 +330,8 @@ class Seal5Flow:
             self.settings.llvm.state.version = llvm_version
         if sha:
             self.settings.llvm.state.base_commit = sha
+        supported_imm_types = llvm.detect_llvm_imm_types(self.directory)
+        self.settings.llvm.state.supported_imm_types = list(supported_imm_types)
         self.settings.save()
         set_log_file(self.settings.log_file_path)
         set_log_level(console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level)
@@ -365,12 +378,14 @@ class Seal5Flow:
         )
         integrated_pattern_gen = self.settings.tools.pattern_gen.integrated
         if integrated_pattern_gen:
-            logger.info("Adding PatternGen to target LLVM")
-            patch_settings = cdsl2llvm.get_pattern_gen_patches(
-                self.settings.deps_dir / "cdsl2llvm",
-                self.settings.temp_dir,
-            )
-            self.settings.add_patch(patch_settings)
+            has_patterngen_patch = any(patch.name == "pattern_gen_support" for patch in self.settings.patches)
+            if not has_patterngen_patch:
+                logger.info("Adding PatternGen to target LLVM")
+                patch_settings = cdsl2llvm.get_pattern_gen_patches(
+                    self.settings.deps_dir / "cdsl2llvm",
+                    self.settings.temp_dir,
+                )
+                self.settings.add_patch(patch_settings)
         else:
             logger.info("Building PatternGen")
             llvm_config = LLVMConfig(
@@ -501,7 +516,6 @@ class Seal5Flow:
 
     def build(self, config=None, target="all", verbose: bool = False, **kwargs):
         """Build Seal5 LLVM."""
-        del verbose  # unused
         logger.info("Building Seal5 LLVM (%s)", target)
         start = time.time()
         metrics = {}
@@ -520,6 +534,7 @@ class Seal5Flow:
             target=target,
             use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
             ccache_settings=ccache_settings,
+            verbose=verbose,
         )
         end = time.time()
         diff = end - start
@@ -532,7 +547,10 @@ class Seal5Flow:
 
     def install(self, dest: Optional[Union[str, Path]] = None, config=None, verbose: bool = False, **kwargs):
         """Install Seal5 LLVM."""
-        del verbose  # unused
+        start = time.time()
+        metrics = {}
+        if config is None:
+            config = self.settings.llvm.default_config
         # TODO: implement compress?
         if dest is None:
             dest = self.settings.install_dir / config
@@ -540,10 +558,6 @@ class Seal5Flow:
             dest = Path(dest)
         dest.mkdir(exist_ok=True)
         logger.info("Installing Seal5 LLVM to: %s", dest)
-        start = time.time()
-        metrics = {}
-        if config is None:
-            config = self.settings.llvm.default_config
         llvm_config = self.settings.llvm.configs.get(config, None)
         assert llvm_config is not None, f"Invalid llvm config: {config}"
         cmake_options = llvm_config.options
@@ -559,6 +573,7 @@ class Seal5Flow:
             target=None,
             install=True,
             install_dir=dest,
+            verbose=verbose,
         )
         end = time.time()
         diff = end - start
