@@ -54,6 +54,7 @@ jobs:
         # - rvp_demo.py
         - s4e_demo.py
         - tumeda_demo.py
+        - se_demo.py
         verbose:
         - "0"
         progress:
