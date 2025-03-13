@@ -50,6 +50,7 @@
 <li class="toctree-l3"><a class="reference internal" href="seal5.backends.patterngen.html">seal5.backends.patterngen</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.backends.report.html">seal5.backends.report</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.backends.riscv_features.html">seal5.backends.riscv_features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.backends.riscv_field_types.html">seal5.backends.riscv_field_types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.backends.riscv_gisel_legalizer.html">seal5.backends.riscv_gisel_legalizer</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.backends.riscv_instr_info.html">seal5.backends.riscv_instr_info</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.backends.riscv_intrinsics.html">seal5.backends.riscv_intrinsics</a></li>
@@ -66,6 +67,7 @@
 <li class="toctree-l2"><a class="reference internal" href="seal5.logging.html">seal5.logging</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.metrics.html">seal5.metrics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.model.html">seal5.model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="seal5.model_utils.html">seal5.model_utils</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.pass_list.html">seal5.pass_list</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.passes.html">seal5.passes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.resources.html">seal5.resources</a></li>
@@ -76,6 +78,7 @@
 <li class="toctree-l2"><a class="reference internal" href="seal5.types.html">seal5.types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.utils.html">seal5.utils</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.version.html">seal5.version</a></li>
+<li class="toctree-l2"><a class="reference internal" href="seal5.wrapper.html">seal5.wrapper</a></li>
 </ul>
 </li>
 </ul>
@@ -130,25 +133,28 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="seal5.backends.riscv_features.html#module-seal5.backends.riscv_features" title="seal5.backends.riscv_features"><code class="xref py py-obj docutils literal notranslate"><span class="pre">riscv_features</span></code></a></p></td>
 <td><p>Seal5 RISCVFeatures.td backend</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="seal5.backends.riscv_gisel_legalizer.html#module-seal5.backends.riscv_gisel_legalizer" title="seal5.backends.riscv_gisel_legalizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">riscv_gisel_legalizer</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="seal5.backends.riscv_field_types.html#module-seal5.backends.riscv_field_types" title="seal5.backends.riscv_field_types"><code class="xref py py-obj docutils literal notranslate"><span class="pre">riscv_field_types</span></code></a></p></td>
+<td><p>Backend for field info patches in LLVM.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="seal5.backends.riscv_gisel_legalizer.html#module-seal5.backends.riscv_gisel_legalizer" title="seal5.backends.riscv_gisel_legalizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">riscv_gisel_legalizer</span></code></a></p></td>
 <td><p>Seal5 RISCV GISel Legalizer backend</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="seal5.backends.riscv_instr_info.html#module-seal5.backends.riscv_instr_info" title="seal5.backends.riscv_instr_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">riscv_instr_info</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="seal5.backends.riscv_instr_info.html#module-seal5.backends.riscv_instr_info" title="seal5.backends.riscv_instr_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">riscv_instr_info</span></code></a></p></td>
 <td><p>Backend for RISCVInstrInfo.td</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="seal5.backends.riscv_intrinsics.html#module-seal5.backends.riscv_intrinsics" title="seal5.backends.riscv_intrinsics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">riscv_intrinsics</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="seal5.backends.riscv_intrinsics.html#module-seal5.backends.riscv_intrinsics" title="seal5.backends.riscv_intrinsics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">riscv_intrinsics</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="seal5.backends.riscv_isa_info.html#module-seal5.backends.riscv_isa_info" title="seal5.backends.riscv_isa_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">riscv_isa_info</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="seal5.backends.riscv_isa_info.html#module-seal5.backends.riscv_isa_info" title="seal5.backends.riscv_isa_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">riscv_isa_info</span></code></a></p></td>
 <td><p>Seal5 RISCVISAInfo.td backend</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="seal5.backends.riscv_register_info.html#module-seal5.backends.riscv_register_info" title="seal5.backends.riscv_register_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">riscv_register_info</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="seal5.backends.riscv_register_info.html#module-seal5.backends.riscv_register_info" title="seal5.backends.riscv_register_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">riscv_register_info</span></code></a></p></td>
 <td><p>Seal5 RISCVRegisterInfo.td backend</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="seal5.backends.viewer_seal5.html#module-seal5.backends.viewer_seal5" title="seal5.backends.viewer_seal5"><code class="xref py py-obj docutils literal notranslate"><span class="pre">viewer_seal5</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="seal5.backends.viewer_seal5.html#module-seal5.backends.viewer_seal5" title="seal5.backends.viewer_seal5"><code class="xref py py-obj docutils literal notranslate"><span class="pre">viewer_seal5</span></code></a></p></td>
 <td><p>This module contains the graphical M2-ISA-R module viewer.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="seal5.backends.yaml.html#module-seal5.backends.yaml" title="seal5.backends.yaml"><code class="xref py py-obj docutils literal notranslate"><span class="pre">yaml</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="seal5.backends.yaml.html#module-seal5.backends.yaml" title="seal5.backends.yaml"><code class="xref py py-obj docutils literal notranslate"><span class="pre">yaml</span></code></a></p></td>
 <td><p>Seal5 YAML backend.</p></td>
 </tr>
 </tbody>

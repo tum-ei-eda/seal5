@@ -4,12 +4,10 @@ seal5.transform.detect\_registers
 .. automodule:: seal5.transform.detect_registers
 
    
-   .. rubric:: Functions
+.. rubric:: Modules
 
-   .. autosummary::
-   
-      detect_registers
-      get_parser
-      main
-      run
-   
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   detect

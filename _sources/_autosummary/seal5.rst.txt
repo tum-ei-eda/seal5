@@ -18,6 +18,7 @@
    logging
    metrics
    model
+   model_utils
    pass_list
    passes
    resources
@@ -28,3 +29,4 @@
    types
    utils
    version
+   wrapper

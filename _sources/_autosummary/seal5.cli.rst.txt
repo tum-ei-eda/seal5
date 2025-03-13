@@ -25,3 +25,4 @@ seal5.cli
    setup
    test
    transform
+   wrapper

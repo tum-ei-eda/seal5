@@ -30,6 +30,7 @@ seal5.pass\_list
       filter_model
       gen_model_td
       gen_riscv_features_patch
+      gen_riscv_field_types_patch
       gen_riscv_gisel_legalizer_patch
       gen_riscv_instr_info_patch
       gen_riscv_intrinsics

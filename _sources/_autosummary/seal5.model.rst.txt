@@ -20,6 +20,7 @@ seal5.model
       Seal5Instruction
       Seal5InstructionSet
       Seal5Intrinsic
+      Seal5Model
       Seal5Operand
       Seal5OperandAttribute
       Seal5RegOperand

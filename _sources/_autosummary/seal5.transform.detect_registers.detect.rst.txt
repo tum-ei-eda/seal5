@@ -1,0 +1,15 @@
+seal5.transform.detect\_registers.detect
+========================================
+
+.. automodule:: seal5.transform.detect_registers.detect
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      detect_registers
+      get_parser
+      main
+      run
+   

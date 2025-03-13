@@ -1,0 +1,13 @@
+seal5.wrapper
+=============
+
+.. automodule:: seal5.wrapper
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      group_files
+      run_seal5_flow
+   

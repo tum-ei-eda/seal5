@@ -1,0 +1,13 @@
+seal5.model\_utils
+==================
+
+.. automodule:: seal5.model_utils
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      dump_model
+      load_model
+   

@@ -1,0 +1,13 @@
+seal5.backends.riscv\_field\_types.writer
+=========================================
+
+.. automodule:: seal5.backends.riscv_field_types.writer
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      gen_riscv_field_types_str
+      main
+   

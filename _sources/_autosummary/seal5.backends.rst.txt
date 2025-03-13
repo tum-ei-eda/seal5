@@ -15,6 +15,7 @@ seal5.backends
    patterngen
    report
    riscv_features
+   riscv_field_types
    riscv_gisel_legalizer
    riscv_instr_info
    riscv_intrinsics
