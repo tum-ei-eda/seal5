@@ -146,6 +146,7 @@ def main():
                 ext_settings.required_imm_types
                 for model_name, model_settings in settings.models.items()
                 for ext_name, ext_settings in model_settings.extensions.items()
+                if ext_settings.required_imm_types is not None
             ],
             [],
         )
