@@ -501,7 +501,6 @@ class Seal5Flow:
 
     def build(self, config=None, target="all", verbose: bool = False, **kwargs):
         """Build Seal5 LLVM."""
-        del verbose  # unused
         logger.info("Building Seal5 LLVM (%s)", target)
         start = time.time()
         metrics = {}
@@ -533,7 +532,6 @@ class Seal5Flow:
 
     def install(self, dest: Optional[Union[str, Path]] = None, config=None, verbose: bool = False, **kwargs):
         """Install Seal5 LLVM."""
-        del verbose  # unused
         # TODO: implement compress?
         if dest is None:
             dest = self.settings.install_dir / config
