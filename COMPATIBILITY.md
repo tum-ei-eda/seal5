@@ -2,13 +2,16 @@
 
 ## Supported LLVM Versions
 
-| **Seal5**             | **LLVM 17**                           | **LLVM 18**                               | **LLVM 19**                           | **Comment**      |
-|-----------------------|---------------------------------------|-------------------------------------------|---------------------------------------|------------------|
-| `v0.1.0`              | :white_check_mark: (`llvmorg-17.0.6`) | :x:                                       | :x:                                   | Limited support! |
-| `v0.1.1` ... `v0.1.4` | :question:                            | :white_check_mark: (`llvmorg-18.1.0-rc3`) | :x:                                   |                  |
-| `TODO`                | :question:                            | :question:                                | :white_check_mark: (`llvmorg-19.1.3`) | To be released!  |
+| **Seal5**             | **LLVM 17**                           | **LLVM 18**                               | **LLVM 19**                           | **LLVM 20** | **Comment**      |
+|-----------------------|---------------------------------------|-------------------------------------------|---------------------------------------|-------------|------------------|
+| `v0.1.0`              | :white_check_mark: (`llvmorg-17.0.6`) | :x:                                       | :x:                                   | :x:             | Limited support! |
+| `v0.1.1` ... `v0.1.4` | :question:                            | :white_check_mark: (`llvmorg-18.1.0-rc3`) | :x:                                   |  :x:            |                  |
+| `v0.2.0`              | :question:                            | :white_check_mark: (limited)                               | :white_check_mark:  |   :x:          |                   |
+| `v0.3.0`              | :question:                            | :white_check_mark: (limited)                                | :white_check_mark:  |    :x:         | NEW: Intrinsics & Builtins                  | 
+| `v0.4.0` (WIP)               | :question:                            | :white_check_mark: (limited)                                | :white_check_mark:  | :white_check_mark: (experimental)            | NEW: Support Memory Codegen                 |
+| `v0.5.0` (TODO)               | :question:                            | :white_check_mark: (limited)                                | :white_check_mark:  | :white_check_mark:            | NEW: Support Multi-output Patterns                 |
 
-_(Last updated: 30.10.2024)_
+_(Last updated: 24.03.2025)_
 
 ## Supported Instructions
 
