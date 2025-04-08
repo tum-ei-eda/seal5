@@ -18,7 +18,9 @@ patches:
   - name: insert_markers_llvm17
     onlyif: "settings.llvm.state.version.major == 17"
   - name: insert_markers_llvm18
-    onlyif: "settings.llvm.state.version.major == 18"
+    onlyif: "settings.llvm.state.version.major == 18 and settings.llvm.state.base_commit != 'fd4b1b78aea0b665940b4006aa5fdff288b3348d'"
+  - name: insert_markers_llvm18_48bit
+    onlyif: "settings.llvm.state.version.major == 18 and settings.llvm.state.base_commit == 'fd4b1b78aea0b665940b4006aa5fdff288b3348d'"
   - name: insert_markers_llvm19
     onlyif: "settings.llvm.state.version.major == 19"
   - name: legalizer_split

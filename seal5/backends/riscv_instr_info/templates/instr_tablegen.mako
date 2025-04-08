@@ -2,7 +2,7 @@ class RVInst_${name}<dag outs, dag ins> : Instruction, Sched<${sched_str}> {
     // General
     let Namespace = "RISCV";
     let Size = ${size // 8};
-    bits<32> SoftFail = 0;
+    bits<${size}> SoftFail = 0;
     bits<${size}> Inst;
 
     // Operands
