@@ -28,9 +28,10 @@ from .templates import template_dir
 logger = logging.getLogger("riscv_features")
 
 
-def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings, llvm_settings: LLVMSettings):
+def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings, llvm_settings: LLVMSettings, all_sets):
     """Generate features string for LLVM patch."""
-    requires = ext_settings.requires
+    # requires = ext_settings.requires
+    implies = ext_settings.requires
     feature = ext_settings.get_feature(name=name)
     arch_ = ext_settings.get_arch(name=name)
     description = ext_settings.get_description(name=name)
@@ -38,8 +39,15 @@ def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings, llvm_set
     version = ext_settings.get_version()
     experimental = ext_settings.experimental
 
-    if requires:
-        raise NotImplementedError
+    implied_features = set()
+    if implies:
+        for implied in implies:
+            assert implied in all_sets
+            implied_set_def = all_sets[implied]
+            implied_ext_settings = implied_set_def.settings
+            implied_feature = implied_ext_settings.get_feature(name=implied)
+            # implied_features.add(f"Feature{implied_feature}")
+            implied_features.add(f"FeatureExt{implied_feature}")  # TODO: check missing Ext?
 
     legacy = True
     if llvm_settings:
@@ -64,7 +72,13 @@ def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings, llvm_set
 
     content_template = Template(filename=str(template_dir / f"{template_name}.mako"))
     content_text = content_template.render(
-        predicate=predicate, feature=feature, arch=arch_, description=description, major=major, minor=minor
+        predicate=predicate,
+        feature=feature,
+        arch=arch_,
+        description=description,
+        major=major,
+        minor=minor,
+        implies="[" + ", ".join(implied_features) + "]",
     )
     return content_text + "\n"
 
@@ -153,7 +167,7 @@ def main():
                 continue
             metrics["n_success"] += 1
             metrics["success_sets"].append(set_name)
-            content += gen_riscv_features_str(set_name, ext_settings, llvm_settings)
+            content += gen_riscv_features_str(set_name, ext_settings, llvm_settings, model["sets"])
         content = content.rstrip()
         if len(content) > 0:
             with open(out_path, "w", encoding="utf-8") as f:

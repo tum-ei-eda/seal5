@@ -320,6 +320,8 @@ def main():
         content = ""
         # errs = []
         for set_name, set_def in model["sets"].items():
+            if len(set_def.instructions) == 0:
+                continue
             metrics["n_sets"] += 1
             set_name_lower = set_name.lower()
             artifacts[set_name] = []

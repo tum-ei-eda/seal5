@@ -74,6 +74,8 @@ def main():
             # print("model", model)
             for set_name, set_def in model["sets"].items():
                 # print("set_name", set_name)
+                if len(set_def.instructions) == 0:
+                    continue
                 xlen = set_def.xlen
                 model = top_level.stem
 

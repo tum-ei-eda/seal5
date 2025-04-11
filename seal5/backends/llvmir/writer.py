@@ -107,6 +107,8 @@ def main():
 
         assert out_path.is_dir(), "Expecting output directory when using --splitted"
         for set_name, set_def in model["sets"].items():
+            if len(set_def.instructions) == 0:
+                continue
             xlen = set_def.xlen
             metrics["n_sets"] += 1
             ext_settings = set_def.settings

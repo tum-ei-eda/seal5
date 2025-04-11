@@ -257,9 +257,17 @@ def run(args):
             )
         }
         # for instr_name, instr_def in set_def.instructions.items():
+    for set_name, set_def in model["sets"].items():
+        set_def.extension = [
+            extension for extension in set_def.extension if len(model["sets"][extension].instructions) > 0
+        ]
 
     # Remove sets without instructions
-    model["sets"] = {set_name: set_def for set_name, set_def in model["sets"].items() if len(set_def.instructions) > 0}
+    model["sets"] = {
+        set_name: set_def
+        for set_name, set_def in model["sets"].items()
+        if len(set_def.instructions) > 0 or len(set_def.extension) > 0
+    }
 
     logger.info("dumping model")
     with open(model_path, "wb") as f:

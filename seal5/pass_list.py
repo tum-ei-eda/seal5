@@ -1610,6 +1610,8 @@ def convert_llvmir_to_gmir(
                 if insn_names is None:
                     logger.warning("Skipping empty set %s", set_name)
                     continue
+                if len(insn_names) == 0 and len(ext_settings.requires) > 0:
+                    continue
                 assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
                 # TODO: populate model in yaml backend!
                 for insn_name in insn_names:

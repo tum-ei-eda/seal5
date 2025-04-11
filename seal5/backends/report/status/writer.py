@@ -166,6 +166,8 @@ def main():
                     assert False
 
         for set_name, set_def in model["sets"].items():
+            if len(set_def.instructions) == 0:
+                continue
             xlen = set_def.xlen
             model = top_level.stem
             filtered_metrics = process_metrics(settings, model=model)
