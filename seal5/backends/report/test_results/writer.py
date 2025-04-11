@@ -198,6 +198,8 @@ def main():
         model_obj = load_model(top_level, compat=args.compat)
 
         for set_name, set_def in model_obj.sets.items():
+            if len(set_def.instructions) == 0:
+                continue
             xlen = set_def.xlen
             model_name = top_level.stem
 
