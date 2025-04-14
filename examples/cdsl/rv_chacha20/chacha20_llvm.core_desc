@@ -1,0 +1,20 @@
+// Adaptor for chacha20_nub for compilation within LLVM
+// necessitated by differing core construction to ETISS
+
+import "../rv_base/RV32I.core_desc"
+import "chacha20_nub.core_desc"
+
+// The CoreDSL grammar (or at least the M2-ISA-R parser)
+// requires that CoreDSL files contain at least an
+// InstructionSet or a Core section. We satisfy this here
+// by declaring an external dummy function.
+
+InstructionSet __Dummy__ extends RV32I {
+
+    functions {
+        extern unsigned<1> __DummyFn__();
+    }
+
+}
+
+// TAF!

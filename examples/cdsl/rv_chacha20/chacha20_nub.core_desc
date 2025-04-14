@@ -12,11 +12,7 @@
 // The choice of this as a sample was inspired by the Imperas
 // whitepaper "RISC-V Model Custom Extension Guide"
 
-
-import "../rv_base/RV32I.core_desc"
-
-// InstructionSet XChaCha extends RISCVBase {
-InstructionSet XExample extends RV32I {
+InstructionSet XCHACHA extends RV32I {
     instructions {
         CV_CHACHA20QR1 {
             encoding: 7'b0000000 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b0001011;

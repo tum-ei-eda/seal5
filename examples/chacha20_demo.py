@@ -74,7 +74,7 @@ seal5_flow.initialize(
 
 # Load CoreDSL inputs
 cdsl_files = [
-    EXAMPLES_DIR / "cdsl" / "rv_chacha20" / "chacha20.core_desc",
+    EXAMPLES_DIR / "cdsl" / "rv_chacha20" / "chacha20_llvm.core_desc",
 ]
 seal5_flow.load(cdsl_files, verbose=VERBOSE, overwrite=True)
 
