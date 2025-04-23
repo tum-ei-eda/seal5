@@ -80,6 +80,7 @@ jobs:
         llvm-ref:
         - "llvmorg-18.1.0-rc3"
         - "llvmorg-19.1.7"
+        - "llvmorg-20.1.0"
     env:
       SEAL5_NUM_THREADS: 1
     runs-on: ${{ matrix.os }}
