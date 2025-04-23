@@ -33,4 +33,4 @@ jobs:
          token: ${{ secrets.SEAL5_ACCESS_TOKEN }}
          repository: tum-ei-eda/seal5_etiss_test_env
          event-type: seal5-event
-         client-payload: '{"triggered_run_id": "${{ github.run_id }}", "ref": "${{ github.sha }}" }'
+         client-payload: '{"triggered_run_id": "${{ github.run_id }}", "ref": "${{ github.sha }}", "from": "seal5"}'
