@@ -6,7 +6,7 @@
 	url = https://github.com/tum-ei-eda/CoreV_ISA_CoreDSL.git
 [submodule "examples/cdsl/rv_s4e"]
 	path = examples/s4e/cdsl
-	url = https://github.com/DLR-SE/riscv-coredsl-extensions.git
+	url = https://github.com/PhilippvK/riscv-coredsl-extensions.git
 [submodule "examples/cdsl/rv_gen"]
 	path = examples/gen/cdsl
 	url = https://github.com/PhilippvK/Gen_ISA_CoreDSL.git
