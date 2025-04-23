@@ -24,7 +24,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  trigger:
+  trigger_repo:
     runs-on: ubuntu-latest
     - name: Trigger Seal5 ETISS Test Flow
       uses: peter-evans/repository-dispatch@v3
