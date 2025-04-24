@@ -1,7 +1,7 @@
 // Adaptor for chacha20_nub for compilation within LLVM
 // necessitated by differing core construction to ETISS
 
-import "../rv_base/RV32I.core_desc"
+import "../../common/cdsl/rv_base/RV32I.core_desc"
 import "chacha20_nub.core_desc"
 
 // The CoreDSL grammar (or at least the M2-ISA-R parser)
