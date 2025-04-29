@@ -11,17 +11,15 @@
 import argparse
 import logging
 import pathlib
-import pickle
-from typing import Union
 
 import pandas as pd
 
 from mako.template import Template
 
-from m2isar.metamodel import arch
-
 from seal5.index import NamedPatch, write_index_yaml
 from seal5.settings import ExtensionsSettings, LLVMSettings
+from seal5.model_utils import load_model
+
 from .templates import template_dir
 
 
@@ -38,6 +36,7 @@ def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings, llvm_set
     predicate = ext_settings.get_predicate(name=name)
     version = ext_settings.get_version()
     experimental = ext_settings.experimental
+    vendor = ext_settings.vendor
 
     implied_features = set()
     if implies:
@@ -50,19 +49,22 @@ def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings, llvm_set
             implied_features.add(f"FeatureExt{implied_feature}")  # TODO: check missing Ext?
 
     legacy = True
+    slim = False
     if llvm_settings:
         llvm_state = llvm_settings.state
         if llvm_state:
             llvm_version = llvm_state.version  # unused today, but needed very soon
             if llvm_version.major >= 19:
                 legacy = False
+                if llvm_version.major >= 20:
+                    slim = True
     if legacy:
         template_name = "riscv_features"
     else:
         if experimental:
-            template_name = "riscv_features_experimental_new"
+            template_name = "riscv_features_experimental_new_slim" if slim else "riscv_features_experimental_new"
         else:
-            template_name = "riscv_features_new"
+            template_name = "riscv_features_new_slim" if slim else "riscv_features_new"
 
     # TODO: make util!
     if not isinstance(version, str):
@@ -71,6 +73,10 @@ def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings, llvm_set
     major, minor = list(map(int, version.split(".", 1)))
 
     content_template = Template(filename=str(template_dir / f"{template_name}.mako"))
+    if slim:
+        # TODO: support experimental- prefix
+        assert feature.lower() == arch_, "LLVM 20 requires matching arch and feature names"
+        assert predicate == (f"Vendor{feature}" if vendor else f"StdExt{feature}")
     content_text = content_template.render(
         predicate=predicate,
         feature=feature,
@@ -96,6 +102,7 @@ def main():
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
     parser.add_argument("--index", default=None, help="Output index to file")
     parser.add_argument("--ext", type=str, default="td", help="Default file extension (if using --splitted)")
+    parser.add_argument("--compat", action="store_true")
     args = parser.parse_args()
 
     # initialize logging
@@ -103,39 +110,9 @@ def main():
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
-    # abs_top_level = top_level.resolve()
-
-    is_seal5_model = False
-    # print("top_level", top_level)
-    # print("suffix", top_level.suffix)
-    if top_level.suffix == ".seal5model":
-        is_seal5_model = True
-    if args.output is None:
-        assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
-        # out_path = top_level.parent / (top_level.stem + ".core_desc")
-        raise NotImplementedError
-
     out_path = pathlib.Path(args.output)
 
-    logger.info("loading models")
-    if not is_seal5_model:
-        raise NotImplementedError
-
-    # load models
-    with open(top_level, "rb") as f:
-        # models: "dict[str, arch.CoreDef]" = pickle.load(f)
-        if is_seal5_model:
-            model: "dict[str, Union[arch.InstructionSet, ...]]" = pickle.load(f)
-            model["cores"] = {}
-        else:  # TODO: core vs. set!
-            temp: "dict[str, Union[arch.InstructionSet, arch.CoreDef]]" = pickle.load(f)
-            assert len(temp) > 0, "Empty model!"
-            if isinstance(list(temp.values())[0], arch.CoreDef):
-                model = {"cores": temp, "sets": {}}
-            elif isinstance(list(temp.values())[0], arch.InstructionSet):
-                model = {"sets": temp, "cores": {}}
-            else:
-                assert False
+    model_obj = load_model(top_level, compat=args.compat)
 
     metrics = {
         "n_sets": 0,
@@ -148,7 +125,7 @@ def main():
     }
     # preprocess model
     # print("model", model)
-    settings = model.get("settings", None)
+    settings = model_obj.settings
     llvm_settings = None
     if settings.llvm:
         llvm_settings = settings.llvm
@@ -157,7 +134,7 @@ def main():
     if not args.splitted:
         content = ""
         # errs = []
-        for set_name, set_def in model["sets"].items():
+        for set_name, set_def in model_obj.sets.items():
             artifacts[set_name] = []
             metrics["n_sets"] += 1
             ext_settings = set_def.settings

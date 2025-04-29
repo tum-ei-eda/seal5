@@ -1,0 +1,62 @@
+llvm:
+  state:
+    supported_imm_types:
+    - uimm1
+    - uimm10
+    # - uimm10_lsb00nonzero
+    - uimm11
+    - uimm16
+    - uimm2
+    - uimm20
+    # - uimm20_auipc
+    # - uimm20_lui
+    # - uimm2_3
+    # - uimm2_3_XFORM
+    # - uimm2_4
+    # - uimm2_4_XFORM
+    - uimm2_lsb0
+    # - uimm2_opcode
+    - uimm3
+    - uimm32
+    - uimm4
+    - uimm48
+    - uimm5
+    # - uimm5gt3
+    # - uimm5i32
+    - uimm5_lsb0
+    # - uimm5nonzero
+    - uimm6
+    - uimm64
+    # - uimm6gt32
+    - uimm6_lsb0
+    - uimm7
+    - uimm7_lsb00
+    - uimm7_lsb000
+    # - uimm7_opcode
+    - uimm8
+    # - uimm8ge32
+    - uimm8_lsb00
+    - uimm8_lsb000
+    - uimm9_lsb000
+    # - uimmlog2xlen
+    # - uimmlog2xlennonzero
+    # - simm10_lsb0000nonzero
+    - simm12
+    - simm12_lsb0
+    - simm12_lsb00000
+    # - simm12Minus1Nonzero
+    # - simm12Minus1NonzeroNonNeg1
+    # - simm12_no6
+    # - simm12_plus1
+    # - simm12Plus1
+    # - simm12Plus1i32
+    - simm13_lsb0
+    # - simm21_lsb0_jal
+    - simm26
+    - simm5
+    # - simm5_plus1
+    # - simm5_plus1_nonzero
+    # - simm5shl2
+    - simm6
+    # - simm6nonzero
+    - simm9_lsb0

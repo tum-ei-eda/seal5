@@ -12,13 +12,13 @@ import sys
 import argparse
 import logging
 import pathlib
-import pickle
-from typing import Union
 
 import pandas as pd
 
-from m2isar.metamodel import arch, patch_model
+from m2isar.metamodel import patch_model
+
 import seal5.model
+from seal5.model_utils import load_model, dump_model
 
 from . import visitor
 from .utils import IOMode
@@ -54,6 +54,7 @@ def get_parser():
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
+    parser.add_argument("--compat", action="store_true")
     return parser
 
 
@@ -64,35 +65,9 @@ def run(args):
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
 
-    is_seal5_model = False
-    if args.output is None:  # inplace
-        assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
-        if top_level.suffix == ".seal5model":
-            is_seal5_model = True
+    out_path = (top_level.parent / top_level.stem) if args.output is None else args.output
 
-        model_path = top_level
-    else:
-        model_path = pathlib.Path(args.output)
-
-    logger.info("loading models")
-    if not is_seal5_model:
-        raise NotImplementedError
-
-    # load models
-    with open(top_level, "rb") as f:
-        # models: "dict[str, arch.CoreDef]" = pickle.load(f)
-        if is_seal5_model:
-            model: "dict[str, Union[arch.InstructionSet, ...]]" = pickle.load(f)
-            model["cores"] = {}
-        else:  # TODO: core vs. set!
-            temp: "dict[str, Union[arch.InstructionSet, arch.CoreDef]]" = pickle.load(f)
-            assert len(temp) > 0, "Empty model!"
-            if isinstance(list(temp.values())[0], arch.CoreDef):
-                model = {"cores": temp, "sets": {}}
-            elif isinstance(list(temp.values())[0], arch.InstructionSet):
-                model = {"sets": temp, "cores": {}}
-            else:
-                assert False
+    model_obj = load_model(top_level, compat=args.compat)
 
     metrics = {
         "n_sets": 0,
@@ -104,7 +79,7 @@ def run(args):
         "failed_instructions": [],
         "success_instructions": [],
     }
-    for _, set_def in model["sets"].items():
+    for _, set_def in model_obj.sets.items():
         metrics["n_sets"] += 1
         logger.debug("collecting inouts for set %s", set_def.name)
         patch_model(visitor)
@@ -115,22 +90,20 @@ def run(args):
             try:
                 instr_def.operation.generate(context)
                 for op_name, op_def in instr_def.operands.items():
-                    if seal5.model.Seal5OperandAttribute.IS_IMM in op_def.attributes:
-                        if seal5.model.Seal5OperandAttribute.IN not in op_def.attributes:
+                    if op_name in context.reads and op_name in context.writes:
+                        if seal5.model.Seal5OperandAttribute.INOUT not in instr_def.attributes:
+                            op_def.attributes[seal5.model.Seal5OperandAttribute.INOUT] = []
+                    elif op_name in context.reads:
+                        if seal5.model.Seal5OperandAttribute.IN not in instr_def.attributes:
                             op_def.attributes[seal5.model.Seal5OperandAttribute.IN] = []
-                    else:
-                        if op_name in context.reads and op_name in context.writes:
-                            if seal5.model.Seal5OperandAttribute.INOUT not in op_def.attributes:
-                                op_def.attributes[seal5.model.Seal5OperandAttribute.INOUT] = []
-                        elif op_name in context.reads:
-                            if seal5.model.Seal5OperandAttribute.IN not in op_def.attributes:
-                                op_def.attributes[seal5.model.Seal5OperandAttribute.IN] = []
-                        elif op_name in context.writes:
-                            if seal5.model.Seal5OperandAttribute.OUT not in op_def.attributes:
-                                op_def.attributes[seal5.model.Seal5OperandAttribute.OUT] = []
+                    elif op_name in context.writes:
+                        if seal5.model.Seal5OperandAttribute.OUT not in instr_def.attributes:
+                            op_def.attributes[seal5.model.Seal5OperandAttribute.OUT] = []
                 # print("---")
                 # print("instr_def.scalars.keys()", instr_def.scalars.keys())
                 for reg_name in context.reads:
+                    if reg_name == "PC":
+                        continue
                     # print("reg_name1", reg_name)
                     if reg_name in instr_def.operands.keys():
                         continue
@@ -145,6 +118,8 @@ def run(args):
                     instr_def.attributes[seal5.model.Seal5InstrAttribute.USES] = uses
                 for reg_name in context.writes:
                     # print("reg_name2", reg_name)
+                    if reg_name == "PC":
+                        continue
                     if reg_name in instr_def.operands.keys():
                         continue
                     if reg_name in instr_def.scalars.keys():
@@ -166,19 +141,7 @@ def run(args):
                 metrics["n_failed"] += 1
                 metrics["failed_instructions"].append(instr_def.name)
 
-    logger.info("dumping model")
-    with open(model_path, "wb") as f:
-        if is_seal5_model:
-            pickle.dump(model, f)
-        else:
-            if len(model["sets"]) > 0:
-                assert len(model["cores"]) == 0
-                pickle.dump(model["sets"], f)
-            elif len(model["cores"]) > 0:
-                assert len(model["sets"]) == 0
-                pickle.dump(model["cores"], f)
-            else:
-                assert False
+    dump_model(model_obj, out_path, compat=args.compat)
     if args.metrics:
         metrics_file = args.metrics
         metrics_df = pd.DataFrame({key: [val] for key, val in metrics.items()})

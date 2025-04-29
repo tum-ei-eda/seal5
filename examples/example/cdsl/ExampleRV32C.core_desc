@@ -1,5 +1,5 @@
 // import "rv_base/RVC.core_desc"
-import "../rv_base/RV32I.core_desc"
+import "../../common/cdsl/rv_base/RV32I.core_desc"
 
 InstructionSet XRVC extends RV32I {
     instructions{

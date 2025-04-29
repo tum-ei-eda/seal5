@@ -21,11 +21,9 @@ patches:
     onlyif: "settings.llvm.state.version.major == 18"
   - name: insert_markers_llvm19
     onlyif: "settings.llvm.state.version.major == 19"
-  - name: legalizer_split
-  - name: uimm12_op
-    onlyif: "settings.llvm.state.version.major == 18"
-  - name: uimm12_op_llvm19
-    onlyif: "settings.llvm.state.version.major == 19"
+  # - name: legalizer_split
+  - name: insert_markers_llvm20
+    onlyif: "settings.llvm.state.version.major == 20"
   # TODO:  automatially select patch depending on llvm version
   # generated patch (TODO: implement)
   # - name: ???

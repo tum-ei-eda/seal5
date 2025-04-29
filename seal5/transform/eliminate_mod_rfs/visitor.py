@@ -32,6 +32,10 @@ def binary_operation(self: behav.BinaryOperation, context):
     # TODO: figure out rfs from symbols!
     # TODO: support swapped operand order
     if self.op.value == "%":
+        lhs = self.left
+        while isinstance(lhs, behav.Group):
+            lhs = lhs.expr
+        self.left = lhs
         if isinstance(self.left, behav.NamedReference):
             if isinstance(self.right, behav.NumberLiteral):
                 if self.right.value == RFS:

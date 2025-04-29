@@ -26,8 +26,10 @@ from m2isar.metamodel.arch import (
     SizedRefOrConst,
 )
 from m2isar.metamodel.behav import Operation, BinaryOperation, Operator, NamedReference, IntLiteral, SliceOperation
+from m2isar.metamodel.code_info import FunctionInfo
+from m2isar.metamodel import M2Model
 
-from seal5.settings import ExtensionsSettings
+from seal5.settings import Seal5Settings, ExtensionsSettings
 
 
 class Seal5InstructionSet(InstructionSet):
@@ -306,14 +308,16 @@ class Seal5Instruction(Instruction):
         mnemonic: str,
         assembly: str,
         operation: Operation,
+        function_info: "FunctionInfo",
         constraints: "list[Seal5Constraint]",
         operands: "dict[str, Seal5Operand]",
     ):
         del operands  # TODO: use
-        operands_ = {}  # TODO
         function_info = None
-        super().__init__(name, attributes, operands_, encoding, mnemonic, assembly, operation, function_info)
-        # print("name", name)
+        # TODO: use user-defined operands
+        # operands_ = {}  # TODO
+        # super().__init__(name, attributes, operands_, encoding, mnemonic, assembly, operation, function_info)
+        super().__init__(name, attributes, encoding, mnemonic, assembly, operation, function_info)
         self.constraints = constraints
         self.operands = {}
         self._llvm_asm_str = None
@@ -323,7 +327,43 @@ class Seal5Instruction(Instruction):
         self._llvm_writes = None
         self._llvm_ins_str = None
         self._llvm_outs_str = None
+        self._llvm_imm_types = None
         self._process_fields()
+
+    def get_asm_str(self):
+        if self.assembly is not None:
+            assert isinstance(self.assembly, str)
+            return self.assembly
+        assert self.operands is not None
+        # print("self.operands", self.operands)
+        # TODO: detect reg/imm and in/out/inout here!
+        # imm_operands = [op for op in self.operands.values() if Seal5OperandAttribute.IS_IMM in op.attributes]
+        # reg_operands = [op for op in self.operands.values() if Seal5OperandAttribute.IS_REG in op.attributes]
+        # sorted_operands = reg_operands + imm_operands
+        # assert len(sorted_operands) == len(self.operands), "Some operands are not imm or reg"
+        # TODO: only sort operands if not user-provided?
+        # just sort by first use?
+        sorted_operands = list(self.operands.values())
+
+        # Fallback to automatically generated asm string
+        def helper(op):
+            name = op.name
+            attributes = op.attributes
+            is_reg = Seal5OperandAttribute.IS_REG in attributes
+            is_imm = Seal5OperandAttribute.IS_IMM in attributes
+            if is_reg:
+                name = f"name({name})"
+            else:
+                assert is_imm, f"Operand {name} is not a reg or imm"
+            name = "{" + name + "}"
+            # print("name", name)
+            return name
+
+        asm_str = ", ".join([helper(op) for op in sorted_operands])
+        # print("asm_str", asm_str)
+        # input(">")
+        self.assembly = asm_str
+        return self.assembly
 
     def _process_fields(self):
         for field_name, field in self.fields.items():
@@ -393,7 +433,9 @@ class Seal5Instruction(Instruction):
         asm_order = self.llvm_asm_order
         operands = self.operands
         # check that number of operands is equal
-        assert len(asm_order) == len(operands), "Number of operands does not match (asm vs. CDSL)"
+        assert len(asm_order) == len(
+            operands
+        ), f"Number of operands does not match ({asm_order} vs. {list(operands.keys())})"
         # check that order of operands matches asm syntax
         # for op_idx, op_name in enumerate(operands.keys()):
         #     asm_idx = asm_order.index(f"${op_name}")
@@ -405,6 +447,7 @@ class Seal5Instruction(Instruction):
         writes = []
         constraints = []
         self._llvm_check_operands()
+        imm_types = set()
         for op_name, op in operands.items():
             if len(op.constraints) > 0:
                 raise NotImplementedError
@@ -419,6 +462,9 @@ class Seal5Instruction(Instruction):
                 assert ty[0] in ["u", "s"]
                 sz = int(ty[1:])
                 pre = f"{ty[0]}imm{sz}"
+                imm_types.add(pre)
+                # TODO: handle lsb0, lsb00,...
+                # TODO: annotate operands via attributes
 
             if Seal5OperandAttribute.INOUT in op.attributes or (
                 Seal5OperandAttribute.OUT in op.attributes and Seal5OperandAttribute.IN in op.attributes
@@ -439,9 +485,11 @@ class Seal5Instruction(Instruction):
         self._llvm_constraints = constraints
         self._llvm_reads = reads
         self._llvm_writes = writes
+        self._llvm_imm_types = imm_types
 
     def _llvm_process_assembly(self):
-        asm_str = self.assembly
+        asm_str = self.get_asm_str()
+        assert asm_str is not None
         asm_str = re.sub(r"name\(([a-zA-Z0-9_\+]+)\)", r"\g<1>", asm_str)
         asm_str = re.sub(r"{([a-zA-Z0-9_\+]+):[#0-9a-zA-Z\._]+}", r"{\g<1>}", asm_str)
         asm_str = re.sub(r"{([a-zA-Z0-9_\+]+)}", r"$\g<1>", asm_str)
@@ -484,6 +532,12 @@ class Seal5Instruction(Instruction):
         if self._llvm_writes is None:
             self._llvm_process_operands()
         return self._llvm_writes
+
+    @property
+    def llvm_imm_types(self):
+        if self._llvm_imm_types is None:
+            self._llvm_process_operands()
+        return self._llvm_imm_types
 
     @property
     def llvm_ins_str(self):
@@ -602,3 +656,10 @@ class Seal5Instruction(Instruction):
 
         # raise NotImplementedError
         return ret
+
+
+SEAL5_METAMODEL_VERSION = 2
+
+
+class Seal5Model(M2Model):
+    settings: Seal5Settings = None

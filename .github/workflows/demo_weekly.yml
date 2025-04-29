@@ -54,6 +54,7 @@ jobs:
         # - rvp_demo.py
         - s4e_demo.py
         - tumeda_demo.py
+        - se_demo.py
         verbose:
         - "0"
         progress:
@@ -79,7 +80,10 @@ jobs:
         - "1"
         llvm-ref:
         - "llvmorg-18.1.0-rc3"
-        - "llvmorg-19.1.0"
+        - "llvmorg-19.1.7"
+        - "llvmorg-20.1.0"
+    env:
+      SEAL5_NUM_THREADS: 1
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
@@ -214,7 +218,6 @@ jobs:
       run: |
         python3 -m pip install pandas tabulate
         python3 examples/merge_test_artifacts.py reports/status_compact.csv reports/properties.csv  reports/test_results_compact.csv reports/test_coverage_compact.csv
-        ls -al
         echo "### Summarized and Compact Pass/Test Results" >> $GITHUB_STEP_SUMMARY
         echo >> $GITHUB_STEP_SUMMARY
         cat  Grouped_stat_prop_result_test_wo_instr.html >> $GITHUB_STEP_SUMMARY
@@ -250,4 +253,3 @@ jobs:
              Grouped_stat_prop_result_cv_wo_instr.html
              Grouped_stat_prop_result_test.html
              Grouped_stat_prop_result_test_wo_instr.html
-

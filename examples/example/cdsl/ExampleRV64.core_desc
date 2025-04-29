@@ -1,4 +1,4 @@
-import "../rv_base/RV64I.core_desc"
+import "../../common/cdsl/rv_base/RV64I.core_desc"
 
 // InstructionSet XExample extends RISCVBase {
 InstructionSet XExample64 extends RV64I {

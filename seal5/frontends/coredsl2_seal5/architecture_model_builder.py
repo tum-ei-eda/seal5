@@ -185,7 +185,8 @@ class ArchitectureModelBuilder(CoreDSL2Visitor):
         mnemonic = ctx.mnemonic.text.replace('"', "") if ctx.mnemonic is not None else None
 
         # TODO: add parsing of operands
-        i = arch.Instruction(ctx.name.text, attributes, {}, encoding, mnemonic, assembly, ctx.behavior, None)
+        # i = arch.Instruction(ctx.name.text, attributes, {}, encoding, mnemonic, assembly, ctx.behavior, None)
+        i = arch.Instruction(ctx.name.text, attributes, encoding, mnemonic, assembly, ctx.behavior, None)
         self._instr_classes.add(i.size)
 
         instr_id = (i.code, i.mask)

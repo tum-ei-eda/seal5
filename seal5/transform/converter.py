@@ -12,12 +12,12 @@ import sys
 import argparse
 import logging
 import pathlib
-import pickle
 
-from m2isar.metamodel import arch
+from m2isar.metamodel.code_info import CodeInfoBase
 from m2isar.metamodel.utils.expr_preprocessor import process_attributes, process_functions, process_instructions
 
 import seal5.model as seal5_model
+from seal5.model_utils import load_model, dump_model
 
 logger = logging.getLogger("seal5_converter")
 
@@ -54,25 +54,13 @@ def run(args):
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
-    # abs_top_level = top_level.resolve()
 
-    if args.output is None:
-        assert top_level.suffix == ".m2isarmodel", "Can not infer file extension."
-        temp = str(top_level)
-        temp = temp.replace(".m2isarmodel", ".seal5model")
-        model_path = pathlib.Path(temp)
-    else:
-        model_path = pathlib.Path(args.output)
-    # model_path.mkdir(exist_ok=True)
+    out_path = (top_level.parent / top_level.stem) if args.output is None else args.output
 
-    logger.info("loading models")
-
-    new_model = {}
-
-    # load models
-    with open(top_level, "rb") as f:
-        # models: "dict[str, arch.CoreDef]" = pickle.load(f)
-        sets: "dict[str, arch.InstructionSet]" = pickle.load(f)
+    # load model
+    model_obj = load_model(top_level, compat=True)
+    sets = model_obj.sets
+    assert len(sets) > 0, "No sets found in model"
 
     # preprocess model
     for set_name, set_def in sets.items():
@@ -95,6 +83,7 @@ def run(args):
                 instr_def.mnemonic,
                 instr_def.assembly,
                 instr_def.operation,
+                instr_def.function_info,
                 [],
                 {},
             )
@@ -116,11 +105,8 @@ def run(args):
             {},
         )
 
-    new_model["sets"] = sets
-
-    logger.info("dumping model")
-    with open(model_path, "wb") as f:
-        pickle.dump(new_model, f)
+    new_model_obj = seal5_model.Seal5Model(seal5_model.SEAL5_METAMODEL_VERSION, {}, sets, CodeInfoBase.database)
+    dump_model(new_model_obj, out_path)
 
 
 def main(argv):

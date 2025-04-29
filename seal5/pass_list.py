@@ -425,14 +425,14 @@ def detect_registers(
         log_level,
     ]
     if not use_subprocess:
-        from seal5.transform.detect_registers import main as DetectRegisters
+        from seal5.transform.detect_registers import DetectRegisters
 
         args = sanitize_args(args)
         DetectRegisters(args)
     else:
         utils.python(
             "-m",
-            "seal5.transform.detect_registers",
+            "seal5.transform.detect_registers.detect",
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
@@ -853,7 +853,7 @@ def write_cdsl(
         (settings.temp_dir / new_name).mkdir(exist_ok=True)
         args.append("--splitted")
     if compat:
-        args.append("--compat")
+        args.append("--reduced")
     if gen_metrics_file:
         # TODO: move to .seal5/metrics
         metrics_file = settings.temp_dir / (new_name + "_coredsl2_writer_metrics.csv")
@@ -1457,7 +1457,7 @@ def gen_riscv_gisel_legalizer_patch(
     # name = input_file.name
     # new_name = name.replace(".seal5model", "")
     logger.info("Writing RISCVLegalizerInfo.cpp patch")
-    out_dir = settings.patches_dir / "Seal5"
+    out_dir = settings.patches_dir / "seal5"
     out_dir.mkdir(exist_ok=True)
 
     args = [
@@ -1592,7 +1592,9 @@ def convert_llvmir_to_gmir(
         for model_name, model_settings in settings.models.items():
             if model_name != input_model:
                 continue
-            assert len(model_settings.extensions) > 0, "No sets found"
+            if len(model_settings.extensions) == 0:
+                logger.warning("No sets found in model %s", model_name)
+                continue
             for set_name, ext_settings in model_settings.extensions.items():
                 insn_names = ext_settings.instructions
                 riscv_settings = ext_settings.riscv
@@ -1616,8 +1618,12 @@ def convert_llvmir_to_gmir(
                 # TODO: populate model in yaml backend!
                 for insn_name in insn_names:
                     ll_file = settings.temp_dir / model_name / set_name / f"{insn_name}.ll"
-                    if not ll_file.is_file():
+                    ll_err_file = settings.temp_dir / model_name / set_name / f"{insn_name}.ll.err"
+                    if ll_err_file.is_file():
                         logger.warning("Skipping %s due to errors.", insn_name)
+                        continue
+                    elif not ll_file.is_file():
+                        logger.info("Skipping %s (unsupported).", insn_name)
                         continue
                     output_file = ll_file.parent / (ll_file.stem + ".gmir")
                     name = ll_file.name
@@ -2003,6 +2009,69 @@ def check_pattern_support(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
+
+
+def gen_riscv_field_types_patch(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    log_level: str = "debug",
+    **_kwargs,
+):
+    gen_metrics_file = False  # TODO
+    gen_index_file = True
+    assert input_model is None  # Needs
+    # input_file = settings.models_dir / f"{input_model}.seal5model"
+    # assert input_file.is_file(), f"File not found: {input_file}"
+    # name = input_file.name
+    # new_name = name.replace(".seal5model", "")
+    logger.info("Writing RISCV field types patches")
+    out_dir = settings.patches_dir / "seal5"
+    out_dir.mkdir(exist_ok=True)
+
+    args = [
+        # "none",
+        "--yaml",
+        settings.settings_file,
+        "--log",
+        log_level,
+        "--output",
+        out_dir / "riscv_gisel_legalizer.patch",
+    ]
+    if gen_metrics_file:
+        metrics_file = out_dir / ("riscv_field_types_metrics.csv")
+        args.extend(["--metrics", metrics_file])
+    if gen_index_file:
+        index_file = out_dir / ("riscv_field_types_index.yml")
+        args.extend(["--index", index_file])
+    utils.python(
+        "-m",
+        "seal5.backends.riscv_field_types.writer",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=True,
+    )
+    if gen_index_file:
+        if index_file.is_file():
+            patch_name = "riscv_field_types"
+            patch_settings = PatchSettings(
+                name=patch_name,
+                stage=int(PatchStage.PHASE_2),
+                comment="Generated RISCV field types patches",
+                index=str(index_file),
+                generated=True,
+                target="llvm",
+            )
+            settings.add_patch(patch_settings)
+            settings.to_yaml_file(settings.settings_file)
+        else:
+            logger.warning("No patches found!")
     metrics = {}
     if gen_metrics_file:
         metrics = read_metrics(metrics_file)

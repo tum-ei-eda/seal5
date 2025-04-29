@@ -11,12 +11,10 @@
 import argparse
 import logging
 import pathlib
-import pickle
-from typing import Union
 
 import yaml
 
-from m2isar.metamodel import arch
+from seal5.model_utils import load_model
 
 logger = logging.getLogger("yaml_writer")
 
@@ -43,6 +41,7 @@ def main():
     parser.add_argument("top_level", help="A .m2isarmodel or .seal5model file.")
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument("--output", "-o", type=str, default=None)
+    parser.add_argument("--compat", action="store_true")
     args = parser.parse_args()
 
     # initialize logging
@@ -50,45 +49,15 @@ def main():
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
-    # abs_top_level = top_level.resolve()
+    model_name = top_level.stem
+    out_path = pathlib.Path(args.output)
 
-    is_seal5_model = False
-    # print("top_level", top_level)
-    # print("suffix", top_level.suffix)
-    if top_level.suffix == ".seal5model":
-        is_seal5_model = True
-    if args.output is None:
-        assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
-
-        out_path = top_level.parent / (top_level.stem + ".core_desc")
-    else:
-        out_path = pathlib.Path(args.output)
-
-    logger.info("loading models")
-    if not is_seal5_model:
-        raise NotImplementedError
-
-    # load models
-    with open(top_level, "rb") as f:
-        # models: "dict[str, arch.CoreDef]" = pickle.load(f)
-        if is_seal5_model:
-            model: "dict[str, Union[arch.InstructionSet, ...]]" = pickle.load(f)
-            model["cores"] = {}
-        else:  # TODO: core vs. set!
-            temp: "dict[str, Union[arch.InstructionSet, arch.CoreDef]]" = pickle.load(f)
-            assert len(temp) > 0, "Empty model!"
-            if isinstance(list(temp.values())[0], arch.CoreDef):
-                model = {"cores": temp, "sets": {}}
-            elif isinstance(list(temp.values())[0], arch.InstructionSet):
-                model = {"sets": temp, "cores": {}}
-            else:
-                assert False
-        model_name = top_level.stem
+    model_obj = load_model(top_level, compat=args.compat)
 
     # preprocess model
     # print("model", model)
     data = {"extensions": {}}
-    for set_name, set_def in model["sets"].items():
+    for set_name, set_def in model_obj.sets.items():
         # print("set", set_def)
         is_group_set = False
         if len(set_def.instructions) == 0:
@@ -102,8 +71,11 @@ def main():
         else:
             riscv_data["xlen"] = set_def.xlen
             set_data["riscv"] = riscv_data
-        for instr in set_def.instructions.values():
-            set_data["instructions"].append(instr.name)
+            llvm_imm_types = set()
+            for instr in set_def.instructions.values():
+                set_data["instructions"].append(instr.name)
+                llvm_imm_types.update(instr.llvm_imm_types)
+            set_data["required_imm_types"] = list(llvm_imm_types)
         data["extensions"][set_name] = set_data
     data = {"models": {model_name: data}}
     with open(out_path, "w", encoding="utf-8") as f:
