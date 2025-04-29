@@ -539,6 +539,7 @@ class ExtensionsSettings(YAMLSettings):
     vendor: Optional[bool] = None
     description: Optional[str] = None
     requires: Optional[List[str]] = None
+    # implies: Optional[List[str]] = None
     instructions: Optional[List[str]] = None
     riscv: Optional[RISCVSettings] = None
     passes: Optional[PassesSettings] = None

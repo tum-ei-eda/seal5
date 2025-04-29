@@ -52,6 +52,8 @@ def main():
         # print("model", model)
         for set_name, set_def in model_obj.sets.items():
             # print("set_name", set_name)
+            if len(set_def.instructions) == 0:
+                continue
             xlen = set_def.xlen
             model = top_level.stem
 
@@ -104,7 +106,7 @@ def main():
                             # "48bit2": 0b10111,
                             "BRANCH": 0b11000,
                             "JALR": 0b11001,
-                            # "reserved": 0b11010,
+                            "reserved": 0b11010,
                             "JAL": 0b11011,
                             "SYSTEM": 0b11100,
                             "OP-P": 0b11101,
