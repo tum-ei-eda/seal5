@@ -48,7 +48,7 @@ OPCODE_LOOKUP = {
     # "48bit2": 0b10111,
     "BRANCH": 0b11000,
     "JALR": 0b11001,
-    # "reserved": 0b11010,
+    "reserved": 0b11010,
     "JAL": 0b11011,
     "SYSTEM": 0b11100,
     "OP-P": 0b11101,
