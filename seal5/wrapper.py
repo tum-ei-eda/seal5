@@ -44,6 +44,7 @@ LLVM_URL = os.environ.get("LLVM_URL", "https://github.com/llvm/llvm-project.git"
 LLVM_REF = os.environ.get("LLVM_REF", "llvmorg-19.1.7")
 BUILD_CONFIG = os.environ.get("BUILD_CONFIG", None)
 IGNORE_ERROR = str2bool(os.environ.get("IGNORE_ERROR", 1))
+IGNORE_LLVM_IMM_TYPES = str2bool(os.environ.get("IGNORE_LLVM_IMM_TYPES", 0))
 TEST = str2bool(os.environ.get("TEST", 1))
 INSTALL = str2bool(os.environ.get("INSTALL", 1))
 DEPLOY = str2bool(os.environ.get("DEPLOY", 1))
@@ -82,6 +83,7 @@ def run_seal5_flow(
     reset: bool = RESET,
     init: bool = INIT,
     setup: bool = SETUP,
+    ignore_llvm_imm_types: bool = IGNORE_LLVM_IMM_TYPES,
 ):
     """Single entry point (wrapper) to excute the full seal5 flow for a given set of files."""
     seal5_flow = Seal5Flow(dest, name=name)
@@ -105,6 +107,7 @@ def run_seal5_flow(
             progress=progress,
             force=True,
             verbose=verbose,
+            ignore_llvm_imm_types=ignore_llvm_imm_types,
         )
 
     if len(input_files) == 0:
