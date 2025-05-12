@@ -226,6 +226,7 @@ def test_llvm(base: Path, build_dir: Path, test_paths: Optional[List[str]] = Non
 
 
 def detect_llvm_imm_types(llvm_dir: Union[str, Path]):
+    # TODO: detect which ones are ImmLeafs!
     def get_grep_cmd(prefix):
         return f"grep -r \"def {prefix}imm\" llvm/lib/Target/RISCV | cut -d':' -f2 | tr -s ' ' | sed -e \"s/def //g\""
 
