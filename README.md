@@ -7,6 +7,8 @@
 
 > [!NOTE]
 > Seal5 was recently presented at the RISC-V Summit Europe 2024. Click [here](https://github.com/tum-ei-eda/seal5/discussions/107) to access the poster, slides & recording.
+> 
+> Our Seal5 paper was published and presented on the DSD 2024 conference: See [References](https://github.com/tum-ei-eda/seal5?tab=readme-ov-file#references) section for details.
 
 [![pypi package](https://badge.fury.io/py/seal5.svg)](https://pypi.org/project/seal5)
 [![readthedocs](https://readthedocs.org/projects/seal5/badge/?version=latest)](https://seal5.readthedocs.io/en/latest/?version=latest)
@@ -154,9 +156,6 @@ Seal5 issue tracker: https://github.com/tum-ei-eda/seal5/issues
 CoreDSL2LLVM/PatternGen issue tracker: https://github.com/mathis-s/CoreDSL2LLVM/issues
 
 ## References
-
-N/A
-
 
 - **Seal5: Semi-Automated LLVM Support for RISC-V ISA Extensions Including Autovectorization** ([https://ieeexplore.ieee.org/abstract/document/10741856](https://ieeexplore.ieee.org/abstract/document/10741856))
 
