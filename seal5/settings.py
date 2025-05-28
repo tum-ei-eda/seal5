@@ -803,6 +803,11 @@ class Seal5Settings(YAMLSettings):
         return self._meta_dir / "patches"
 
     @property
+    def cache_dir(self):
+        """Seal5 cache_dir getter."""
+        return self._meta_dir / "cache"
+
+    @property
     def log_file_path(self):
         """Seal5 log_file_path getter."""
         return self.logs_dir / "seal5.log"

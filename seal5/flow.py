@@ -38,6 +38,15 @@ from seal5.resources.resources import get_patches, get_test_cfg
 from seal5.passes import Seal5Pass, PassType, PassScope, PassManager, filter_passes
 import seal5.pass_list as passes
 
+import inspect
+import hashlib
+import json
+import threading
+import psutil
+from fuseoverlayfs import FuseOverlayFS
+
+fuseoverlayfs = FuseOverlayFS.init()
+
 logger = get_logger()
 
 TRANSFORM_PASS_MAP = [
@@ -180,6 +189,55 @@ def add_test_cfg(tests_dir: Path):
     src = get_test_cfg()
     utils.copy(src, dest)
 
+def hash_arguments():
+    args = json.dumps(inspect.currentframe().f_back.f_locals, sort_keys=True, default=lambda obj: f"<{obj.__class__.__name__}>")
+    logger.info("Build arguments: %s", args)
+    return hashlib.sha1(args.encode()).hexdigest()
+
+def get_patch_id(repo_path, base_commit, target_commit="HEAD"):
+    repo = git.Repo(repo_path)
+    r_fd, w_fd = os.pipe()
+    t = threading.Thread(
+        target=lambda: repo.git.execute(
+            ['git', 'diff', base_commit, target_commit],
+            output_stream=os.fdopen(w_fd, 'wb')
+        )
+    )
+    t.start()
+    # Run 'git patch-id' by piping the diff to it
+    with os.fdopen(r_fd, 'rb') as r:
+        # patch_id will be a string like: '<patch-id> <zeroes or commit-hash>'
+        patch_id = repo.git.execute(['git', 'patch-id'], istream=r).split()[0]
+    t.join()
+    return patch_id
+
+def combine_hashes(first, second):
+    return hashlib.sha1(bytes.fromhex(first) + b':' + bytes.fromhex(second)).hexdigest()
+
+def get_mount_info(mountpoint):
+    for proc in psutil.process_iter(['name', 'cmdline']):
+        try:
+            # Look for fuse-overlayfs process
+            if 'fuse-overlayfs' in proc.info['name']:
+                cmdline = proc.info['cmdline']
+                # Check if the mountpoint is in the command line
+                if any(str(mountpoint) in arg for arg in cmdline):
+                    # Look for upperdir argument
+                    for arg in cmdline:
+                        if arg.startswith('upperdir='):
+                            return Path(arg.split('=', 1)[1]).resolve().parent
+        except (psutil.AccessDenied, psutil.ZombieProcess):
+            continue
+    return None
+
+def get_lower_dirs(directory, default=None):
+    try:
+        return [Path(line.strip()) for line in (directory / "lowerdirs.txt").read_text().splitlines() if line.strip()]
+    except FileNotFoundError:
+        return default if default is not None else []
+
+def save_lower_dirs(directory, lower_dirs):
+    (directory / "lowerdirs.txt").write_text('\n'.join(map(str, lower_dirs)))
 
 class Seal5Flow:
     """Seal5 Flow."""
@@ -324,7 +382,7 @@ class Seal5Flow:
         self.meta_dir.mkdir(exist_ok=True)
         create_seal5_directories(
             self.meta_dir,
-            ["deps", "models", "logs", "build", "install", "temp", "inputs", "gen", "patches", "tests"],
+            ["deps", "models", "logs", "build", "install", "temp", "inputs", "gen", "patches", "tests", "cache"],
         )
         add_test_cfg(self.settings.tests_dir)
         if version_info:
@@ -517,8 +575,13 @@ class Seal5Flow:
         # TODO: only allow single instr set for now and track inputs in settings
         logger.info("Completed load of Seal5 inputs")
 
+
     def build(self, config=None, target="all", verbose: bool = False, **kwargs):
         """Build Seal5 LLVM."""
+        build_hash = combine_hashes(
+            hash_arguments(),
+            get_patch_id(Path(self.settings.directory), self.settings.llvm.state.base_commit)
+        )
         logger.info("Building Seal5 LLVM (%s)", target)
         start = time.time()
         metrics = {}
@@ -530,15 +593,52 @@ class Seal5Flow:
         ccache_settings = self.settings.llvm.ccache
         if kwargs.get("enable_ccache", False):
             ccache_settings.enable = True
-        llvm.build_llvm(
-            Path(self.settings.directory),
-            self.settings.get_llvm_build_dir(config=config, fallback=True, check=False),
-            cmake_options=cmake_options,
-            target=target,
-            use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
-            ccache_settings=ccache_settings,
-            verbose=verbose,
-        )
+        build_dir = self.settings.get_llvm_build_dir(config=config, fallback=True, check=False)
+        mount_info = get_mount_info(build_dir)
+        #logger.info("Mount info: %s", mount_info)
+        #if not mount_info is None:
+        #    logger.info("Mount info: %s", mount_info.name)
+        #logger.info("Hash: %s",  build_hash)
+        cache_dir = self.settings.cache_dir
+        overlay_dir = cache_dir / build_hash
+        work_dir = cache_dir / "work"
+        empty_dir = cache_dir / "empty"
+        cached = False
+        if mount_info is None or mount_info.name != build_hash:
+            volume_dir = overlay_dir / "volume"
+            if mount_info is None:
+                if not overlay_dir.is_dir():
+                    lower_dirs = [empty_dir]
+                    empty_dir.mkdir(parents=True, exist_ok=True)
+                    volume_dir.mkdir(parents=True, exist_ok=True)
+                    work_dir.mkdir(parents=True, exist_ok=True)
+                else:
+                    lower_dirs = get_lower_dirs(overlay_dir, [empty_dir])
+                    cached = True
+            else:
+                fuseoverlayfs.unmount(build_dir)
+                if not overlay_dir.is_dir():
+                    volume_dir.mkdir(parents=True, exist_ok=True)
+                    lower_dirs = get_lower_dirs(mount_info)
+                    lower_dirs.append(mount_info / "volume")
+                    save_lower_dirs(overlay_dir, lower_dirs)
+                else:
+                    lower_dirs = get_lower_dirs(overlay_dir, [empty_dir])
+                    cached = True
+            build_dir.mkdir(parents=True, exist_ok=True)
+            fuseoverlayfs.mount(build_dir, lower_dirs, workdir=work_dir, upperdir=volume_dir)
+        if cached:
+            logger.info("Using cache %s", build_hash)
+        else:
+            llvm.build_llvm(
+                Path(self.settings.directory),
+                build_dir,
+                cmake_options=cmake_options,
+                target=target,
+                use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
+                ccache_settings=ccache_settings,
+                verbose=verbose,
+            )
         end = time.time()
         diff = end - start
         metrics["start"] = start

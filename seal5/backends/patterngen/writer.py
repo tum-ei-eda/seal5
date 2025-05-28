@@ -180,7 +180,7 @@ def main():
                     if result_:
                         includes.extend(includes_)
             if len(includes) > 0:
-                set_includes_str = "\n".join([f'include "seal5/{inc}"' for inc in includes])
+                set_includes_str = "\n".join([f'include "seal5/{inc}"' for inc in sorted(includes)])
                 if len(set_includes_str.strip()) > 0:
                     set_includes_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}.td"
                     set_name_lower = set_name.lower()
