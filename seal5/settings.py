@@ -569,7 +569,7 @@ class ExtensionsSettings(YAMLSettings):
             feature = self.get_feature(name=name)
             assert feature is not None
             arch = feature.lower()
-            assert len(arch) > 0
+            assert len(arch) > 1
             if arch[0] != "x":
                 arch = f"x{arch}"
             # if self.experimental:
@@ -582,6 +582,9 @@ class ExtensionsSettings(YAMLSettings):
         if self.feature is None:
             assert name is not None
             feature = name.replace("_", "")
+            assert len(feature) > 1
+            if feature.lower()[0] != "x":
+                feature = f"X{feature}"
             return feature
         return self.feature
 
