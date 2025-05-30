@@ -67,7 +67,8 @@ def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings, llvm_set
     content_template = Template(filename=str(template_dir / f"{template_name}.mako"))
     if slim:
         # TODO: support experimental- prefix
-        assert feature.lower() == arch_, "LLVM 20 requires matching arch and feature names"
+        feature_lower = feature.lower()
+        assert feature_lower == arch_, "LLVM 20 requires matching arch and feature names ({feature_lower} vs. {arch_})"
         assert predicate == (f"Vendor{feature}" if vendor else f"StdExt{feature}")
     content_text = content_template.render(
         predicate=predicate, feature=feature, arch=arch_, description=description, major=major, minor=minor
