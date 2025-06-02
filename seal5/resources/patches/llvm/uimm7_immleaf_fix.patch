@@ -1,0 +1,13 @@
+diff --git a/llvm/lib/Target/RISCV/RISCVInstrInfo.td b/llvm/lib/Target/RISCV/RISCVInstrInfo.td
+index 07f1fca8e6e2..4aa374461fe7 100644
+--- a/llvm/lib/Target/RISCV/RISCVInstrInfo.td
++++ b/llvm/lib/Target/RISCV/RISCVInstrInfo.td
+@@ -247,7 +247,7 @@ def uimm6 : RISCVUImmLeafOp<6>;
+ def uimm7_opcode : RISCVUImmOp<7> {
+   let ParserMatchClass = InsnDirectiveOpcode;
+ }
+-def uimm7 : RISCVUImmOp<7>;
++def uimm7 : RISCVUImmLeafOp<7>;
+ def uimm8 : RISCVUImmOp<8>;
+ def uimm16 : RISCVUImmOp<16>;
+ def uimm32 : RISCVUImmOp<32>;
