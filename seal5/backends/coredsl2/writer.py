@@ -123,11 +123,19 @@ class CoreDSL2Writer:
                         return helper(val[0])
                     return "(" + ",".join([helper(x) for x in val]) + ")"
                 if isinstance(val, str):  # TODO: replace with string literal
-                    return val  # TODO: operation
+                    if '"' not in val:
+                        val = '"' + val + '"'
+                    return val
                 if isinstance(val, int):  # TODO: replace with int literal
                     return str(val)  # TODO: operation
                 if isinstance(val, behav.IntLiteral):
-                    return str(val.value)
+                    size = val.bit_size
+                    value = val.value
+                    if size and value != 0 and not val.signed:
+                        # hex mode
+                        return f"{size}'h{value:x}"
+                    else:
+                        return str(val.value)
                 if isinstance(val, behav.StringLiteral):
                     val = val.value
                     if '"' not in val:
