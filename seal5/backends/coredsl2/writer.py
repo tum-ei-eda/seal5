@@ -355,6 +355,7 @@ def main():
     parser.add_argument("--splitted", action="store_true", help="Split per set and instruction")
     parser.add_argument("--ext", type=str, default="core_desc", help="Default file extension (if using --splitted)")
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
+    parser.add_argument("--ignore-failing", action="store_true", help="Do not crash in case of errors.")
     parser.add_argument("--compat", action="store_true")
     args = parser.parse_args()
 
@@ -433,6 +434,13 @@ def main():
         content = writer.text
         with open(out_path, "w", encoding="utf-8") as f:
             f.write(content)
+    if not args.ignore_failing:
+        n_failed = metrics["n_failed"]
+        if n_failed > 0:
+            failed = metrics["failed_instructions"]
+            failing_str = ", ".join(failed)
+            logger.error("%s intructions failed: %s", n_failed, failing_str)
+            raise RuntimeError("Abort due to errors")
     if args.metrics:
         metrics_file = args.metrics
         metrics_df = pd.DataFrame({key: [val] for key, val in metrics.items()})
