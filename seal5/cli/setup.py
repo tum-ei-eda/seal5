@@ -52,7 +52,7 @@ def get_parser(subparsers):
 
 def handle(args):
     """Callback function which will be called to process the setup subcommand"""
-    seal5_flow = Seal5Flow(args.dir, name=args.name)
+    seal5_flow = Seal5Flow(args.dir, name=args.name, log_level=args.log)
     seal5_flow.setup(
         interactive=not args.non_interactive,
         force=args.force,

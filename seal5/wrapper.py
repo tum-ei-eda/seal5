@@ -57,6 +57,7 @@ PROGRESS = str2bool(os.environ.get("PROGRESS", 1))
 CCACHE = str2bool(os.environ.get("CCACHE", 0))
 CLONE_DEPTH = int(os.environ.get("CLONE_DEPTH", -1))
 NAME = os.environ.get("NAME", None)
+LOG_LEVEL = os.environ.get("SEAL5_LOG_LEVEL", None)
 
 
 def run_seal5_flow(
@@ -84,9 +85,11 @@ def run_seal5_flow(
     init: bool = INIT,
     setup: bool = SETUP,
     ignore_llvm_imm_types: bool = IGNORE_LLVM_IMM_TYPES,
+    log_level: Union[None, int, str] = LOG_LEVEL,
 ):
     """Single entry point (wrapper) to excute the full seal5 flow for a given set of files."""
-    seal5_flow = Seal5Flow(dest, name=name)
+    # print("log_level", log_level)
+    seal5_flow = Seal5Flow(dest, name=name, log_level=log_level)
 
     # Optional: clean existing settings/models for fresh run
     if reset:

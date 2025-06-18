@@ -78,7 +78,7 @@ def get_parser(subparsers):
 
 def handle(args):
     """Callback function which will be called to process the init subcommand"""
-    seal5_flow = Seal5Flow(args.dir, name=args.name)
+    seal5_flow = Seal5Flow(args.dir, name=args.name, log_level=args.log)
     seal5_flow.initialize(
         interactive=not args.non_interactive,
         clone=args.clone,

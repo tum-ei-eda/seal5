@@ -37,6 +37,8 @@ set -e
 export DEST=${DEST:-"/tmp/seal5_llvm_cli_demo"}
 # export NAME=${NAME:-"cli_demo"}
 
+export SEAL5_LOG_LEVEL=${SEAL5_LOG_LEVEL:-INFO}
+
 Example_files=examples/example/cdsl/Example.core_desc
 export SEAL5_HOME=$DEST
 Config_files=(examples/common/cfg/llvm.yml examples/common/cfg/filter.yml examples/common/cfg/patches.yml examples/common/cfg/riscv.yml examples/common/cfg/tests.yml examples/common/cfg/passes.yml examples/common/cfg/git.yml)

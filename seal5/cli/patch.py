@@ -50,5 +50,5 @@ def get_parser(subparsers):
 
 def handle(args):
     """Callback function which will be called to process the patch subcommand"""
-    seal5_flow = Seal5Flow(args.dir, name=args.name)
+    seal5_flow = Seal5Flow(args.dir, name=args.name, log_level=args.log)
     seal5_flow.patch(verbose=args.verbose, stages=[PatchStage(int(i)) for i in args.stages], force=args.force)
