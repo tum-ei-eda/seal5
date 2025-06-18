@@ -45,6 +45,11 @@ def gen_riscv_field_types_str(field_types):
 
     for field_type in field_types:
         # print("field_type", field_type)
+        field_name = field_type
+        has_prefix = False
+        if field_name.startswith("seal5_"):
+            field_type = field_type.split("_", 1)[1]
+            has_prefix = True
         matches = re.compile(r"([us])imm(\d+|log2xlen)([_a-zA-Z].*)?").match(field_type)
         assert matches is not None, f"Field type not supported: {field_type}"
         # print("matches", matches)
@@ -61,11 +66,11 @@ def gen_riscv_field_types_str(field_types):
         is_leaf = True
         if sign_letter == "u":
             cls = "Seal5RISCVUImmLeafOp" if is_leaf else "Seal5RISCVUImmOp"
-            temp = f"def {field_type} : {cls}<{imm_size}>;"
+            temp = f"def {field_name} : {cls}<{imm_size}>;"
         elif sign_letter == "s":
             cls = "Seal5RISCVSImmLeafOp" if is_leaf else "Seal5RISCVSImmOp"
             # Warning: RISCVSImmOp not tested yet
-            temp = f"""def {field_type} : {cls}<{imm_size}> {{
+            temp = f"""def {field_name} : {cls}<{imm_size}> {{
   let MCOperandPredicate = [{{
     int64_t Imm;
     if (MCOp.evaluateAsConstantImm(Imm))
@@ -77,14 +82,15 @@ def gen_riscv_field_types_str(field_types):
             assert False  # Should not be reached
         riscv_field_types_contents.append(temp)
         sign_letter_upper = sign_letter.upper()
+        prefix = "Seal5" if has_prefix else ""
         if sign_letter_upper == "U":
             temp = (
-                f"bool is{sign_letter_upper}Imm{imm_size}() const {{ return Is{sign_letter_upper}Imm<{imm_size}>(); }}"
+                f"bool is{prefix}{sign_letter_upper}Imm{imm_size}() const {{ return Is{sign_letter_upper}Imm<{imm_size}>(); }}"
             )
         elif sign_letter_upper == "S":
             # TODO: introduce `template <unsigned N> bool IsSImm() const {`
             # to make this more clean
-            temp = f"""bool is{sign_letter_upper}Imm{imm_size}() const {{
+            temp = f"""bool is{prefix}{sign_letter_upper}Imm{imm_size}() const {{
       if (!isImm())
         return false;
       RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
@@ -151,11 +157,17 @@ def main():
             [],
         )
     )
-    # print("all_required_imm_types", all_required_imm_types)
+    use_imm_type_prefix = settings.llvm.use_imm_type_prefix
+    print("use_imm_type_prefix", use_imm_type_prefix)
+    if use_imm_type_prefix:
+        prefix = "seal5_"
+        all_required_imm_types = {x if x.startswith(prefix) else f"{prefix}{x}" for x in all_required_imm_types}
+    print("all_required_imm_types", all_required_imm_types)
     supported_imm_types = set(settings.llvm.state.supported_imm_types)
-    # print("supported_imm_types", supported_imm_types)
+    print("supported_imm_types", supported_imm_types)
     missing_imm_types = all_required_imm_types - supported_imm_types
-    # print("missing_imm_types", missing_imm_types)
+    print("missing_imm_types", missing_imm_types)
+    input("!")
 
     metrics = {
         "n_imm": 0,

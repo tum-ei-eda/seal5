@@ -333,8 +333,9 @@ class Seal5Flow:
         if sha:
             self.settings.llvm.state.base_commit = sha
         if not ignore_llvm_imm_types:
-            supported_imm_types = llvm.detect_llvm_imm_types(self.directory)
+            supported_imm_types, supported_imm_types_asm = llvm.detect_llvm_imm_types(self.directory)
             self.settings.llvm.state.supported_imm_types = list(supported_imm_types)
+            self.settings.llvm.state.supported_imm_types_asm = list(supported_imm_types_asm)
         self.settings.save()
         set_log_file(self.settings.log_file_path)
         set_log_level(console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level)
