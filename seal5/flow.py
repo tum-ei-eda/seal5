@@ -185,8 +185,10 @@ class Seal5Flow:
     """Seal5 Flow."""
 
     def __init__(
-        self, directory: Optional[Path] = None, meta_dir: Optional[Union[str, Path]] = None, name: Optional[str] = None
+        self, directory: Optional[Path] = None, meta_dir: Optional[Union[str, Path]] = None, name: Optional[str] = None, log_level: Union[None, int, str] = None,
     ):
+        # print("log_level", log_level)
+        self.log_level = log_level  # overrides settings.yml log levels
         self.directory: Path = handle_directory(directory)
         self.meta_dir: Path = handle_meta_dir(meta_dir, self.directory, name)
         self.name: str = name
@@ -206,7 +208,7 @@ class Seal5Flow:
             set_log_file(self.settings.log_file_path)
             if self.settings:
                 set_log_level(
-                    console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level
+                    console_level=log_level or self.settings.logging.console.level, file_level=log_level or self.settings.logging.file.level
                 )
         self.name = self.settings.name if name is None else name
         self.name = "default" if self.name is None else self.name
@@ -337,7 +339,7 @@ class Seal5Flow:
             self.settings.llvm.state.supported_imm_types = list(supported_imm_types)
         self.settings.save()
         set_log_file(self.settings.log_file_path)
-        set_log_level(console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level)
+        set_log_level(console_level=self.log_level or self.settings.logging.console.level, file_level=self.log_level or self.settings.logging.file.level)
         end = time.time()
         diff = end - start
         metrics["start"] = start

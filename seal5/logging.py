@@ -42,17 +42,13 @@ def get_formatter(minimal=False):
 
 
 def get_logger():
+    # print("get_logger")
     """Helper function which return the main seal5 logger while ensuring that is is properly initialized."""
     global INITIALIZED
-    # root_logger = logging.getLogger()
-    # root_logger.setLevel(logging.DEBUG)
-    # root_logger.setLevel(logging.INFO)
     logger = logging.getLogger("seal5")
-    # logger.setLevel(logging.DEBUG)
     if len(logger.handlers) == 0:
         stream_handler = logging.StreamHandler(sys.stdout)
         stream_handler.setFormatter(get_formatter(minimal=True))
-        # stream_handler.setLevel(logging.DEBUG)
         logger.addHandler(stream_handler)
         logger.propagate = False
         INITIALIZED = True
@@ -61,20 +57,27 @@ def get_logger():
 
 def set_log_level(console_level=None, file_level=None):
     """Set command line log level at runtime."""
+
+    def helper(level):
+        if level is None:
+            return None
+        if level.isnumeric():
+            level = int(level)
+        return level
+
+    console_level = helper(console_level)
+    file_level = helper(file_level)
+
     # print("set_log_level", console_level, file_level)
     logger = logging.getLogger("seal5")
     for handler in logger.handlers[:]:
-        # print("handler", handler, type(handler))
         if (
             isinstance(handler, (logging.FileHandler, logging.handlers.TimedRotatingFileHandler))
             and file_level is not None
         ):
             handler.setLevel(file_level)
-            # print("NEWIF")
         elif isinstance(handler, logging.StreamHandler) and console_level is not None:
             handler.setLevel(console_level)
-            # print("NEWELIF")
-    logger.setLevel(logging.DEBUG)
 
 
 def set_log_file(path, level=logging.DEBUG, rotate=False):
