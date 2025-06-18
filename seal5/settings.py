@@ -99,7 +99,7 @@ DEFAULT_SETTINGS = {
         # "paths": ["MC/RISCV", "CodeGen/RISCV"],
     },
     "llvm": {
-        "state": {"version": "auto", "base_commit": "unknown", "supported_imm_types": []},
+        "state": {"version": "auto", "base_commit": "unknown", "supported_imm_types": [], "supported_imm_types_asm": []},
         "ninja": True,
         "ccache": {
             "enable": False,
@@ -465,6 +465,7 @@ class LLVMState(YAMLSettings):
     base_commit: Optional[str] = None
     version: Optional[Union[str, LLVMVersion]] = None
     supported_imm_types: Optional[List[str]] = None
+    supported_imm_types_asm: Optional[List[str]] = None
 
 
 @dataclass
@@ -493,6 +494,7 @@ class LLVMSettings(YAMLSettings):
     default_config: Optional[str] = None
     configs: Optional[Dict[str, LLVMConfig]] = None
     state: Optional[LLVMState] = None
+    use_imm_type_prefix: Optional[bool] = None
 
 
 @dataclass

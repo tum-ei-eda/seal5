@@ -239,6 +239,9 @@ def detect_llvm_imm_types(llvm_dir: Union[str, Path]):
     def get_grep_cmd(prefix):
         return f"grep -r \"def {prefix}imm\" llvm/lib/Target/RISCV | cut -d':' -f2 | tr -s ' ' | sed -e \"s/def //g\""
 
+    def get_grep_cmd_asm():
+        return "grep -hRr \"bool is[US]Imm.*\(\) const {\" llvm/lib/Target/RISCV | tr -s ' ' | sed -rn 's/.*bool (is[US]Imm.*)\(\) const.*/\\1/p'"
+
     def _parse_output(output):
         output = output.strip()
         return set(map(lambda x: x.strip(), output.splitlines()))
@@ -249,6 +252,9 @@ def detect_llvm_imm_types(llvm_dir: Union[str, Path]):
     simm_types = _parse_output(
         utils.exec_getout(get_grep_cmd("s"), shell=True, print_func=lambda *_: None, live=False, cwd=llvm_dir)
     )
+    imm_types_asm = _parse_output(
+        utils.exec_getout(get_grep_cmd_asm(), shell=True, print_func=lambda *_: None, live=False, cwd=llvm_dir)
+    )
 
     imm_types = uimm_types | simm_types
-    return imm_types
+    return imm_types, imm_types_asm
