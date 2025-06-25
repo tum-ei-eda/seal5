@@ -36,6 +36,8 @@ def group_files(files: List[Union[str, Path]]):
 
 
 # Parameters
+OUT_DIR = os.environ.get("OUT_DIR", None)
+INSTALL_DIR = os.environ.get("INSTALL_DIR", None)
 VERBOSE = str2bool(os.environ.get("VERBOSE", 0))
 SKIP_PATTERNS = str2bool(os.environ.get("SKIP_PATTERNS", 0))
 INTERACTIVE = str2bool(os.environ.get("INTERACTIVE", 0))
@@ -62,7 +64,8 @@ NAME = os.environ.get("NAME", None)
 def run_seal5_flow(
     input_files: List[Union[str, Path]],
     dest: Optional[Union[str, Path]] = None,
-    out_dir: Optional[Union[str, Path]] = None,
+    out_dir: Optional[Union[str, Path]] = OUT_DIR,
+    install_dir: Optional[Union[str, Path]] = INSTALL_DIR,
     name: Optional[str] = NAME,
     interactive: bool = INTERACTIVE,
     prepatched: bool = PREPATCHED,
@@ -177,7 +180,8 @@ def run_seal5_flow(
 
     if install:
         # Install final LLVM
-        install_dir = None if out_dir is None else Path(out_dir) / "seal5_llvm_instal"
+        if install_dir is None and out_dir is not None:
+            install_dir = Path(out_dir) / "seal5_llvm_install"
         seal5_flow.install(dest=install_dir, verbose=verbose, config=build_config, enable_ccache=ccache)
 
     if deploy:
