@@ -345,6 +345,7 @@ class PatchSettings(YAMLSettings):
     index: Optional[Union[Path, str]] = None
     # _file: Optional[Union[Path, str]] = field(init=False, repr=False)
     enable: bool = True
+    weak: bool = False  # Default patch than can be overriden
     generated: bool = False
     applied: bool = False
     onlyif: Optional[str] = None
@@ -713,12 +714,25 @@ class Seal5Settings(YAMLSettings):
             dest = self.settings_file
         self.to_yaml_file(dest)
 
-    def add_patch(self, patch_settings: PatchSettings):
+    def add_patch(self, patch_settings: PatchSettings, force: bool = False):
         """Add patch to Seal5 seetings."""
+        patches = []
+        added = False
         for ps in self.patches:
             if ps.name == patch_settings.name:
-                raise RuntimeError(f"Duplicate patch '{ps.name}'. Either clean patches or rename patch.")
-        self.patches.append(patch_settings)
+                if ps.weak:
+                    self.patches.append(patch_settings)
+                    added = True
+                    logger.info("Overriding weak patch '%s'", ps.name)
+                elif patch_settings.weak:
+                    logger.info("Skipping weak patch '%s'", ps.name)
+                else:
+                    raise RuntimeError(f"Duplicate patch '{ps.name}'. Either use force=True, clean patches or rename patch.")
+            else:
+                patches.append(ps)
+        if not added:
+            patches.append(patch_settings)
+        self.patches = patches
 
     @property
     def model_names(self):
