@@ -1,4 +1,3 @@
-
 ## SPDX-License-Identifier: Apache-2.0
 ##
 ## This file is part of the M2-ISA-R project: https://github.com/tum-ei-eda/M2-ISA-R
@@ -17,7 +16,6 @@ import re
 import time
 from typing import Optional, List, Tuple
 
-
 import pandas as pd
 
 from mako.template import Template
@@ -28,7 +26,12 @@ from seal5.index import NamedPatch, File, write_index_yaml
 from seal5.utils import is_power_of_two
 from seal5.settings import IntrinsicDefn, ExtensionsSettings
 from seal5.model_utils import load_model
-
+from seal5.riscv_utils import (
+    set_bits_in_32bit_val,
+    riscv_to_llvm_bytes,
+    get_abi_name,
+    replace_imm_whole_word_case_insensitive,
+)
 
 
 from .templates import template_dir
@@ -46,14 +49,6 @@ class Operand:
     @property
     def length(self):
         return (self.upper - self.lower + 1) if self.upper >= self.lower else (self.lower - self.upper + 1)
-
-    # @property
-    # def name(self):
-    #   ty, name_ = self._name.split(":")
-    #   if self.lower == 1:
-    #       ty += "_lsb0"
-    #   ret = f"{ty}:{name_}"
-    #   return ret
 
     def __repr__(self):
         return f"Operand({self.name}, {self.lower}, {self.upper})"
@@ -75,108 +70,49 @@ class EncodingField:
 
 # ----------- Helper functions ------------
 
-def set_bits_in_32bit_val(original: int, value: int, position: int, bit_length: int) -> int:
-    """
-    Insert 'bit_length' bits from 'value' into 'original' starting at 'position'.
-    Bits are zero-indexed from the right (LSB=0).
-    """
-    if not (0 <= value < 2 ** bit_length):
-        raise ValueError(f"value must fit in {bit_length} bits (0 to {2 ** bit_length - 1})")
-    if not (0 <= position <= 32 - bit_length):
-        raise ValueError(f"position must be between 0 and {32 - bit_length}")
-
-    mask = (1 << bit_length) - 1
-    original_cleared = original & ~(mask << position)
-    value_masked_shifted = (value & mask) << position
-    modified = original_cleared | value_masked_shifted
-    return modified & 0xFFFFFFFF  # Ensure 32-bit
-
-def riscv_to_llvm_bytes(hex_value: str) -> Tuple[List[str], str, str]:
-    """
-    Convert 32-bit hex instruction to little-endian LLVM byte strings.
-    Returns (list_of_hex_bytes, joined_hex_string, simple_joined_string).
-    """
-    hex_str = hex_value.lower().replace('0x', '').zfill(8)
-    bytes_list = [hex_str[i:i+2] for i in range(0, 8, 2)]
-    llvm_bytes = list(reversed(bytes_list))
-
-    llvm_bytes_hex = [f"0x{b}" for b in llvm_bytes]
-    llvm_bytes_str = ", ".join(llvm_bytes_hex)
-    llvm_bytes_simple_str = ", ".join(llvm_bytes)
-
-    return llvm_bytes_hex, llvm_bytes_str, llvm_bytes_simple_str
-
-def replace_imm_whole_word_case_insensitive(input_str: str) -> str:
-    """
-    Replace whole-word 'imm' (case-insensitive) with random integer 0-31.
-    """
-    pattern = re.compile(r"\bimm\b", re.I)
-    return pattern.sub(lambda _: str(random.randint(0, 31)), input_str)
-
-def get_abi_name(reg_name: str) -> str:
-    """
-    Convert RISC-V register name to ABI name, e.g. x10 -> a0.
-    Extend mapping as needed.
-    """
-    abi_map = {
-        'x0':  'zero', 'x1': 'ra', 'x2': 'sp', 'x3': 'gp',
-        'x4':  'tp', 'x5':  't0', 'x6':  't1', 'x7':  't2',
-        'x8':  's0',  # or fp (frame pointer),
-        'x9':  's1',
-        'x10': 'a0', 'x11': 'a1', 'x12': 'a2', 'x13': 'a3',
-        'x14': 'a4', 'x15': 'a5', 'x16': 'a6', 'x17': 'a7',
-        'x18': 's2', 'x19': 's3', 'x20': 's4', 'x21': 's5',
-        'x22': 's6', 'x23': 's7', 'x24': 's8', 'x25': 's9',
-        'x26': 's10', 'x27': 's11', 'x28': 't3', 'x29': 't4',
-        'x30': 't5','x31': 't6'
-    }
-    return abi_map.get(reg_name, reg_name)
-
 
 def generate_invalid_operand_str(num_operands, operand_str, has_imm_operand):
-    
-    print ("Number of Operands", num_operands)
-    # Creating a 2D array 
 
-    rows, cols = (num_operands*2), (num_operands+1)
+    # print ("Number of Operands", num_operands)
+    # Creating a 2D array
+
+    rows, cols = (num_operands * 2), (num_operands + 1)
 
     matrix = [[0 for _ in range(cols)] for _ in range(rows)]
 
     op_str = operand_str.split(" , ")
-    
+
     # Populating the matrix with sample data
     for i in range(rows):
         for j in range(cols):
-            if j< num_operands:
+            if j < num_operands:
                 matrix[i][j] = f"{op_str[j]}"
             else:
                 matrix[i][j] = f"zero"
 
-        print (matrix[i])
-        
+        # print (matrix[i])
 
     # Set invalid operands
-    for cnt in range (rows):
-        for op_cnt in range (cols-1):
-            if(cnt == op_cnt):
-                if  "a" not in (op_str[op_cnt]):
+    for cnt in range(rows):
+        for op_cnt in range(cols - 1):
+            if cnt == op_cnt:
+                if "a" not in (op_str[op_cnt]):
                     matrix[cnt][op_cnt] = f"a{op_cnt}"
                 else:
                     matrix[cnt][op_cnt] = f"0"
 
-            imm_op_pos = num_operands-1
-            imm_outOfRange_pos = num_operands+1;
-            if(cnt == imm_outOfRange_pos):
-                if (has_imm_operand) :
-                     matrix[cnt][imm_op_pos] = f"-1"
-                     matrix[cnt+1][imm_op_pos] = f"32"
-                     matrix[len(matrix)-1][imm_op_pos]= f"a{num_operands}"
-                    
-        print("Row: ", cnt, matrix[cnt])
- 
+            imm_op_pos = num_operands - 1
+            imm_outOfRange_pos = num_operands + 1
+            if cnt == imm_outOfRange_pos:
+                if has_imm_operand:
+                    matrix[cnt][imm_op_pos] = f"-1"
+                    matrix[cnt + 1][imm_op_pos] = f"32"
+                    matrix[len(matrix) - 1][imm_op_pos] = f"a{num_operands}"
+
+        # print("Row: ", cnt, matrix[cnt])
+
     return matrix
-    
-    
+
 
 def generate_operand_str(operands, fields, code):
     """
@@ -269,11 +205,11 @@ def generate_operand_str(operands, fields, code):
 
                 # On every third row, replace immediate operands with corner cases
                 if (
-                    i > 0 and
-                    (i + 1) % 3 == 0 and
-                    op_str_split[j].isnumeric() and
-                    not imm_handled_in_row and
-                    j != prev_imm_pos
+                    i > 0
+                    and (i + 1) % 3 == 0
+                    and op_str_split[j].isnumeric()
+                    and not imm_handled_in_row
+                    and j != prev_imm_pos
                 ):
                     imm_bit_len = int(imm_bit_len_split[imm_cnt])
                     imm_bit_startpos = int(imm_bit_startpos_split[imm_cnt])
@@ -287,8 +223,12 @@ def generate_operand_str(operands, fields, code):
                     # Update instruction codes with corner case values
                     base_code = instr_code
                     instr_code_matrix[i - 2] = set_bits_in_32bit_val(base_code, 0, imm_bit_startpos, imm_bit_len)
-                    instr_code_matrix[i - 1] = set_bits_in_32bit_val(base_code, imm_range_limit // 2, imm_bit_startpos, imm_bit_len)
-                    instr_code_matrix[i] = set_bits_in_32bit_val(base_code, imm_range_limit - 1, imm_bit_startpos, imm_bit_len)
+                    instr_code_matrix[i - 1] = set_bits_in_32bit_val(
+                        base_code, imm_range_limit // 2, imm_bit_startpos, imm_bit_len
+                    )
+                    instr_code_matrix[i] = set_bits_in_32bit_val(
+                        base_code, imm_range_limit - 1, imm_bit_startpos, imm_bit_len
+                    )
 
                     imm_cnt += 1
                     prev_imm_pos = j
@@ -298,7 +238,7 @@ def generate_operand_str(operands, fields, code):
         for z in range(rows):
             code_hex = hex(instr_code_matrix[z])
             _, llvm_bytes_str_matrix[z], llvm_bytes_simple_str_matrix[z] = riscv_to_llvm_bytes(code_hex)
-            print(op_str_matrix[z], instr_code_matrix[z], llvm_bytes_str_matrix[z], llvm_bytes_simple_str_matrix[z])
+            # print(op_str_matrix[z], instr_code_matrix[z], llvm_bytes_str_matrix[z], llvm_bytes_simple_str_matrix[z])
 
     else:
         # No immediate operand, just return single code and LLVM bytes
@@ -309,13 +249,21 @@ def generate_operand_str(operands, fields, code):
         llvm_bytes_simple_str_matrix = [llvm_bytes_simple_str]
         op_str_matrix = [[instr_op_str]]
 
-    print(instr_op_str, ":", reg_names_list)
-    return instr_op_str, reg_names_list, has_imm_operand, instr_code_matrix, llvm_bytes_str_matrix, llvm_bytes_simple_str_matrix, op_str_matrix
+    # print(instr_op_str, ":", reg_names_list)
+    return (
+        instr_op_str,
+        reg_names_list,
+        has_imm_operand,
+        instr_code_matrix,
+        llvm_bytes_str_matrix,
+        llvm_bytes_simple_str_matrix,
+        op_str_matrix,
+    )
 
 
 def process_encoding(enc):
     # print("get_encoding", enc)
-    operands = {}                         
+    operands = {}
 
     for e in reversed(enc):
         if isinstance(e, arch.BitField):
@@ -329,7 +277,7 @@ def process_encoding(enc):
             operands[name] = op
     fields = []
     start = 0
-    
+
     for e in reversed(enc):
         if isinstance(e, arch.BitField):
             name = e.name
@@ -345,121 +293,101 @@ def process_encoding(enc):
         # print(" Operands", op)
         elif isinstance(e, arch.BitVal):
             new = EncodingField(None, start, e.length, e.value)
-                            
-            start += e.length         
-                              
+
+            start += e.length
+
         else:
             assert False
         fields.insert(0, new)
-        
+
     return operands.values(), fields
 
-def gen_intrinsic_pattern(instr, set_name, intrinsic: IntrinsicDefn, ext_settings: Optional[ExtensionsSettings] = None):
-    assert ext_settings is not None
-    arch_ = ext_settings.get_arch(name=set_name)
-    pat = f"""class Pat_{instr.name}<SDPatternOperator OpNode, Instruction Inst>
-    : Pat<(OpNode {instr.llvm_ins_str}), (Inst {instr.llvm_ins_str})>;
-def : Pat_{instr.name}<int_riscv_{arch_}_{intrinsic.intrinsic_name}, {instr.name}>;"""
-    return pat
-    
 
-def write_builtin_ll_test( instr_name, mnemonic, output_path, set_name: str, start_time: str):
-    builtin_ll_template = Template(filename=str(template_dir/'test-builtin-ll.mako'))
+def write_builtin_ll_test(instr_name, mnemonic, output_path, set_name: str, start_time: str):
+    builtin_ll_template = Template(filename=str(template_dir / "test-builtin-ll.mako"))
     logger.info("writing builtin-ll tests for ")
-    
-    set_name_lower = set_name.lower();
+
+    arch = set_name.lower()
 
     txt = builtin_ll_template.render(
         start_time=start_time,
         set_name=set_name,
         instr_name=instr_name,
         mnemonic=mnemonic,
-        set_name_lower=set_name_lower,
-        )
+        arch=arch,
+    )
 
     with open(output_path / f"{mnemonic.lower()}.test-builtin.ll", "w", encoding="utf-8") as f:
         f.write(txt)
-        
+
     return txt
 
 
+def write_builtin_c_test(mnemonic, xlen, output_path, set_name: str, start_time: str):
+    builtin_c_template = Template(filename=str(template_dir / "test-builtin-c.mako"))
 
-def write_builtin_c_test( mnemonic, xlen, output_path, set_name: str, start_time: str):
-    builtin_c_template = Template(filename=str(template_dir/'test-builtin-c.mako'))
+    logger.info("writing builtin-c-tests for ")
+    arch = set_name.lower()
 
-    logger.info("writing builtin-c-tests for " )
-    set_name_lower = set_name.lower();
-
-    txt = builtin_c_template.render(
-        start_time=start_time,
-        set_name=set_name,
-        xlen=xlen,
-        mnemonic=mnemonic,
-        set_name_lower=set_name_lower
-    )
+    txt = builtin_c_template.render(start_time=start_time, set_name=set_name, xlen=xlen, mnemonic=mnemonic, arch=arch)
 
     with open(output_path / f"{mnemonic.lower()}.test-builtin.c", "w", encoding="utf-8") as f:
         f.write(txt)
 
 
-def write_cg_ll_test( instr_name, mnemonic, xlen, output_path, set_name: str    , start_time: str):
-    cg_ll_template = Template(filename=str(template_dir/'test-cg-ll.mako'))
+def write_cg_ll_test(instr_name, mnemonic, xlen, output_path, set_name: str, start_time: str):
+    cg_ll_template = Template(filename=str(template_dir / "test-cg-ll.mako"))
 
-    logger.info("writing cg-ll-tests for " )
-    
-    set_name_lower = set_name.lower();
-    
+    logger.info("writing cg-ll-tests for ")
+
+    arch = set_name.lower()
+
     txt = cg_ll_template.render(
         start_time=start_time,
         set_name=set_name,
         instr_name=instr_name,
         mnemonic=mnemonic,
-        set_name_lower=set_name_lower,
+        arch=arch,
         xlen=xlen,
     )
-    
+
     with open(output_path / f"{mnemonic.lower()}.test-cg.ll", "w", encoding="utf-8") as f:
         f.write(txt)
-    
+
     return txt
 
-def write_cg_c_test( instr_name, mnemonic, xlen, output_path, set_name: str,     start_time: str):
-    cg_c_template = Template(filename=str(template_dir/'test-cg-c.mako'))
 
+def write_cg_c_test(instr_name, mnemonic, xlen, output_path, set_name: str, start_time: str):
+    cg_c_template = Template(filename=str(template_dir / "test-cg-c.mako"))
 
-    logger.info("writing cg-c-tests for " )
+    logger.info("writing cg-c-tests for ")
 
-    set_name_lower = set_name.lower();
-    
+    arch = set_name.lower()
+
     txt = cg_c_template.render(
         start_time=start_time,
         set_name=set_name,
         instr_name=instr_name,
         mnemonic=mnemonic,
-        set_name_lower=set_name_lower,
-        xlen= xlen,
+        arch=arch,
+        xlen=xlen,
     )
-    
+
     with open(output_path / f"{mnemonic.lower()}.test-cg.c", "w", encoding="utf-8") as f:
         f.write(txt)
-    
-    return txt        
+
+    return txt
 
 
 def write_compress_s_test(instr_name, mnemonic, xlen, output_path, set_name: str, start_time: str):
-    compress_s_template = Template(filename=str(template_dir / 'test-compress-s.mako'))
+    compress_s_template = Template(filename=str(template_dir / "test-compress-s.mako"))
 
     logger.info("writing compress-s-tests for ")
 
-    set_name_lower = set_name.lower()
+    arch = set_name.lower()
 
     txt = compress_s_template.render(
-        start_time=start_time,
-        set_name=set_name,
-        instr_name=instr_name,
-        mnemonic=mnemonic,
-        set_name_lower=set_name_lower,
-        xlen=xlen
+        start_time=start_time, set_name=set_name, instr_name=instr_name, mnemonic=mnemonic, arch=arch, xlen=xlen
     )
 
     with open(output_path / f"{mnemonic.lower()}.test-compress.s", "w", encoding="utf-8") as f:
@@ -468,17 +396,19 @@ def write_compress_s_test(instr_name, mnemonic, xlen, output_path, set_name: str
     return txt
 
 
-def write_inline_asm_c_test(instr_name, mnemonic, xlen, enc, reg_names_list, output_path, set_name: str, start_time: str):
-    inline_asm_c_template = Template(filename=str(template_dir / 'test-inline-asm-c.mako'))
+def write_inline_asm_c_test(
+    instr_name, mnemonic, xlen, enc, reg_names_list, output_path, set_name: str, start_time: str
+):
+    inline_asm_c_template = Template(filename=str(template_dir / "test-inline-asm-c.mako"))
 
     logger.info("writing inline-asm-tests for ")
 
-    set_name_lower = set_name.lower()
+    arch = set_name.lower()
 
     txt = inline_asm_c_template.render(
         start_time=start_time,
         set_name=set_name,
-        set_name_lower=set_name_lower,
+        arch=arch,
         mnemonic=mnemonic,
         instr_name=instr_name,
         enc=enc,
@@ -493,16 +423,16 @@ def write_inline_asm_c_test(instr_name, mnemonic, xlen, enc, reg_names_list, out
 
 
 def write_intrin_ll_test(instr_name, mnemonic, xlen, output_path, set_name: str, start_time: str):
-    intrin_ll_template = Template(filename=str(template_dir / 'test-intrin-ll.mako'))
+    intrin_ll_template = Template(filename=str(template_dir / "test-intrin-ll.mako"))
 
     logger.info("writing intrin-ll-tests for ")
 
-    set_name_lower = set_name.lower()
+    arch = set_name.lower()
 
     txt = intrin_ll_template.render(
         start_time=start_time,
         set_name=set_name,
-        set_name_lower=set_name_lower,
+        arch=arch,
         mnemonic=mnemonic,
         instr_name=instr_name,
         xlen=xlen,
@@ -514,24 +444,21 @@ def write_intrin_ll_test(instr_name, mnemonic, xlen, output_path, set_name: str,
     return txt
 
 
-def write_invalid_s_test(mnemonic, xlen, output_path, operand_str, num_operands, has_imm_operand, set_name: str, start_time: str):
+def write_invalid_s_test(
+    mnemonic, xlen, output_path, operand_str, num_operands, has_imm_operand, set_name: str, start_time: str
+):
     logger.info("writing invalid-s-tests for ")
     matrix = generate_invalid_operand_str(num_operands, operand_str, has_imm_operand)
 
     if has_imm_operand:
-        invalid_s_template = Template(filename=str(template_dir / 'test-invalid-imm-s.mako'))
+        invalid_s_template = Template(filename=str(template_dir / "test-invalid-imm-s.mako"))
     else:
-        invalid_s_template = Template(filename=str(template_dir / 'test-invalid-s.mako'))
+        invalid_s_template = Template(filename=str(template_dir / "test-invalid-s.mako"))
 
-    set_name_lower = set_name.lower()
+    arch = set_name.lower()
 
     txt = invalid_s_template.render(
-        start_time=start_time,
-        set_name=set_name,
-        set_name_lower=set_name_lower,
-        mnemonic=mnemonic,
-        xlen=xlen,
-        matrix=matrix
+        start_time=start_time, set_name=set_name, arch=arch, mnemonic=mnemonic, xlen=xlen, matrix=matrix
     )
 
     with open(output_path / f"{mnemonic.lower()}.test-invalid.s", "w", encoding="utf-8") as f:
@@ -540,44 +467,54 @@ def write_invalid_s_test(mnemonic, xlen, output_path, operand_str, num_operands,
     return txt
 
 
-def write_machine_code_test(instr_name, mnemonic, xlen, instr_op_str, has_imm_operand, op_str_matrix, llvm_bytes_str_matrix, output_path, set_name, start_time):
+def write_machine_code_test(
+    instr_name,
+    mnemonic,
+    xlen,
+    instr_op_str,
+    has_imm_operand,
+    op_str_matrix,
+    llvm_bytes_str_matrix,
+    output_path,
+    set_name,
+    start_time,
+):
 
-    print("OPSTR     ", op_str_matrix)
+    # print("OPSTR     ", op_str_matrix)
 
-    for opstr in enumerate(op_str_matrix):
-        print("OPSTR ", f"{opstr}")
+    # for opstr in enumerate(op_str_matrix):
+    #    print("OPSTR ", f"{opstr}")
 
-    print("OPSTR     ", llvm_bytes_str_matrix)
+    # print("OPSTR     ", llvm_bytes_str_matrix)
 
-    for llvm_bytes in enumerate(llvm_bytes_str_matrix):
-        print("LLVM BYTES ", llvm_bytes)
+    # for llvm_bytes in enumerate(llvm_bytes_str_matrix):
+    #    print("LLVM BYTES ", llvm_bytes)
 
     if has_imm_operand:
-        machine_code_template = Template(filename=str(template_dir / 'test-mc-imm-s.mako'))
+        machine_code_template = Template(filename=str(template_dir / "test-mc-imm-s.mako"))
         enc = llvm_bytes_str_matrix
         instr_op_str = op_str_matrix
     else:
-        machine_code_template = Template(filename=str(template_dir / 'test-mc-s.mako'))
+        machine_code_template = Template(filename=str(template_dir / "test-mc-s.mako"))
         enc = llvm_bytes_str_matrix
 
     logger.info("writing mc-s-tests for ")
 
-    set_name_lower = set_name.lower()
-    print("MC TESTCASE: ", instr_op_str)
+    arch = set_name.lower()
+    # print("MC TESTCASE: ", instr_op_str)
 
     txt = machine_code_template.render(
         start_time=start_time,
         set_name=set_name,
-        set_name_lower=set_name_lower,
+        arch=arch,
         mnemonic=mnemonic,
         instr_op_str=instr_op_str,
         enc=enc,
-        xlen=xlen
+        xlen=xlen,
     )
 
     with open(output_path / f"{mnemonic.lower()}.test-mc.s", "w", encoding="utf-8") as f:
         f.write(txt)
-
 
 
 def write_instr_testcase_files(
@@ -606,17 +543,24 @@ def write_instr_testcase_files(
     if not formats:
         raise NotImplementedError("Instruction format support not implemented.")
 
-
     operands, fields = process_encoding(enc)
-    instr_op_str, reg_names_list, has_imm_operand, instr_code_matrix, llvm_bytes_str_matrix, llvm_bytes_simple_str_matrix, op_str_matrix = generate_operand_str(operands, fields, code)
+    (
+        instr_op_str,
+        reg_names_list,
+        has_imm_operand,
+        instr_code_matrix,
+        llvm_bytes_str_matrix,
+        llvm_bytes_simple_str_matrix,
+        op_str_matrix,
+    ) = generate_operand_str(operands, fields, code)
     num_operands = len(operands)
-    
+
     # Convert bool attrs to int if needed
     attrs = {k: (int(v) if isinstance(v, bool) else v) for k, v in attrs.items()}
     constraints_str = ", ".join(constraints)
     instr_name = instr_name.lower()
 
-    print(f"Writing test files for instruction {instr_name} in set {set_name}")
+    logger.info(f"Writing test files for instruction {instr_name} in set {set_name}")
 
     xlen = size
 
@@ -628,15 +572,28 @@ def write_instr_testcase_files(
     write_builtin_c_test(real_name, xlen, output_path, set_name, start_time)
     write_cg_c_test(instr_name, real_name, xlen, output_path, set_name, start_time)
     write_compress_s_test(instr_name, real_name, xlen, output_path, set_name, start_time)
-    write_inline_asm_c_test(instr_name, real_name, xlen, llvm_bytes_simple_str_matrix[0], reg_names_list, output_path, set_name, start_time)
-    write_invalid_s_test(real_name, xlen, output_path, instr_op_str, num_operands, has_imm_operand, set_name, start_time)
-    write_machine_code_test(instr_name, real_name, xlen, instr_op_str, has_imm_operand, op_str_matrix, llvm_bytes_str_matrix, output_path, set_name, start_time)
-    
-    
-    
-    
+    write_inline_asm_c_test(
+        instr_name, real_name, xlen, llvm_bytes_simple_str_matrix[0], reg_names_list, output_path, set_name, start_time
+    )
+    write_invalid_s_test(
+        real_name, xlen, output_path, instr_op_str, num_operands, has_imm_operand, set_name, start_time
+    )
+    write_machine_code_test(
+        instr_name,
+        real_name,
+        xlen,
+        instr_op_str,
+        has_imm_operand,
+        op_str_matrix,
+        llvm_bytes_str_matrix,
+        output_path,
+        set_name,
+        start_time,
+    )
+
+
 def gen_riscv_instr_info_str(instr_def, set_def, output_path):
-    #print("set name", set_def.name)
+    # print("set name", set_def.name)
     set_name = set_def.name
     # print("instr", instr)
     name = instr_def.name
@@ -666,15 +623,15 @@ def gen_riscv_instr_info_str(instr_def, set_def, output_path):
     encoding = instr_def.encoding
     # print("encoding")
     attrs = instr_def.llvm_attributes
-    
+
     code = instr_def.code
     # constraints = instr_def.constraints
     # if len(constraints) > 0:
     #     raise NotImplementedError
     formats = True
     compressed_pat = instr_def.llvm_get_compressed_pat(set_def)
-    output_path = output_path/set_name
-    
+    output_path = output_path / set_name
+
     testcasegen_str = write_instr_testcase_files(
         set_name,
         name,
@@ -694,8 +651,8 @@ def gen_riscv_instr_info_str(instr_def, set_def, output_path):
         compressed_pat=compressed_pat,
     )
     return testcasegen_str
-    
-    
+
+
 def main():
     """Main app entrypoint."""
 
@@ -753,7 +710,7 @@ def main():
         for set_name, set_def in model_obj.sets.items():
             breakpoint()
             metrics["n_sets"] += 1
-            set_name_lower = set_name.lower()
+            arch = set_name.lower()
             artifacts[set_name] = []
             xlen = set_def.xlen
             assert xlen is not None
@@ -778,9 +735,9 @@ def main():
                     metrics["success_instructions"].append(instr_def.name)
                     content = gen_riscv_instr_info_str(instr_def, set_def, out_path)
                 except Exception as ex:
-                   logger.exception(ex)
-                   metrics["n_failed"] += 1
-                   metrics["failed_instructions"].append(instr_def.name)
+                    logger.exception(ex)
+                    metrics["n_failed"] += 1
+                    metrics["failed_instructions"].append(instr_def.name)
 
     else:
         raise NotImplementedError
@@ -791,6 +748,7 @@ def main():
             failing_str = ", ".join(failed)
             logger.error("%s intructions failed: %s", n_failed, failing_str)
             raise RuntimeError("Abort due to errors")
+
 
 if __name__ == "__main__":
     main()

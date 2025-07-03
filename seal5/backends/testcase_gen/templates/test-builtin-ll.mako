@@ -10,16 +10,16 @@
 # This file contains the Info for generating builtin ll tests for the ${set_name} 
 # core architecture.
 
-; RUN: llc -O3 -mtriple=riscv${xlen} -mattr=+${set_name_lower} -verify-machineinstrs < %s \
+; RUN: llc -O3 -mtriple=riscv${xlen} -mattr=+${arch} -verify-machineinstrs < %s \
 ; RUN:   | FileCheck %s
 
-declare i${xlen} @llvm.riscv.${mnemonic}.bitwise(i${xlen}, i${xlen})
+declare i${xlen} @llvm.riscv.${arch}.{intrinsic_name}bitwise(i${xlen}, i${xlen})
 
 define i${xlen} @${instr_name}(i${xlen} %a, i${xlen} %b) {
 ; CHECK-LABEL: ${instr_name}:
 ; CHECK:       # %bb.0:
-; CHECK-NEXT:    ${mnemonic} a0, a1
+; CHECK-NEXT:    ${arch}.{intrinsic_name} a0, a1
 ; CHECK-NEXT:    ret
-#  %1 = call i${xlen} @llvm.riscv.x${mnemonic}(i${xlen} %a, i${xlen} %b)
+#  %1 = call i${xlen} @llvm.riscv.${arch}.{intrinsic_name}(i${xlen} %a, i${xlen} %b)
  # ret i${xlen} %1
 }

@@ -12,7 +12,7 @@
 
 
 
-// RUN: clang -c -target riscv${xlen}-unknown-elf -march=rv${xlen}i${set_name_lower} -o %t.o %s
+// RUN: clang -c -target riscv${xlen}-unknown-elf -march=rv${xlen}i${arch} -o %t.o %s
 // RUN: llvm-objdump --disassembler-options=numeric -d %t.o | FileCheck %s
 
 
@@ -20,5 +20,5 @@ int test_intrinsic(int a, int b, int c) {
     // CHECK: <test_intrinsic>
     // Can't rely upon specific registers being used but at least instruction should have been used
     // CHECK: ${mnemonic}
-    c = __builtin_riscv_${mnemonic}(a, b, c);
+    c = _builtin_riscv_${arch}_{intrinsic_name}(a, b, c);
 }

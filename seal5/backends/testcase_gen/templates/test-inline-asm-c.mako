@@ -11,7 +11,7 @@
 # core architecture.
 
 
-// RUN: clang -c -target riscv${xlen}-unknown-elf -march=rv${xlen}i${set_name_lower} -o %t.o %s
+// RUN: clang -c -target riscv${xlen}-unknown-elf -march=rv${xlen}i${arch} -o %t.o %s
 // RUN: llvm-objdump --disassembler-options=numeric -d %t.o | FileCheck %s
 
 __attribute__((naked)) void test_${instr_name}() {

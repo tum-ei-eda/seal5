@@ -12,8 +12,8 @@
 
 
 
-// RUN: clang -c -target riscv${xlen}-unknown-elf -march=rv${xlen}i -Xclang -target-feature -Xclang +${set_name_lower} -mllvm -global-isel=1 -O3 -o %t.o %s
-// RUN: llvm-objdump --mattr=+i,+${set_name_lower} --disassembler-options=numeric -d %t.o | FileCheck %s
+// RUN: clang -c -target riscv${xlen}-unknown-elf -march=rv${xlen}i -Xclang -target-feature -Xclang +${arch} -mllvm -global-isel=1 -O3 -o %t.o %s
+// RUN: llvm-objdump --mattr=+i,+${arch} --disassembler-options=numeric -d %t.o | FileCheck %s
 
 int test_${instr_name}(int a, int b, int c) {
     // CHECK: 2b 36 b5 50 ${mnemonic} x12, x10, x11

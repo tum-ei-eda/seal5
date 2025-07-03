@@ -8,7 +8,7 @@
 
 
 
-# RUN: not llvm-mc -triple=riscv${xlen} --mattr=+${set_name_lower} %s 2>&1\\
+# RUN: not llvm-mc -triple=riscv${xlen} --mattr=+${arch} %s 2>&1\\
 # RUN:        | FileCheck %s --check-prefixes=CHECK-ERROR
 
 % for loop_cnt, op_str in enumerate((matrix)):

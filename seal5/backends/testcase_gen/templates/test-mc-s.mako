@@ -12,7 +12,7 @@
 
 
 
-# RUN: llvm-mc -triple=riscv${xlen} --mattr=+${set_name_lower} -show-encoding %s \
+# RUN: llvm-mc -triple=riscv${xlen} --mattr=+${arch} -show-encoding %s \
 # RUN:        | FileCheck %s --check-prefixes=CHECK-ENCODING,CHECK-INSTR
 # RUN: not llvm-mc -triple riscv${xlen} %s 2>&1 \
 # RUN:     | FileCheck -check-prefix=CHECK-NO-EXT %s

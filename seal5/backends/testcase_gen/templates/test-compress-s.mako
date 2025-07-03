@@ -12,7 +12,7 @@
 
 
 
-# RUN: llvm-mc -triple riscv${xlen} -mattr=+${set_name_lower} -show-encoding \
+# RUN: llvm-mc -triple riscv${xlen} -mattr=+${arch} -show-encoding \
 # RUN:   -riscv-no-aliases < %s | FileCheck -check-prefixes=CHECK,CHECK-INST %s
 
 # CHECK-INST: ${mnemonic} s0, 14

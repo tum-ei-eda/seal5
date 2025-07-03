@@ -5,14 +5,16 @@
 ## Copyright (c) 2025 TUM Department of Electrical and Computer Engineering.
 ## Copyright (c) 2025 DLR-SE Department of System Evolution and Operation
 \
-# Generated on ${start_time}.
+% if(${timestamp_on} == TRUE):
+ Generated on ${start_time}
+% endif
 #
 # This file contains the Info for generating invalid tests for the ${set_name} 
 # core architecture.
 
 
 
-; RUN: llc -O3 -mtriple=riscv${xlen} -mattr=+${set_name_lower) -verify-machineinstrs < %s \
+; RUN: llc -O3 -mtriple=riscv${xlen} -mattr=+${arch) -verify-machineinstrs < %s \
 ; RUN:   | FileCheck %s
 
 declare i${xlen} @llvm.riscv.${instr_name}(i${xlen}, i${xlen}, i${xlen})

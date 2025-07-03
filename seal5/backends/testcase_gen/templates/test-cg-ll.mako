@@ -12,7 +12,7 @@
 
 
 
-; RUN: llc -O3 -mtriple=riscv${xlen} -mattr=+${set_name_lower} -verify-machineinstrs -global-isel=1 < %s \
+; RUN: llc -O3 -mtriple=riscv${xlen} -mattr=+${arch} -verify-machineinstrs -global-isel=1 < %s \
 ; RUN:   | FileCheck -check-prefix=RV${xlen}I-GISEL %s
 
 define i${xlen} @${instr_name}(i${xlen} %a, i${xlen} %b, i${xlen} %c) nounwind {
