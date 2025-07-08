@@ -1,4 +1,4 @@
-# Generated on Fri, 04 Jul 2025 07:56:07 +0200.
+# Generated on Tue, 08 Jul 2025 09:42:51 +0200.
 #
 # This file contains the Info for generating invalid tests for the XExample 
 # core architecture.
