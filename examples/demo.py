@@ -36,9 +36,9 @@ FILES = [
     # CoreDSL inputs
     EXAMPLES_DIR / "example" / "cdsl" / "Example.core_desc",
     # Test inputs
-    EXAMPLES_DIR / "example" / "tests" / "xexample.*.s",
+    EXAMPLES_DIR / "example" / "tests" / "xexample-*.s",
     #EXAMPLES_DIR / "example" / "tests" / "xexample.*.ll",
-    EXAMPLES_DIR / "example" / "tests" / "xexample.*.c",
+    EXAMPLES_DIR / "example" / "tests" / "xexamplé-*.c",
     # YAML inputs
     EXAMPLES_DIR / "common" / "cfg" / "llvm.yml",
     EXAMPLES_DIR / "common" / "cfg" / "filter.yml",
