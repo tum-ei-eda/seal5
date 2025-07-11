@@ -17,7 +17,7 @@ import re
 import time
 from typing import Optional, List, Tuple
 
-import pandas as pd
+import pandas as pdf
 
 from mako.template import Template
 
@@ -89,9 +89,6 @@ def generate_invalid_operand_str(num_operands, operand_str, has_imm_operand):
             else:
                 matrix[i][j] = f"zero"
 
-        #print (matrix[i])
-        
-
     # Set invalid operands
     for cnt in range (rows):
         for op_cnt in range (cols-1):
@@ -109,7 +106,6 @@ def generate_invalid_operand_str(num_operands, operand_str, has_imm_operand):
                      matrix[cnt+1][imm_op_pos] = f"32"
                      matrix[len(matrix)-1][imm_op_pos]= f"a{num_operands}"
                     
-        #print("Row: ", cnt, matrix[cnt])
  
     return matrix
     
@@ -176,7 +172,9 @@ def generate_operand_str(operands, fields, code):
             reg_names_parts.append("")
 
     instr_op_str = " , ".join(op_str_parts)
-    reg_names_list = ", ".join(filter(None, reg_names_parts))
+    reg_names_list = " , ".join(filter(None, reg_names_parts))
+
+
 
     # Handle immediate operand corner cases if present
     if has_imm_operand:
@@ -246,7 +244,6 @@ def generate_operand_str(operands, fields, code):
         llvm_bytes_simple_str_matrix = [llvm_bytes_simple_str]
         op_str_matrix = [[instr_op_str]]
 
-    #print(instr_op_str, ":", reg_names_list)
     return instr_op_str, reg_names_list, has_imm_operand, instr_code_matrix, llvm_bytes_str_matrix, llvm_bytes_simple_str_matrix, op_str_matrix
 
 
@@ -279,7 +276,7 @@ def process_encoding(enc):
                     name = name + "{" + str(e.range.upper - op.lower) + "-" + str(e.range.lower - op.lower) + "}"
             new = EncodingField(name, start, e.range.length)
             start += e.range.length
-        # print(" Operands", op)
+       
         elif isinstance(e, arch.BitVal):
             new = EncodingField(None, start, e.length, e.value)
                             
@@ -410,7 +407,7 @@ def write_inline_asm_c_test(instr_name, mnemonic, xlen, enc, reg_names_list, out
         mnemonic=mnemonic,
         instr_name=instr_name,
         enc=enc,
-        reg_names_list=reg_names_list,
+        reg_names_list=reg_names_list.replace(" ,",","),
         xlen=xlen,
     )
 
@@ -470,16 +467,6 @@ def write_invalid_s_test(mnemonic, xlen, output_path, operand_str, num_operands,
 
 def write_machine_code_test(instr_name, mnemonic, xlen, instr_op_str, has_imm_operand, op_str_matrix, llvm_bytes_str_matrix, output_path, set_name, start_time):
 
-    #print("OPSTR     ", op_str_matrix)
-
-    #for opstr in enumerate(op_str_matrix):
-    #    print("OPSTR ", f"{opstr}")
-
-    #print("OPSTR     ", llvm_bytes_str_matrix)
-
-    #for llvm_bytes in enumerate(llvm_bytes_str_matrix):
-    #    print("LLVM BYTES ", llvm_bytes)
-
     if has_imm_operand:
         machine_code_template = Template(filename=str(template_dir / 'test-mc-imm-s.mako'))
         enc = llvm_bytes_str_matrix
@@ -491,7 +478,6 @@ def write_machine_code_test(instr_name, mnemonic, xlen, instr_op_str, has_imm_op
     logger.info("writing mc-s-tests for ")
 
     arch = set_name.lower()
-    #print("MC TESTCASE: ", instr_op_str)
 
     txt = machine_code_template.render(
         start_time=start_time,
@@ -658,9 +644,8 @@ def main():
 
     model_obj = load_model(top_level, compat=args.compat)
     
-    
-   # model_obj.settings = Seal5Settings.from_yaml_file(args.intrinsic)
-   # print("settings", model_obj.settings )
+    model_obj.settings = Seal5Settings.from_yaml_file(args.intrinsic)
+    print("settings", model_obj.settings )
 
 
     metrics = {
@@ -678,14 +663,16 @@ def main():
     }
     # preprocess model
     # print("model", model)
+
     settings = model_obj.settings
+    #print (settings)
+    
     artifacts = {}
     artifacts[None] = []  # used for global artifacts
     if args.splitted:
         content = ""
         # errs = []
         for set_name, set_def in model_obj.sets.items():
-            breakpoint()
             metrics["n_sets"] += 1
             arch = set_name.lower()
             artifacts[set_name] = []
@@ -696,6 +683,7 @@ def main():
             includes = []
             set_dir = out_path / set_name
             set_dir.mkdir(exist_ok=True)
+            
             ext_settings = set_def.settings
             pred = None
             if ext_settings is not None:
@@ -713,7 +701,29 @@ def main():
                    logger.exception(ex)
                    metrics["n_failed"] += 1
                    metrics["failed_instructions"].append(instr_def.name)
-
+                   
+             
+            for intrinsic in settings.intrinsics.intrinsics:
+                if intrinsic.set_name is not None and intrinsic.set_name != set_name:
+                    continue
+            #   try:
+            #       intrinsic.
+            #        arch_ = ext_settings.get_arch(name=set_name)
+            #        if llvm_version is not None and llvm_version.major < 19:
+            #            patch_frags["target"].contents += build_target(arch=arch_, intrinsic=intrinsic)
+            #        else:
+            #            patch_frags["target"].contents += build_target_new(arch=arch_, intrinsic=intrinsic, xlen=xlen)
+            #        patch_frags["attr"].contents += build_attr(arch=arch_, intrinsic=intrinsic)
+            #        patch_frags["emit"].contents += build_emit(arch=arch_, intrinsic=intrinsic)
+            #        metrics["n_success"] += 1
+            #        metrics["success_instructions"].append(intrinsic.instr_name)
+            #    except Exception as ex:
+            #        logger.exception(ex)
+            #        metrics["n_failed"] += 1
+            #        metrics["failed_instructions"].append(intrinsic.instr_name)
+            #        metrics["failed_intrinsics"].append(?)
+            metrics["success_sets"].append(set_name)
+   
     else:
         raise NotImplementedError
     if not args.ignore_failing:

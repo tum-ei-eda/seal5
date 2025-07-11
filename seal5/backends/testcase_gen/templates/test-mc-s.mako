@@ -11,16 +11,15 @@
 # core architecture.
 
 
-
-# RUN: llvm-mc -triple=riscv${xlen} --mattr=+${arch} -show-encoding %s \
+# RUN: ${"llvm-mc -triple=riscv%s --mattr=+%s -show-encoding %%s \\" % (xlen, arch)}
 # RUN:        | FileCheck %s --check-prefixes=CHECK-ENCODING,CHECK-INSTR
-# RUN: not llvm-mc -triple riscv${xlen} %s 2>&1 \
+# RUN: ${"not llvm-mc -triple riscv%s %%s 2>&1 \\" % (xlen)}
 # RUN:     | FileCheck -check-prefix=CHECK-NO-EXT %s
 
-${mnemonic} ${instr_op_str}
-# CHECK-INSTR: ${mnemonic} ${instr_op_str}
+${mnemonic} ${instr_op_str.replace(" ,",",")}
+# CHECK-INSTR: ${mnemonic} ${instr_op_str.replace(" ,",",")}
  % for loop_cnt, (enc_str) in enumerate((enc)):
-# CHECK-ENCODING: [${enc_str}]
+# CHECK-ENCODING: [${enc_str.replace(", ",",")}]
  % endfor
 
-# CHECK-NO-EXT: instruction requires the following: '${set_name}' (${set_name}${xlen} Extension){{$}}
+# CHECK-NO-EXT: instruction requires the following: '${set_name}' (${set_name} Extension){{$}}

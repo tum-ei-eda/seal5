@@ -7,38 +7,25 @@
 # core architecture.
 
 
-
-# RUN: not llvm-mc -triple=riscv${xlen} --mattr=+${arch} %s 2>&1\\
+# RUN: ${"not llvm-mc -triple=riscv%s --mattr=+%s %%s 2>&1 \\" % (xlen, arch)}
 # RUN:        | FileCheck %s --check-prefixes=CHECK-ERROR
 
 % for loop_cnt, op_str in enumerate((matrix)):
     % if (loop_cnt < (len(matrix)/2)-1):
-${mnemonic} ${', '.join(op_str[0:len(op_str)-1])}
-# CHECK-ERROR: invalid operands for instruction
-
+${mnemonic} ${', '.join(op_str[0:len(op_str)-1])} # CHECK-ERROR: invalid operands for instruction
     % elif ((loop_cnt >=(len(matrix)/2)-1) and (loop_cnt != len(matrix)-1)):
         % if (loop_cnt == (len(matrix)/2)-1):
-${mnemonic} ${', '.join(op_str[0:len(op_str)-2])}
-# CHECK-ERROR: too few operands for instruction
+${mnemonic} ${', '.join(op_str[0:len(op_str)-2])} # CHECK-ERROR: too few operands for instruction
 
-${mnemonic} ${', '.join(op_str[1:len(op_str)-1])}
-# CHECK-ERROR: too few operands for instruction
+${mnemonic} ${', '.join(op_str[1:len(op_str)-1])} # CHECK-ERROR: too few operands for instruction
         % elif loop_cnt == (len(matrix)/2):
-
-${mnemonic} ${', '.join(op_str[0:len(op_str)])}
-# CHECK-ERROR: too many operands for instruction
-
+${mnemonic} ${', '.join(op_str[0:len(op_str)])} # CHECK-ERROR: too many operands for instruction
         %else:
             %if (loop_cnt != len(matrix)-2):
-${mnemonic} ${', '.join(op_str[0:len(op_str)-1])}
-# CHECK-ERROR: immediate must be an integer in the range [0, 31]
+${mnemonic} ${', '.join(op_str[0:len(op_str)-1])} # CHECK-ERROR: immediate must be an integer in the range [0, 31]
             % endif
-
         %endif
     %elif (loop_cnt == len(matrix)-1) :
-${mnemonic} ${', '.join(op_str[0:len(op_str)-1])}
-# CHECK-ERROR: immediate must be an integer
-
+${mnemonic} ${', '.join(op_str[0:len(op_str)-1])} # CHECK-ERROR: immediate must be an integer
     %endif
  % endfor
-
