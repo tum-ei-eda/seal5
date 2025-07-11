@@ -38,7 +38,7 @@ FILES = [
     # Test inputs
     EXAMPLES_DIR / "example" / "tests" / "xexample-*.s",
     #EXAMPLES_DIR / "example" / "tests" / "xexample.*.ll",
-    EXAMPLES_DIR / "example" / "tests" / "xexamplé-*.c",
+    EXAMPLES_DIR / "example" / "tests" / "xexample-*.c",
     # YAML inputs
     EXAMPLES_DIR / "common" / "cfg" / "llvm.yml",
     EXAMPLES_DIR / "common" / "cfg" / "filter.yml",
