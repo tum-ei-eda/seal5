@@ -37,7 +37,7 @@ FILES = [
     EXAMPLES_DIR / "example" / "cdsl" / "Example.core_desc",
     # Test inputs
     EXAMPLES_DIR / "example" / "tests" / "xexample-*.s",
-    #EXAMPLES_DIR / "example" / "tests" / "xexample.*.ll",
+    EXAMPLES_DIR / "example" / "tests" / "xexample-*.ll",
     EXAMPLES_DIR / "example" / "tests" / "xexample-*.c",
     # YAML inputs
     EXAMPLES_DIR / "common" / "cfg" / "llvm.yml",
