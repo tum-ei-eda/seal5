@@ -3,7 +3,7 @@
 ## This file is part of the M2-ISA-R project: https://github.com/tum-ei-eda/M2-ISA-R
 ##
 ## Copyright (c) 2025 TUM Department of Electrical and Computer Engineering.
-## Copyright (c) 2025 DLR-SE Department of System Evolution and Operation
+## Copyright (c) 2025 DLR - Institute of Systems Engineering for Future Mobility
 \
 # Generated on ${start_time}.
 #

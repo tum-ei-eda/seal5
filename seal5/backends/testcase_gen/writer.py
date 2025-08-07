@@ -4,7 +4,7 @@
 ## This file is part of the M2-ISA-R project: https://github.com/tum-ei-eda/M2-ISA-R
 ##
 ## Copyright (c) 2025 TUM Department of Electrical and Computer Engineering.
-## Copyright (c) 2025 DLR Department of System Evolution and Operation
+## Copyright (c) 2025 DLR - Institute of Systems Engineering for Future Mobility
 ##
 ##
 
@@ -536,12 +536,12 @@ def write_instr_testcase_files(
 
     # Compose test case strings using placeholder functions
     testcasegen_str = ""
-    if compressed_pat:
-        write_compress_s_test(instr_name, real_name, size, output_path, set_name, start_time)
+    #if compressed_pat:
+        #write_compress_s_test(instr_name, real_name, size, output_path, set_name, start_time)
 
-    write_builtin_c_test(real_name, xlen, output_path, set_name, start_time)
-    write_cg_c_test(instr_name, real_name, xlen, output_path, set_name, start_time)
-    write_compress_s_test(instr_name, real_name, xlen, output_path, set_name, start_time)
+    #write_builtin_c_test(real_name, xlen, output_path, set_name, start_time)
+    #write_cg_c_test(instr_name, real_name, xlen, output_path, set_name, start_time)
+    #write_compress_s_test(instr_name, real_name, xlen, output_path, set_name, start_time)
     write_inline_asm_c_test(instr_name, real_name, xlen, llvm_bytes_simple_str_matrix[0], reg_names_list, output_path, set_name, start_time)
     write_invalid_s_test(real_name, xlen, output_path, instr_op_str, num_operands, has_imm_operand, set_name, start_time)
     write_machine_code_test(instr_name, real_name, xlen, instr_op_str, has_imm_operand, op_str_matrix, llvm_bytes_str_matrix, output_path, set_name, start_time)

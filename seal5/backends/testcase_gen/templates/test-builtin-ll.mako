@@ -3,7 +3,7 @@
 ## This file is part of the M2-ISA-R project: https://github.com/tum-ei-eda/M2-ISA-R
 ##
 ## Copyright (c) 2025 TUM Department of Electrical and Computer Engineering.
-## Copyright (c) 2025 DLR-SE Department of System Evolution and Operation
+## Copyright (c) 2025 DLR - Institute of Systems Engineering for Future Mobility
 \
 # Generated on ${start_time}.
 #
@@ -13,13 +13,13 @@
 ; RUN: llc -O3 -mtriple=riscv${xlen} -mattr=+${arch} -verify-machineinstrs < %s \
 ; RUN:   | FileCheck %s
 
-declare i${xlen} @llvm.riscv.${arch}.{intrinsic_name}bitwise(i${xlen}, i${xlen})
+declare i${xlen} @llvm.riscv.${arch}.${intrinsic_name}bitwise(i${xlen}, i${xlen})
 
 define i${xlen} @${instr_name}(i${xlen} %a, i${xlen} %b) {
 ; CHECK-LABEL: ${instr_name}:
 ; CHECK:       # %bb.0:
-; CHECK-NEXT:    ${arch}.{intrinsic_name} a0, a1
+; CHECK-NEXT:    ${arch}.${intrinsic_name} a0, a1
 ; CHECK-NEXT:    ret
-#  %1 = call i${xlen} @llvm.riscv.${arch}.{intrinsic_name}(i${xlen} %a, i${xlen} %b)
+#  %1 = call i${xlen} @llvm.riscv.${arch}.${intrinsic_name}(i${xlen} %a, i${xlen} %b)
  # ret i${xlen} %1
 }
