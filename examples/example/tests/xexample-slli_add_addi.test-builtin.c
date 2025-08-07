@@ -4,10 +4,14 @@
 # core architecture.
 
 
+
 // RUN: clang -c -target riscv32-unknown-elf -march=rv32ixexample -o %t.o %s
 // RUN: llvm-objdump --disassembler-options=numeric -d %t.o | FileCheck %s
 
-__attribute__((naked)) void test_cv_subincacc() {
-    // CHECK: 2b, 35, f6, 50 xexample.subincacc x10, x12, x15
-    asm("xexample.subincacc x10, x12, x15");
+
+int test_intrinsic(int a, int b, int c) {
+    // CHECK: <test_intrinsic>
+    // Can't rely upon specific registers being used but at least instruction should have been used
+    // CHECK: xexample.slli_add_addi
+    c = _builtin_riscv_xexample_{intrinsic_name}(a, b, c);
 }
