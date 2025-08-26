@@ -1,0 +1,318 @@
+commit 0a6eae515de3eefe9026c518e182fc1eba13409e
+Author: Philipp van Kempen <philipp.van-kempen@tum.de>
+Date:   Sat Mar 9 09:30:29 2024 +0100
+
+    backup custom legalizer settings experiments including simd heuristics
+
+diff --git a/llvm/lib/CodeGen/GlobalISel/LegalizerHelper.cpp b/llvm/lib/CodeGen/GlobalISel/LegalizerHelper.cpp
+index c0c22e36004f..94356b03b5e6 100644
+--- a/llvm/lib/CodeGen/GlobalISel/LegalizerHelper.cpp
++++ b/llvm/lib/CodeGen/GlobalISel/LegalizerHelper.cpp
+@@ -11,6 +11,7 @@
+ /// primary legalization.
+ //
+ //===----------------------------------------------------------------------===//
++#include <iostream>
+ 
+ #include "llvm/CodeGen/GlobalISel/LegalizerHelper.h"
+ #include "llvm/CodeGen/GlobalISel/CallLowering.h"
+@@ -45,6 +46,11 @@ using namespace llvm;
+ using namespace LegalizeActions;
+ using namespace MIPatternMatch;
+ 
++cl::opt<std::string> CustomLegalizerSettings(
++    "custom-legalizer-settings",
++    cl::desc("TODO"),
++    cl::Hidden);
++
+ /// Try to break down \p OrigTy into \p NarrowTy sized pieces.
+ ///
+ /// Returns the number of \p NarrowTy elements needed to reconstruct \p OrigTy,
+@@ -119,9 +125,64 @@ LegalizerHelper::legalizeInstrStep(MachineInstr &MI,
+   LLVM_DEBUG(dbgs() << "Legalizing: " << MI);
+ 
+   MIRBuilder.setInstrAndDebugLoc(MI);
++  std::string name = std::string(MIRBuilder.getTII().getName(MI.getOpcode()));
++  LLVM_DEBUG(
++      dbgs() << "INSTR_NAME=" << MIRBuilder.getTII().getName(MI.getOpcode()) << "\n";
++  );
++  SmallVector<LLT, 8> Types;
++  SmallBitVector SeenTypes(8);
++  ArrayRef<MCOperandInfo> OpInfo = MI.getDesc().operands();
++  // FIXME: probably we'll need to cache the results here somehow?
++  for (unsigned i = 0; i < MI.getDesc().getNumOperands(); ++i) {
++    if (!OpInfo[i].isGenericType())
++      continue;
++
++    // We must only record actions once for each TypeIdx; otherwise we'd
++    // try to legalize operands multiple times down the line.
++    unsigned TypeIdx = OpInfo[i].getGenericTypeIndex();
++    if (SeenTypes[TypeIdx])
++      continue;
++
++    SeenTypes.set(TypeIdx);
++
++    // LLT Ty = getTypeFromTypeIdx(MI, MRI, i, TypeIdx);
++    LLT Ty = MRI.getType(MI.getOperand(TypeIdx).getReg());
++    Types.push_back(Ty);
++  }
++  SmallVector<LegalityQuery::MemDesc, 2> MemDescrs;
++  for (const auto &MMO : MI.memoperands())
++    MemDescrs.push_back({*MMO});
++  // TODO: extract name of MI here!
++  LegalityQuery Query = {MI.getOpcode(), Types, MemDescrs};
++  LLVM_DEBUG(
++    dbgs() << "Query: ";
++    Query.print(dbgs());
++    dbgs() << "\n";
++  );
++  bool skipLegalization = false;
++  if (!CustomLegalizerSettings.empty()) {
++    std::cout << "Custom legalizer settings: " << CustomLegalizerSettings << std::endl;
++    if (name == "G_FSHR" || name == "G_CONSTANT_FOLD_BARRIER") {
++      skipLegalization = false;
++    } else {
++      skipLegalization = true;
++    }
++    // struct LegalityQuery { unsigned Opcode; ArrayRef<LLT> Types; (...)}
++    // how to convert opcode to string? (or the other way around?)
++    // Opcodes are defined here in for build:
++    // - .seal5/build/release/lib/Target/RISCV/RISCVGenInstrInfo.inc
++    //    G_ADD   = 47,
++    //    /* 138128 */ "G_ADD\0"
++  } else {
++    std::cout << "Custom legalizer settings missing! " << std::endl;
++  }
+ 
+   if (isa<GIntrinsic>(MI))
+     return LI.legalizeIntrinsic(*this, MI) ? Legalized : UnableToLegalize;
++  if (skipLegalization) {
++    LLVM_DEBUG(dbgs() << ".. Legalized by user\n");
++    return AlreadyLegal;
++  }
+   auto Step = LI.getAction(MI, MRI);
+   switch (Step.Action) {
+   case Legal:
+diff --git a/llvm/lib/CodeGen/GlobalISel/LegalizerInfo.cpp b/llvm/lib/CodeGen/GlobalISel/LegalizerInfo.cpp
+index de9931d1c240..d58df7c01d41 100644
+--- a/llvm/lib/CodeGen/GlobalISel/LegalizerInfo.cpp
++++ b/llvm/lib/CodeGen/GlobalISel/LegalizerInfo.cpp
+@@ -183,7 +183,9 @@ static bool mutationIsSane(const LegalizeRule &Rule,
+ }
+ #endif
+ 
++
+ LegalizeActionStep LegalizeRuleSet::apply(const LegalityQuery &Query) const {
++  // TODO: parse custom legalizer settings first
+   LLVM_DEBUG(dbgs() << "Applying legalizer ruleset to: "; Query.print(dbgs());
+              dbgs() << "\n");
+   if (Rules.empty()) {
+@@ -354,7 +356,7 @@ LegalizerInfo::getAction(const MachineInstr &MI,
+   SmallVector<LegalityQuery::MemDesc, 2> MemDescrs;
+   for (const auto &MMO : MI.memoperands())
+     MemDescrs.push_back({*MMO});
+-
++  // TODO: extract name of MI here!
+   return getAction({MI.getOpcode(), Types, MemDescrs});
+ }
+ 
+diff --git a/llvm/lib/Support/RISCVISAInfo.cpp b/llvm/lib/Support/RISCVISAInfo.cpp
+index a3bf61c86c3b..047dbcce20da 100644
+--- a/llvm/lib/Support/RISCVISAInfo.cpp
++++ b/llvm/lib/Support/RISCVISAInfo.cpp
+@@ -71,6 +71,10 @@ static const RISCVSupportedExtension SupportedExtensions[] = {
+     {"xcvmac", {1, 0}},
+     {"xcvmem", {1, 0}},
+     {"xcvsimd", {1, 0}},
++
++// RISCVISAInfo.cpp - riscv_isa_info - INSERTION_START
++    {"xise", {1, 0}},
++// RISCVISAInfo.cpp - riscv_isa_info - INSERTION_END
+     {"xsfvcp", {1, 0}},
+     {"xsfvfnrclipxfqf", {1, 0}},
+     {"xsfvfwmaccqqq", {1, 0}},
+@@ -89,10 +93,6 @@ static const RISCVSupportedExtension SupportedExtensions[] = {
+     {"xtheadvdot", {1, 0}},
+     {"xventanacondops", {1, 0}},
+ 
+-// RISCVISAInfo.cpp - riscv_isa_info - INSERTION_START
+-    {"xise", {1, 0}},
+-// RISCVISAInfo.cpp - riscv_isa_info - INSERTION_END
+-
+     {"za128rs", {1, 0}},
+     {"za64rs", {1, 0}},
+     {"zawrs", {1, 0}},
+diff --git a/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp b/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp
+index 4dd039159e29..df6cd8a9897b 100644
+--- a/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp
++++ b/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp
+@@ -74,6 +74,19 @@ static DecodeStatus DecodeGPRRegisterClass(MCInst &Inst, uint32_t RegNo,
+   return MCDisassembler::Success;
+ }
+ 
++// LLVMGEN: need to this to compile new reg classes
++static DecodeStatus DecodePulpV2RegisterClass(MCInst &Inst, uint64_t RegNo,
++                                               uint64_t Address,
++                                               const MCDisassembler *Decoder) {
++  return DecodeGPRRegisterClass(Inst, RegNo, Address, Decoder);
++}
++
++static DecodeStatus DecodePulpV4RegisterClass(MCInst &Inst, uint64_t RegNo,
++                                               uint64_t Address,
++                                               const MCDisassembler *Decoder) {
++  return DecodeGPRRegisterClass(Inst, RegNo, Address, Decoder);
++}
++
+ static DecodeStatus DecodeGPRX1X5RegisterClass(MCInst &Inst, uint32_t RegNo,
+                                                uint64_t Address,
+                                                const MCDisassembler *Decoder) {
+diff --git a/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp b/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
+index 4e6f4dc610c6..d15cd3a73543 100644
+--- a/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
++++ b/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
+@@ -77,8 +77,8 @@ RISCVLegalizerInfo::RISCVLegalizerInfo(const RISCVSubtarget &ST)
+ 
+ // RISCVLegalizerInfo.cpp - riscv_legalizer_info - INSERTION_START
+ {
+-const LLT seal5_s32 = LLT::scalar(32);
+-if (ST.hasExtXISE()) getActionDefinitionsBuilder({G_ROTL, G_ROTR}).legalFor({seal5_s32});
++// const LLT seal5_s32 = LLT::scalar(32);
++// if (ST.hasExtXISE()) getActionDefinitionsBuilder({G_ROTL, G_ROTR}).legalFor({seal5_s32});
+ }
+ // RISCVLegalizerInfo.cpp - riscv_legalizer_info - INSERTION_END
+ 
+diff --git a/llvm/lib/Target/RISCV/GISel/RISCVRegisterBankInfo.cpp b/llvm/lib/Target/RISCV/GISel/RISCVRegisterBankInfo.cpp
+index cf0ff63a5e51..fc041a14aa6a 100644
+--- a/llvm/lib/Target/RISCV/GISel/RISCVRegisterBankInfo.cpp
++++ b/llvm/lib/Target/RISCV/GISel/RISCVRegisterBankInfo.cpp
+@@ -80,6 +80,8 @@ RISCVRegisterBankInfo::getRegBankFromRegClass(const TargetRegisterClass &RC,
+   switch (RC.getID()) {
+   default:
+     llvm_unreachable("Register class not supported");
++  case RISCV::PulpV2RegClassID:
++  case RISCV::PulpV4RegClassID:
+   case RISCV::GPRRegClassID:
+   case RISCV::GPRF16RegClassID:
+   case RISCV::GPRF32RegClassID:
+diff --git a/llvm/lib/Target/RISCV/RISCVRegisterInfo.td b/llvm/lib/Target/RISCV/RISCVRegisterInfo.td
+index 2d45214895b7..165a8a38cd79 100644
+--- a/llvm/lib/Target/RISCV/RISCVRegisterInfo.td
++++ b/llvm/lib/Target/RISCV/RISCVRegisterInfo.td
+@@ -610,3 +610,26 @@ def FRM    : RISCVReg<0, "frm">;
+ 
+ // Shadow Stack register
+ def SSP    : RISCVReg<0, "ssp">;
++
++// LLVMGEN: CORE-V SIMD Register Info
++def PulpV2 : RegisterClass<"RISCV", [v2i16], 32, (add
++    (sequence "X%u", 10, 17),
++    (sequence "X%u", 5, 7),
++    (sequence "X%u", 28, 31),
++    (sequence "X%u", 8, 9),
++    (sequence "X%u", 18, 27),
++    (sequence "X%u", 0, 4)
++  )> {
++    let RegInfos = XLenRI;
++}
++
++def PulpV4 : RegisterClass<"RISCV", [v4i8], 32, (add
++    (sequence "X%u", 10, 17),
++    (sequence "X%u", 5, 7),
++    (sequence "X%u", 28, 31),
++    (sequence "X%u", 8, 9),
++    (sequence "X%u", 18, 27),
++    (sequence "X%u", 0, 4)
++  )> {
++    let RegInfos = XLenRI;
++}
+diff --git a/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp b/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
+index 866d5cf340e6..22626bc2ca13 100644
+--- a/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
++++ b/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
+@@ -6,6 +6,8 @@
+ //
+ //===----------------------------------------------------------------------===//
+ 
++#include <iostream>
++
+ #include "RISCVTargetTransformInfo.h"
+ #include "MCTargetDesc/RISCVMatInt.h"
+ #include "llvm/ADT/STLExtras.h"
+@@ -268,14 +270,19 @@ std::optional<unsigned> RISCVTTIImpl::getVScaleForTuning() const {
+ 
+ TypeSize
+ RISCVTTIImpl::getRegisterBitWidth(TargetTransformInfo::RegisterKind K) const {
++  std::cout << "getRegisterBitWidth" << std::endl;
+   unsigned LMUL =
+       llvm::bit_floor(std::clamp<unsigned>(RVVRegisterWidthLMUL, 1, 8));
+   switch (K) {
+   case TargetTransformInfo::RGK_Scalar:
+     return TypeSize::getFixed(ST->getXLen());
+   case TargetTransformInfo::RGK_FixedWidthVector:
+-    return TypeSize::getFixed(
+-        ST->useRVVForFixedLengthVectors() ? LMUL * ST->getRealMinVLen() : 0);
++    std::cout << "FixedWidthVector" << std::endl;
++//    return TypeSize::getFixed(
++//         ST->useRVVForFixedLengthVectors() ? LMUL * ST->getRealMinVLen() : 0);
++return TypeSize::getFixed(ST->useRVVForFixedLengthVectors()
++                                  ? LMUL * ST->getRealMinVLen()
++                                  : (ST->hasVendorXCvsimd() ? 32 : 0));
+   case TargetTransformInfo::RGK_ScalableVector:
+     return TypeSize::getScalable(
+         (ST->hasVInstructions() &&
+@@ -311,10 +318,16 @@ InstructionCost RISCVTTIImpl::getShuffleCost(TTI::ShuffleKind Kind,
+                                              TTI::TargetCostKind CostKind,
+                                              int Index, VectorType *SubTp,
+                                              ArrayRef<const Value *> Args) {
++  std::cout << "getShuffleCost" << std::endl;
+   Kind = improveShuffleKindFromMask(Kind, Mask, Tp, Index, SubTp);
+ 
+   std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(Tp);
+ 
++  if (ST->hasVendorXCvsimd()) {
++    std::cout << "ret 1" << std::endl;
++    return 1; // placeholder
++  }
++
+   // First, handle cases where having a fixed length vector enables us to
+   // give a more accurate cost than falling back to generic scalable codegen.
+   // TODO: Each of these cases hints at a modeling gap around scalable vectors.
+@@ -1034,9 +1047,11 @@ InstructionCost RISCVTTIImpl::getMemoryOpCost(unsigned Opcode, Type *Src,
+                                               TTI::TargetCostKind CostKind,
+                                               TTI::OperandValueInfo OpInfo,
+                                               const Instruction *I) {
++  std::cout << "getMemoryOpCost" << std::endl;
+   EVT VT = TLI->getValueType(DL, Src, true);
+   // Type legalization can't handle structs
+-  if (VT == MVT::Other)
++  if (VT == MVT::Other || ST->hasVendorXCvsimd())
++    std::cout << "getMemoryOpCost" << std::endl;
+     return BaseT::getMemoryOpCost(Opcode, Src, Alignment, AddressSpace,
+                                   CostKind, OpInfo, I);
+ 
+diff --git a/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.h b/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.h
+index 0747a778fe9a..1bab4faa2d84 100644
+--- a/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.h
++++ b/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.h
+@@ -16,6 +16,8 @@
+ #ifndef LLVM_LIB_TARGET_RISCV_RISCVTARGETTRANSFORMINFO_H
+ #define LLVM_LIB_TARGET_RISCV_RISCVTARGETTRANSFORMINFO_H
+ 
++#include <iostream>
++
+ #include "RISCVSubtarget.h"
+ #include "RISCVTargetMachine.h"
+ #include "llvm/Analysis/IVDescriptors.h"
+@@ -331,8 +333,11 @@ public:
+   }
+ 
+   unsigned getRegisterClassForType(bool Vector, Type *Ty = nullptr) const {
++    std::cout << "getRegisterClassForType" << std::endl;
++    std::cout << "Vector=" << Vector << std::endl;
++    std::cout << "hasVendorXCvsimd=" << ST->hasVendorXCvsimd() << std::endl;
+     if (Vector)
+-      return RISCVRegisterClass::VRRC;
++      return ST->hasVendorXCvsimd() ? RISCVRegisterClass::GPRRC : RISCVRegisterClass::VRRC;
+     if (!Ty)
+       return RISCVRegisterClass::GPRRC;
+ 
