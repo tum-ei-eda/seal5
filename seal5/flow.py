@@ -205,7 +205,7 @@ class Seal5Flow:
             self.settings = Seal5Settings.from_yaml_file(self.settings.settings_file)
             self.meta_dir = self.settings._meta_dir
         if self.settings.logs_dir.is_dir():
-            set_log_file(self.settings.log_file_path)
+            set_log_file(self.settings.log_file_path)  # TODO: rotate?
             if self.settings:
                 set_log_level(
                     console_level=log_level or self.settings.logging.console.level, file_level=log_level or self.settings.logging.file.level
@@ -339,7 +339,7 @@ class Seal5Flow:
             self.settings.llvm.state.supported_imm_types = list(supported_imm_types)
             self.settings.llvm.state.supported_imm_types_asm = list(supported_imm_types_asm)
         self.settings.save()
-        set_log_file(self.settings.log_file_path)
+        set_log_file(self.settings.log_file_path)  # TODO: rotate?
         set_log_level(console_level=self.log_level or self.settings.logging.console.level, file_level=self.log_level or self.settings.logging.file.level)
         end = time.time()
         diff = end - start
