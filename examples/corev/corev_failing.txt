@@ -1,0 +1,96 @@
+
+FILTEDRED (MISSING CDSL):
+  LLVM :: cv-clipr.test-cg.ll
+  LLVM :: cv-clipr.test-mc.s
+  LLVM :: cv-clipu.test-cg.ll
+  LLVM :: cv-clipu.test-mc.s
+  LLVM :: cv-clipur.test-cg.ll
+  LLVM :: cv-clipur.test-mc.s
+  LLVM :: cv-slet.test-cg.ll
+  LLVM :: cv-slet.test-mc.s
+  LLVM :: cv-sleu.test-cg.ll
+  LLVM :: cv-sleu.test-mc.s
+
+FILTERED (FREEZE):
+  LLVM :: cv-machhsn.test-cg.ll
+  LLVM :: cv-macsrn.test-cg.ll
+  LLVM :: cv-machhsrn.test-cg.ll
+  LLVM :: cv-machhun.test-cg.ll
+  LLVM :: cv-macsn.test-cg.ll
+  LLVM :: cv-macun.test-cg.ll
+  LLVM :: cv-mulhhs.test-cg.ll
+  LLVM :: cv-mulhhsn.test-cg.ll
+  LLVM :: cv-mulhhsrn.test-cg.ll
+  LLVM :: cv-mulhhu.test-cg.ll
+  LLVM :: cv-mulhhun.test-cg.ll
+  LLVM :: cv-mulhhurn.test-cg.ll
+  LLVM :: cv-muls.test-cg.ll
+  LLVM :: cv-mulsn.test-cg.ll
+  LLVM :: cv-mulsrn.test-cg.ll
+  LLVM :: cv-mulu.test-cg.ll
+  LLVM :: cv-mulun.test-cg.ll
+  LLVM :: cv-mulurn.test-cg.ll
+  ---
+  LLVM :: cv-machhsn.test-intrin.ll
+  LLVM :: cv-machhsrn.test-intrin.ll
+  LLVM :: cv-machhun.test-intrin.ll
+  LLVM :: cv-machhurn.test-intrin.ll
+  LLVM :: cv-macsn.test-intrin.ll
+  LLVM :: cv-macsrn.test-intrin.ll
+  LLVM :: cv-macun.test-intrin.ll
+  LLVM :: cv-macurn.test-intrin.ll
+  LLVM :: cv-mulhhsn.test-intrin.ll
+  LLVM :: cv-mulhhsrn.test-intrin.ll
+  LLVM :: cv-mulhhun.test-intrin.ll
+  LLVM :: cv-mulhhurn.test-intrin.ll
+  LLVM :: cv-mulsn.test-intrin.ll
+  LLVM :: cv-mulsrn.test-intrin.ll
+  LLVM :: cv-mulun.test-intrin.ll
+  LLVM :: cv-mulurn.test-intrin.ll
+# TODO: add all others
+
+TRUNC REG:
+  LLVM :: cv-addnr.test-cg.ll
+  LLVM :: cv-addunr.test-cg.ll
+  LLVM :: cv-subnr.test-cg.ll
+  LLVM :: cv-subunr.test-cg.ll
+
+IMMLEAFS:
+  LLVM :: cv-addrn.test-cg.ll
+  LLVM :: cv-addrnr.test-cg.ll
+  LLVM :: cv-addurn.test-cg.ll
+  LLVM :: cv-addurnr.test-cg.ll
+  LLVM :: cv-subrn.test-cg.ll
+  LLVM :: cv-subrnr.test-cg.ll
+  LLVM :: cv-suburn.test-cg.ll
+  LLVM :: cv-suburnr.test-cg.ll
+  LLVM :: cv-clip.test-cg.ll
+
+
+BROKEN PAT:
+  LLVM :: cv-extbs.test-cg.ll
+  LLVM :: cv-extbz.test-cg.ll
+  LLVM :: cv-exths.test-cg.ll
+  LLVM :: cv-exthz.test-cg.ll
+# TODO: check flags
+
+INTRIN:
+  ?
+
+
+MISSING PAT:
+pattern-gen: /var/tmp/ga87puy/seal5_llvm_corev/llvm/lib/IR/Instructions.cpp:2955: static llvm::BinaryOperator* llvm::BinaryOperator::Create(llvm::Instruction::BinaryOps, llvm::Value*, llvm::Value*, const llvm::Twine&, llvm::Instruction*): Assertion `S1->getType() == S2->getType() && "Cannot create binary operator with two operands of differing type!"' failed.
+  LLVM :: cv-macurn.test-cg.ll
+  LLVM :: cv-machhurn.test-cg.ll
+# TODO: check error
+
+OTHER (?):
+# TODO: investigate
+
+OLD:
+  @LLVM :: cv_abs.inline_asm.c
+  @LLVM :: cv_mac.inline_asm.c
+
+---
+
+  LLVM :: cv-ror.test-cg.ll
