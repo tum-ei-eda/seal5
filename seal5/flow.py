@@ -512,6 +512,7 @@ class Seal5Flow:
         ccache_settings = self.settings.llvm.ccache
         if kwargs.get("enable_ccache", False):
             ccache_settings.enable = True
+        cmake_extra_args = kwargs.get("cmake_extra_args", [])
         llvm.build_llvm(
             Path(self.settings.directory),
             self.settings.get_llvm_build_dir(config=config, fallback=True, check=False),
@@ -520,6 +521,7 @@ class Seal5Flow:
             use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
             ccache_settings=ccache_settings,
             verbose=verbose,
+            cmake_extra_args=cmake_extra_args,
         )
         end = time.time()
         diff = end - start

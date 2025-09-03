@@ -41,6 +41,12 @@ def add_build_options(parser):
         help="Choose build Config in Settings.yml",
     )
     build_parser.add_argument(
+        "--cmake-extra-args",
+        default=None,
+        type=str,
+        help="Pass extra flags to cmake command.",
+    )
+    build_parser.add_argument(
         "--ccache",
         action="store_true",
         help="Enable CCache to speedup compilation.",
@@ -69,4 +75,5 @@ def handle(args):
         target=args.target,
         verbose=args.verbose,
         enable_ccache=args.ccache,
+        cmake_extra_args=args.cmake_extra_args,
     )

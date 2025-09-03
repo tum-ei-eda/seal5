@@ -159,6 +159,7 @@ def build_llvm(
     install: bool = False,
     install_dir: Optional[Union[str, Path]] = None,
     ccache_settings: Optional[CcacheSettings] = None,
+    cmake_extra_args: Optional[Union[str, List[str]]] = None,
 ):
     if cmake_options is None:
         cmake_options = {}
@@ -182,6 +183,16 @@ def build_llvm(
             if ccache_directory is not None:
                 env["CCACHE_DIR"] = ccache_directory
     cmake_args = utils.get_cmake_args(cmake_options)
+    if cmake_extra_args:
+        if isinstance(cmake_extra_args, str):
+            if "," in cmake_extra_args:
+                cmake_extra_args = cmake_extra_args.split(",")
+            elif " " in cmake_extra_args:
+                cmake_extra_args = cmake_extra_args.split(" ")  # TODO: proper shell split
+            else:
+                cmake_extra_args = [cmake_extra_args]
+        assert isinstance(cmake_extra_args, list)
+        cmake_args += cmake_extra_args
     dest.mkdir(exist_ok=True)
     utils.cmake(
         src / "llvm",
