@@ -25,6 +25,20 @@ jobs:
     name: Build minimal seal5-deps image
     runs-on: ubuntu-latest
     steps:
+      - name: Remove unused software
+        run: |
+          echo "Available storage before:"
+          sudo df -h
+          echo
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --force
+          sudo docker builder prune
+          echo "Available storage after:"
+          sudo df -h
+          echo
       - name: Set current date as env variable
         run: |
           echo "builddate=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
@@ -33,15 +47,6 @@ jobs:
         run: |
           echo "os=$(echo '${{ github.event.inputs.base-image }}' | tr ':' '-')" >> $GITHUB_OUTPUT
         id: os
-      - name: Maximize build space
-        uses: easimon/maximize-build-space@master
-        with:
-          root-reserve-mb: 32768
-          temp-reserve-mb: 4096
-          remove-dotnet: 'true'
-          remove-android: 'true'
-          remove-haskell: 'true'
-          remove-codeql: 'true'
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -85,15 +90,20 @@ jobs:
         run: |
           echo "os=$(echo '${{ github.event.inputs.base-image }}' | tr ':' '-')" >> $GITHUB_OUTPUT
         id: os
-      - name: Maximize build space
-        uses: easimon/maximize-build-space@master
-        with:
-          root-reserve-mb: 32768
-          temp-reserve-mb: 4096
-          remove-dotnet: 'true'
-          remove-android: 'true'
-          remove-haskell: 'true'
-          remove-codeql: 'true'
+      - name: Remove unused software
+        run: |
+          echo "Available storage before:"
+          sudo df -h
+          echo
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --force
+          sudo docker builder prune
+          echo "Available storage after:"
+          sudo df -h
+          echo
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -142,15 +152,20 @@ jobs:
         run: |
           echo "os=$(echo '${{ github.event.inputs.base-image }}' | tr ':' '-')" >> $GITHUB_OUTPUT
         id: os
-      - name: Maximize build space
-        uses: easimon/maximize-build-space@master
-        with:
-          root-reserve-mb: 32768
-          temp-reserve-mb: 4096
-          remove-dotnet: 'true'
-          remove-android: 'true'
-          remove-haskell: 'true'
-          remove-codeql: 'true'
+      - name: Remove unused software
+        run: |
+          echo "Available storage before:"
+          sudo df -h
+          echo
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --force
+          sudo docker builder prune
+          echo "Available storage after:"
+          sudo df -h
+          echo
       - name: Checkout
         uses: actions/checkout@v4
         with:
