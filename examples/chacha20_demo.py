@@ -41,8 +41,8 @@ FILES = [
     # CoreDSL inputs
     DEMO_CDSL_DIR / "chacha20_llvm.core_desc",
     # Test inputs
-    # DEMO_TESTS_DIR / "*.s",
-    # DEMO_TESTS_DIR / "*.c",
+    DEMO_TESTS_DIR / "*.s",
+    DEMO_TESTS_DIR / "*.c",
     # DEMO_TESTS_DIR / "*.ll",
     # YAML inputs
     DEMO_CFG_DIR / "intrinsics.yml",
@@ -54,4 +54,4 @@ FILES = [
     COMMON_CFG_DIR / "passes.yml",
     COMMON_CFG_DIR / "git.yml",
 ]
-run_seal5_flow(FILES, name=DEMO_NAME, dest=DEST)
+run_seal5_flow(FILES, name=DEMO_NAME, dest=DEST, verbose=True)

@@ -6,30 +6,30 @@ intrinsics:
       arg_type: i32
     - arg_name: rs2
       arg_type: i32
-    instr_name: CV_CHACHA20QR1
-    intrinsic_name: chacha20_qr1
+    instr_name: XORROL16
+    intrinsic_name: xorrol16
     ret_type: i32
   - args:
     - arg_name: rs1
       arg_type: i32
     - arg_name: rs2
       arg_type: i32
-    instr_name: CV_CHACHA20QR2
-    intrinsic_name: chacha20_qr2
+    instr_name: XORROL12
+    intrinsic_name: xorrol12
     ret_type: i32
   - args:
     - arg_name: rs1
       arg_type: i32
     - arg_name: rs2
       arg_type: i32
-    instr_name: CV_CHACHA20QR3
-    intrinsic_name: chacha20_qr3
+    instr_name: XORROL8
+    intrinsic_name: xorrol8
     ret_type: i32
   - args:
     - arg_name: rs1
       arg_type: i32
     - arg_name: rs2
       arg_type: i32
-    instr_name: CV_CHACHA20QR4
-    intrinsic_name: chacha20_qr4
+    instr_name: XORROL7
+    intrinsic_name: xorrol7
     ret_type: i32
