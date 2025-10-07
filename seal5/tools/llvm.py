@@ -209,6 +209,7 @@ def test_llvm(base: Path, build_dir: Path, test_paths: Optional[List[str]] = Non
         out = utils.exec_getout(
             lit_exe,
             base / test_path,
+            "--verbose" if verbose else "",
             print_func=logger.info if verbose else logger.debug,
             live=True,
             env=env,

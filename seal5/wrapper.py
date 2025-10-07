@@ -45,6 +45,7 @@ LLVM_REF = os.environ.get("LLVM_REF", "llvmorg-20.1.0")
 BUILD_CONFIG = os.environ.get("BUILD_CONFIG", None)
 IGNORE_ERROR = str2bool(os.environ.get("IGNORE_ERROR", 1))
 TEST = str2bool(os.environ.get("TEST", 1))
+TEST_ONLY = str2bool(os.environ.get("TEST_ONLY", 0))
 INSTALL = str2bool(os.environ.get("INSTALL", 1))
 DEPLOY = str2bool(os.environ.get("DEPLOY", 1))
 EXPORT = str2bool(os.environ.get("EXPORT", 1))
@@ -74,7 +75,8 @@ def run_seal5_flow(
     ccache: bool = CCACHE,
     ignore_error: bool = IGNORE_ERROR,
     skip_patterns: bool = SKIP_PATTERNS,
-    test: bool = TEST,
+    test_only: bool = TEST_ONLY,
+    test: bool = TEST or test_only,
     install: bool = INSTALL,
     deploy: bool = DEPLOY,
     export: bool = EXPORT,
@@ -127,67 +129,69 @@ def run_seal5_flow(
     if build_config is not None:
         seal5_flow.settings.llvm.default_config = build_config
 
-    # Clone & install Seal5 dependencies
-    # 1. CDSL2LLVM (add PHASE_0 patches)
-    if setup:
-        seal5_flow.setup(force=True, progress=progress, verbose=verbose)
+    if not test_only:
+        # Clone & install Seal5 dependencies
+        # 1. CDSL2LLVM (add PHASE_0 patches)
+        if setup:
+            seal5_flow.setup(force=True, progress=progress, verbose=verbose)
 
-    # Apply initial patches
-    if not prepatched:
-        seal5_flow.patch(verbose=verbose, stages=[PatchStage.PHASE_0])
+        # Apply initial patches
+        if not prepatched:
+            seal5_flow.patch(verbose=verbose, stages=[PatchStage.PHASE_0])
 
-    # Build initial LLVM
-    seal5_flow.build(verbose=verbose, config=build_config, enable_ccache=ccache)
+        # Build initial LLVM
+        seal5_flow.build(verbose=verbose, config=build_config, enable_ccache=ccache)
 
-    # Transform inputs
-    #   1. Create M2-ISA-R metamodel
-    #   2. Convert to Seal5 metamodel (including aliases, builtins,...)
-    #   3. Analyse/optimize instructions
-    seal5_flow.transform(verbose=verbose)
+        # Transform inputs
+        #   1. Create M2-ISA-R metamodel
+        #   2. Convert to Seal5 metamodel (including aliases, builtins,...)
+        #   3. Analyse/optimize instructions
+        seal5_flow.transform(verbose=verbose)
 
-    # Generate patches (except Patterns)
-    seal5_flow.generate(verbose=verbose, skip=["pattern_gen"])
+        # Generate patches (except Patterns)
+        seal5_flow.generate(verbose=verbose, skip=["pattern_gen"])
 
-    # Apply next patches
-    seal5_flow.patch(verbose=verbose, stages=[PatchStage.PHASE_1, PatchStage.PHASE_2])
+        # Apply next patches
+        seal5_flow.patch(verbose=verbose, stages=[PatchStage.PHASE_1, PatchStage.PHASE_2])
 
-    # Build patched LLVM
-    seal5_flow.build(verbose=verbose, config=build_config, enable_ccache=ccache)
+        # Build patched LLVM
+        seal5_flow.build(verbose=verbose, config=build_config, enable_ccache=ccache)
 
-    if not skip_patterns:
-        # Build PatternGen & llc
-        seal5_flow.build(verbose=verbose, config=build_config, target="pattern-gen", enable_ccache=ccache)
-        seal5_flow.build(verbose=verbose, config=build_config, target="llc", enable_ccache=ccache)
+        if not skip_patterns:
+            # Build PatternGen & llc
+            seal5_flow.build(verbose=verbose, config=build_config, target="pattern-gen", enable_ccache=ccache)
+            seal5_flow.build(verbose=verbose, config=build_config, target="llc", enable_ccache=ccache)
 
-        # Generate remaining patches
-        seal5_flow.generate(verbose=VERBOSE, only=["pattern_gen"])
+            # Generate remaining patches
+            seal5_flow.generate(verbose=VERBOSE, only=["pattern_gen"])
 
-        # Apply patches
-        seal5_flow.patch(verbose=verbose, stages=list(range(PatchStage.PHASE_3, PatchStage.PHASE_5 + 1)))
+            # Apply patches
+            seal5_flow.patch(verbose=verbose, stages=list(range(PatchStage.PHASE_3, PatchStage.PHASE_5 + 1)))
 
-    # Build patched LLVM
-    seal5_flow.build(verbose=verbose, config=build_config, enable_ccache=ccache)
+        # Build patched LLVM
+        seal5_flow.build(verbose=verbose, config=build_config, enable_ccache=ccache)
 
     if test:
         # Test patched LLVM
         seal5_flow.test(verbose=verbose, ignore_error=ignore_error)
 
-    if install:
-        # Install final LLVM
-        install_dir = None if out_dir is None else Path(out_dir) / "seal5_llvm_instal"
-        seal5_flow.install(dest=install_dir, verbose=verbose, config=build_config, enable_ccache=ccache)
+    if not test_only:
+        if install:
+            # Install final LLVM
+            install_dir = None if out_dir is None else Path(out_dir) / "seal5_llvm_instal"
+            seal5_flow.install(dest=install_dir, verbose=verbose, config=build_config, enable_ccache=ccache)
 
-    if deploy:
-        # Deploy patched LLVM (export sources)
-        # TODO: combine commits and create tag
-        seal5_flow.deploy(
-            f"{dest}_source.zip" if out_dir is None else Path(out_dir) / "seal5_llvm_source.zip", verbose=verbose
-        )
+        if deploy:
+            # Deploy patched LLVM (export sources)
+            # TODO: combine commits and create tag
+            seal5_flow.deploy(
+                f"{dest}_source.zip" if out_dir is None else Path(out_dir) / "seal5_llvm_source.zip", verbose=verbose
+            )
 
-    if export:
-        # Export patches, logs, reports
-        seal5_flow.export(f"{dest}.tar.gz" if out_dir is None else Path(out_dir) / "seal5.tar.gz", verbose=verbose)
+        if export:
+            # Export patches, logs, reports
+            seal5_flow.export(f"{dest}.tar.gz" if out_dir is None else Path(out_dir) / "seal5.tar.gz", verbose=verbose)
 
-    if cleanup:
-        # Optional: cleanup temorary files, build dirs,...
-        seal5_flow.clean(temp=True, patches=True, models=True, inputs=True, interactive=interactive)
+        if cleanup:
+            # Optional: cleanup temorary files, build dirs,...
+            seal5_flow.clean(temp=True, patches=True, models=True, inputs=True, interactive=interactive)
