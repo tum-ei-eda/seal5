@@ -13,7 +13,9 @@ from seal5.settings import Seal5Settings
 logger = get_logger()
 
 
-NUM_THREADS = int(os.environ.get("SEAL5_NUM_THREADS", multiprocessing.cpu_count()))
+# DEFAULT_NUM_THREADS = multiprocessing.cpu_count()
+DEFAULT_NUM_THREADS = 1
+NUM_THREADS = int(os.environ.get("SEAL5_NUM_THREADS", DEFAULT_NUM_THREADS))
 
 
 class PassFormat(IntFlag):
