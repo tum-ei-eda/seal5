@@ -73,7 +73,13 @@ setup(
     keywords="seal5",
     name="seal5",
     packages=find_packages(include=["seal5", "seal5.*"]),
-    package_data={"seal5": resource_files("resources")},
+    package_data={
+        "seal5": [
+            "resources/*",
+            "resources/patches/*",
+            "resources/patches/llvm/*",
+        ],
+    },
     test_suite="tests",
     tests_require=requirements,
     url="https://github.com/tum-ei-eda/seal5",
