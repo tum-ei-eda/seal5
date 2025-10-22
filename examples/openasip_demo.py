@@ -40,7 +40,7 @@ FILES = [
     EXAMPLES_DIR / "openasip" / "tests" / "base" / "*.c",
     EXAMPLES_DIR / "openasip" / "tests" / "base" / "*.s",
     EXAMPLES_DIR / "openasip" / "tests" / "base" / "*.ll",
-    EXAMPLES_DIR / "openasip" / "tests" / "base" / "*.mir",
+    # EXAMPLES_DIR / "openasip" / "tests" / "base" / "*.mir",
     # YAML inputs
     EXAMPLES_DIR / "openasip" / "cfg" / "OpenASIP_paper.yml",
     EXAMPLES_DIR / "openasip" / "cfg" / "OpenASIP_base.yml",
