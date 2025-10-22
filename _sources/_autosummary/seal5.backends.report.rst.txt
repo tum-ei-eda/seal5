@@ -11,6 +11,7 @@ seal5.backends.report
    :recursive:
 
    diff
+   pattern_gen
    properties
    status
    test_results

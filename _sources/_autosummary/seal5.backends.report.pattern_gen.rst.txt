@@ -1,0 +1,13 @@
+seal5.backends.report.pattern\_gen
+==================================
+
+.. automodule:: seal5.backends.report.pattern_gen
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   writer

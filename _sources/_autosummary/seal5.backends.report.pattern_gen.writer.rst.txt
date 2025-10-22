@@ -1,0 +1,12 @@
+seal5.backends.report.pattern\_gen.writer
+=========================================
+
+.. automodule:: seal5.backends.report.pattern_gen.writer
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      main
+   
