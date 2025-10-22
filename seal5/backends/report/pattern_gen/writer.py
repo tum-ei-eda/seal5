@@ -71,7 +71,7 @@ def main():
             agg_data[key] += val
 
     all_df = pd.DataFrame(all_data)
-    agg_df = pd.Series(agg_data).to_frame()
+    agg_df = pd.Series(agg_data).to_frame().reset_index().rename(columns={"index": "stat", 0: "count"})
 
     df = agg_df if args.agg else all_df
     if args.print_df:
