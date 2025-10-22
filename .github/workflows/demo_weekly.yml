@@ -141,6 +141,20 @@ jobs:
           cat reports/status_compact.md >> $GITHUB_STEP_SUMMARY
           echo >> $GITHUB_STEP_SUMMARY
 
+          # PatternGen
+          python3 -m seal5.backends.report.pattern_gen.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/pattern_gen.csv
+          python3 -m seal5.backends.report.pattern_gen.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --agg --output reports/pattern_gen_agg.csv
+          python3 -m seal5.backends.report.pattern_gen.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/pattern_gen.md
+          python3 -m seal5.backends.report.pattern_gen.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --agg --output reports/pattern_gen_agg.md
+          echo "### PatternGen (All)" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat reports/pattern_gen.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          echo "### PatternGen (Summary)" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat reports/pattern_gen_agg.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+
           # Test Results
           python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/test_results.csv --coverage reports/test_coverage.csv
           python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/test_results_compact.csv --coverage reports/test_coverage_compact.csv
