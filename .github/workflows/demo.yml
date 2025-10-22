@@ -75,7 +75,6 @@ on:
       llvm_ref:
         description: Tag/Branch/Commit of LLVM repository
         required: true
-        # default: "llvmorg-18.1.0-rc3"
         default: llvmorg-19.1.0
 # push:
 #   branches:
@@ -164,6 +163,20 @@ jobs:
           echo "### Passes" >> $GITHUB_STEP_SUMMARY
           echo >> $GITHUB_STEP_SUMMARY
           cat reports/status_compact.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+
+          # PatternGen
+          python3 -m seal5.backends.report.pattern_gen.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/pattern_gen.csv
+          python3 -m seal5.backends.report.pattern_gen.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --agg --output reports/pattern_gen_agg.csv
+          python3 -m seal5.backends.report.pattern_gen.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/pattern_gen.md
+          python3 -m seal5.backends.report.pattern_gen.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --agg --output reports/pattern_gen_agg.md
+          echo "### PatternGen (All)" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat reports/pattern_gen.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          echo "### PatternGen (Summary)" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat reports/pattern_gen_agg.md >> $GITHUB_STEP_SUMMARY
           echo >> $GITHUB_STEP_SUMMARY
 
           # Test Results

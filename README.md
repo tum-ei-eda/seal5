@@ -42,7 +42,9 @@ sudo apt install python3-pip python3-venv cmake make ninja-build
 
 ### Python Requirements
 
-First, setup a virtual environment with Python v3.8 or newer.
+**Warning:** Python 3.8/3.9 is not supported anymore.
+
+First, setup a virtual environment with Python v3.10 or newer.
 
 Install all required python packages using the following command:
 

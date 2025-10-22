@@ -16,3 +16,13 @@ config.test_format = lit.formats.ShTest(True)
 # # suffixes: A list of file extensions to treat as test files. This is overriden
 # # by individual lit.local.cfg files in the test subdirectories.
 config.suffixes = [".ll", ".c", ".test", ".txt", ".s", ".mir", ".yaml"]
+
+import subprocess
+
+# Query LLVM version
+llvm_version = subprocess.check_output(["llvm-as", "--version"], text=True).split("version", 1)[1].split(" ")[1]
+print("llvm_version", llvm_version)
+major_version = int(llvm_version.split(".")[0])
+
+# Add a substitution for FileCheck
+config.substitutions.append(("%llvm_major_version%", str(major_version)))

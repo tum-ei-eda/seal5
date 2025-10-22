@@ -17,8 +17,12 @@
 # limitations under the License.
 #
 """PatternGen utils for seal5."""
+import re
 from pathlib import Path
 from typing import Optional
+from collections import defaultdict
+
+import yaml
 
 from seal5.logging import get_logger
 from seal5.settings import PatchSettings
@@ -194,6 +198,7 @@ def run_pattern_gen(
 
     if no_extend:
         pattern_gen_args.append("--no-extend")
+    pattern_gen_args.append("--stats")
 
     # break_on_err = True
     break_on_err = False
@@ -235,8 +240,12 @@ def run_pattern_gen(
         # reason = None
         # rest = []
         is_err = False
+        has_stats = False
+        all_stats = defaultdict(dict)
         for line in out.split("\n"):
             # print("line", line)
+            if len(line.strip()) == 0 or line.startswith("==="):
+                continue
             if found_pattern:
                 # print("A1")
                 pat.append(line)
@@ -250,12 +259,40 @@ def run_pattern_gen(
                 elif "Pattern Generation failed for" in line:
                     # reason = line
                     is_err = True
-        # print("pat", pat)
+            if has_stats:
+                parsed = re.compile(r"^\s*(\d+)\s([^\s]+)\s+-\s(.*)$").findall(line)
+                if len(parsed) > 0:
+                    assert len(parsed) == 1
+                    assert len(parsed[0]) == 3
+                    stat_count, stat_type, stat_descr = parsed[0]
+                    stat_count = int(stat_count)
+                    if stat_type not in ["pattern-gen"]:
+                        continue
+                    new_stats = {stat_descr: stat_count}
+                    all_stats[stat_type].update(new_stats)
+            else:
+                if "Statistics Collected" in line:
+                    has_stats = True
+        if len(all_stats) > 0:
+            all_stats = dict(all_stats)
+            stat_file = str(dest) + ".stats"
+            with open(stat_file, "w", encoding="utf-8") as f:
+                yaml.dump(all_stats, f)
         if len(pat) > 0:
             pat = "\n".join(pat)
             pat_file = str(dest) + ".pat"
             with open(pat_file, "w", encoding="utf-8") as f:
                 f.write(pat)
+
+            uses = re.compile(r":\$([^:\s(),]*)").findall(pat)
+            assert len(uses) > 0
+            uses = list(set(uses))
+            uses_str = ",".join(uses) + "\n"
+
+            uses_file = str(dest) + ".uses"
+            with open(uses_file, "w", encoding="utf-8") as f:
+                f.write(uses_str)
+
         else:
             is_err = True
         # else:

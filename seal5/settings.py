@@ -577,6 +577,13 @@ class ExtensionsSettings(YAMLSettings):
         assert arch[0] in ["z", "x"], "Arch needs to be start with z/x"
         return arch
 
+    def get_attr(self, name: Optional[str] = None):
+        """Get extension attr."""
+        attr = self.get_arch(name)
+        if self.experimental:
+            attr = "experimental-" + attr
+        return attr
+
     def get_feature(self, name: Optional[str] = None):
         """Get extension feature."""
         if self.feature is None:

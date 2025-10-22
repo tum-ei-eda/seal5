@@ -1066,6 +1066,8 @@ def convert_behav_to_tablegen(
 
         num_threads = multiprocessing.cpu_count()
         args.extend(["--parallel", str(num_threads)])
+    if verbose:
+        args.append("--verbose")
     utils.python(
         "-m",
         "seal5.backends.patterngen.writer",

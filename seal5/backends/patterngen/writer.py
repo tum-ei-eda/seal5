@@ -41,6 +41,7 @@ def main():
     parser.add_argument("--ext", type=str, default="td", help="Default file extension (if using --splitted)")
     parser.add_argument("--parallel", type=int, default=1, help="How many instructions should be processed in parallel")
     parser.add_argument("--compat", action="store_true")
+    parser.add_argument("--verbose", action="store_true")
     # parser.add_argument("--xlen", type=int, default=32, help="RISC-V XLEN")
     args = parser.parse_args()
 
@@ -141,6 +142,7 @@ def main():
                         ext=predicate,
                         mattr=mattr,
                         xlen=xlen,
+                        verbose=args.verbose,
                     )
                     if output_file.is_file():
                         metrics["n_success"] += 1

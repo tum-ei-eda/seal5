@@ -64,7 +64,7 @@ jobs:
         deploy: ['1']
         export: ['1']
         ccache: ['1']
-        llvm-ref: [llvmorg-18.1.0-rc3, llvmorg-19.1.7, llvmorg-20.1.0]
+        llvm-ref: [llvmorg-19.1.7, llvmorg-20.1.0]
     env:
       SEAL5_NUM_THREADS: 1
     runs-on: ${{ matrix.os }}
@@ -139,6 +139,20 @@ jobs:
           echo "### Passes" >> $GITHUB_STEP_SUMMARY
           echo >> $GITHUB_STEP_SUMMARY
           cat reports/status_compact.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+
+          # PatternGen
+          python3 -m seal5.backends.report.pattern_gen.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/pattern_gen.csv
+          python3 -m seal5.backends.report.pattern_gen.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --agg --output reports/pattern_gen_agg.csv
+          python3 -m seal5.backends.report.pattern_gen.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/pattern_gen.md
+          python3 -m seal5.backends.report.pattern_gen.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --agg --output reports/pattern_gen_agg.md
+          echo "### PatternGen (All)" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat reports/pattern_gen.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          echo "### PatternGen (Summary)" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat reports/pattern_gen_agg.md >> $GITHUB_STEP_SUMMARY
           echo >> $GITHUB_STEP_SUMMARY
 
           # Test Results
