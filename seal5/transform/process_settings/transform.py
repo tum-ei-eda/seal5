@@ -57,7 +57,8 @@ def run(args):
         if model_settings is not None:
             ext_settings = model_settings.extensions.get(set_name, None)
         if ext_settings is None:
-            ext_settings = ExtensionsSettings(feature=set_name.replace("_", ""))
+            ext_settings = ExtensionsSettings()
+            ext_settings.feature = ext_settings.get_feature(set_name)
         riscv_settings = ext_settings.riscv
         if riscv_settings is None:
             riscv_settings = RISCVSettings(xlen=set_def.xlen)
