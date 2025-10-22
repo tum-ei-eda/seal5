@@ -166,7 +166,7 @@ def build_target(arch: str, intrinsic: IntrinsicDefn):
 
 
 def build_target_new(
-    arch: str, intrinsic: IntrinsicDefn, prefix: Optional[str] = "__builtin_riscv", xlen: Optional[int] = None
+    arch: str, attr: str, intrinsic: IntrinsicDefn, prefix: Optional[str] = "__builtin_riscv", xlen: Optional[int] = None
 ):
     attributes = ["NoThrow", "Const"]  # TODO: expose/use/group
     if prefix != "__builtin_riscv":
@@ -177,7 +177,7 @@ def build_target_new(
         ret_str = ir_type_to_text(intrinsic.ret_type, signed=intrinsic.ret_signed, legacy=False)
     args_str = ", ".join([ir_type_to_text(arg.arg_type, signed=arg.signed, legacy=False) for arg in intrinsic.args])
     prototype_str = f"{ret_str}({args_str})"
-    features = [arch]
+    features = [attr]
     if xlen is not None:
         features.append(f"{xlen}bit")
     features_str = ",".join(features)
@@ -338,10 +338,11 @@ def main():
                     continue
                 try:
                     arch_ = ext_settings.get_arch(name=set_name)
+                    attr_ = ext_settings.get_attr(name=set_name)
                     if llvm_version is not None and llvm_version.major < 19:
                         patch_frags["target"].contents += build_target(arch=arch_, intrinsic=intrinsic)
                     else:
-                        patch_frags["target"].contents += build_target_new(arch=arch_, intrinsic=intrinsic, xlen=xlen)
+                        patch_frags["target"].contents += build_target_new(arch=arch_, attr=attr_, intrinsic=intrinsic, xlen=xlen)
                     patch_frags["attr"].contents += build_attr(arch=arch_, intrinsic=intrinsic)
                     patch_frags["emit"].contents += build_emit(arch=arch_, intrinsic=intrinsic)
                     metrics["n_success"] += 1
