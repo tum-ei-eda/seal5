@@ -17,7 +17,6 @@ import yaml
 import pandas as pd
 
 from seal5.settings import Seal5Settings
-from seal5.model_utils import load_model
 
 logger = logging.getLogger("status_writer")
 
@@ -70,8 +69,6 @@ def main():
         all_data.append({"instr_name": instr_name, **data})
         for key, val in data.items():
             agg_data[key] += val
-
-    status_data = []
 
     all_df = pd.DataFrame(all_data)
     agg_df = pd.Series(agg_data).to_frame()

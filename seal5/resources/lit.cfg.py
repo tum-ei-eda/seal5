@@ -22,7 +22,7 @@ import subprocess
 # Query LLVM version
 llvm_version = subprocess.check_output(["llvm-as", "--version"], text=True).split("version", 1)[1].split(" ")[1]
 print("llvm_version", llvm_version)
-major_version = int(llvm_version.split('.')[0])
+major_version = int(llvm_version.split(".")[0])
 
 # Add a substitution for FileCheck
-config.substitutions.append(('%llvm_major_version%', str(major_version)))
+config.substitutions.append(("%llvm_major_version%", str(major_version)))
