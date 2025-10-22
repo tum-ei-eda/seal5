@@ -21,7 +21,7 @@ dependencies = {file = ["requirements.txt"]}
 # optional-dependencies = {dev = { file = ["requirements_dev.txt"] }}
 
 [project.scripts]
-mlonmcu = "seal5.cli.main:main"
+seal5 = "seal5.cli.main:main"
 
 [tool.setuptools_scm]
 
