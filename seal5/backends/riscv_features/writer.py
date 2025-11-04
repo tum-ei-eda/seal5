@@ -23,7 +23,8 @@ from seal5.model_utils import load_model
 from .templates import template_dir
 
 
-logger = logging.getLogger("riscv_features")
+from seal5.logging import get_logger 
+logger = get_logger("backends.riscv_features")
 
 
 def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings, llvm_settings: LLVMSettings):
@@ -93,7 +94,7 @@ def main():
     args = parser.parse_args()
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)

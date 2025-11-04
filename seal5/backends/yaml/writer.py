@@ -16,7 +16,8 @@ import yaml
 
 from seal5.model_utils import load_model
 
-logger = logging.getLogger("yaml_writer")
+from seal5.logging import get_logger 
+logger = get_logger("backends.yaml_writer")
 
 # @dataclass
 # class Seal5Settings(YAMLSettings):
@@ -45,7 +46,7 @@ def main():
     args = parser.parse_args()
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)

@@ -17,7 +17,9 @@ from m2isar.metamodel.utils.expr_preprocessor import process_instructions
 
 from seal5.model_utils import load_model, dump_model
 
-logger = logging.getLogger("optimizer")
+from seal5.logging import get_logger
+
+logger = get_logger("transform.optimize_instructions")
 
 
 def get_parser():
@@ -34,7 +36,7 @@ def run(args):
     """Main app entrypoint."""
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)

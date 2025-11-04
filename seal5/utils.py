@@ -29,7 +29,7 @@ from typing import List, Callable, Optional
 
 from seal5.logging import get_logger
 
-logger = get_logger()
+logger = get_logger("utils")
 
 
 def str2bool(value, allow_none=False):

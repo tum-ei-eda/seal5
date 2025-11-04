@@ -19,7 +19,9 @@ from seal5.model_utils import load_model, dump_model
 
 from . import visitor
 
-logger = logging.getLogger("infer_types")
+from seal5.logging import get_logger
+
+logger = get_logger("transform.infer_types")
 
 
 # TODO: implement full API
@@ -49,7 +51,7 @@ def get_parser():
 
 def run(args):
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)

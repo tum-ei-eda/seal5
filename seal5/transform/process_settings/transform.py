@@ -16,7 +16,9 @@ import pathlib
 from seal5.settings import Seal5Settings, ExtensionsSettings, RISCVSettings
 from seal5.model_utils import load_model, dump_model
 
-logger = logging.getLogger("process_settings")
+from seal5.logging import get_logger
+
+logger = get_logger("transform.process_settings")
 
 
 def get_parser():
@@ -31,7 +33,7 @@ def get_parser():
 
 def run(args):
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)

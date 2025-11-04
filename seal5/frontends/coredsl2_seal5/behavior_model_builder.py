@@ -16,7 +16,8 @@ from .utils import BOOLCONST, RADIX, SHORTHANDS, SIGNEDNESS
 
 # import seal5.model as seal5_model
 
-logger = logging.getLogger("behav_builder")
+from seal5.logging import get_logger
+logger = get_logger("frontends.behav_builder")
 
 
 class BehaviorModelBuilder(CoreDSL2Visitor):

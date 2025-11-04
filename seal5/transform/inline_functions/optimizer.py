@@ -20,7 +20,9 @@ from seal5.model_utils import load_model, dump_model
 
 from . import visitor
 
-logger = logging.getLogger("inline_functions")
+from seal5.logging import get_logger
+
+logger = get_logger("transform.inline_functions")
 
 
 class InlineFunctionsContext:
@@ -42,7 +44,7 @@ def run(args):
     """Main app entrypoint."""
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)

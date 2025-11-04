@@ -21,7 +21,8 @@ from seal5.model_utils import load_model
 
 from . import visitor
 
-logger = logging.getLogger("coredsl2_writer")
+from seal5.logging import get_logger 
+logger = get_logger("backends.coredsl2_writer")
 
 
 class CoreDSL2Writer:
@@ -351,7 +352,7 @@ def main():
     args = parser.parse_args()
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)

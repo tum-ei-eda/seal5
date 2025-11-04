@@ -18,7 +18,9 @@ from m2isar.metamodel import arch
 
 from seal5.model_utils import load_model, dump_model
 
-logger = logging.getLogger("filter_model")
+from seal5.logging import get_logger
+
+logger = get_logger("transform.filter_model")
 
 
 OPCODE_LOOKUP = {
@@ -93,7 +95,7 @@ def get_parser():
 
 def run(args):
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)

@@ -22,7 +22,8 @@ from seal5.model import Seal5InstrAttribute
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 from seal5.model_utils import load_model
 
-logger = logging.getLogger("patterngen_tablegen_writer")
+from seal5.logging import get_logger 
+logger = get_logger("backends.patterngen_tablegen_writer")
 
 
 def main():
@@ -46,7 +47,7 @@ def main():
     args = parser.parse_args()
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)

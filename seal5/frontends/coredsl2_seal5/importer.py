@@ -13,6 +13,7 @@ import pathlib
 
 from .parser_gen import CoreDSL2Listener, CoreDSL2Parser, CoreDSL2Visitor
 from .utils import make_parser
+from seal5.logging import get_logger
 
 
 class Importer(CoreDSL2Listener):
@@ -86,7 +87,7 @@ class VisitImporter(CoreDSL2Visitor):
         self.new_defs = []
         self.got_new = True
         self.search_path = search_path
-        self.logger = logging.getLogger("visit_importer")
+        self.logger = get_logger("frontends.visit_importer")
 
     def visitDescription_content(self, ctx: CoreDSL2Parser.Description_contentContext):
         for i in ctx.imports:
