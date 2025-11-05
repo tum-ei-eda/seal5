@@ -278,12 +278,15 @@ class CoreDSL2Writer:
     def write_behavior(self, instruction):
         self.write("behavior: ")
         op = instruction.operation
-        if self.reduced:
-            self.enter_block()
-        op.generate(self)
-        if self.reduced:
-            self.leave_block()
-        # self.write(";", nl=True)
+        if len(op.statements) == 0:
+            self.write("{}", nl=True)
+        else:
+            if self.reduced:
+                self.enter_block()
+            op.generate(self)
+            if self.reduced:
+                self.leave_block()
+            # self.write(";", nl=True)
 
     def write_instruction(self, instruction):
         # print("write_instruction", instruction)
