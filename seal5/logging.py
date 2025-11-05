@@ -20,6 +20,7 @@
 
 import logging
 import logging.handlers
+from socket import SO_ERROR
 import sys
 import socketserver
 import struct
@@ -30,6 +31,7 @@ import threading
 PROJECT_NAME = "seal5"
 HOSTNAME = "localhost"
 LOGGINGPORT = 9020
+_log_server = None
 
 
 def get_formatter(minimal=False):
@@ -58,6 +60,7 @@ def initialize_logging_server(
         ("log_info.log", logging.INFO),
     ],
 ):
+    global _log_server
     logger = logging.getLogger(PROJECT_NAME)
     logger.setLevel(logging.DEBUG)
 
@@ -74,20 +77,27 @@ def initialize_logging_server(
             logger.addHandler(file_handler)
 
     try:
-        server = LogRecordSocketReceiver()
+        _log_server = LogRecordSocketReceiver()
     except OSError as e:
         if e.errno == 98:  # Address already in use
-            logging.warning("Log listener is expected to be only initialized once!")
-            return None  # Be careful on server.shutdown()
+            raise RuntimeError(
+                "Initialization of logging Server not possible! Port Taken!"
+            )
         else:
             raise  # rethrow unexpected errors
 
-    thread = threading.Thread(target=server.serve_forever)
+    thread = threading.Thread(target=_log_server.serve_forever)
     thread.daemon = True
     thread.start()
     print(f"Logger started on port {LOGGINGPORT}")
 
-    return server
+
+def stop_logging_server():
+    global _log_server
+    if _log_server is not None:
+        print(f"Logger on port {LOGGINGPORT} stopped.")
+        _log_server.shutdown()
+        _log_server.server_close()
 
 
 # --- Server (listener) that receives LogRecords ---
@@ -116,6 +126,7 @@ class LogRecordStreamHandler(socketserver.StreamRequestHandler):
 
 class LogRecordSocketReceiver(socketserver.ThreadingTCPServer):
     allow_reuse_address = True
+    daemon_threads = True
 
     def __init__(self, host=HOSTNAME, port=LOGGINGPORT):
         super().__init__((host, port), LogRecordStreamHandler)
