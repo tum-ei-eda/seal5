@@ -27,7 +27,7 @@ from typing import Optional, List, Dict, Tuple, Union
 
 import git
 
-from seal5.logging import get_logger, set_log_file, set_log_level
+from seal5.logging import get_logger
 from seal5.types import Seal5State, PatchStage
 from seal5.settings import Seal5Settings, PatchSettings, DEFAULT_SETTINGS, LLVMConfig, LLVMVersion
 
@@ -202,12 +202,6 @@ class Seal5Flow:
         if self.settings.settings_file.is_file():
             self.settings = Seal5Settings.from_yaml_file(self.settings.settings_file)
             self.meta_dir = self.settings._meta_dir
-        if self.settings.logs_dir.is_dir():
-            set_log_file(self.settings.log_file_path)
-            if self.settings:
-                set_log_level(
-                    console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level
-                )
         self.name = self.settings.name if name is None else name
         self.name = "default" if self.name is None else self.name
         self.settings.name = self.name
@@ -336,8 +330,6 @@ class Seal5Flow:
             supported_imm_types = llvm.detect_llvm_imm_types(self.directory)
             self.settings.llvm.state.supported_imm_types = list(supported_imm_types)
         self.settings.save()
-        set_log_file(self.settings.log_file_path)
-        set_log_level(console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level)
         end = time.time()
         diff = end - start
         metrics["start"] = start

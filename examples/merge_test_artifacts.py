@@ -21,13 +21,13 @@
 
 import argparse
 import pathlib
-import logging
 
 import pandas as pd
 
 # import numpy as np
 
-logger = logging.getLogger(__name__)
+from seal5.logging import get_logger
+logger = get_logger('examples.' + __name__)
 
 
 def main():
