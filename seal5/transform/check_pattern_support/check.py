@@ -90,7 +90,15 @@ def run(args):
                 may_load = Seal5InstrAttribute.MAY_LOAD in attributes
                 may_store = Seal5InstrAttribute.MAY_STORE in attributes
                 is_rvc = instr_def.size != 32
-                is_branch = arch.InstrAttribute.COND in attributes or arch.InstrAttribute.NO_CONT in attributes
+                # is_branch: instruction might branch via manual PC update or branch() intrinsic
+                is_branch = (
+                    arch.InstrAttribute.COND in attributes
+                    or arch.InstrAttribute.NO_CONT in attributes
+                    or Seal5InstrAttribute.IS_BRANCH in attributes
+                )
+                # use_branch_intrinsic: only if instruction uses branch() explicitly
+                use_branch_intrinsic = Seal5InstrAttribute.USE_BRANCH_INTRINSIC in attributes
+                # TODO: make sure that branch() is only used once
                 has_loop = Seal5InstrAttribute.HAS_LOOP in attributes
                 # TODO: has_static_loop
                 has_call = Seal5InstrAttribute.HAS_CALL in attributes
@@ -98,15 +106,23 @@ def run(args):
                 defs_custom_reg = len(attributes.get(Seal5InstrAttribute.DEFS, []))
                 # TODO: check if PC is being read/written -> not supported
                 # uses_pc = ?
+                uses_pc = False  # TODO: implement
+                supports_multi_output = False
+                supports_load = False
+                supports_store = False
+                supports_branch = False
                 skip_pattern_gen = (
                     is_noop
                     or is_rvc
                     or (num_ins == 0)
-                    or (num_outs != 1)
-                    or may_load
-                    or may_store
-                    or is_branch
+                    or (num_outs == 0 and not is_branch)
+                    or (num_outs > 1 and not supports_multi_output)
+                    or (may_load and not supports_load)
+                    or (may_store and not supports_store)
+                    or (is_branch and not supports_branch)
+                    or (use_branch_intrinsic and (not use_branch_intrinsic or not supports_branch))
                     or has_loop
+                    or uses_pc
                     or has_call
                     or uses_custom_reg
                     or defs_custom_reg
