@@ -57,6 +57,7 @@ TRANSFORM_PASS_MAP = [
     # ("write_yaml", passes.write_yaml, {}),
     # ("process_settings2", passes.process_settings, {}),
     ("detect_behavior_constraints", passes.detect_behavior_constraints, {}),
+    ("optimize_model2", passes.optimize_model, {}),
     ("detect_registers", passes.detect_registers, {}),
     ("collect_register_operands", passes.collect_register_operands, {}),
     ("collect_immediate_operands", passes.collect_immediate_operands, {}),
