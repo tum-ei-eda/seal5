@@ -41,6 +41,7 @@ def operation(self: behav.Operation, context):
             print(f"cant simplify {stmt}")
 
     self.statements = statements
+    assert len(self.statements) > 0, "Behavior can not be empty"
     return self
 
 
