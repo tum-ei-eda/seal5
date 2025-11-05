@@ -27,6 +27,22 @@ def operation(self: behav.Operation, context):
     return self
 
 
+def block(self: behav.Block, context):
+    stmts = []
+
+    for stmt in self.statements:
+        stmt = stmt.generate(context)
+        if isinstance(stmt, behav.Conditional):
+            if len(stmt.conds) == 1:
+                if isinstance(stmt.stmts[0], behav.Block):
+                    if len(stmt.stmts[0].statements) == 0:
+                        continue
+        stmts.append(stmt)
+
+    self.statements = stmts
+    return self
+
+
 def binary_operation(self: behav.BinaryOperation, context):
     self.left = self.left.generate(context)
     self.right = self.right.generate(context)

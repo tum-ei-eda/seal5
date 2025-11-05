@@ -40,19 +40,25 @@ def operation(self: behav.Operation, context):
 
 def block(self: behav.Block, context):
     # print("block", self)
-
     stmts = []
 
+    len_before = len(self.statements)
     for stmt in self.statements:
         stmt = stmt.generate(context)
         if isinstance(stmt, behav.Conditional):
             if len(stmt.conds) == 1:
                 if isinstance(stmt.stmts[0], behav.Block):
-                    if len(stmt.stmts[0].statements) == 0:
-                        continue
+                    if len(stmt.stmts) == 1:
+                        if len(stmt.stmts[0].statements) == 0:
+                            continue
+                    elif len(stmt.stmts) == 2:
+                        if len(stmt.stmts[0].statements) == 0 and len(stmt.stmts[1].statements) == 0:
+                            continue
+                    # TODO: check elifs?
         stmts.append(stmt)
 
     self.statements = stmts
+    assert len(self.statements) > 0 or len_before == 0, "Behavior can not be empty"
 
     return self
 
