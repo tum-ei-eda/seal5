@@ -115,14 +115,15 @@ def conditional(self: behav.Conditional, context):
     # self.stmts = [x.generate(context) for x in self.stmts]
     temp = []
     for i, stmt in enumerate(self.stmts):
+        cond_ = self.conds[i]
         if i == 0:  # if
-            cond = self.conds[i]
-            temp.append(behav.UnaryOperation(behav.Operator("!"), cond))
+            cond = cond_
+            temp.append(behav.UnaryOperation(behav.Operator("!"), cond_))
         elif i < len(self.conds):  # elif
             cond = temp[0]
             for c in temp[1:]:
                 cond = behav.BinaryOperation(cond, "&&", c)
-            cond = behav.BinaryOperation(cond, "&&", self.conds[i])
+            cond = behav.BinaryOperation(cond, "&&", cond_)
         else:  # else
             assert i >= len(self.conds)
             assert len(temp) >= 1
@@ -141,15 +142,19 @@ def conditional(self: behav.Conditional, context):
                 assert isinstance(stmt.statements[0].ref_or_name, arch.Function), "Expected function"
                 assert stmt.statements[0].ref_or_name.name == "raise", "Expected raise operation"
                 stmt = behav.Block([])  # Replace with empty block
+                cond_ = behav.IntLiteral(0, 1)
                 context.found_raise = False
             else:
                 assert isinstance(stmt, behav.ProcedureCall), "Nesting raises not allowed"
                 assert isinstance(stmt.ref_or_name, arch.Function), "Expected function"
                 assert stmt.ref_or_name.name == "raise", "Expected raise operation"
                 stmt = behav.Block([])  # Replace with empty block
+                cond_ = behav.IntLiteral(0, 1)
                 context.found_raise = False
             # input("aaaa")
         self.stmts[i] = stmt
+        if i < len(self.conds):
+            self.conds[i] = cond_
         # print("after", context.cond_stack)
         context.cond_stack.pop()
     # print("self.stmts", self.stmts)
