@@ -23,9 +23,6 @@ import os
 from pathlib import Path
 
 from seal5.wrapper import run_seal5_flow
-from seal5.logging import initialize_logging_server, stop_logging_server
-
-initialize_logging_server()
 
 EXAMPLES_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
 DEST_DIR = os.environ.get("DEST_DIR", "/tmp")
@@ -50,4 +47,3 @@ FILES = [
 ]
 
 run_seal5_flow(FILES, name="demo", dest=DEST)
-stop_logging_server()

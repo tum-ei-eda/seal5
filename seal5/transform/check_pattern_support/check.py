@@ -20,9 +20,9 @@ from seal5.model import Seal5InstrAttribute, Seal5OperandAttribute
 from seal5.model_utils import load_model, dump_model
 
 
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
-logger = get_logger("transform.check_pattern_support")
+logger = Logger("transform.check_pattern_support")
 
 
 def get_parser():

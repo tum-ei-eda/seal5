@@ -24,14 +24,14 @@ from collections import defaultdict
 
 import yaml
 
-from seal5.logging import get_logger
+from seal5.logging import Logger
 from seal5.settings import PatchSettings
 from seal5.types import PatchStage
 from seal5.index import File, Directory, NamedPatch, write_index_yaml
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 from seal5 import utils
 
-logger = get_logger()
+logger = Logger("tools")
 
 
 def build_pattern_gen(

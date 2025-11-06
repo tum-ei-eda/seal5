@@ -19,9 +19,9 @@ from seal5.model_utils import load_model, dump_model
 
 from . import visitor
 
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
-logger = get_logger("transform.infer_types")
+logger = Logger("transform.infer_types")
 
 
 # TODO: implement full API

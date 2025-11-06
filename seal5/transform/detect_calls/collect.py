@@ -21,9 +21,9 @@ from seal5.model_utils import load_model, dump_model
 
 from . import visitor
 
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
-logger = get_logger("transform.detect_calls")
+logger = Logger("transform.detect_calls")
 
 
 class VisitorContext:

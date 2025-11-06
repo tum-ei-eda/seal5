@@ -21,8 +21,8 @@ from seal5.index import NamedPatch, write_index_yaml
 from seal5.settings import ExtensionsSettings, LLVMVersion
 from seal5.model_utils import load_model
 
-from seal5.logging import get_logger 
-logger = get_logger("backends.riscv_isa_info")
+from seal5.logging import Logger 
+logger = Logger("backends.riscv_isa_info")
 
 
 MAKO_TEMPLATE = '    {"${arch}", RISCVExtensionVersion{${version_major}, ${version_minor}}},'

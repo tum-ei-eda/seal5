@@ -16,8 +16,8 @@ import pandas as pd
 
 from seal5.settings import Seal5Settings
 
-from seal5.logging import get_logger 
-logger = get_logger("backends.times_writer")
+from seal5.logging import Logger 
+logger = Logger("backends.times_writer")
 
 
 def main():

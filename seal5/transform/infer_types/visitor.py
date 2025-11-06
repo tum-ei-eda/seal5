@@ -24,8 +24,8 @@ from copy import copy
 
 from m2isar.metamodel import arch, behav
 
-from seal5.logging import get_logger
-logger = get_logger("transform." + __name__)
+from seal5.logging import Logger
+logger = Logger("transform." + __name__)
 
 # pylint: disable=unused-argument
 

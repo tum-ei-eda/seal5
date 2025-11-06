@@ -16,9 +16,9 @@ import pathlib
 from seal5.settings import Seal5Settings, ExtensionsSettings, RISCVSettings
 from seal5.model_utils import load_model, dump_model
 
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
-logger = get_logger("transform.process_settings")
+logger = Logger("transform.process_settings")
 
 
 def get_parser():

@@ -16,8 +16,8 @@ import yaml
 
 from seal5.model_utils import load_model
 
-from seal5.logging import get_logger 
-logger = get_logger("backends.yaml_writer")
+from seal5.logging import Logger 
+logger = Logger("backends.yaml_writer")
 
 # @dataclass
 # class Seal5Settings(YAMLSettings):

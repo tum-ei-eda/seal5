@@ -22,8 +22,8 @@ from seal5.model import Seal5InstrAttribute
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 from seal5.model_utils import load_model
 
-from seal5.logging import get_logger 
-logger = get_logger("backends.patterngen_tablegen_writer")
+from seal5.logging import Logger 
+logger = Logger("backends.patterngen_tablegen_writer")
 
 
 def main():

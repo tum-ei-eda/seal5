@@ -16,9 +16,9 @@ import pathlib
 import seal5.model as seal5_model
 from seal5.model_utils import load_model, dump_model
 
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
-logger = get_logger("transform.detect_registers")
+logger = Logger("transform.detect_registers")
 
 
 def detect_registers(set_def: seal5_model.Seal5InstructionSet):

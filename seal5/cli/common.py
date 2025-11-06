@@ -17,9 +17,9 @@
 # limitations under the License.
 #
 """Common Seal5 CLI code."""
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
-logger = get_logger()
+logger = Logger("cli")
 
 
 def handle_logging_flags(args):

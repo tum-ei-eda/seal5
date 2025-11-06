@@ -22,8 +22,8 @@ from seal5.model_utils import load_model
 from . import treegen
 from .utils import TkTreeGenContext, TextTreeGenContext
 
-from seal5.logging import get_logger 
-logger = get_logger("backends.viewer")
+from seal5.logging import Logger 
+logger = Logger("backends.viewer")
 
 
 def sort_instruction(entry: "tuple[tuple[int, int], arch.Instruction]"):

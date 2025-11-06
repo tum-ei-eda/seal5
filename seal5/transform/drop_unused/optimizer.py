@@ -19,9 +19,9 @@ from seal5.model_utils import load_model, dump_model
 
 from . import track_uses
 
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
-logger = get_logger("transform.drop_unused")
+logger = Logger("transform.drop_unused")
 
 
 class DropUnusedContext:

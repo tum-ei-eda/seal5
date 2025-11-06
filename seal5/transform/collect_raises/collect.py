@@ -22,9 +22,9 @@ from seal5.model_utils import load_model, dump_model
 
 from . import visitor
 
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
-logger = get_logger("transform.collect_raises")
+logger = Logger("transform.collect_raises")
 
 
 class VisitorContext:

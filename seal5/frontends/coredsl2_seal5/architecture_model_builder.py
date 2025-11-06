@@ -15,8 +15,8 @@ from m2isar.metamodel import arch, behav, intrinsics
 from .parser_gen import CoreDSL2Parser, CoreDSL2Visitor
 from .utils import RADIX, SHORTHANDS, SIGNEDNESS
 
-from seal5.logging import get_logger
-logger = get_logger("frontends.arch_builder")
+from seal5.logging import Logger
+logger = Logger("frontends.arch_builder")
 
 
 class ArchitectureModelBuilder(CoreDSL2Visitor):

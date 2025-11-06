@@ -23,8 +23,8 @@ from seal5.model_utils import load_model
 from .templates import template_dir
 
 
-from seal5.logging import get_logger 
-logger = get_logger("backends.riscv_features")
+from seal5.logging import Logger 
+logger = Logger("backends.riscv_features")
 
 
 def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings, llvm_settings: LLVMSettings):

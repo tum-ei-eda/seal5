@@ -21,8 +21,8 @@ from seal5.model_utils import load_model
 
 from . import visitor
 
-from seal5.logging import get_logger 
-logger = get_logger("backends.coredsl2_writer")
+from seal5.logging import Logger 
+logger = Logger("backends.coredsl2_writer")
 
 
 class CoreDSL2Writer:

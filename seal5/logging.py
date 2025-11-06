@@ -20,19 +20,46 @@
 
 import logging
 import logging.handlers
-from socket import SO_ERROR
 import sys
+import socket
+import os
 import socketserver
 import struct
 import pickle
 from typing import List, Tuple
 import threading
+from pathlib import Path
 
 PROJECT_NAME = "seal5"
 HOSTNAME = "localhost"
-LOGGINGPORT = 9020
+SEAL5_LOGGING_PORT = int(os.getenv("SEAL5_LOGGING_PORT", 9020))
 _log_server = None
 
+
+def resolve_log_level(value):
+    """Return a valid numeric logging level for a given input."""
+
+    LOG_LEVELS = {
+        "CRITICAL": logging.CRITICAL,
+        "ERROR": logging.ERROR,
+        "WARNING": logging.WARNING,
+        "INFO": logging.INFO,
+        "DEBUG": logging.DEBUG,
+        "NOTSET": logging.NOTSET,
+    }
+    # If it's already an int (e.g., logging.INFO or 20)
+    if isinstance(value, int):
+        return value
+
+    # If it's a string
+    if isinstance(value, str):
+        val = value.strip().upper()
+        if val.isnumeric():              # e.g., "20"
+            return int(val)
+        return LOG_LEVELS.get(val, logging.DEBUG)  # default to INFO
+
+    # Fallback
+    return logging.DEBUG
 
 def get_formatter(minimal=False):
     """Returns a log formatter for one on two predefined formats."""
@@ -45,35 +72,57 @@ def get_formatter(minimal=False):
 
 
 def get_logger(loggername: None | str = None, level=logging.DEBUG):
-    name = PROJECT_NAME if loggername is None else f"{PROJECT_NAME}.{loggername}"
-    logger = logging.getLogger(name)
+    
+    server_reachable = False
+    try:
+        with socket.create_connection((HOSTNAME, SEAL5_LOGGING_PORT), timeout=0.2):
+            server_reachable = True
+    except OSError:
+        server_reachable = False
+
+    # --- Case 1: Logging server not reachable → local fallback logger fallback ---
+    if not server_reachable:
+        fallback_logger = logging.getLogger('fallback')  # fallback logger
+        fallback_logger.setLevel(logging.DEBUG)
+
+        # Ensure a StreamHandler exists only once
+        if not any(isinstance(h, logging.StreamHandler) for h in fallback_logger.handlers):
+            stream_handler = logging.StreamHandler(sys.stdout)
+            stream_handler.setFormatter(get_formatter(True))
+            stream_handler.setLevel(logging.DEBUG)
+            fallback_logger.addHandler(stream_handler)
+
+        return fallback_logger
+
+    logger = logging.getLogger(f"{PROJECT_NAME}.{loggername if loggername is not None else 'unknown'}")
     logger.handlers = []
     logger.setLevel(level=level)
-    socket_handler = logging.handlers.SocketHandler(HOSTNAME, LOGGINGPORT)
+    socket_handler = logging.handlers.SocketHandler(HOSTNAME, SEAL5_LOGGING_PORT)
     logger.addHandler(socket_handler)
     return logger
 
 
 def initialize_logging_server(
-    logfiles: None | List[Tuple[str, int]] = [
+    logfiles: None | List[Tuple[Path | str, int]] = [
         ("log_debug.log", logging.DEBUG),
         ("log_info.log", logging.INFO),
-    ],
+    ], stream_log_level: int | str = logging.INFO,
 ):
     global _log_server
     logger = logging.getLogger(PROJECT_NAME)
+    # This should be the lowest value and not changeable since logger is the first filter
     logger.setLevel(logging.DEBUG)
 
     stream_handler = logging.StreamHandler(sys.stdout)
     stream_handler.setFormatter(get_formatter(True))
-    stream_handler.setLevel(logging.INFO)
+    stream_handler.setLevel(resolve_log_level(stream_log_level))
     logger.addHandler(stream_handler)
 
     if logfiles is not None:
         for log_file, log_level in logfiles:
             file_handler = logging.FileHandler(log_file, "w")
             file_handler.setFormatter(get_formatter(False))
-            file_handler.setLevel(log_level)
+            file_handler.setLevel(resolve_log_level(log_level))
             logger.addHandler(file_handler)
 
     try:
@@ -89,13 +138,13 @@ def initialize_logging_server(
     thread = threading.Thread(target=_log_server.serve_forever)
     thread.daemon = True
     thread.start()
-    print(f"Logger started on port {LOGGINGPORT}")
+    print(f"Logger started on port {SEAL5_LOGGING_PORT}")
 
 
 def stop_logging_server():
     global _log_server
     if _log_server is not None:
-        print(f"Logger on port {LOGGINGPORT} stopped.")
+        print(f"Logger on port {SEAL5_LOGGING_PORT} stopped.")
         _log_server.shutdown()
         _log_server.server_close()
 
@@ -128,5 +177,20 @@ class LogRecordSocketReceiver(socketserver.ThreadingTCPServer):
     allow_reuse_address = True
     daemon_threads = True
 
-    def __init__(self, host=HOSTNAME, port=LOGGINGPORT):
+    def __init__(self, host=HOSTNAME, port=SEAL5_LOGGING_PORT):
         super().__init__((host, port), LogRecordStreamHandler)
+
+class Logger:
+    """Proxy that initializes its logger only when first used."""
+    def __init__(self, name=None):
+        self._name = name
+        self._logger = None
+
+    def _get_logger(self):
+        if self._logger is None:
+            self._logger = get_logger(self._name)
+        return self._logger
+
+    def __getattr__(self, attr):
+        return getattr(self._get_logger(), attr)
+

@@ -22,7 +22,7 @@ from .behavior_model_builder import BehaviorModelBuilder
 from .importer import recursive_import
 from .load_order import LoadOrder
 from .utils import make_parser
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
 
 def main():
@@ -35,7 +35,7 @@ def main():
 
     # app_dir = pathlib.Path(__file__).parent.resolve()
 
-    logger = get_logger("frontends.parser")
+    logger = Logger("frontends.parser")
     logger.setLevel(getattr(logging, args.log.upper()))
 
     top_level = pathlib.Path(args.top_level)

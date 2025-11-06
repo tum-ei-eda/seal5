@@ -18,9 +18,9 @@ from m2isar.metamodel import arch
 
 from seal5.model_utils import load_model, dump_model
 
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
-logger = get_logger("transform.filter_model")
+logger = Logger("transform.filter_model")
 
 
 OPCODE_LOOKUP = {

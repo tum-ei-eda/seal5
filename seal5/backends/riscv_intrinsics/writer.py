@@ -21,8 +21,8 @@ from seal5.index import NamedPatch, write_index_yaml
 from seal5.settings import IntrinsicDefn
 from seal5.model_utils import load_model
 
-from seal5.logging import get_logger 
-logger = get_logger("backends.riscv_intrinsics")
+from seal5.logging import Logger 
+logger = Logger("backends.riscv_intrinsics")
 
 
 # See https://github.com/llvm-mirror/clang/blob/master/include/clang/Basic/Builtins.def
