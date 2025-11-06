@@ -49,5 +49,7 @@ def dump_model(
 
 def peek(item):
     if isinstance(item, behav.Group):
-        return item.expr
+        return peek(item.expr)
+    if isinstance(item, behav.Block) and len(item.statements) == 1:
+        return peek(item.statements[0])
     return item
