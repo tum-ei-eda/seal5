@@ -205,8 +205,11 @@ def type_conv(self: behav.TypeConv, context):
 
 
 def callable_(self: behav.Callable, context):
-    # print("callable_")
-    self.args = [stmt.generate(context) for stmt in self.args]
+
+    for i, arg in enumerate(self.fn_args):
+        context.push(IOMode.READ)
+        self.fn_args[i] = arg.generate(context)
+        context.pop()
 
     return self
 
@@ -221,7 +224,11 @@ def group(self: behav.Group, context):
 def procedure_call(self: behav.ProcedureCall, context):
     # print("procedure_call")
 
-    self.fn_args = [arg.generate(context) for arg in self.args]
+    for i, arg in enumerate(self.fn_args):
+        context.push(IOMode.READ)
+        print("arg", arg)
+        self.fn_args[i] = arg.generate(context)
+        context.pop()
 
     return self
 
