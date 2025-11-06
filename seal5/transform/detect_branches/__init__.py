@@ -18,4 +18,4 @@
 #
 from .collect import main as DetectBranches
 
-__all__ = ["DectectBranches"]
+__all__ = ["DetectBranches"]
