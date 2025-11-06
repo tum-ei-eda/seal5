@@ -59,6 +59,7 @@ TRANSFORM_PASS_MAP = [
     ("detect_behavior_constraints", passes.detect_behavior_constraints, {}),
     ("optimize_model2", passes.optimize_model, {}),
     ("detect_registers", passes.detect_registers, {}),
+    ("detect_branches", passes.detect_branches, {}),
     ("collect_register_operands", passes.collect_register_operands, {}),
     ("collect_immediate_operands", passes.collect_immediate_operands, {}),
     ("collect_operand_types", passes.collect_operand_types, {}),

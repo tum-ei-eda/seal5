@@ -155,6 +155,9 @@ class Seal5InstrAttribute(Enum):
     LLVM_INSTR = auto()
     HAS_CALL = auto()
     HAS_LOOP = auto()
+    USES_PC = auto()
+    USE_BRANCH_INTRINSIC = auto()
+    HAS_INTRINSIC_CALL = auto()
 
 
 class Seal5FunctionAttribute(Enum):
