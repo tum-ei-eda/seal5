@@ -220,8 +220,19 @@ def group(self: behav.Group, writer):
     # writer.leave_block()
 
 
-def procedure_call(self: behav.ProcedureCall, context):
+def procedure_call(self: behav.ProcedureCall, writer):
     # print("procedure_call")
 
-    for arg in self.args:
-        arg.generate(context)
+    ref = self.ref_or_name
+    if isinstance(ref, arch.Function):
+        writer.write(ref.name)
+    elif isinstance(ref, str):
+        writer.write(ref)
+    else:
+        raise NotImplementedError
+    writer.write("(")
+    for i, stmt in enumerate(self.args):
+        stmt.generate(writer)
+        if i < len(self.args) - 1:
+            writer.write(", ")
+    writer.write(")")
