@@ -5,7 +5,7 @@ from pathlib import Path
 import pickle
 from typing import Union
 
-from m2isar.metamodel import M2_METAMODEL_VERSION, M2Model
+from m2isar.metamodel import M2_METAMODEL_VERSION, M2Model, behav
 from seal5.model import Seal5Model, SEAL5_METAMODEL_VERSION
 
 logger = logging.getLogger("seal5_converter")
@@ -45,3 +45,9 @@ def dump_model(
             assert suffix == required_suffix, f"Invalid suffix: {suffix}, Expected: {required_suffix}"
     with open(out_path, "wb") as f:
         pickle.dump(model_obj, f)
+
+
+def peek(item):
+    if isinstance(item, behav.Group):
+        return item.expr
+    return item

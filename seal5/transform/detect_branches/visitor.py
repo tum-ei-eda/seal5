@@ -9,14 +9,9 @@
 """TODO"""
 
 from m2isar.metamodel import arch, behav
+from seal5.model_utils import peek
 
 # pylint: disable=unused-argument
-
-
-def peek(item):
-    if isinstance(item, behav.Group):
-        return item.expr
-    return item
 
 
 def operation(self: behav.Operation, context):
