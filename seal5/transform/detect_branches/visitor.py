@@ -6,7 +6,7 @@
 # Chair of Electrical Design Automation
 # Technical University of Munich
 
-"""TODO"""
+"""Visitor for Seal5 Metamodel to replace branch behavior with an explicit instrinsic call."""
 
 from m2isar.metamodel import arch, behav
 from seal5.model_utils import peek
@@ -137,6 +137,9 @@ def assignment(self: behav.Assignment, context):
                     print("offset", offset)
                     branch_call = behav.ProcedureCall("branch", [cond, offset])
                     print("branch_call", branch_call)
+                    context.found_branch = True
+                    context.reads_pc = False
+                    context.writes_pc = False
                     return branch_call
         else:
             self.expr = self.expr.generate(context)

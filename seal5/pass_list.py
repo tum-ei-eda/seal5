@@ -2086,6 +2086,7 @@ def detect_branches(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "debug",
+    insert_intrinsic: bool = True,
     **kwargs,
 ):
     assert inplace
@@ -2098,6 +2099,8 @@ def detect_branches(
         "--log",
         log_level,
     ]
+    if insert_intrinsic:
+        args.append("--insert-intrinsic")
     if not use_subprocess:
         from seal5.transform.detect_branches import DetectBranches
 

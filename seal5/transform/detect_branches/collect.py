@@ -25,7 +25,8 @@ logger = logging.getLogger("detect_branches")
 
 
 class VisitorContext:
-    def __init__(self):
+    def __init__(self, allow_branch_intrinsic: bool = False):
+        self.allow_branch_intrinsic = allow_branch_intrinsic
         self.reads_pc = False
         self.writes_pc = False
         self.is_branch = False
@@ -77,7 +78,7 @@ def run(args):
         patch_model(visitor)
         for _, instr_def in set_def.instructions.items():
             metrics["n_instructions"] += 1
-            context = VisitorContext()
+            context = VisitorContext(args.insert_intrinsic)
             logger.debug("collecting branches for instr %s", instr_def.name)
             try:
                 instr_def.operation.generate(context)
