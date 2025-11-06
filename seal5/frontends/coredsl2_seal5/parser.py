@@ -29,6 +29,7 @@ def main():
     parser.add_argument("top_level", help="The CoreDSL file.")
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument("--output", "-o", type=str, default=None)
+    parser.add_argument("--fail-on-enc-conflict", action="store_true")
 
     args = parser.parse_args()
 
@@ -82,13 +83,23 @@ def main():
             logger.critical("Error building architecture model of core", e)
 
         for orig, overwritten in arch_builder._overwritten_instrs:
-            logger.warning(
-                "instr %s from extension %s was overwritten by %s from %s",
-                orig.name,
-                orig.ext_name,
-                overwritten.name,
-                overwritten.ext_name,
-            )
+            if orig.name.lower() == overwritten.name.lower() or not args.fail_on_enc_conflict:
+                logger.warning(
+                    "instr %s from extension %s was overwritten by %s from %s",
+                    orig.name,
+                    orig.ext_name,
+                    overwritten.name,
+                    overwritten.ext_name,
+                )
+            else:
+                logger.error(
+                    "instr %s from extension %s was overwritten by %s from %s",
+                    orig.name,
+                    orig.ext_name,
+                    overwritten.name,
+                    overwritten.ext_name,
+                )
+                sys.exit(1)
 
         temp_save[set_name] = (s, arch_builder)
 
