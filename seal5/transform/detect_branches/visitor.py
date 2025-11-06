@@ -135,14 +135,14 @@ def assignment(self: behav.Assignment, context):
                     print("cond", cond)
                     print("base", base)
                     print("offset", offset)
-                    branch_call = behav.ProcedureCall("branch", [cond, offset])
-                    print("branch_call", branch_call)
                     context.found_branch = True
-                    context.reads_pc = False
-                    context.writes_pc = False
-                    return branch_call
-        else:
-            self.expr = self.expr.generate(context)
+                    if context.allow_branch_intrinsic:
+                        branch_call = behav.ProcedureCall("branch", [cond, offset])
+                        print("branch_call", branch_call)
+                        context.reads_pc = False
+                        context.writes_pc = False
+                        return branch_call
+        self.expr = self.expr.generate(context)
 
     return self
 
@@ -155,7 +155,9 @@ def conditional(self: behav.Conditional, context):
     print("self.stmts", self, self.stmts)
     for i, stmt in enumerate(self.stmts):
         print("i", i)
-        cond_ = self.conds[i]
+        cond_ = None
+        if i < len(self.conds):
+            cond_ = self.conds[i]
         if i == 0:  # if
             print("if stmt", stmt)
             cond = cond_
@@ -181,11 +183,14 @@ def conditional(self: behav.Conditional, context):
         print("context.uses_pc", context.uses_pc)
         # if context.uses_pc:
         if context.found_branch:
-            raise NotImplementedError("TODO")
-        self.stmts[i] = stmt
-        if i < len(self.conds):
-            self.conds[i] = cond_
-        # print("after", context.cond_stack)
+            assert len(self.conds) == 1, "Branch conditional can only have one condition"
+            assert len(self.stmts) == 1, "Branch condational can not have an else statement"
+            stmt_ = peek(stmt)
+            print("stmt_", stmt_)
+            assert isinstance(
+                stmt_, behav.ProcedureCall
+            ), "Branch conditional statement not replaced with intrinsic call"
+            return stmt_
         context.cond_stack.pop()
     print("self.stmts2", self, self.stmts)
 
