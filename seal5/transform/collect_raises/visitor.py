@@ -115,7 +115,9 @@ def conditional(self: behav.Conditional, context):
     # self.stmts = [x.generate(context) for x in self.stmts]
     temp = []
     for i, stmt in enumerate(self.stmts):
-        cond_ = self.conds[i]
+        cond_ = None
+        if i < len(self.conds):
+            cond_ = self.conds[i]
         if i == 0:  # if
             cond = cond_
             temp.append(behav.UnaryOperation(behav.Operator("!"), cond_))
