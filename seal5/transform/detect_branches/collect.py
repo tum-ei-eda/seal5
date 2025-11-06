@@ -95,6 +95,7 @@ def run(args):
                 metrics["n_success"] += 1
                 metrics["success_instructions"].append(instr_def.name)
             except Exception as ex:
+                # TODO: if error, restore original behavior? (same for other transforms)
                 logger.exception(ex)
                 metrics["n_failed"] += 1
                 metrics["failed_instructions"].append(instr_def.name)
