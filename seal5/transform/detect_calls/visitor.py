@@ -12,6 +12,10 @@ from m2isar.metamodel import arch, behav
 
 # pylint: disable=unused-argument
 
+ALLOWED_INTRINSIC_NAMES = [
+    "branch",
+]
+
 
 def operation(self: behav.Operation, context):
     # print("operation", self)
@@ -161,7 +165,14 @@ def type_conv(self: behav.TypeConv, context):
 
 
 def callable_(self: behav.Callable, context):
-    context.has_call = True
+
+    ref = self.ref_or_name
+    if not isinstance(ref, str):
+        raise NotImplementedError("ref2str")
+    if ref in ALLOWED_INTRINSIC_NAMES:
+        context.has_intrinsic_call = True
+    else:
+        context.has_call = True
     self.args = [stmt.generate(context) for stmt in self.args]
 
     return self
@@ -175,9 +186,14 @@ def group(self: behav.Group, context):
 
 
 def procedure_call(self: behav.ProcedureCall, context):
-    # print("procedure_call")
 
-    context.has_call = True
+    ref = self.ref_or_name
+    if not isinstance(ref, str):
+        raise NotImplementedError("ref2str")
+    if ref in ALLOWED_INTRINSIC_NAMES:
+        context.has_intrinsic_call = True
+    else:
+        context.has_call = True
     self.fn_args = [arg.generate(context) for arg in self.args]
 
     return self

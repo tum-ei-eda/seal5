@@ -27,6 +27,7 @@ logger = logging.getLogger("detect_calls")
 class VisitorContext:
     def __init__(self):
         self.has_call = False
+        self.has_intrinsic_call = False
 
 
 def get_parser():
@@ -74,6 +75,9 @@ def run(args):
                 if context.has_call:
                     if seal5.model.Seal5InstrAttribute.HAS_CALL not in instr_def.attributes:
                         instr_def.attributes[seal5.model.Seal5InstrAttribute.HAS_CALL] = []
+                if context.has_intrinsic_call:
+                    if seal5.model.Seal5InstrAttribute.HAS_INTRINSIC_CALL not in instr_def.attributes:
+                        instr_def.attributes[seal5.model.Seal5InstrAttribute.HAS_INTRINSIC_CALL] = []
                 metrics["n_success"] += 1
                 metrics["success_instructions"].append(instr_def.name)
             except Exception as ex:
