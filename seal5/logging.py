@@ -181,11 +181,15 @@ class LogRecordSocketReceiver(socketserver.ThreadingTCPServer):
     allow_reuse_address = True
     daemon_threads = True
 
-    def __init__(self, host=HOSTNAME, port=SEAL5_LOGGING_PORT):
+    def __init__(self, host=None, port=None):
+        assert host is not None, "Undefined host"
+        assert port is not None, "Undefined port"
         super().__init__((host, port), LogRecordStreamHandler)
+
 
 class Logger:
     """Proxy that initializes its logger only when first used."""
+
     def __init__(self, name=None):
         self._name = name
         self._logger = None
@@ -193,6 +197,10 @@ class Logger:
     def _get_logger(self):
         if self._logger is None:
             self._logger = get_logger(self._name)
+        else:
+            # replace fllabck logger with actual one of server is available
+            if self._logger.name == "fallback" and check_logging_server():
+                self._logger = get_logger(self._name)
         return self._logger
 
     def __getattr__(self, attr):
