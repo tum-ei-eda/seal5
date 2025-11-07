@@ -41,7 +41,7 @@ from seal5.passes import Seal5Pass, PassType, PassScope, PassManager, filter_pas
 import seal5.pass_list as passes
 
 
-logger = Logger('flow')
+logger = Logger("flow")
 
 TRANSFORM_PASS_MAP = [
     # TODO: Global -> Model
@@ -208,8 +208,10 @@ class Seal5Flow:
             self.settings = Seal5Settings.from_yaml_file(self.settings.settings_file)
             self.meta_dir = self.settings._meta_dir
         if self.settings.logs_dir.is_dir():
-            initialize_logging_server([(self.settings.log_file_path, self.settings.logging.file.level)], self.settings.logging.console.level)
-        self.logger = Logger('flow')
+            initialize_logging_server(
+                [(self.settings.log_file_path, self.settings.logging.file.level)], self.settings.logging.console.level
+            )
+        self.logger = Logger("flow")
         atexit.register(self.close_servers)
         self.logger = Logger("flow")
         self.name = self.settings.name if name is None else name
