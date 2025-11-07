@@ -469,7 +469,9 @@ class Seal5Flow:
             env["CDSL2LLVM_DIR"] = cdsl2llvm_build_dir
         return env
 
-    def parse_coredsl(self, file, out_dir, verbose: bool = False, log_level: str = "warning"):
+    def parse_coredsl(
+        self, file, out_dir, verbose: bool = False, log_level: str = "warning", fail_on_enc_conflict: bool = True
+    ):
         """Parse CDSL file."""
         args = [
             file,
@@ -478,6 +480,8 @@ class Seal5Flow:
             "--log",
             log_level,
         ]
+        if fail_on_enc_conflict:
+            args.append("--fail-on-enc-conflict")
         utils.python(
             "-m",
             "seal5.frontends.coredsl2_seal5.parser",
