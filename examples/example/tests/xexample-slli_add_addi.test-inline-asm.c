@@ -7,7 +7,7 @@
 // RUN: clang -c -target riscv32-unknown-elf -march=rv32ixexample -o %t.o %s
 // RUN: llvm-objdump --disassembler-options=numeric -d %t.o | FileCheck %s
 
-__attribute__((naked)) void test_cv_subincacc() {
-    // CHECK: 2b, 35, f6, 50 xexample.subincacc x10, x12, x15
-    asm("xexample.subincacc x10, x12, x15");
+__attribute__((naked)) void test_slli_add_addi() {
+    // CHECK: 57, 96, 83, 00 xexample.slli_add_addi x11, x14, x16
+    asm("xexample.slli_add_addi x11, x14, x16");
 }
