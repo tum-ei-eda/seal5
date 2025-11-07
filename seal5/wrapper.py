@@ -193,5 +193,3 @@ def run_seal5_flow(
     if cleanup:
         # Optional: cleanup temorary files, build dirs,...
         seal5_flow.clean(temp=True, patches=True, models=True, inputs=True, interactive=interactive)
-
-    seal5_flow.close_servers()
