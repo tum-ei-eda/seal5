@@ -8,7 +8,8 @@ from typing import Union
 from m2isar.metamodel import M2_METAMODEL_VERSION, M2Model, behav
 from seal5.model import Seal5Model, SEAL5_METAMODEL_VERSION
 
-logger = logging.getLogger("seal5_converter")
+from seal5.logging import Logger
+logger = Logger("converter")
 
 
 def load_model(

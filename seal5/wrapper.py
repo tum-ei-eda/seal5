@@ -6,14 +6,13 @@ from typing import Optional, Union, List
 # import logging
 from pathlib import Path
 
+from seal5.logging import Logger
+
 from seal5.flow import Seal5Flow
 from seal5.types import PatchStage
 from seal5.utils import str2bool
-from seal5.logging import get_logger
 
-
-logger = get_logger()
-
+logger = Logger('wrapper')
 
 def group_files(files: List[Union[str, Path]]):
     """Split the given files per extension."""
@@ -194,3 +193,5 @@ def run_seal5_flow(
     if cleanup:
         # Optional: cleanup temorary files, build dirs,...
         seal5_flow.clean(temp=True, patches=True, models=True, inputs=True, interactive=interactive)
+
+    seal5_flow.close_servers()

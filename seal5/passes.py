@@ -8,10 +8,10 @@ from dataclasses import dataclass
 from typing import Callable, Optional, List
 from concurrent.futures import ThreadPoolExecutor
 
-from seal5.logging import get_logger
+from seal5.logging import Logger
 from seal5.settings import Seal5Settings
 
-logger = get_logger()
+logger = Logger('passes')
 
 
 # DEFAULT_NUM_THREADS = multiprocessing.cpu_count()

@@ -26,9 +26,9 @@ from email.utils import formatdate
 import yaml
 
 from seal5 import utils
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
-logger = get_logger()
+logger = Logger("tools")
 
 
 def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=None, msg=None, append=None):

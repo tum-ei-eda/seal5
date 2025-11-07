@@ -19,7 +19,8 @@ from m2isar.metamodel import arch
 from seal5.model import Seal5OperandAttribute, Seal5InstrAttribute
 from seal5.model_utils import load_model
 
-logger = logging.getLogger("properties_writer")
+from seal5.logging import Logger 
+logger = Logger("backends.properties_writer")
 
 
 def main():
@@ -35,7 +36,7 @@ def main():
     args = parser.parse_args()
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     assert args.output is not None
     out_path = pathlib.Path(args.output)

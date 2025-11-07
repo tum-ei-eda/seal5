@@ -16,7 +16,8 @@ import pandas as pd
 
 from seal5.settings import Seal5Settings
 
-logger = logging.getLogger("diff_writer")
+from seal5.logging import Logger 
+logger = Logger("backends.diff_writer")
 
 
 def main():
@@ -32,7 +33,7 @@ def main():
     args = parser.parse_args()
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     assert args.output is not None
     out_path = pathlib.Path(args.output)

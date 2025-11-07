@@ -28,7 +28,8 @@ from seal5.model_utils import load_model
 
 from .templates import template_dir
 
-logger = logging.getLogger("riscv_instr_info")
+from seal5.logging import Logger 
+logger = Logger("backends.riscv_instr_info")
 
 
 class Operand:
@@ -262,7 +263,7 @@ def main():
     args = parser.parse_args()
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)

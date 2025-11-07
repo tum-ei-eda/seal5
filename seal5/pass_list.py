@@ -3,7 +3,7 @@ from typing import Optional
 
 from seal5 import utils
 from seal5.tools import cdsl2llvm
-from seal5.logging import get_logger
+from seal5.logging import Logger
 from seal5.index import File, NamedPatch, write_index_yaml
 from seal5.passes import Seal5Pass, PassType, PassScope, PassManager, PassResult
 from seal5.types import PatchStage
@@ -11,7 +11,7 @@ from seal5.settings import Seal5Settings, PatchSettings
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 from seal5.metrics import read_metrics
 
-logger = get_logger()
+logger = Logger('pass_list')
 
 
 def sanitize_args(args):

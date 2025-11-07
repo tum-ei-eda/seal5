@@ -25,9 +25,10 @@ import tarfile
 from pathlib import Path
 from typing import Optional, List, Dict, Tuple, Union
 
+
 import git
 
-from seal5.logging import get_logger, set_log_file, set_log_level
+from seal5.logging import Logger, initialize_logging_server, stop_logging_server
 from seal5.types import Seal5State, PatchStage
 from seal5.settings import Seal5Settings, PatchSettings, DEFAULT_SETTINGS, LLVMConfig, LLVMVersion
 
@@ -38,7 +39,8 @@ from seal5.resources.resources import get_patches, get_test_cfg
 from seal5.passes import Seal5Pass, PassType, PassScope, PassManager, filter_passes
 import seal5.pass_list as passes
 
-logger = get_logger()
+
+logger = Logger('flow')
 
 TRANSFORM_PASS_MAP = [
     # TODO: Global -> Model
@@ -205,11 +207,8 @@ class Seal5Flow:
             self.settings = Seal5Settings.from_yaml_file(self.settings.settings_file)
             self.meta_dir = self.settings._meta_dir
         if self.settings.logs_dir.is_dir():
-            set_log_file(self.settings.log_file_path)
-            if self.settings:
-                set_log_level(
-                    console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level
-                )
+            initialize_logging_server([(self.settings.log_file_path, self.settings.logging.file.level)], self.settings.logging.console.level)
+        self.logger = Logger('flow')
         self.name = self.settings.name if name is None else name
         self.name = "default" if self.name is None else self.name
         self.settings.name = self.name
@@ -286,16 +285,16 @@ class Seal5Flow:
     ):
         """Initialize Seal5 flow."""
         del verbose  # unused
-        logger.info("Initializing Seal5")
+        self.logger.info("Initializing Seal5")
         start = time.time()
         metrics = {}
         sha = None
         version_info = None
         if not self.directory.is_dir():
             if clone is False and not utils.ask_user("Clone LLVM repository?", default=False, interactive=interactive):
-                logger.error("Target directory does not exist! Aborting...")
+                self.logger.error("Target directory does not exist! Aborting...")
                 sys.exit(1)
-            logger.info("Cloning LLVM Repository")
+            self.logger.info("Cloning LLVM Repository")
             self.repo, sha, version_info = llvm.clone_llvm_repo(
                 self.directory,
                 clone_url,
@@ -307,7 +306,7 @@ class Seal5Flow:
             )
         else:
             if force:
-                logger.info("Updating LLVM Repository")
+                self.logger.info("Updating LLVM Repository")
                 self.repo, sha, version_info = llvm.clone_llvm_repo(
                     self.directory,
                     clone_url,
@@ -321,7 +320,7 @@ class Seal5Flow:
             if force is False and not utils.ask_user(
                 "Overwrite existing .seal5 diretcory?", default=False, interactive=interactive
             ):
-                logger.error("Directory %s already exists! Aborting...", self.meta_dir)
+                self.logger.error("Directory %s already exists! Aborting...", self.meta_dir)
                 sys.exit(1)
         self.meta_dir.mkdir(exist_ok=True)
         create_seal5_directories(
@@ -338,8 +337,6 @@ class Seal5Flow:
             supported_imm_types = llvm.detect_llvm_imm_types(self.directory)
             self.settings.llvm.state.supported_imm_types = list(supported_imm_types)
         self.settings.save()
-        set_log_file(self.settings.log_file_path)
-        set_log_level(console_level=self.settings.logging.console.level, file_level=self.settings.logging.file.level)
         end = time.time()
         diff = end - start
         metrics["start"] = start
@@ -347,7 +344,7 @@ class Seal5Flow:
         metrics["time_s"] = diff
         self.settings.metrics.append({"initialize": metrics})
         self.settings.save()
-        logger.info("Completed initialization of Seal5")
+        self.logger.info("Completed initialization of Seal5")
 
     def setup(
         self,
@@ -359,10 +356,10 @@ class Seal5Flow:
         """Setup Seal5 dependencies."""
         del interactive  # unused
         del verbose  # unused
-        logger.info("Installing Seal5 dependencies")
+        self.logger.info("Installing Seal5 dependencies")
         start = time.time()
         metrics = {}
-        logger.info("Cloning CDSL2LLVM")
+        self.logger.info("Cloning CDSL2LLVM")
         # cdsl2llvm_dependency.clone(self.settings.deps_dir / "cdsl2llvm", overwrite=force, depth=1)
         pattern_gen_settings = self.settings.tools.pattern_gen
         kwargs = {}
@@ -385,14 +382,14 @@ class Seal5Flow:
         if integrated_pattern_gen:
             has_patterngen_patch = any(patch.name == "pattern_gen_support" for patch in self.settings.patches)
             if not has_patterngen_patch:
-                logger.info("Adding PatternGen to target LLVM")
+                self.logger.info("Adding PatternGen to target LLVM")
                 patch_settings = cdsl2llvm.get_pattern_gen_patches(
                     self.settings.deps_dir / "cdsl2llvm",
                     self.settings.temp_dir,
                 )
                 self.settings.add_patch(patch_settings)
         else:
-            logger.info("Building PatternGen")
+            self.logger.info("Building PatternGen")
             llvm_config = LLVMConfig(
                 options={
                     "CMAKE_BUILD_TYPE": "Release",
@@ -410,15 +407,15 @@ class Seal5Flow:
                 cmake_options=cmake_options,
                 use_ninja=self.settings.llvm.ninja,
             )
-            logger.info("Completed build of PatternGen")
-            logger.info("Building llc")
+            self.logger.info("Completed build of PatternGen")
+            self.logger.info("Building llc")
             cdsl2llvm.build_llc(
                 self.settings.deps_dir / "cdsl2llvm",
                 self.settings.deps_dir / "cdsl2llvm" / "llvm" / "build",
                 cmake_options=cmake_options,
                 use_ninja=self.settings.llvm.ninja,
             )
-            logger.info("Completed build of llc")
+            self.logger.info("Completed build of llc")
         # input("qqqqqq")
         end = time.time()
         diff = end - start
@@ -427,7 +424,7 @@ class Seal5Flow:
         metrics["time_s"] = diff
         self.settings.metrics.append({"setup": metrics})
         self.settings.save()
-        logger.info("Completed installation of Seal5 dependencies")
+        self.logger.info("Completed installation of Seal5 dependencies")
 
     def load_cfg(self, file: Path, overwrite: bool = False):
         """Load YAML cfg."""
@@ -475,7 +472,7 @@ class Seal5Flow:
             "seal5.frontends.coredsl2_seal5.parser",
             *args,
             env=self.prepare_environment(),
-            print_func=logger.info if verbose else logger.debug,
+            print_func=self.logger.info if verbose else self.logger.debug,
             live=True,
         )
 
@@ -496,7 +493,7 @@ class Seal5Flow:
 
     def load(self, files: List[Path], verbose: bool = False, overwrite: bool = False):
         """Load files into Seal5 flow."""
-        logger.info("Loading Seal5 inputs")
+        self.logger.info("Loading Seal5 inputs")
         # Expand glob patterns
 
         def glob_helper(file):
@@ -506,7 +503,7 @@ class Seal5Flow:
 
         files = sum([glob_helper(file) for file in files], [])
         for file in files:
-            logger.info("Processing file: %s", file)
+            self.logger.info("Processing file: %s", file)
             ext = file.suffix
             if ext.lower() in [".yml", ".yaml"]:
                 self.load_cfg(file, overwrite=overwrite)
@@ -517,11 +514,11 @@ class Seal5Flow:
             else:
                 raise RuntimeError(f"Unsupported input type: {ext}")
         # TODO: only allow single instr set for now and track inputs in settings
-        logger.info("Completed load of Seal5 inputs")
+        self.logger.info("Completed load of Seal5 inputs")
 
     def build(self, config=None, target="all", verbose: bool = False, **kwargs):
         """Build Seal5 LLVM."""
-        logger.info("Building Seal5 LLVM (%s)", target)
+        self.logger.info("Building Seal5 LLVM (%s)", target)
         start = time.time()
         metrics = {}
         if config is None:
@@ -548,7 +545,7 @@ class Seal5Flow:
         metrics["time_s"] = diff
         self.settings.metrics.append({"build": metrics})
         self.settings.save()
-        logger.info("Completed build of Seal5 LLVM (%s)", target)
+        self.logger.info("Completed build of Seal5 LLVM (%s)", target)
 
     def install(self, dest: Optional[Union[str, Path]] = None, config=None, verbose: bool = False, **kwargs):
         """Install Seal5 LLVM."""
@@ -562,7 +559,7 @@ class Seal5Flow:
         if not isinstance(dest, Path):
             dest = Path(dest)
         dest.mkdir(exist_ok=True)
-        logger.info("Installing Seal5 LLVM to: %s", dest)
+        self.logger.info("Installing Seal5 LLVM to: %s", dest)
         llvm_config = self.settings.llvm.configs.get(config, None)
         assert llvm_config is not None, f"Invalid llvm config: {config}"
         cmake_options = llvm_config.options
@@ -587,11 +584,11 @@ class Seal5Flow:
         metrics["time_s"] = diff
         self.settings.metrics.append({"build": metrics})
         self.settings.save()
-        logger.info("Completed install of Seal5 LLVM")
+        self.logger.info("Completed install of Seal5 LLVM")
 
     def transform(self, verbose: bool = False, skip: Optional[List[str]] = None, only: Optional[List[str]] = None):
         """Transform Seal5 models."""
-        logger.info("Tranforming Seal5 models")
+        self.logger.info("Tranforming Seal5 models")
         start = time.time()
         metrics = {"passes": []}
         passes_settings = self.settings.passes
@@ -622,11 +619,11 @@ class Seal5Flow:
         metrics["time_s"] = diff
         self.settings.metrics.append({"transform": metrics})
         self.settings.save()
-        logger.info("Completed tranformation of Seal5 models")
+        self.logger.info("Completed tranformation of Seal5 models")
 
     def generate(self, verbose: bool = False, skip: Optional[List[str]] = None, only: Optional[List[str]] = None):
         """Generate Seal5 patches."""
-        logger.info("Generating Seal5 patches")
+        self.logger.info("Generating Seal5 patches")
         start = time.time()
         metrics = {"passes": []}
         generate_passes = filter_passes(self.passes, pass_type=PassType.GENERATE)
@@ -646,7 +643,7 @@ class Seal5Flow:
         metrics["time_s"] = diff
         self.settings.metrics.append({"generate": metrics})
         self.settings.save()
-        logger.info("Completed generation of Seal5 patches")
+        self.logger.info("Completed generation of Seal5 patches")
 
     # def collect_patches(self, stage: Optional[PatchStage]):
     #     return ret
@@ -661,7 +658,7 @@ class Seal5Flow:
         for patch_settings in patches_settings:
             if patch_settings.stage is None:
                 patch_settings.stage = int(PatchStage.PHASE_0)
-                logger.warning("Undefined patch stage for patch %s. Defaulting to PHASE_0", patch_settings.name)
+                self.logger.warning("Undefined patch stage for patch %s. Defaulting to PHASE_0", patch_settings.name)
                 # raise NotImplementedError("Undefined patch stage!")
             if patch_settings.generated:  # not manual
                 if patch_settings.target != "llvm":
@@ -677,7 +674,7 @@ class Seal5Flow:
                     # assert key not in temp
                     if key in temp:
                         # override
-                        logger.debug("Overriding existing patch settings")
+                        self.logger.debug("Overriding existing patch settings")
                         new = temp[key]
                         new.merge(patch_settings, inplace=True)
                         temp[key] = new
@@ -693,14 +690,14 @@ class Seal5Flow:
                 key = (target, name)
                 if key in temp:
                     # override
-                    logger.debug("Overriding existing patch settings")
+                    self.logger.debug("Overriding existing patch settings")
                     new = temp[key]
                     new.merge(patch_settings, inplace=True)
                     temp[key] = new
                 else:
                     temp[key] = patch_settings
                 if patch_file:
-                    logger.debug("Copying custom patch_file %s", patch_file)
+                    self.logger.debug("Copying custom patch_file %s", patch_file)
                     dest = self.settings.patches_dir / target
                     dest.mkdir(exist_ok=True)
                     # print("dest", dest)
@@ -735,11 +732,11 @@ class Seal5Flow:
         target = patch.target
         if patch.enable:
             if patch.check_enabled(self.settings):
-                logger.info("Applying patch '%s' on '%s'", name, target)
+                self.logger.info("Applying patch '%s' on '%s'", name, target)
             else:
                 return
         else:
-            logger.info("Skipping patch '%s' on '%s'", name, target)
+            self.logger.info("Skipping patch '%s' on '%s'", name, target)
             return
         if patch.index:
             # use inject_extensions_script
@@ -793,7 +790,7 @@ class Seal5Flow:
     def patch(self, verbose: bool = False, stages: List[PatchStage] = None, force: bool = False):
         """Patch Seal5 LLVM."""
         del verbose  # unused
-        logger.info("Applying Seal5 patches")
+        self.logger.info("Applying Seal5 patches")
         start = time.time()
         metrics = {}
         if stages is None:
@@ -802,7 +799,7 @@ class Seal5Flow:
         patches_per_stage = self.collect_patches()
         stages_metrics = {}
         for stage in stages:
-            logger.info("Current stage: %s", stage)
+            self.logger.info("Current stage: %s", stage)
             patches = patches_per_stage.get(stage, [])
             # print("patches", patches)
             for patch in patches:
@@ -837,21 +834,21 @@ class Seal5Flow:
         metrics["stages"] = stages_metrics
         self.settings.metrics.append({"patch": metrics})
         self.settings.save()
-        logger.info("Completed application of Seal5 patches")
+        self.logger.info("Completed application of Seal5 patches")
 
     def test(
         self, debug: bool = False, verbose: bool = False, ignore_error: bool = False, config: Optional[str] = None
     ):
         """Test Seal5 LLVM."""
         del debug  # unused
-        logger.info("Testing Seal5 LLVM")
+        self.logger.info("Testing Seal5 LLVM")
         start = time.time()
         metrics = {}
         if config is None:
             config = self.settings.llvm.default_config
         test_paths = self.settings.test.paths
         if len(test_paths) == 0:
-            logger.warning("No test paths have been specified!")
+            self.logger.warning("No test paths have been specified!")
             passed_tests = []
             failing_tests = []
             score = None
@@ -864,13 +861,13 @@ class Seal5Flow:
             )
             num_tests = len(passed_tests) + len(failing_tests)
             if num_tests == 0:
-                logger.warning("No tests have been executed!")
+                self.logger.warning("No tests have been executed!")
                 score = None
             else:
                 if len(passed_tests) > 0:
-                    logger.info("%d tests passed: %s", len(passed_tests), ", ".join(passed_tests))
+                    self.logger.info("%d tests passed: %s", len(passed_tests), ", ".join(passed_tests))
                 if len(failing_tests) > 0:
-                    logger.error("%d tests failed: %s", len(failing_tests), ", ".join(failing_tests))
+                    self.logger.error("%d tests failed: %s", len(failing_tests), ", ".join(failing_tests))
                     if not ignore_error:
                         raise RuntimeError("Tests failed!")
                 score = len(passed_tests) / num_tests
@@ -884,14 +881,14 @@ class Seal5Flow:
         metrics["score"] = f"{score*100:.2f}%" if score is not None else None
         self.settings.metrics.append({"test": metrics})
         self.settings.save()
-        logger.info("Completed test of Seal5 LLVM")
+        self.logger.info("Completed test of Seal5 LLVM")
 
     def deploy(self, dest: Path, verbose: bool = False, stage: PatchStage = PatchStage.PHASE_5):
         """Deploy Seal5 LLVM."""
         del verbose  # unused
         assert dest is not None
         # Archive source files
-        logger.info("Deploying Seal5 LLVM")
+        self.logger.info("Deploying Seal5 LLVM")
         start = time.time()
         metrics = {}
         # TODO: move to different file
@@ -909,12 +906,12 @@ class Seal5Flow:
         metrics["time_s"] = diff
         self.settings.metrics.append({"deploy": metrics})
         self.settings.save()
-        logger.info("Completed deployment of Seal5 LLVM")
+        self.logger.info("Completed deployment of Seal5 LLVM")
 
     def export(self, dest: Path, verbose: bool = False, temp: bool = False):
         """Export Seal5 artifacts."""
         del verbose  # unused
-        logger.info("Exporting Seal5 artifacts")
+        self.logger.info("Exporting Seal5 artifacts")
         start = time.time()
         metrics = {}
         assert dest is not None
@@ -952,12 +949,12 @@ class Seal5Flow:
         metrics["time_s"] = diff
         self.settings.metrics.append({"export": metrics})
         self.settings.save()
-        logger.info("Completed export of Seal5 artifacts")
+        self.logger.info("Completed export of Seal5 artifacts")
 
     def reset(self, settings: bool = True, verbose: bool = False, interactive: bool = False):
         """Reset Seal5 flow."""
         del verbose  # unused
-        logger.info("Cleaning Seal5 state")
+        self.logger.info("Cleaning Seal5 state")
         start = time.time()
         metrics = {}
         if interactive:
@@ -972,7 +969,7 @@ class Seal5Flow:
         self.settings.metrics.append({"reset": metrics})
         if self.meta_dir.is_dir():
             self.settings.save()
-        logger.info("Completed clean of Seal5 settings")
+        self.logger.info("Completed clean of Seal5 settings")
 
     def clean(
         self,
@@ -989,7 +986,7 @@ class Seal5Flow:
     ):
         """Cleanup Seal5 flow."""
         del verbose  # unused
-        logger.info("Cleaning Seal5 directories")
+        self.logger.info("Cleaning Seal5 directories")
         start = time.time()
         metrics = {}
         to_clean = []
@@ -1023,4 +1020,7 @@ class Seal5Flow:
         self.settings.metrics.append({"clean": metrics})
         if self.meta_dir.is_dir():
             self.settings.save()
-        logger.info("Completed clean of Seal5 directories")
+        self.logger.info("Completed clean of Seal5 directories")
+
+    def close_servers(self):
+        stop_logging_server()
