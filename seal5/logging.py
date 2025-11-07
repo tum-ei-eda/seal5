@@ -153,6 +153,14 @@ def stop_logging_server():
         _log_server.server_close()
 
 
+def check_logging_server():
+    # global _log_server, _log_port
+    if _log_server is not None:
+        assert _log_port is not None, "Logging server exists with undef port"
+        return True
+    return False
+
+
 # --- Server (listener) that receives LogRecords ---
 class LogRecordStreamHandler(socketserver.StreamRequestHandler):
     def handle(self):
