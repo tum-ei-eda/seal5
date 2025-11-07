@@ -29,7 +29,7 @@ from typing import Optional, List, Dict, Tuple, Union
 
 import git
 
-from seal5.logging import Logger, initialize_logging_server, stop_logging_server
+from seal5.logging import Logger, check_logging_server, initialize_logging_server, stop_logging_server
 from seal5.types import Seal5State, PatchStage
 from seal5.settings import Seal5Settings, PatchSettings, DEFAULT_SETTINGS, LLVMConfig, LLVMVersion
 
@@ -209,6 +209,7 @@ class Seal5Flow:
             initialize_logging_server([(self.settings.log_file_path, self.settings.logging.file.level)], self.settings.logging.console.level)
         self.logger = Logger('flow')
         atexit.register(self.close_servers)
+        self.logger = Logger("flow")
         self.name = self.settings.name if name is None else name
         self.name = "default" if self.name is None else self.name
         self.settings.name = self.name
@@ -327,6 +328,10 @@ class Seal5Flow:
             self.meta_dir,
             ["deps", "models", "logs", "build", "install", "temp", "inputs", "gen", "patches", "tests"],
         )
+        if not check_logging_server() and self.settings.logs_dir.is_dir():
+            initialize_logging_server(
+                [(self.settings.log_file_path, self.settings.logging.file.level)], self.settings.logging.console.level
+            )
         add_test_cfg(self.settings.tests_dir)
         if version_info:
             llvm_version = LLVMVersion(**version_info)
