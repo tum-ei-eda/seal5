@@ -35,6 +35,7 @@ HOSTNAME = "localhost"
 SEAL5_LOGGING_PORT = int(os.getenv("SEAL5_LOGGING_PORT", 0))
 _log_server = None
 _log_port = None
+_logger = None
 
 
 def resolve_log_level(value):
@@ -110,8 +111,9 @@ def initialize_logging_server(
         ("log_info.log", logging.INFO),
     ], stream_log_level: int | str = logging.INFO,
 ):
-    global _log_server, _log_port
+    global _log_server, _log_port, _logger
     logger = logging.getLogger(PROJECT_NAME)
+    _logger = logger
     # This should be the lowest value and not changeable since logger is the first filter
     logger.setLevel(logging.DEBUG)
 
@@ -159,6 +161,21 @@ def check_logging_server():
         assert _log_port is not None, "Logging server exists with undef port"
         return True
     return False
+
+
+def update_log_level(console_level=None, file_level=None):
+    """Set command line or file log level at runtime."""
+    if _logger is not None:
+        for handler in _logger.handlers[:]:
+            if (
+                isinstance(handler, (logging.FileHandler, logging.handlers.TimedRotatingFileHandler))
+                and file_level is not None
+            ):
+                file_level = resolve_log_level(file_level)
+                handler.setLevel(file_level)
+            elif isinstance(handler, logging.StreamHandler) and console_level is not None:
+                console_level = resolve_log_level(console_level)
+                handler.setLevel(console_level)
 
 
 # --- Server (listener) that receives LogRecords ---
