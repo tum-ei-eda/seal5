@@ -465,12 +465,14 @@ class Seal5Flow:
             env["CDSL2LLVM_DIR"] = cdsl2llvm_build_dir
         return env
 
-    def parse_coredsl(self, file, out_dir, verbose: bool = False):
+    def parse_coredsl(self, file, out_dir, verbose: bool = False, log_level: str = "warning"):
         """Parse CDSL file."""
         args = [
             file,
             "-o",
             out_dir,
+            "--log",
+            log_level,
         ]
         utils.python(
             "-m",
@@ -478,7 +480,7 @@ class Seal5Flow:
             *args,
             env=self.prepare_environment(),
             print_func=self.logger.info if verbose else self.logger.debug,
-            live=True,
+            live=verbose,
         )
 
     def load_cdsl(self, file: Path, verbose: bool = False, overwrite: bool = False):
