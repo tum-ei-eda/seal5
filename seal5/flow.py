@@ -22,6 +22,7 @@ import sys
 import time
 import glob
 import tarfile
+import atexit
 from pathlib import Path
 from typing import Optional, List, Dict, Tuple, Union
 
@@ -209,6 +210,7 @@ class Seal5Flow:
         if self.settings.logs_dir.is_dir():
             initialize_logging_server([(self.settings.log_file_path, self.settings.logging.file.level)], self.settings.logging.console.level)
         self.logger = Logger('flow')
+        atexit.register(self.close_servers)
         self.name = self.settings.name if name is None else name
         self.name = "default" if self.name is None else self.name
         self.settings.name = self.name
