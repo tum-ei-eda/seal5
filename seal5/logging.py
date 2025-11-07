@@ -32,8 +32,9 @@ from pathlib import Path
 
 PROJECT_NAME = "seal5"
 HOSTNAME = "localhost"
-SEAL5_LOGGING_PORT = int(os.getenv("SEAL5_LOGGING_PORT", 9020))
+SEAL5_LOGGING_PORT = int(os.getenv("SEAL5_LOGGING_PORT", 0))
 _log_server = None
+_log_port = None
 
 
 def resolve_log_level(value):
@@ -74,11 +75,12 @@ def get_formatter(minimal=False):
 def get_logger(loggername: None | str = None, level=logging.DEBUG):
     
     server_reachable = False
-    try:
-        with socket.create_connection((HOSTNAME, SEAL5_LOGGING_PORT), timeout=0.2):
-            server_reachable = True
-    except OSError:
-        server_reachable = False
+    if _log_port is not None:
+        try:
+            with socket.create_connection((HOSTNAME, _log_port), timeout=0.2):
+                server_reachable = True
+        except OSError:
+            server_reachable = False
 
     # --- Case 1: Logging server not reachable → local fallback logger fallback ---
     if not server_reachable:
@@ -97,7 +99,7 @@ def get_logger(loggername: None | str = None, level=logging.DEBUG):
     logger = logging.getLogger(f"{PROJECT_NAME}.{loggername if loggername is not None else 'unknown'}")
     logger.handlers = []
     logger.setLevel(level=level)
-    socket_handler = logging.handlers.SocketHandler(HOSTNAME, SEAL5_LOGGING_PORT)
+    socket_handler = logging.handlers.SocketHandler(HOSTNAME, _log_port)
     logger.addHandler(socket_handler)
     return logger
 
@@ -108,7 +110,7 @@ def initialize_logging_server(
         ("log_info.log", logging.INFO),
     ], stream_log_level: int | str = logging.INFO,
 ):
-    global _log_server
+    global _log_server, _log_port
     logger = logging.getLogger(PROJECT_NAME)
     # This should be the lowest value and not changeable since logger is the first filter
     logger.setLevel(logging.DEBUG)
@@ -126,7 +128,10 @@ def initialize_logging_server(
             logger.addHandler(file_handler)
 
     try:
-        _log_server = LogRecordSocketReceiver()
+        _log_server = LogRecordSocketReceiver(HOSTNAME, SEAL5_LOGGING_PORT)
+        addr = _log_server.server_address
+        assert len(addr) == 2
+        _log_port = addr[1]
     except OSError as e:
         if e.errno == 98:  # Address already in use
             raise RuntimeError(
@@ -138,13 +143,12 @@ def initialize_logging_server(
     thread = threading.Thread(target=_log_server.serve_forever)
     thread.daemon = True
     thread.start()
-    print(f"Logger started on port {SEAL5_LOGGING_PORT}")
+    print(f"Logger started on port {_log_port}")
 
 
 def stop_logging_server():
-    global _log_server
     if _log_server is not None:
-        print(f"Logger on port {SEAL5_LOGGING_PORT} stopped.")
+        print(f"Logger on port {_log_port} stopped.")
         _log_server.shutdown()
         _log_server.server_close()
 
