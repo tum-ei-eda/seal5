@@ -101,6 +101,30 @@ def get_pattern_gen_patches(
         content="  initializePatternGenPass(Registry);",
     )
     artifacts.append(patch_artifact)
+    others = [
+        "llvm/include/llvm/CodeGen/GlobalISel/GIMatchTableExecutor.h",
+        "llvm/include/llvm/CodeGen/GlobalISel/GIMatchTableExecutorImpl.h" "llvm/include/llvm/CodeGen/MachineInstr.h",
+        "llvm/include/llvm/IR/IntrinsicsRISCV.td",
+        "llvm/lib/CodeGen/BranchFolding.cpp",
+        "llvm/lib/CodeGen/GlobalISel/GIMatchTableExecutor.cpp",
+        "llvm/lib/CodeGen/GlobalISel/InstructionSelect.cpp",
+        "llvm/lib/Target/RISCV/GISel/RISCVInstructionSelector.cpp",
+        "llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp",
+        "llvm/lib/Target/RISCV/RISCVInstrInfo.cpp",
+        "llvm/utils/TableGen/Common/GlobalISel/GlobalISelMatchTable.cpp",
+        "llvm/utils/TableGen/Common/GlobalISel/GlobalISelMatchTable.h",
+        "llvm/utils/TableGen/GlobalISelEmitter.cpp",
+    ]
+    for file in others:
+        src_path = src / file
+        if not src_path.is_file():
+            continue
+        file_artifact = File(
+            file,
+            src_path=src_path,
+            replace=True,
+        )
+        artifacts.append(file_artifact)
 
     index_file = temp_dir / "pattern_gen_support_index.yml"
     write_index_yaml(index_file, artifacts, {}, content=True)
