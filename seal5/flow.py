@@ -28,6 +28,7 @@ from typing import Optional, List, Dict, Tuple, Union
 
 
 import git
+import seal5.logging
 
 from seal5.logging import Logger, check_logging_server, initialize_logging_server, stop_logging_server
 from seal5.types import Seal5State, PatchStage
@@ -464,6 +465,8 @@ class Seal5Flow:
         if cdsl2llvm_build_dir.is_dir():
             cdsl2llvm_build_dir = str(cdsl2llvm_build_dir)
             env["CDSL2LLVM_DIR"] = cdsl2llvm_build_dir
+        if seal5.logging.SEAL5_INTERNALS_LOGGING_PORT is not None:
+            env["SEAL5_INTERNALS_LOGGING_PORT"] = str(seal5.logging.SEAL5_INTERNALS_LOGGING_PORT)
         return env
 
     def parse_coredsl(self, file, out_dir, verbose: bool = False, log_level: str = "warning"):

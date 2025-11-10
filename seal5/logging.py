@@ -29,12 +29,14 @@ import pickle
 from typing import List, Tuple
 import threading
 from pathlib import Path
+from typing import Optional
 
 PROJECT_NAME = "seal5"
 HOSTNAME = "localhost"
 SEAL5_LOGGING_PORT = int(os.getenv("SEAL5_LOGGING_PORT", 0))
+_env_val: Optional[str] = os.getenv("SEAL5_INTERNALS_LOGGING_PORT")
+SEAL5_INTERNALS_LOGGING_PORT: Optional[int] = int(_env_val) if _env_val is not None else None
 _log_server = None
-_log_port = None
 _logger = None
 
 
@@ -55,9 +57,9 @@ def get_formatter(minimal=False):
 def get_logger(loggername: None | str = None, level=logging.DEBUG):
 
     server_reachable = False
-    if _log_port is not None:
+    if SEAL5_INTERNALS_LOGGING_PORT is not None:
         try:
-            with socket.create_connection((HOSTNAME, _log_port), timeout=0.2):
+            with socket.create_connection((HOSTNAME, SEAL5_INTERNALS_LOGGING_PORT), timeout=0.2):
                 server_reachable = True
         except OSError:
             server_reachable = False
@@ -79,7 +81,7 @@ def get_logger(loggername: None | str = None, level=logging.DEBUG):
     logger = logging.getLogger(f"{PROJECT_NAME}.{loggername if loggername is not None else 'unknown'}")
     logger.handlers = []
     logger.setLevel(level=level)
-    socket_handler = logging.handlers.SocketHandler(HOSTNAME, _log_port)
+    socket_handler = logging.handlers.SocketHandler(HOSTNAME, SEAL5_INTERNALS_LOGGING_PORT)
     logger.addHandler(socket_handler)
     return logger
 
@@ -91,7 +93,7 @@ def initialize_logging_server(
     ],
     stream_log_level: int | str = logging.INFO,
 ):
-    global _log_server, _log_port, _logger
+    global _log_server, SEAL5_INTERNALS_LOGGING_PORT, _logger
     logger = logging.getLogger(PROJECT_NAME)
     _logger = logger
     # This should be the lowest value and not changeable since logger is the first filter
@@ -113,7 +115,7 @@ def initialize_logging_server(
         _log_server = LogRecordSocketReceiver(HOSTNAME, SEAL5_LOGGING_PORT)
         addr = _log_server.server_address
         assert len(addr) == 2
-        _log_port = addr[1]
+        SEAL5_INTERNALS_LOGGING_PORT = addr[1]
     except OSError as e:
         if e.errno == 98:  # Address already in use
             raise RuntimeError("Initialization of logging Server not possible! Port Taken!")
@@ -123,20 +125,20 @@ def initialize_logging_server(
     thread = threading.Thread(target=_log_server.serve_forever)
     thread.daemon = True
     thread.start()
-    print(f"Logger started on port {_log_port}")
+    print(f"Logger started on port {SEAL5_INTERNALS_LOGGING_PORT}")
 
 
 def stop_logging_server():
     if _log_server is not None:
-        print(f"Logger on port {_log_port} stopped.")
+        print(f"Logger on port {SEAL5_INTERNALS_LOGGING_PORT} stopped.")
         _log_server.shutdown()
         _log_server.server_close()
 
 
 def check_logging_server():
-    # global _log_server, _log_port
+    # global _log_server, SEAL5_INTERNALS_LOGGING_PORT
     if _log_server is not None:
-        assert _log_port is not None, "Logging server exists with undef port"
+        assert SEAL5_INTERNALS_LOGGING_PORT is not None, "Logging server exists with undef port"
         return True
     return False
 
