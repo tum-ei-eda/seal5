@@ -16,6 +16,7 @@ from .parser_gen import CoreDSL2Parser, CoreDSL2Visitor
 from .utils import RADIX, SHORTHANDS, SIGNEDNESS
 
 from seal5.logging import Logger
+
 logger = Logger("frontends.arch_builder")
 
 

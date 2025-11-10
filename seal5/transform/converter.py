@@ -20,8 +20,8 @@ import seal5.model as seal5_model
 from seal5.model_utils import load_model, dump_model
 
 from seal5.logging import Logger
-logger = Logger("transform.converter")
 
+logger = Logger("transform.converter")
 
 
 def convert_attrs(attrs, base):

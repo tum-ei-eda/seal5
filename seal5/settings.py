@@ -30,7 +30,7 @@ from seal5.types import PatchStage
 from seal5.utils import parse_cond
 from seal5.logging import Logger
 
-logger = Logger('settings')
+logger = Logger("settings")
 
 
 DEFAULT_SETTINGS = {

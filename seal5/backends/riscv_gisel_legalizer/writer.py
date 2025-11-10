@@ -15,7 +15,8 @@ import pathlib
 from seal5.index import NamedPatch, write_index_yaml
 from seal5.settings import RISCVLegalizerSettings, Seal5Settings
 
-from seal5.logging import Logger 
+from seal5.logging import Logger
+
 logger = Logger("backends.riscv_gisel_legalizer")
 
 # if (ST.hasVendorXCvsimd()) {

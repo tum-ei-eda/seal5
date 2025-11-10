@@ -28,7 +28,7 @@ from seal5.settings import LLVMVersion
 from seal5.utils import is_populated
 from .tools.llvm import CloneProgress  # TODO: move to other file
 
-logger = Logger('dependencies')
+logger = Logger("dependencies")
 
 
 class Dependency:

@@ -14,7 +14,8 @@ from seal5.utils import str2bool
 from seal5.logging import update_log_level
 
 
-logger = Logger('wrapper')
+logger = Logger("wrapper")
+
 
 def group_files(files: List[Union[str, Path]]):
     """Split the given files per extension."""

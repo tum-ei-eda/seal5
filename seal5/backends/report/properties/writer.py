@@ -19,7 +19,8 @@ from m2isar.metamodel import arch
 from seal5.model import Seal5OperandAttribute, Seal5InstrAttribute
 from seal5.model_utils import load_model
 
-from seal5.logging import Logger 
+from seal5.logging import Logger
+
 logger = Logger("backends.properties_writer")
 
 

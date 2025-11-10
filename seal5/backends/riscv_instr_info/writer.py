@@ -28,7 +28,8 @@ from seal5.model_utils import load_model
 
 from .templates import template_dir
 
-from seal5.logging import Logger 
+from seal5.logging import Logger
+
 logger = Logger("backends.riscv_instr_info")
 
 

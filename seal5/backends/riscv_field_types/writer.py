@@ -17,7 +17,8 @@ from seal5.index import write_index_yaml, NamedPatch
 
 from seal5.settings import Seal5Settings
 
-from seal5.logging import Logger 
+from seal5.logging import Logger
+
 logger = Logger("backends.riscv_field_types")
 
 SEAL5_RISCV_FIELDS_SUPPORT = """class Seal5RISCVUImmOp<int bitsNum> : RISCVOp {

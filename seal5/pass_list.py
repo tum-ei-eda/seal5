@@ -11,7 +11,7 @@ from seal5.settings import Seal5Settings, PatchSettings
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 from seal5.metrics import read_metrics
 
-logger = Logger('pass_list')
+logger = Logger("pass_list")
 
 
 def sanitize_args(args):

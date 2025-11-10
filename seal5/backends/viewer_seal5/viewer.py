@@ -22,7 +22,8 @@ from seal5.model_utils import load_model
 from . import treegen
 from .utils import TkTreeGenContext, TextTreeGenContext
 
-from seal5.logging import Logger 
+from seal5.logging import Logger
+
 logger = Logger("backends.viewer")
 
 

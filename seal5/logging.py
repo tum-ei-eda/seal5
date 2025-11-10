@@ -53,7 +53,7 @@ def get_formatter(minimal=False):
 
 
 def get_logger(loggername: None | str = None, level=logging.DEBUG):
-    
+
     server_reachable = False
     if _log_port is not None:
         try:
@@ -64,7 +64,7 @@ def get_logger(loggername: None | str = None, level=logging.DEBUG):
 
     # --- Case 1: Logging server not reachable → local fallback logger fallback ---
     if not server_reachable:
-        fallback_logger = logging.getLogger('fallback')  # fallback logger
+        fallback_logger = logging.getLogger("fallback")  # fallback logger
         fallback_logger.setLevel(logging.DEBUG)
 
         # Ensure a StreamHandler exists only once
@@ -88,7 +88,8 @@ def initialize_logging_server(
     logfiles: None | List[Tuple[Path | str, int]] = [
         ("log_debug.log", logging.DEBUG),
         ("log_info.log", logging.INFO),
-    ], stream_log_level: int | str = logging.INFO,
+    ],
+    stream_log_level: int | str = logging.INFO,
 ):
     global _log_server, _log_port, _logger
     logger = logging.getLogger(PROJECT_NAME)
@@ -115,9 +116,7 @@ def initialize_logging_server(
         _log_port = addr[1]
     except OSError as e:
         if e.errno == 98:  # Address already in use
-            raise RuntimeError(
-                "Initialization of logging Server not possible! Port Taken!"
-            )
+            raise RuntimeError("Initialization of logging Server not possible! Port Taken!")
         else:
             raise  # rethrow unexpected errors
 
@@ -171,11 +170,7 @@ class LogRecordStreamHandler(socketserver.StreamRequestHandler):
             record = logging.makeLogRecord(pickle.loads(chunk))
             logger = logging.getLogger(record.name)
             # The logger is sent, if it holds a socket_handler it will answer ending in a loop
-            socket_handlers = [
-                h
-                for h in logger.handlers
-                if isinstance(h, logging.handlers.SocketHandler)
-            ]
+            socket_handlers = [h for h in logger.handlers if isinstance(h, logging.handlers.SocketHandler)]
             for h in socket_handlers:
                 logger.removeHandler(h)
             logger.handle(record)
@@ -209,4 +204,3 @@ class Logger:
 
     def __getattr__(self, attr):
         return getattr(self._get_logger(), attr)
-

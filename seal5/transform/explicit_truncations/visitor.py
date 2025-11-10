@@ -23,6 +23,7 @@ import logging
 from m2isar.metamodel import behav
 
 from seal5.logging import Logger
+
 logger = Logger("transform." + __name__)
 
 

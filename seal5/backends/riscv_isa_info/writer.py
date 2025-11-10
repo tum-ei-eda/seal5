@@ -21,7 +21,8 @@ from seal5.index import NamedPatch, write_index_yaml
 from seal5.settings import ExtensionsSettings, LLVMVersion
 from seal5.model_utils import load_model
 
-from seal5.logging import Logger 
+from seal5.logging import Logger
+
 logger = Logger("backends.riscv_isa_info")
 
 
