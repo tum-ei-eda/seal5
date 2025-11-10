@@ -38,30 +38,9 @@ _log_port = None
 _logger = None
 
 
-def resolve_log_level(value):
-    """Return a valid numeric logging level for a given input."""
+def resolve_log_level(value: str | int):
+    return getattr(logging, value.upper()) if isinstance(value, str) else value
 
-    LOG_LEVELS = {
-        "CRITICAL": logging.CRITICAL,
-        "ERROR": logging.ERROR,
-        "WARNING": logging.WARNING,
-        "INFO": logging.INFO,
-        "DEBUG": logging.DEBUG,
-        "NOTSET": logging.NOTSET,
-    }
-    # If it's already an int (e.g., logging.INFO or 20)
-    if isinstance(value, int):
-        return value
-
-    # If it's a string
-    if isinstance(value, str):
-        val = value.strip().upper()
-        if val.isnumeric():              # e.g., "20"
-            return int(val)
-        return LOG_LEVELS.get(val, logging.DEBUG)  # default to INFO
-
-    # Fallback
-    return logging.DEBUG
 
 def get_formatter(minimal=False):
     """Returns a log formatter for one on two predefined formats."""
