@@ -26,7 +26,6 @@ import pandas as pd
 
 # import numpy as np
 
-from seal5.logging import get_logger
 
 logger = get_logger("examples." + __name__)
 

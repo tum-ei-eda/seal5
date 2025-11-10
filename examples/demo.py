@@ -19,7 +19,6 @@
 """Demo script for the Seal5 Flow."""
 import os
 
-# import logging
 from pathlib import Path
 
 from seal5.wrapper import run_seal5_flow
