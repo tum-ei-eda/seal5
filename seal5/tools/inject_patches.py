@@ -107,6 +107,7 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
         end = artifact.get("end", None)
         line = artifact.get("line", None)
         content_ = artifact.get("content", None)
+        replace = artifact.get("replace", False)
         assert dest_path is not None
         is_file = False
         is_dir = False
@@ -177,12 +178,45 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
         else:
             assert is_file
             # Adding new file
-            orig_file = "/dev/null"
+            if llvm_dir is not None:
+                orig_file_full = llvm_dir / dest_path
+                if orig_file_full.is_file():
+                    assert replace, f"File already exists: {orig_file_full}"
             new_file = "b/" + dest_path
-            new_start = 1
-            site_len = 0
-            site_line = -1
-            new_len = content_.count("\n") + 1
+            if replace:
+                orig_file = "a/" + dest_path
+                with open(orig_file_full, "r") as f:
+                    orig_content = f.read()
+                orig_len = orig_content.count("\n") + 1
+                orig_content = "-" + orig_content.replace("\n", "\n-")
+                content = orig_content + "\n" + content
+                new_start = 1
+                site_len = orig_len
+                site_line = 0
+                new_len = content_.count("\n") + 1
+                diff_args = ["git", "diff", "--no-index", orig_file_full, src_path]
+                handle_exit = lambda *args: 0
+                diff_out = utils.exec_getout(
+                    *diff_args,
+                    cwd=llvm_dir,
+                    print_func=lambda *args, **kwargs: None,
+                    live=False,
+                    handle_exit=handle_exit,
+                )
+                assert len(diff_out) > 0
+                diff_lines = diff_out.splitlines()
+                assert len(diff_lines) > 4
+                diff_content = "\n".join(diff_lines[4:])
+                return f"""--- {orig_file}
++++ {new_file}
+{diff_content}
+"""
+            else:
+                orig_file = "/dev/null"
+                new_start = 1
+                site_len = 0
+                site_line = -1
+                new_len = content_.count("\n") + 1
         return f"""--- {orig_file}
 +++ {new_file}
 @@ -{site_line + 1},{site_len} +{new_start},{new_len} @@

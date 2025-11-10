@@ -111,9 +111,15 @@ class File(Artifact):
     """File artifact class."""
 
     def __init__(
-        self, dest_path: Path, src_path: Optional[Path] = None, content: Optional[Path] = None, append: bool = False
+        self,
+        dest_path: Path,
+        src_path: Optional[Path] = None,
+        content: Optional[Path] = None,
+        append: bool = False,
+        replace: bool = False,
     ):
         super().__init__(dest_path, src_path=src_path, content=content, append=append)
+        self.replace = replace
 
 
 class Directory(Artifact):
