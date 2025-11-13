@@ -12,3 +12,5 @@ mako
 tqdm
 pandas
 tabulate
+fuse-overlayfs
+mntfinder==0.1.1
