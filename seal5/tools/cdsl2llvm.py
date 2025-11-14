@@ -103,7 +103,8 @@ def get_pattern_gen_patches(
     artifacts.append(patch_artifact)
     others = [
         "llvm/include/llvm/CodeGen/GlobalISel/GIMatchTableExecutor.h",
-        "llvm/include/llvm/CodeGen/GlobalISel/GIMatchTableExecutorImpl.h" "llvm/include/llvm/CodeGen/MachineInstr.h",
+        "llvm/include/llvm/CodeGen/GlobalISel/GIMatchTableExecutorImpl.h",
+        "llvm/include/llvm/CodeGen/MachineInstr.h",
         "llvm/include/llvm/IR/IntrinsicsRISCV.td",
         "llvm/lib/CodeGen/BranchFolding.cpp",
         "llvm/lib/CodeGen/GlobalISel/GIMatchTableExecutor.cpp",
