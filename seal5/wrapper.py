@@ -104,6 +104,7 @@ def run_seal5_flow(
         prepatched = has_stage0_tag
     if prepatched:
         assert has_stage0_tag, "PREPATCHED can only be used after LLVM was patched at least once."
+        logger.info("Skipping PHASE0 patch using PREPATCHED feature.")
 
     # Clone LLVM and init seal5 metadata directory
     if init:
