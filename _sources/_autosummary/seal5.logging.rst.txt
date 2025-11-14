@@ -8,8 +8,19 @@ seal5.logging
 
    .. autosummary::
    
+      check_logging_server
       get_formatter
       get_logger
-      set_log_file
-      set_log_level
+      initialize_logging_server
+      resolve_log_level
+      stop_logging_server
+      update_log_level
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      LogRecordSocketReceiver
+      LogRecordStreamHandler
+      Logger
    
