@@ -136,7 +136,6 @@ def stop_logging_server():
 
 
 def check_logging_server():
-    # global _log_server, SEAL5_INTERNALS_LOGGING_PORT
     if _log_server is not None:
         assert SEAL5_INTERNALS_LOGGING_PORT is not None, "Logging server exists with undef port"
         return True
@@ -199,7 +198,7 @@ class Logger:
         if self._logger is None:
             self._logger = get_logger(self._name)
         else:
-            # replace fllabck logger with actual one of server is available
+            # replace fallback logger with actual one of server is available
             if self._logger.name == "fallback" and check_logging_server():
                 self._logger = get_logger(self._name)
         return self._logger
