@@ -45,7 +45,7 @@ def prepatched_helper(val):
 VERBOSE = str2bool(os.environ.get("VERBOSE", 0))
 SKIP_PATTERNS = str2bool(os.environ.get("SKIP_PATTERNS", 0))
 INTERACTIVE = str2bool(os.environ.get("INTERACTIVE", 0))
-PREPATCHED = prepatched_helper(os.environ.get("PREPATCHED", 0))  # Possible values: [0,1,auto]
+PREPATCHED = prepatched_helper(os.environ.get("PREPATCHED", "auto"))  # Possible values: [0,1,auto]
 LLVM_URL = os.environ.get("LLVM_URL", "https://github.com/llvm/llvm-project.git")
 LLVM_REF = os.environ.get("LLVM_REF", "llvmorg-19.1.7")
 BUILD_CONFIG = os.environ.get("BUILD_CONFIG", None)
