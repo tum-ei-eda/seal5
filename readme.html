@@ -225,6 +225,41 @@ seal5<span class="w"> </span>clean<span class="w"> </span><span class="o">[</spa
 <section id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
 <p>See <a class="reference external" href="https://github.com/tum-ei-eda/seal5/blob/main/examples/demo.py"><code class="docutils literal notranslate"><span class="pre">examples/demo.py</span></code></a> for example of end-to-end flow!</p>
+<p>Seal5 also provides an high-level “Wrapper-API” which allows executing an End-to-End Seal5 Session with minimal manual steps.</p>
+<p>Python Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">seal5.wrapper</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_seal5_flow</span>
+<span class="n">FILES</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Example.core_desc&quot;</span><span class="p">,</span><span class="o">...</span><span class="p">]</span>
+<span class="n">run_seal5_flow</span><span class="p">(</span><span class="n">FILES</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;demo&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;/path/to/seal5_llvm&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Command-line Example:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>seal5<span class="w"> </span>--verbose<span class="w"> </span>--dir<span class="w"> </span>/path/to/seal5_llvm<span class="w"> </span>wrapper<span class="w"> </span>Example.core_desc
+</pre></div>
+</div>
+<p>The Wrapper-API exposes some options via the environment variables listed below.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span><span class="nv">VERBOSE</span><span class="o">=</span><span class="m">0</span>/1<span class="w">                     </span><span class="c1"># Print detailed outputs of LLVM build and passes</span>
+<span class="nv">SKIP_PATTERNS</span><span class="o">=</span><span class="m">0</span>/1<span class="w">               </span><span class="c1"># Skip pattern-gen specific stages</span>
+<span class="nv">INTERACTIVE</span><span class="o">=</span><span class="m">0</span>/1<span class="w">                 </span><span class="c1"># Enable interactive user prompts (i.e. before removing files)</span>
+<span class="nv">PREPATCHED</span><span class="o">=</span>auto/0/1<span class="w">             </span><span class="c1"># Skip the PHASE0 passes (if they have been already applied)</span>
+<span class="nv">LLVM_URL</span><span class="o">=</span>http://...<span class="w">             </span><span class="c1"># Use a custom LLVM fork url</span>
+<span class="nv">LLVM_REF</span><span class="o">=</span>llvmorg-19.1.7/...<span class="w">     </span><span class="c1"># Which base llvm branch/tag to use</span>
+<span class="nv">BUILD_CONFIG</span><span class="o">=</span>release/debug/...<span class="w">  </span><span class="c1"># Override default LLVM build config</span>
+<span class="nv">IGNORE_ERROR</span><span class="o">=</span><span class="m">1</span>/0<span class="w">                </span><span class="c1"># Do not return non-zero exit code if a stage failed</span>
+<span class="nv">IGNORE_LLVM_IMM_TYPES</span><span class="o">=</span><span class="m">0</span>/1<span class="w">       </span><span class="c1"># Skip the automatic-detection of supported imm types by LLVM</span>
+<span class="nv">TEST</span><span class="o">=</span><span class="m">1</span>/0<span class="w">                        </span><span class="c1"># Skip the test stage if disabled</span>
+<span class="nv">INSTALL</span><span class="o">=</span><span class="m">1</span>/0<span class="w">                     </span><span class="c1"># Skip the install stage if disabled</span>
+<span class="nv">DEPLOY</span><span class="o">=</span><span class="m">1</span>/0<span class="w">                      </span><span class="c1"># Skip the deploy stage if disabled</span>
+<span class="nv">EXPORT</span><span class="o">=</span><span class="m">1</span>/0<span class="w">                      </span><span class="c1"># Skip the export stage if disabled</span>
+<span class="nv">CLEANUP</span><span class="o">=</span><span class="m">1</span>/0<span class="w">                     </span><span class="c1"># Skip the cleanup stage if disabled</span>
+<span class="nv">RESET</span><span class="o">=</span><span class="m">1</span>/0<span class="w">                       </span><span class="c1"># Skip the reset stage if disabled</span>
+<span class="nv">INIT</span><span class="o">=</span><span class="m">1</span>/0<span class="w">                        </span><span class="c1"># Skip the initialization stage if disabled</span>
+<span class="nv">SETUP</span><span class="o">=</span><span class="m">1</span>/0<span class="w">                       </span><span class="c1"># Skip the setup stage if disabled</span>
+<span class="nv">PROGRESS</span><span class="o">=</span><span class="m">0</span>/1<span class="w">                    </span><span class="c1"># Use progres bars during cloning and execution of transforms</span>
+<span class="nv">CCACHE</span><span class="o">=</span><span class="m">0</span>/1<span class="w">                      </span><span class="c1"># Enable caching of LLVM build artifacts to speedup re-builds (needs ccache or sccache installation)</span>
+<span class="nv">CLONE_DEPTH</span><span class="o">=</span>-1/1/...<span class="w">            </span><span class="c1"># Optionally limit the Git clone depth to speeup fetching the LLVM repo (-1: full-depth)</span>
+NAME<span class="w">                            </span><span class="c1"># Label of the Seal5 flow (used in Git tags,...)</span>
+</pre></div>
+</div>
 </section>
 <section id="documentation">
 <h2>Documentation<a class="headerlink" href="#documentation" title="Link to this heading"></a></h2>

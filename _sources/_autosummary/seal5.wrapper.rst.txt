@@ -9,5 +9,6 @@ seal5.wrapper
    .. autosummary::
    
       group_files
+      prepatched_helper
       run_seal5_flow
    
