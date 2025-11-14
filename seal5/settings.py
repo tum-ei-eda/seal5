@@ -28,9 +28,9 @@ from dacite import from_dict, Config
 
 from seal5.types import PatchStage
 from seal5.utils import parse_cond
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
-logger = get_logger()
+logger = Logger("settings")
 
 
 DEFAULT_SETTINGS = {

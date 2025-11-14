@@ -17,15 +17,14 @@
 # limitations under the License.
 #
 """Common Seal5 CLI code."""
-from seal5.logging import get_logger, set_log_level
+from seal5.logging import Logger
 
-logger = get_logger()
+logger = Logger("cli")
 
 
 def handle_logging_flags(args):
     """Handler for logging-related flags."""
-    level = args.log.upper()
-    set_log_level(level)
+    logger.setLevel(args.log.upper())
 
 
 def add_common_options(parser):
