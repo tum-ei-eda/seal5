@@ -25,9 +25,10 @@ import pathlib
 import pandas as pd
 
 # import numpy as np
+from seal5.logging import Logger, check_logging_server, initialize_logging_server, stop_logging_server
 
 
-logger = get_logger("examples." + __name__)
+logger = Logger("examples." + __name__)
 
 
 def main():
