@@ -23,12 +23,12 @@ from pathlib import Path
 
 import git
 
-from seal5.logging import get_logger
+from seal5.logging import Logger
 from seal5.settings import LLVMVersion
 from seal5.utils import is_populated
 from .tools.llvm import CloneProgress  # TODO: move to other file
 
-logger = get_logger()
+logger = Logger("dependencies")
 
 
 class Dependency:

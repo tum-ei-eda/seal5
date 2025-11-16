@@ -19,10 +19,10 @@
 """Command line subcommand for Installing Seal5 dependencies"""
 
 from seal5.flow import Seal5Flow
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
 
-logger = get_logger()
+logger = Logger("cli")
 
 
 def add_setup_options(parser):

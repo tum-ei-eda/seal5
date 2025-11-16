@@ -8,13 +8,15 @@ from typing import Union
 from m2isar.metamodel import M2_METAMODEL_VERSION, M2Model
 from seal5.model import Seal5Model, SEAL5_METAMODEL_VERSION
 
-logger = logging.getLogger("seal5_converter")
+from seal5.logging import Logger
+
+logger = Logger("model_utils")
 
 
 def load_model(
     model_path: Union[str, Path], compat: bool = False, allow_missmatch: bool = False
 ) -> Union[Seal5Model, M2Model]:
-    logger.info("loading model: %s", str(model_path))
+    logger.debug("loading model: %s", str(model_path))
     with open(model_path, "rb") as f:
         # models: "dict[str, arch.CoreDef]" = pickle.load(f)
         # sets: "dict[str, arch.InstructionSet]" = pickle.load(f)
@@ -33,7 +35,6 @@ def load_model(
 def dump_model(
     model_obj: Union[Seal5Model, M2Model], out_path: Union[str, Path], compat: bool = False, ignore_suffix: bool = False
 ):
-    logger.info("dumping model")
     if not ignore_suffix:
         out_path = Path(out_path)
         suffix = out_path.suffix
@@ -43,5 +44,6 @@ def dump_model(
             out_path = out_path.parent / f"{out_path.stem}{required_suffix}"
         else:
             assert suffix == required_suffix, f"Invalid suffix: {suffix}, Expected: {required_suffix}"
+    logger.debug("dumping model: %s", out_path)
     with open(out_path, "wb") as f:
         pickle.dump(model_obj, f)

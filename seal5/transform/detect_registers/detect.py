@@ -16,7 +16,9 @@ import pathlib
 import seal5.model as seal5_model
 from seal5.model_utils import load_model, dump_model
 
-logger = logging.getLogger("detect_registers")
+from seal5.logging import Logger
+
+logger = Logger("transform.detect_registers")
 
 
 def detect_registers(set_def: seal5_model.Seal5InstructionSet):
@@ -74,7 +76,7 @@ def get_parser():
 
 def run(args):
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)

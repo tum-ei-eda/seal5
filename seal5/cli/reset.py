@@ -19,10 +19,10 @@
 """Command line subcommand for resetting the seal5 environment."""
 
 from seal5.flow import Seal5Flow
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
 
-logger = get_logger()
+logger = Logger("cli")
 
 
 def add_reset_options(parser):

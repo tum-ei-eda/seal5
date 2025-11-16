@@ -1,3 +1,4 @@
+---
 ##
 ## Copyright (c) 2024 TUM Department of Electrical and Computer Engineering.
 ##
@@ -19,237 +20,233 @@
 
 # Seal5 demonstration (also serves as end-to-end testj
 name: Usage Demo (Weekly)
-
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 0 * * 6"
-
+    - cron: 0 0 * * 6
 # push:
 #   branches:
 #     - main
 # pull_request:
 #   branches:
 #     - main
-
 jobs:
   demo:
     strategy:
       fail-fast: false
       matrix:
-        os:
-        - ubuntu-latest
-        python-version:
-        - "3.10"
+        os: [ubuntu-latest]
+        python-version: ['3.10']
         script:
-        - demo.py
-        - demo.sh
-        - corev_demo.py
-        # Broken due to tablegen freeze
-        # - gen_demo.py
-        # - gpr32_demo.py
-        - openasip_demo.py
-        - rv64_demo.py
-        - rvc_demo.py
-        # - rvp_demo.py
-        - s4e_demo.py
-        - tumeda_demo.py
-        - se_demo.py
-        verbose:
-        - "0"
-        progress:
-        - "1"
+          - demo.py
+          - demo.sh
+          - corev_demo.py
+          # Broken due to tablegen freeze
+          # - gen_demo.py
+          # - gpr32_demo.py
+          - openasip_demo.py
+          - rv64_demo.py
+          - rvc_demo.py
+          # - rvp_demo.py
+          - s4e_demo.py
+          - tumeda_demo.py
+          - se_demo.py
+        verbose: ['0']
+        progress: ['1']
         clone_depth:
-        - 1
+          - 1
         # fast:
         # - "0"
-        ignore_error:
-        - "1"
-        build_config:
-        # - release
-        - release_assertions
-        test:
-        - "1"
-        install:
-        - "1"
-        deploy:
-        - "1"
-        export:
-        - "1"
-        ccache:
-        - "1"
-        llvm-ref:
-        - "llvmorg-18.1.0-rc3"
-        - "llvmorg-19.1.7"
-        - "llvmorg-20.1.0"
+        ignore_error: ['1']
+        build_config: [release_assertions]
+        test: ['1']
+        install: ['1']
+        deploy: ['1']
+        export: ['1']
+        ccache: ['1']
+        llvm-ref: [llvmorg-19.1.7, llvmorg-20.1.0]
     env:
       SEAL5_NUM_THREADS: 1
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: recursive
-    - name: Setup ccache
-      if: ${{ matrix.ccache == '1' }}
-      uses: hendrikmuhs/ccache-action@v1
-      with:
-        max-size: 2G
-        key: ${{ matrix.os }}-${{ matrix.script }}-${{ matrix.build_config }}
-        variant: sccache
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install APT packages
-      run: |
-        sudo apt -qq install -y python3-pip python3-venv cmake make ninja-build python3-pandas
-    - name: Initialize Virtualenv
-      run: |
-        python -m pip install --upgrade pip
-        python -m venv .venv
-    - name: Install dependencies
-      run: |
-        source .venv/bin/activate
-        pip install -r requirements.txt
-        pip list
-    - name: Run package creation
-      run: |
-        source .venv/bin/activate
-        pip install -e .
-    - name: Determine program
-      id: ctx
-      run: |
-        if [[ "${{ matrix.script }}" == *.py ]]
-        then
-            echo "program=python3" >> $GITHUB_OUTPUT
-            echo "name=$(basename ${{ matrix.script}} .py)-py-${{ matrix.llvm-ref }}" >> $GITHUB_OUTPUT
-        elif [[ "${{ matrix.script }}" == *.sh ]]
-        then
-            echo "program=bash" >> $GITHUB_OUTPUT
-            echo "name=$(basename ${{ matrix.script}} .sh)-sh-${{ matrix.llvm-ref }}" >> $GITHUB_OUTPUT
-        else
-            echo "Invalid file extension!"
-            exit 1
-        fi
-    - name: Run the demo
-      run: |
-        source .venv/bin/activate
-        VERBOSE=${{ matrix.verbose }} PROGRESS=${{ matrix.progress }} LLVM_REF=${{ matrix.llvm-ref }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ matrix.clone_depth }} BUILD_CONFIG=${{ matrix.build_config }} IGNORE_ERROR=${{ matrix.ignore_error }} TEST=${{ matrix.test }} INSTALL=${{ matrix.install }} DEPLOY=${{ matrix.deploy }} EXPORT=${{ matrix.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ matrix.script }}
-    - name: Generate Reports
-      run: |
-        source .venv/bin/activate
-        mkdir reports/
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup ccache
+        if: ${{ matrix.ccache == '1' }}
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          max-size: 2G
+          key: ${{ matrix.os }}-${{ matrix.script }}-${{ matrix.build_config }}
+          variant: sccache
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install APT packages
+        run: |
+          sudo apt -qq install -y python3-pip python3-venv cmake make ninja-build python3-pandas
+      - name: Initialize Virtualenv
+        run: |
+          python -m pip install --upgrade pip
+          python -m venv .venv
+      - name: Install dependencies
+        run: |
+          source .venv/bin/activate
+          pip install -r requirements.txt
+          pip list
+      - name: Run package creation
+        run: |
+          source .venv/bin/activate
+          pip install -e .
+      - name: Determine program
+        id: ctx
+        run: |
+          if [[ "${{ matrix.script }}" == *.py ]]
+          then
+              echo "program=python3" >> $GITHUB_OUTPUT
+              echo "name=$(basename ${{ matrix.script}} .py)-py-${{ matrix.llvm-ref }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ matrix.script }}" == *.sh ]]
+          then
+              echo "program=bash" >> $GITHUB_OUTPUT
+              echo "name=$(basename ${{ matrix.script}} .sh)-sh-${{ matrix.llvm-ref }}" >> $GITHUB_OUTPUT
+          else
+              echo "Invalid file extension!"
+              exit 1
+          fi
+      - name: Run the demo
+        run: |
+          source .venv/bin/activate
+          VERBOSE=${{ matrix.verbose }} PROGRESS=${{ matrix.progress }} LLVM_REF=${{ matrix.llvm-ref }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ matrix.clone_depth }} BUILD_CONFIG=${{ matrix.build_config }} IGNORE_ERROR=${{ matrix.ignore_error }} TEST=${{ matrix.test }} INSTALL=${{ matrix.install }} DEPLOY=${{ matrix.deploy }} EXPORT=${{ matrix.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ matrix.script }}
+      - name: Generate Reports
+        run: |
+          source .venv/bin/activate
+          mkdir reports/
 
-        # Properties
-        python3 -m seal5.backends.report.properties.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --output reports/properties.csv
-        python3 -m seal5.backends.report.properties.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --output reports/properties.md
-        echo "### Properties" >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        cat reports/properties.md >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
+          # Properties
+          python3 -m seal5.backends.report.properties.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --output reports/properties.csv
+          python3 -m seal5.backends.report.properties.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --output reports/properties.md
+          echo "### Properties" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat reports/properties.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
 
-        # Status
-        python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/status.csv
-        python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/status_compact.csv
-        python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/status.md --markdown-icons
-        python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/status_compact.md --markdown-icons
-        echo "### Passes" >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        cat reports/status_compact.md >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
+          # Status
+          python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/status.csv
+          python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/status_compact.csv
+          python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/status.md --markdown-icons
+          python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/status_compact.md --markdown-icons
+          echo "### Passes" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat reports/status_compact.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
 
-        # Test Results
-        python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/test_results.csv --coverage reports/test_coverage.csv
-        python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/test_results_compact.csv --coverage reports/test_coverage_compact.csv
-        python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/test_results.md --coverage reports/test_coverage.md --markdown-icons
-        python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/test_results_compact.md --coverage reports/test_coverage_compact.md --markdown-icons
-        echo "### Test Coverage" >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        cat reports/test_coverage_compact.md >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        echo "### Test Results" >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        cat reports/test_results_compact.md >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
+          # PatternGen
+          python3 -m seal5.backends.report.pattern_gen.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/pattern_gen.csv
+          python3 -m seal5.backends.report.pattern_gen.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --agg --output reports/pattern_gen_agg.csv
+          python3 -m seal5.backends.report.pattern_gen.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/pattern_gen.md
+          python3 -m seal5.backends.report.pattern_gen.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --agg --output reports/pattern_gen_agg.md
+          echo "### PatternGen (All)" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat reports/pattern_gen.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          echo "### PatternGen (Summary)" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat reports/pattern_gen_agg.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
 
-        # Diff
-        python3 -m seal5.backends.report.diff.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/diff.csv
-        python3 -m seal5.backends.report.diff.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/diff.md
-        echo "### Diff" >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        cat reports/diff.md >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
+          # Test Results
+          python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/test_results.csv --coverage reports/test_coverage.csv
+          python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/test_results_compact.csv --coverage reports/test_coverage_compact.csv
+          python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/test_results.md --coverage reports/test_coverage.md --markdown-icons
+          python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/test_results_compact.md --coverage reports/test_coverage_compact.md --markdown-icons
+          echo "### Test Coverage" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat reports/test_coverage_compact.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          echo "### Test Results" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat reports/test_results_compact.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
 
-        # Stage Times
-        python3 -m seal5.backends.report.times.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/stage_times.csv --sum-level 2
-        python3 -m seal5.backends.report.times.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/stage_times.md --sum-level 2
-        python3 -m seal5.backends.report.times.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/stage_times.mermaid --sum-level 2
-        echo "### Stage/Pass Times" >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        cat reports/stage_times.md >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`mermaid" >> $GITHUB_STEP_SUMMARY
-        cat reports/stage_times.mermaid >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-    - name: Upload Seal5 Reports
-      uses: actions/upload-artifact@v4
-      with:
-        name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-reports
-        path: reports/
-    - name: Upload Seal5 Metadata
-      uses: actions/upload-artifact@v4
-      if: "${{ matrix.export == '1' }}"
-      with:
-        name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-export
-        path: /tmp/seal5_llvm.tar.gz
-    - name: Upload Seal5 LLVM Installation
-      uses: actions/upload-artifact@v4
-      if: "${{ matrix.install == '1' }}"
-      with:
-        name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-install
-        path: /tmp/seal5_llvm/.seal5/install/${{ matrix.build_config }}
-    - name: Upload Seal5 LLVM Sources Grouped_stat_prop_result_all.md
-      uses: actions/upload-artifact@v4
-      if: "${{ matrix.deploy == '1' }}"
-      with:
-        name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-source
-        path: /tmp/seal5_llvm_source.zip
-    - name: Aggregate and Publish Test Results
-      run: |
-        python3 -m pip install pandas tabulate
-        python3 examples/merge_test_artifacts.py reports/status_compact.csv reports/properties.csv  reports/test_results_compact.csv reports/test_coverage_compact.csv
-        echo "### Summarized and Compact Pass/Test Results" >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        cat  Grouped_stat_prop_result_test_wo_instr.html >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        echo "### Summarized and Compact Test Coverage Results" >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        cat  Grouped_stat_prop_result_cv_wo_instr.html >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
+          # Diff
+          python3 -m seal5.backends.report.diff.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/diff.csv
+          python3 -m seal5.backends.report.diff.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/diff.md
+          echo "### Diff" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat reports/diff.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
 
-        #echo "### Summarized Pass/Test Results" >> $GITHUB_STEP_SUMMARY
-        #echo >> $GITHUB_STEP_SUMMARY
-        #cat  Grouped_stat_prop_result_test.html >> $GITHUB_STEP_SUMMARY
-        #echo >> $GITHUB_STEP_SUMMARY
+          # Stage Times
+          python3 -m seal5.backends.report.times.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/stage_times.csv --sum-level 2
+          python3 -m seal5.backends.report.times.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/stage_times.md --sum-level 2
+          python3 -m seal5.backends.report.times.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/stage_times.mermaid --sum-level 2
+          echo "### Stage/Pass Times" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat reports/stage_times.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`mermaid" >> $GITHUB_STEP_SUMMARY
+          cat reports/stage_times.mermaid >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+      - name: Upload Seal5 Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-reports
+          path: reports/
+      - name: Upload Seal5 Metadata
+        uses: actions/upload-artifact@v4
+        if: ${{ matrix.export == '1' }}
+        with:
+          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-export
+          path: /tmp/seal5_llvm.tar.gz
+      - name: Upload Seal5 LLVM Installation
+        uses: actions/upload-artifact@v4
+        if: ${{ matrix.install == '1' }}
+        with:
+          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-install
+          path: /tmp/seal5_llvm/.seal5/install/${{ matrix.build_config }}
+      - name: Upload Seal5 LLVM Sources Grouped_stat_prop_result_all.md
+        uses: actions/upload-artifact@v4
+        if: ${{ matrix.deploy == '1' }}
+        with:
+          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-source
+          path: /tmp/seal5_llvm_source.zip
+      - name: Aggregate and Publish Test Results
+        run: |
+          source .venv/bin/activate
+          python3 -m pip install pandas tabulate
+          python3 examples/merge_test_artifacts.py reports/status_compact.csv reports/properties.csv  reports/test_results_compact.csv reports/test_coverage_compact.csv
+          echo "### Summarized and Compact Pass/Test Results" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat  Grouped_stat_prop_result_test_wo_instr.html >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          echo "### Summarized and Compact Test Coverage Results" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat  Grouped_stat_prop_result_cv_wo_instr.html >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
 
-        #echo "### Summarized Test Coverage Results" >> $GITHUB_STEP_SUMMARY
-        #echo >> $GITHUB_STEP_SUMMARY
-        #cat  Grouped_stat_prop_result_cv.html >> $GITHUB_STEP_SUMMARY
-        #echo >> $GITHUB_STEP_SUMMARY
+          # echo "# #  #  Summarized Pass/Test Results" >> $GITHUB_STEP_SUMMARY
+          # echo >> $GITHUB_STEP_SUMMARY
+          # cat  Grouped_stat_prop_result_test.html >> $GITHUB_STEP_SUMMARY
+          # echo >> $GITHUB_STEP_SUMMARY
 
-        #echo "###  Compiled Pass/Test/Coverage Results with Properties" >> $GITHUB_STEP_SUMMARY
-        #echo >> $GITHUB_STEP_SUMMARY
-        #cat Grouped_stat_prop_result_all.html> $GITHUB_STEP_SUMMARY
-        #echo >> $GITHUB_STEP_SUMMARY
+          # echo "# #  #  Summarized Test Coverage Results" >> $GITHUB_STEP_SUMMARY
+          # echo >> $GITHUB_STEP_SUMMARY
+          # cat  Grouped_stat_prop_result_cv.html >> $GITHUB_STEP_SUMMARY
+          # echo >> $GITHUB_STEP_SUMMARY
 
-    - name: Upload Grouped and Aggregated Test Results
-      uses: actions/upload-artifact@v4
-      if: "${{ matrix.deploy == '1' }}"
-      with:
-        name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-aggregated-test-results
-        path: |
-             Grouped_stat_prop_result_all.html
-             Grouped_stat_prop_result_cv.html
-             Grouped_stat_prop_result_cv_wo_instr.html
-             Grouped_stat_prop_result_test.html
-             Grouped_stat_prop_result_test_wo_instr.html
+          # echo "# #  #   Compiled Pass/Test/Coverage Results with Properties" >> $GITHUB_STEP_SUMMARY
+          # echo >> $GITHUB_STEP_SUMMARY
+          # cat Grouped_stat_prop_result_all.html> $GITHUB_STEP_SUMMARY
+          # echo >> $GITHUB_STEP_SUMMARY
+      - name: Upload Grouped and Aggregated Test Results
+        uses: actions/upload-artifact@v4
+        if: ${{ matrix.deploy == '1' }}
+        with:
+          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-aggregated-test-results
+          path: |-
+            Grouped_stat_prop_result_all.html
+            Grouped_stat_prop_result_cv.html
+            Grouped_stat_prop_result_cv_wo_instr.html
+            Grouped_stat_prop_result_test.html
+            Grouped_stat_prop_result_test_wo_instr.html

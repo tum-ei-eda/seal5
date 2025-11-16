@@ -23,7 +23,9 @@ from seal5.model_utils import load_model, dump_model
 from . import visitor
 from .utils import IOMode
 
-logger = logging.getLogger("detect_inouts")
+from seal5.logging import Logger
+
+logger = Logger("transform.detect_inouts")
 
 
 class VisitorContext:
@@ -60,7 +62,7 @@ def get_parser():
 
 def run(args):
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)

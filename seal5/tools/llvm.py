@@ -28,11 +28,11 @@ from git import RemoteProgress
 from tqdm import tqdm
 
 from seal5 import utils
-from seal5.logging import get_logger
+from seal5.logging import Logger
 from seal5.tools.git import get_author_from_settings
 from seal5.settings import GitSettings, CcacheSettings
 
-logger = get_logger()
+logger = Logger("tools")
 
 
 def lookup_ccache():

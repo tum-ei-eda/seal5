@@ -22,7 +22,7 @@ import argparse
 import sys
 
 
-from seal5.logging import get_logger
+from seal5.logging import Logger
 from seal5.cli import (
     init,
     load,
@@ -42,7 +42,7 @@ from seal5.cli import (
 from .common import handle_logging_flags, add_common_options
 from ..version import __version__
 
-logger = get_logger()
+logger = Logger("cli")
 
 
 def main(args=None):

@@ -28,9 +28,9 @@ from dacite import from_dict, Config
 
 from seal5.types import PatchStage
 from seal5.utils import parse_cond
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
-logger = get_logger()
+logger = Logger("settings")
 
 
 DEFAULT_SETTINGS = {
@@ -577,6 +577,13 @@ class ExtensionsSettings(YAMLSettings):
             #     arch = "experimental-" + arch
         assert arch[0] in ["z", "x"], "Arch needs to be start with z/x"
         return arch
+
+    def get_attr(self, name: Optional[str] = None):
+        """Get extension attr."""
+        attr = self.get_arch(name)
+        if self.experimental:
+            attr = "experimental-" + attr
+        return attr
 
     def get_feature(self, name: Optional[str] = None):
         """Get extension feature."""

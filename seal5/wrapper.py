@@ -6,13 +6,15 @@ from typing import Optional, Union, List
 # import logging
 from pathlib import Path
 
+from seal5.logging import Logger
+
 from seal5.flow import Seal5Flow
 from seal5.types import PatchStage
 from seal5.utils import str2bool
-from seal5.logging import get_logger
+from seal5.logging import update_log_level
 
 
-logger = get_logger()
+logger = Logger("wrapper")
 
 
 def group_files(files: List[Union[str, Path]]):
@@ -35,13 +37,19 @@ def group_files(files: List[Union[str, Path]]):
     return cdsl_files, cfg_files, test_files, other_files
 
 
+def prepatched_helper(val):
+    if isinstance(val, str) and val.lower() == "auto":
+        return "auto"
+    return str2bool(val)
+
+
 # Parameters
 OUT_DIR = os.environ.get("OUT_DIR", None)
 INSTALL_DIR = os.environ.get("INSTALL_DIR", None)
 VERBOSE = str2bool(os.environ.get("VERBOSE", 0))
 SKIP_PATTERNS = str2bool(os.environ.get("SKIP_PATTERNS", 0))
 INTERACTIVE = str2bool(os.environ.get("INTERACTIVE", 0))
-PREPATCHED = str2bool(os.environ.get("PREPATCHED", 0))
+PREPATCHED = prepatched_helper(os.environ.get("PREPATCHED", "auto"))  # Possible values: [0,1,auto]
 LLVM_URL = os.environ.get("LLVM_URL", "https://github.com/llvm/llvm-project.git")
 LLVM_REF = os.environ.get("LLVM_REF", "llvmorg-19.1.7")
 BUILD_CONFIG = os.environ.get("BUILD_CONFIG", None)
@@ -63,6 +71,7 @@ SETUP = str2bool(os.environ.get("SETUP", 1))
 PROGRESS = str2bool(os.environ.get("PROGRESS", 1))
 CCACHE = str2bool(os.environ.get("CCACHE", 0))
 CLONE_DEPTH = int(os.environ.get("CLONE_DEPTH", -1))
+LOG_LEVEL = os.environ.get("SEAL5_LOG_LEVEL", None)
 NAME = os.environ.get("NAME", None)
 
 
@@ -97,6 +106,7 @@ def run_seal5_flow(
     init: bool = INIT,
     setup: bool = SETUP,
     ignore_llvm_imm_types: bool = IGNORE_LLVM_IMM_TYPES,
+    log_level: Optional[str] = LOG_LEVEL,
 ):
     """Single entry point (wrapper) to excute the full seal5 flow for a given set of files."""
     seal5_flow = Seal5Flow(dest, name=name)
@@ -106,9 +116,12 @@ def run_seal5_flow(
         seal5_flow.reset(settings=True, interactive=interactive)
         seal5_flow.clean(temp=True, patches=True, models=True, inputs=True, interactive=interactive)
 
+    has_stage0_tag = not (seal5_flow.repo is None or f"seal5-{seal5_flow.name}-stage0" not in seal5_flow.repo.tags)
+    if prepatched == "auto":
+        prepatched = has_stage0_tag
     if prepatched:
-        if seal5_flow.repo is None or f"seal5-{seal5_flow.name}-stage0" not in seal5_flow.repo.tags:
-            raise RuntimeError("PREPATCHED can only be used after LLVM was patched at least once.")
+        assert has_stage0_tag, "PREPATCHED can only be used after LLVM was patched at least once."
+        logger.info("Skipping PHASE0 patch using PREPATCHED feature.")
 
     # Clone LLVM and init seal5 metadata directory
     if init:
@@ -122,6 +135,11 @@ def run_seal5_flow(
             verbose=verbose,
             ignore_llvm_imm_types=ignore_llvm_imm_types,
         )
+
+    # Override log_level
+    if log_level is not None:
+        # seal5_flow.logger.parent.handlers[0].setLevel(log_level.upper())
+        update_log_level(log_level)
 
     if load:
         if len(input_files) == 0:
