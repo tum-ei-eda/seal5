@@ -35,7 +35,6 @@ def write_riscv_register_info(reg):
 
 
 def write_riscv_register_class_info(group_name, group, group_regs):
-
     """Generate code for RISCVRegisterInfo.td LLVM patch (RISCVRegisterClass)."""
     # registers_template = Template(filename=str(template_dir / "registers_tablegen.mako"))
 
@@ -65,7 +64,7 @@ def write_riscv_register_class_info(group_name, group, group_regs):
     if alt:
         seq_str = ", ".join(group.names)
     else:
-        seq_str = f"(sequence \"{group_name}%u\", {lo}, {hi})"
+        seq_str = f'(sequence "{group_name}%u", {lo}, {hi})'
     out_str += f"def {group_name} : RISCVRegisterClass<[{vts_str}], {align}, (add {seq_str})>;"
 
     return out_str
@@ -79,7 +78,7 @@ def gen_riscv_register_info_str(set_def):
     # print("register_groups", register_groups)
     group_regs = {group_name: group.names for group_name, group in register_groups.items()}
     # print("group_regs", group_regs)
-    all_group_regs = [name for names in group_regs.values() for name in names]
+    # all_group_regs = [name for names in group_regs.values() for name in names]
     # print("all_group_regs", all_group_regs)
     ret_groups = []
     to_skip = []

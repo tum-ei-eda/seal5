@@ -166,7 +166,12 @@ def build_target(arch: str, intrinsic: IntrinsicDefn):
 
 
 def build_target_new(
-    arch: str, intrinsic: IntrinsicDefn, prefix: Optional[str] = "__builtin_riscv", xlen: Optional[int] = None, experimental: bool = False, has_side_effects: bool = False,
+    arch: str,
+    intrinsic: IntrinsicDefn,
+    prefix: Optional[str] = "__builtin_riscv",
+    xlen: Optional[int] = None,
+    experimental: bool = False,
+    has_side_effects: bool = False,
 ):
     # TODO: get side effects for intrinsic from instr_def?
     has_side_effects_ = has_side_effects or len(intrinsic.args) == 0
@@ -359,7 +364,9 @@ def main():
                     if llvm_version is not None and llvm_version.major < 19:
                         patch_frags["target"].contents += build_target(arch=arch_, intrinsic=intrinsic)
                     else:
-                        patch_frags["target"].contents += build_target_new(arch=arch_, intrinsic=intrinsic, xlen=xlen, experimental=experimental)
+                        patch_frags["target"].contents += build_target_new(
+                            arch=arch_, intrinsic=intrinsic, xlen=xlen, experimental=experimental
+                        )
                     patch_frags["attr"].contents += build_attr(arch=arch_, intrinsic=intrinsic)
                     patch_frags["emit"].contents += build_emit(arch=arch_, intrinsic=intrinsic)
                     metrics["n_success"] += 1

@@ -89,7 +89,8 @@ def run(args):
                     [
                         op
                         for op in instr_def.operands.values()
-                        if Seal5OperandAttribute.IN in op.attributes or Seal5OperandAttribute.INOUT in op.attributes
+                        if seal5.model.Seal5OperandAttribute.IN in op.attributes
+                        or seal5.model.Seal5OperandAttribute.INOUT in op.attributes
                     ]
                 )
                 has_side_effects = num_ins == 0

@@ -727,7 +727,9 @@ class Seal5Settings(YAMLSettings):
                 elif patch_settings.weak:
                     logger.info("Skipping weak patch '%s'", ps.name)
                 else:
-                    raise RuntimeError(f"Duplicate patch '{ps.name}'. Either use force=True, clean patches or rename patch.")
+                    raise RuntimeError(
+                        f"Duplicate patch '{ps.name}'. Either use force=True, clean patches or rename patch."
+                    )
             else:
                 patches.append(ps)
         if not added:

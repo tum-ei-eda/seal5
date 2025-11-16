@@ -100,7 +100,15 @@ class Seal5Register:
 
 
 class Seal5RegisterGroup:
-    def __init__(self, names: List[str], reg_size: int, reg_width: int, reg_signed: bool, reg_is_const: bool, reg_class: Seal5RegisterClass):
+    def __init__(
+        self,
+        names: List[str],
+        reg_size: int,
+        reg_width: int,
+        reg_signed: bool,
+        reg_is_const: bool,
+        reg_class: Seal5RegisterClass,
+    ):
         self.names = names
         self.reg_size = reg_size
         self.reg_width = reg_width
@@ -118,7 +126,14 @@ class Seal5RegisterGroup:
     @property
     def registers(self):
         return [
-            Seal5Register(name, size=self.reg_size, width=self.reg_width, signed=self.reg_signed, is_const=self.reg_is_const, reg_class=self.reg_class)
+            Seal5Register(
+                name,
+                size=self.reg_size,
+                width=self.reg_width,
+                signed=self.reg_signed,
+                is_const=self.reg_is_const,
+                reg_class=self.reg_class,
+            )
             for name in self.names
         ]
 
