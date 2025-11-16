@@ -87,12 +87,24 @@ def run(args):
                 # TODO:
                 # if arch.InstrAttribute.NO_CONT:
                 # if arch.InstrAttribute.COND:
+                num_ins = len(
+                    [
+                        op
+                        for op in instr_def.operands.values()
+                        if seal5.model.Seal5OperandAttribute.IN in op.attributes
+                        or seal5.model.Seal5OperandAttribute.INOUT in op.attributes
+                    ]
+                )
+                has_side_effects = num_ins == 0
                 if context.may_load:
                     if seal5.model.Seal5InstrAttribute.MAY_LOAD not in instr_def.attributes:
                         instr_def.attributes[seal5.model.Seal5InstrAttribute.MAY_LOAD] = []
                 if context.may_store:
                     if seal5.model.Seal5InstrAttribute.MAY_STORE not in instr_def.attributes:
                         instr_def.attributes[seal5.model.Seal5InstrAttribute.MAY_STORE] = []
+                if has_side_effects:
+                    if seal5.model.Seal5InstrAttribute.HAS_SIDE_EFFECTS not in instr_def.attributes:
+                        instr_def.attributes[seal5.model.Seal5InstrAttribute.HAS_SIDE_EFFECTS] = []
                 # TODO
                 metrics["n_success"] += 1
                 metrics["success_instructions"].append(instr_def.name)

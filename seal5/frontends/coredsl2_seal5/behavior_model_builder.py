@@ -6,8 +6,6 @@
 # Chair of Electrical Design Automation
 # Technical University of Munich
 
-import logging
-
 from m2isar import M2NameError, M2SyntaxError, M2TypeError, flatten
 from m2isar.metamodel import arch, behav, intrinsics
 from m2isar.metamodel.utils import StaticType

@@ -1,11 +1,11 @@
 ---
 patches:
   # manual patch
-  - name: gitignore
-    target: llvm
-    stage: 0
-    comment: ""
-    file: llvm/gitignore.patch
+  # - name: gitignore
+  #   target: llvm
+  #   stage: 0
+  #   comment: ""
+  #   file: llvm/gitignore.patch
   - name: gitlab_ci
     target: llvm
     stage: 0
@@ -15,15 +15,15 @@ patches:
     # file: gitlab_ci.patch
     # file: llvm/gitlab_ci.patch
     # file: /absolute/path/to/gitlab_ci.patch
-  - name: insert_markers_llvm17
-    onlyif: "settings.llvm.state.version.major == 17"
-  - name: insert_markers_llvm18
-    onlyif: "settings.llvm.state.version.major == 18"
-  - name: insert_markers_llvm19
-    onlyif: "settings.llvm.state.version.major == 19"
-  # - name: legalizer_split
-  - name: insert_markers_llvm20
-    onlyif: "settings.llvm.state.version.major == 20"
+  # - name: insert_markers_llvm17
+  #   onlyif: "settings.llvm.state.version.major == 17"
+  # - name: insert_markers_llvm18
+  #   onlyif: "settings.llvm.state.version.major == 18"
+  # - name: insert_markers_llvm19
+  #   onlyif: "settings.llvm.state.version.major == 19"
+  # # - name: legalizer_split
+  # - name: insert_markers_llvm20
+  #   onlyif: "settings.llvm.state.version.major == 20"
   # TODO:  automatially select patch depending on llvm version
   # generated patch (TODO: implement)
   # - name: ???
