@@ -26,10 +26,9 @@ import os
 import socketserver
 import struct
 import pickle
-from typing import List, Tuple
+from typing import List, NamedTuple, Tuple, Optional, Union
 import threading
 from pathlib import Path
-from typing import Optional
 
 PROJECT_NAME = "seal5"
 HOSTNAME = "localhost"
@@ -38,6 +37,13 @@ _env_val: Optional[str] = os.getenv("SEAL5_INTERNALS_LOGGING_PORT")
 SEAL5_INTERNALS_LOGGING_PORT: Optional[int] = int(_env_val) if _env_val is not None else None
 _log_server = None
 _logger = None
+
+
+class LogConfig(NamedTuple):
+    filename: Union[Path, str]
+    level: int | str = logging.DEBUG
+    rotate: bool = False
+    backup_count: int = 0
 
 
 def resolve_log_level(value: str | int):
@@ -87,9 +93,8 @@ def get_logger(loggername: None | str = None, level=logging.DEBUG):
 
 
 def initialize_logging_server(
-    logfiles: None | List[Tuple[Path | str, int]] = [
-        ("log_debug.log", logging.DEBUG),
-        ("log_info.log", logging.INFO),
+    logfiles: None | List[LogConfig] = [
+        LogConfig("log_debug.log", logging.DEBUG, rotate=True, backup_count=3),
     ],
     stream_log_level: int | str = logging.INFO,
 ):
@@ -105,10 +110,16 @@ def initialize_logging_server(
     logger.addHandler(stream_handler)
 
     if logfiles is not None:
-        for log_file, log_level in logfiles:
-            file_handler = logging.FileHandler(log_file, "w")
+        for config in logfiles:
+            if config.rotate:
+                file_handler = logging.handlers.RotatingFileHandler(
+                    config.filename, maxBytes=1000000000, backupCount=config.backup_count
+                )
+                file_handler.doRollover()
+            else:
+                file_handler = logging.FileHandler(config.filename, "w")
             file_handler.setFormatter(get_formatter(False))
-            file_handler.setLevel(resolve_log_level(log_level))
+            file_handler.setLevel(resolve_log_level(config.level))
             logger.addHandler(file_handler)
 
     try:

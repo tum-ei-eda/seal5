@@ -30,7 +30,7 @@ from typing import Optional, List, Dict, Tuple, Union
 import git
 import seal5.logging
 
-from seal5.logging import Logger, check_logging_server, initialize_logging_server, stop_logging_server
+from seal5.logging import LogConfig, Logger, check_logging_server, initialize_logging_server, stop_logging_server
 from seal5.types import Seal5State, PatchStage
 from seal5.settings import Seal5Settings, PatchSettings, DEFAULT_SETTINGS, LLVMConfig, LLVMVersion
 
@@ -208,7 +208,15 @@ class Seal5Flow:
             self.meta_dir = self.settings._meta_dir
         if self.settings.logs_dir.is_dir():
             initialize_logging_server(
-                [(self.settings.log_file_path, self.settings.logging.file.level)], self.settings.logging.console.level
+                [
+                    LogConfig(
+                        self.settings.log_file_path,
+                        self.settings.logging.file.level,
+                        rotate=self.settings.logging.file.rotate,
+                        backup_count=self.settings.logging.file.backup_count,
+                    )
+                ],
+                self.settings.logging.console.level,
             )
         self.logger = Logger("flow")
         atexit.register(self.close_servers)
@@ -332,7 +340,15 @@ class Seal5Flow:
         )
         if not check_logging_server() and self.settings.logs_dir.is_dir():
             initialize_logging_server(
-                [(self.settings.log_file_path, self.settings.logging.file.level)], self.settings.logging.console.level
+                [
+                    LogConfig(
+                        self.settings.log_file_path,
+                        self.settings.logging.file.level,
+                        rotate=self.settings.logging.file.rotate,
+                        backup_count=self.settings.logging.file.backup_count,
+                    )
+                ],
+                self.settings.logging.console.level,
             )
         add_test_cfg(self.settings.tests_dir)
         if version_info:
