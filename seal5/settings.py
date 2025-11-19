@@ -42,8 +42,8 @@ DEFAULT_SETTINGS = {
         },
         "file": {
             "level": "DEBUG",
-            "rotate": False,
-            "limit": 1000,
+            "rotate": True,
+            "backup_count": 3,
         },
     },
     "git": {
