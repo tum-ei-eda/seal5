@@ -147,7 +147,7 @@ def main():
                 continue
             metrics["n_success"] += 1
             metrics["success_sets"].append(set_name)
-            content += gen_riscv_features_str(set_name, ext_settings, llvm_settings, model["sets"])
+            content += gen_riscv_features_str(set_name, ext_settings, llvm_settings, model_obj.sets)
         content = content.rstrip()
         if len(content) > 0:
             with open(out_path, "w", encoding="utf-8") as f:
