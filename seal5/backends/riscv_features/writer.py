@@ -16,7 +16,7 @@ import pandas as pd
 
 from mako.template import Template
 
-from seal5.index import NamedPatch, write_index_yaml
+from seal5.index import NamedPatch, TestFile, write_index_yaml
 from seal5.settings import ExtensionsSettings, LLVMSettings
 from seal5.model_utils import load_model
 
@@ -28,7 +28,9 @@ from seal5.logging import Logger
 logger = Logger("backends.riscv_features")
 
 
-def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings, llvm_settings: LLVMSettings, all_sets):
+def gen_riscv_features_str(
+    name: str, ext_settings: ExtensionsSettings, llvm_settings: LLVMSettings, all_sets, generate_tests
+):
     """Generate features string for LLVM patch."""
     # requires = ext_settings.requires
     implies = ext_settings.requires
@@ -41,12 +43,19 @@ def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings, llvm_set
     vendor = ext_settings.vendor
 
     implied_features = set()
+    implies_archs_with_ver = []
     if implies:
         for implied in implies:
             assert implied in all_sets
             implied_set_def = all_sets[implied]
             implied_ext_settings = implied_set_def.settings
             implied_feature = implied_ext_settings.get_feature(name=implied)
+            if generate_tests:
+                implied_arch = implied_ext_settings.get_arch(name=implied)
+                implied_version = implied_ext_settings.get_version()
+                implied_version_str = str(implied_version).replace(".", "p")
+                implied_arch_with_ver = implied_arch + implied_version_str
+                implies_archs_with_ver.append(implied_arch_with_ver)
             # implied_features.add(f"Feature{implied_feature}")
             implied_features.add(f"FeatureExt{implied_feature}")  # TODO: check missing Ext?
 
@@ -60,6 +69,8 @@ def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings, llvm_set
                 legacy = False
                 if llvm_version.major >= 20:
                     slim = True
+
+    test_template_name = "test_riscv_attributes"
     if legacy:
         template_name = "riscv_features"
     else:
@@ -75,6 +86,7 @@ def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings, llvm_set
     major, minor = list(map(int, version.split(".", 1)))
 
     content_template = Template(filename=str(template_dir / f"{template_name}.mako"))
+    test_template = Template(filename=str(template_dir / f"{test_template_name}.mako"))
     if slim:
         # TODO: support experimental- prefix
         feature_lower = feature.lower()
@@ -89,7 +101,24 @@ def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings, llvm_set
         minor=minor,
         implies="[" + ", ".join(implied_features) + "]",
     )
-    return content_text + "\n"
+    test_files = {}
+    if generate_tests:
+        test_name = f"{arch_}.test-attrs.ll"
+        xlen = ext_settings.riscv.xlen if ext_settings.riscv is not None else 32
+        attrs_str = f"+{arch_}"
+        label = arch_.upper()
+        expected_archs = [f"{arch_}{major}p{minor}"]
+        expected_archs += implies_archs_with_ver
+        expected_archs_str = "_".join(expected_archs)
+        expected = f"rv{xlen}i2p1_{expected_archs_str}"
+        test_content = test_template.render(
+            xlen=xlen,
+            attrs_str=attrs_str,
+            label=label,
+            expected=expected,
+        )
+        test_files[test_name] = test_content
+    return content_text + "\n", test_files
 
 
 def main():
@@ -106,6 +135,7 @@ def main():
     parser.add_argument("--index", default=None, help="Output index to file")
     parser.add_argument("--ext", type=str, default="td", help="Default file extension (if using --splitted)")
     parser.add_argument("--compat", action="store_true")
+    parser.add_argument("--generate-tests", action="store_true")
     args = parser.parse_args()
 
     # initialize logging
@@ -147,7 +177,17 @@ def main():
                 continue
             metrics["n_success"] += 1
             metrics["success_sets"].append(set_name)
-            content += gen_riscv_features_str(set_name, ext_settings, llvm_settings, model_obj.sets)
+            content_, test_files_ = gen_riscv_features_str(
+                set_name, ext_settings, llvm_settings, model_obj.sets, args.generate_tests
+            )
+            content += content_
+            # test_files.update(test_files_)
+            if args.generate_tests:
+                for test_file, test_content in test_files_.items():
+                    test_artifact = TestFile(
+                        f"llvm/test/CodeGen/RISCV/seal5/generated/{test_file}", content=test_content
+                    )
+                    artifacts[set_name].append(test_artifact)
         content = content.rstrip()
         if len(content) > 0:
             with open(out_path, "w", encoding="utf-8") as f:
