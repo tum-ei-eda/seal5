@@ -185,6 +185,27 @@ def add_test_cfg(tests_dir: Path):
     utils.copy(src, dest)
 
 
+def collect_generated_test_files(index_file):
+    import yaml
+
+    with open(index_file, "r", encoding="utf-8") as file:
+        index = yaml.safe_load(file)
+
+    global_artifacts = index["artifacts"]
+    ext_artifacts = sum([ext["artifacts"] for ext in index["extensions"]], [])
+    all_artifacts = global_artifacts + ext_artifacts
+    ret = []
+    for artifact in all_artifacts:
+        if artifact.get("is_test", False):
+            dest_path = artifact["dest_path"]
+            if dest_path.startswith("llvm/test/"):
+                dest_path = dest_path.replace("llvm/test/", "")
+            elif dest_path.startswith("./llvm/test/"):
+                dest_path = dest_path.replace("./llvm/test/", "")
+            ret.append(dest_path)
+    return ret
+
+
 class Seal5Flow:
     """Seal5 Flow."""
 
@@ -757,6 +778,10 @@ class Seal5Flow:
             comment = patch.comment
             msg = f"{prefix} {comment}"
             llvm_dir = self.directory
+            generated_test_files = collect_generated_test_files(patch.index)
+            # TODO: maybe move to pass_list?
+            if len(generated_test_files) > 0:
+                self.settings.test.paths.extend(generated_test_files)
             inject_patches.generate_patch(
                 patch.index,
                 llvm_dir=llvm_dir,

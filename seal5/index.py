@@ -114,6 +114,18 @@ class File(Artifact):
         self, dest_path: Path, src_path: Optional[Path] = None, content: Optional[Path] = None, append: bool = False
     ):
         super().__init__(dest_path, src_path=src_path, content=content, append=append)
+        assert self.src_path is not None or self.content is not None
+        self.is_test = False
+
+
+class TestFile(File):
+    """File artifact class."""
+
+    def __init__(
+        self, dest_path: Path, src_path: Optional[Path] = None, content: Optional[Path] = None, append: bool = False
+    ):
+        super().__init__(dest_path, src_path=src_path, content=content, append=append)
+        self.is_test = True
 
 
 class Directory(Artifact):
