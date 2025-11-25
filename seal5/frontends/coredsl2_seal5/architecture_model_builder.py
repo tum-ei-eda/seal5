@@ -7,7 +7,6 @@
 # Technical University of Munich
 
 import itertools
-import logging
 from typing import Union
 
 from m2isar import M2DuplicateError, M2NameError, M2TypeError, M2ValueError, flatten

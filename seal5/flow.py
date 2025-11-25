@@ -444,7 +444,6 @@ class Seal5Flow:
                 use_ninja=self.settings.llvm.ninja,
             )
             self.logger.info("Completed build of llc")
-        # input("qqqqqq")
         end = time.time()
         diff = end - start
         metrics["start"] = start
@@ -740,8 +739,6 @@ class Seal5Flow:
             if patch_settings.stage not in ret:
                 ret[patch_settings.stage] = []
             ret[patch_settings.stage].append(patch_settings)
-        # print("ret", ret)
-        # input("!r!")
         return ret
 
     def resolve_patch_file(self, path):
