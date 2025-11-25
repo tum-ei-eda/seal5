@@ -49,7 +49,7 @@ def gen_riscv_features_str(
             assert implied in all_sets
             implied_set_def = all_sets[implied]
             implied_ext_settings = implied_set_def.settings
-            implied_feature = implied_ext_settings.get_feature(name=implied)
+            implied_feature = implied_ext_settings.get_predicate(name=implied)
             if generate_tests:
                 implied_arch = implied_ext_settings.get_arch(name=implied)
                 implied_version = implied_ext_settings.get_version()
@@ -57,7 +57,7 @@ def gen_riscv_features_str(
                 implied_arch_with_ver = implied_arch + implied_version_str
                 implies_archs_with_ver.append(implied_arch_with_ver)
             # implied_features.add(f"Feature{implied_feature}")
-            implied_features.add(f"FeatureExt{implied_feature}")  # TODO: check missing Ext?
+            implied_features.add(f"Feature{implied_feature}")  # TODO: check missing Ext?
 
     legacy = True
     slim = False
