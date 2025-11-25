@@ -232,7 +232,9 @@ def run(args):
         # for instr_name, instr_def in set_def.instructions.items():
     for set_name, set_def in model_obj.sets.items():
         set_def.extension = [
-            extension for extension in set_def.extension if len(model_obj.sets[extension].instructions) > 0
+            extension
+            for extension in set_def.extension
+            if extension in model_obj.sets and len(model_obj.sets[extension].instructions) > 0
         ]
 
     # Remove sets without instructions
