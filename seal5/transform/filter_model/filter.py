@@ -230,10 +230,18 @@ def run(args):
             )
         }
         # for instr_name, instr_def in set_def.instructions.items():
+    for set_name, set_def in model_obj.sets.items():
+        set_def.extension = [
+            extension
+            for extension in set_def.extension
+            if extension in model_obj.sets and len(model_obj.sets[extension].instructions) > 0
+        ]
 
     # Remove sets without instructions
     model_obj.sets = {
-        set_name: set_def for set_name, set_def in model_obj.sets.items() if len(set_def.instructions) > 0
+        set_name: set_def
+        for set_name, set_def in model_obj.sets.items()
+        if len(set_def.instructions) > 0 or len(set_def.extension) > 0
     }
 
     dump_model(model_obj, out_path, compat=args.compat)

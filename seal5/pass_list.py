@@ -1104,6 +1104,7 @@ def gen_riscv_features_patch(
     verbose: bool = False,
     split: bool = False,
     log_level: str = "warning",
+    gen_tests: bool = True,
     **_kwargs,
 ):
     assert not split, "TODO"
@@ -1133,6 +1134,8 @@ def gen_riscv_features_patch(
     if gen_index_file:
         index_file = out_dir / ("riscv_features_index.yml")
         args.extend(["--index", index_file])
+    if gen_tests:
+        args.append("--generate-tests")
     utils.python(
         "-m",
         "seal5.backends.riscv_features.writer",
@@ -1143,11 +1146,14 @@ def gen_riscv_features_patch(
     )
     if gen_index_file:
         if index_file.is_file():
+            comment = f"Generated RISCVFeatures.td patch for {input_file.name}"
+            if gen_tests:
+                comment += " + generated tests"
             patch_name = f"riscv_features_{input_file.stem}"
             patch_settings = PatchSettings(
                 name=patch_name,
                 stage=int(PatchStage.PHASE_2),
-                comment=f"Generated RISCVFeatures.td patch for {input_file.name}",
+                comment=comment,
                 index=str(index_file),
                 generated=True,
                 target="llvm",
@@ -1613,6 +1619,8 @@ def convert_llvmir_to_gmir(
                 mattr = build_riscv_mattr(default_features, xlen)
                 if insn_names is None:
                     logger.warning("Skipping empty set %s", set_name)
+                    continue
+                if len(insn_names) == 0 and len(ext_settings.requires) > 0:
                     continue
                 assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
                 # TODO: populate model in yaml backend!
