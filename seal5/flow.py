@@ -40,6 +40,7 @@ from seal5.tools import llvm, cdsl2llvm, inject_patches
 from seal5.resources.resources import get_patches, get_test_cfg
 from seal5.passes import Seal5Pass, PassType, PassScope, PassManager, filter_passes
 import seal5.pass_list as passes
+from seal5.testgen_utils import collect_generated_test_files
 
 
 logger = Logger("flow")
@@ -183,27 +184,6 @@ def add_test_cfg(tests_dir: Path):
     logger.debug("Creating test cfg %s", dest)
     src = get_test_cfg()
     utils.copy(src, dest)
-
-
-def collect_generated_test_files(index_file):
-    import yaml
-
-    with open(index_file, "r", encoding="utf-8") as file:
-        index = yaml.safe_load(file)
-
-    global_artifacts = index["artifacts"]
-    ext_artifacts = sum([ext["artifacts"] for ext in index["extensions"]], [])
-    all_artifacts = global_artifacts + ext_artifacts
-    ret = []
-    for artifact in all_artifacts:
-        if artifact.get("is_test", False):
-            dest_path = artifact["dest_path"]
-            if dest_path.startswith("llvm/test/"):
-                dest_path = dest_path.replace("llvm/test/", "")
-            elif dest_path.startswith("./llvm/test/"):
-                dest_path = dest_path.replace("./llvm/test/", "")
-            ret.append(dest_path)
-    return ret
 
 
 class Seal5Flow:
