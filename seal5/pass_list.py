@@ -612,7 +612,6 @@ def collect_operand_types(
             print_func=logger.info if verbose else logger.debug,
             live=verbose,
         )
-    # input("<")
 
 
 def collect_register_operands(
