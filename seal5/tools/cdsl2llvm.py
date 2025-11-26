@@ -19,7 +19,7 @@
 """PatternGen utils for seal5."""
 import re
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 from collections import defaultdict
 
 import yaml
@@ -140,6 +140,29 @@ def build_llc(
     utils.make("llc", cwd=dest, print_func=logger.info if verbose else logger.debug, live=True, use_ninja=use_ninja)
 
 
+def combine_test_fragments(
+    ll_file: Union[str, Path], instr: str, test_header: str, test_mir_checks: str, test_asm_checks: str
+):
+    with open(ll_file, "r") as f:
+        lines = f.read().splitlines()
+    ret_lines = []
+    ret_lines += test_header.splitlines()
+    insert_checks = False
+    # instr_name = None
+    for line in lines:
+        if insert_checks:
+            insert_checks = False
+            # instr_name = None
+            ret_lines += test_mir_checks.splitlines()
+            ret_lines += test_asm_checks.splitlines()
+        if line.startswith("define void @impl"):
+            insert_checks = True
+            # instr_name = line.split("(", 1)[0].split("impl", 1)[-1]
+        ret_lines.append(line)
+    ret = "\n".join(ret_lines)
+    return ret
+
+
 def run_pattern_gen(
     build_dir: Path,
     src: Path,
@@ -242,6 +265,7 @@ def run_pattern_gen(
         is_err = False
         has_stats = False
         all_stats = defaultdict(dict)
+        instr = None
         for line in out.split("\n"):
             # print("line", line)
             if len(line.strip()) == 0 or line.startswith("==="):
@@ -254,6 +278,7 @@ def run_pattern_gen(
                 # print("A2")
                 if "Pattern for" in line:
                     # print("B1")
+                    instr = line.split(":", 1)[0].split(" ")[-1]
                     pat = [line.split(":", 1)[1]]
                     # found_pattern = True
                 elif "Pattern Generation failed for" in line:
@@ -278,6 +303,7 @@ def run_pattern_gen(
             stat_file = str(dest) + ".stats"
             with open(stat_file, "w", encoding="utf-8") as f:
                 yaml.dump(all_stats, f)
+        ll_files = []
         if len(pat) > 0:
             pat = "\n".join(pat)
             pat_file = str(dest) + ".pat"
@@ -292,9 +318,50 @@ def run_pattern_gen(
             uses_file = str(dest) + ".uses"
             with open(uses_file, "w", encoding="utf-8") as f:
                 f.write(uses_str)
-
+            ll_file = str(dest).replace(".td", ".ll")
+            assert Path(ll_file).is_file(), f"LLVM-IR file not found: {ll_file}"
+            ll_files.append(ll_file)
         else:
             is_err = True
+        assert instr is not None
+        # TODO: optimize?
+        # TODO: generate patterns for each xlen
+        # TODO: get real mnemonic
+        mnemonic = instr.lower()
+        # TODO: get real llvm instr name
+        llvm_instr = instr
+        # TODO: move to different pass
+        # TODO: make optional
+        if xlen is None:
+            xlens = [32, 64]
+        else:
+            xlens = [xlen]
+        test_header = ""
+        test_mir_checks = ""
+        test_asm_checks = ""
+        for xlen in xlens:
+            test_header += f"""; RUN: llc -mtriple=riscv{xlen} -stop-after=instruction-select -mattr={mattr} %s -o - \\
+; RUN: | FileCheck -check-prefix=RV{xlen}-MIR %s
+; RUN: llc -mtriple=riscv{xlen} -mattr={mattr} %s -o - \\
+; RUN: | FileCheck -check-prefix=RV{xlen}-ASM %s
+"""
+            test_mir_checks += f"  ; RV{xlen}-MIR-LABEL: name: impl{instr}\n"
+            # test_mir_checks += f"  ; RV{xlen}-MIR: LW\n"  # TODO: once per reg input operand
+            test_mir_checks += f"  ; RV{xlen}-MIR: {llvm_instr}\n"
+            test_mir_checks += f"  ; RV{xlen}-MIR-NEXT: SW\n"  # TODO: once per dest?
+            test_mir_checks += f"  ; RV{xlen}-MIR-NEXT: PseudoRET\n"
+            test_asm_checks += f"  ; RV{xlen}-ASM-LABEL: impl{instr}:\n"
+            # test_asm_checks += f"  ; RV{xlen}-ASM: lw\n"  # TODO: once per reg input operand
+            test_asm_checks += f"  ; RV{xlen}-ASM: {mnemonic}\n"
+            test_asm_checks += f"  ; RV{xlen}-ASM-NEXT: sw\n"  # TODO: once per dest?
+            test_asm_checks += f"  ; RV{xlen}-ASM-NEXT: ret\n"
+        assert len(ll_files) == 1
+        ll_file = ll_files[0]
+        test_content = combine_test_fragments(ll_file, instr, test_header, test_mir_checks, test_asm_checks)
+        test_file = ll_file.replace(".ll", ".test-cg.ll")
+        with open(test_file, "w") as f:
+            f.write(test_content)
+        test_files = [test_file]
         # else:
         #     if break_on_err:
         #         print("\n".join(rest))
@@ -316,6 +383,7 @@ def run_pattern_gen(
         #     reason_file = str(dest) + ".reason"
         #     with open(reason_file, "w") as f:
         #         f.write(reason)
+        return test_files
 
 
 def convert_ll_to_gmir(

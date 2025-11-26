@@ -10,6 +10,7 @@ from seal5.types import PatchStage
 from seal5.settings import Seal5Settings, PatchSettings
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 from seal5.metrics import read_metrics
+from seal5.testgen_utils import collect_generated_test_files
 
 logger = Logger("pass_list")
 
@@ -1026,6 +1027,7 @@ def convert_behav_to_tablegen(
     formats: bool = True,
     patterns: bool = True,
     parallel: bool = False,
+    gen_tests: bool = True,
     log_level: str = "warning",
     **_kwargs,
 ):
@@ -1061,6 +1063,8 @@ def convert_behav_to_tablegen(
     if gen_index_file:
         index_file = settings.temp_dir / (new_name + "_tblgen_patterns_index.yml")
         args.extend(["--index", index_file])
+    if gen_tests:
+        args.append("--generate-tests")
     if parallel:
         import multiprocessing
 
@@ -1087,6 +1091,7 @@ def convert_behav_to_tablegen(
                 generated=True,
                 target="llvm",
             )
+            generated_test_files = collect_generated_test_files(index_file)
             settings.add_patch(patch_settings)
             settings.to_yaml_file(settings.settings_file)
         else:

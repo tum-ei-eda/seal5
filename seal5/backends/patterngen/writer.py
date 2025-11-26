@@ -17,7 +17,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import pandas as pd
 
 from seal5.tools import cdsl2llvm
-from seal5.index import write_index_yaml, File, NamedPatch
+from seal5.index import write_index_yaml, File, NamedPatch, TestFile
 from seal5.model import Seal5InstrAttribute
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 from seal5.model_utils import load_model
@@ -44,6 +44,7 @@ def main():
     parser.add_argument("--parallel", type=int, default=1, help="How many instructions should be processed in parallel")
     parser.add_argument("--compat", action="store_true")
     parser.add_argument("--verbose", action="store_true")
+    parser.add_argument("--generate-tests", action="store_true")
     # parser.add_argument("--xlen", type=int, default=32, help="RISC-V XLEN")
     args = parser.parse_args()
 
@@ -136,7 +137,7 @@ def main():
                 assert install_dir is not None
                 install_dir = pathlib.Path(install_dir)
                 try:
-                    cdsl2llvm.run_pattern_gen(
+                    test_files = cdsl2llvm.run_pattern_gen(
                         # install_dir / "llvm" / "build",
                         install_dir,
                         input_file,
@@ -163,6 +164,13 @@ def main():
                             artifacts[set_name].append(file_artifact)
                             include_path = f"{set_name}/{out_name}"
                             includes_.append(include_path)
+                        if args.generate_tests:
+                            # for test_file, test_content in test_files.items():
+                            for test_file in test_files:
+                                test_artifact = TestFile(
+                                    f"llvm/test/CodeGen/RISCV/seal5/generated/{test_file.name}", src_path=test_file
+                                )
+                                artifacts[set_name].append(test_artifact)
                     else:
                         metrics["n_failed"] += 1
                         metrics["failed_instructions"].append(instr_def.name)
