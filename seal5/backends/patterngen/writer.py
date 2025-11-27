@@ -168,7 +168,8 @@ def main():
                             # for test_file, test_content in test_files.items():
                             for test_file in test_files:
                                 test_artifact = TestFile(
-                                    f"llvm/test/CodeGen/RISCV/seal5/generated/{test_file.name}", src_path=test_file
+                                    f"llvm/test/CodeGen/RISCV/seal5/generated/{pathlib.Path(test_file).name}",
+                                    src_path=test_file,
                                 )
                                 artifacts[set_name].append(test_artifact)
                     else:

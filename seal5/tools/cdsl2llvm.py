@@ -340,9 +340,9 @@ def run_pattern_gen(
         test_mir_checks = ""
         test_asm_checks = ""
         for xlen in xlens:
-            test_header += f"""; RUN: llc -mtriple=riscv{xlen} -stop-after=instruction-select -mattr={mattr} %s -o - \\
+            test_header += f"""; RUN: llc -mtriple=riscv{xlen} -stop-after=instruction-select -mattr={mattr} %s -global-isel=1 -o - \\
 ; RUN: | FileCheck -check-prefix=RV{xlen}-MIR %s
-; RUN: llc -mtriple=riscv{xlen} -mattr={mattr} %s -o - \\
+; RUN: llc -mtriple=riscv{xlen} -mattr={mattr} %s -global-isel=1 -o - \\
 ; RUN: | FileCheck -check-prefix=RV{xlen}-ASM %s
 """
             test_mir_checks += f"  ; RV{xlen}-MIR-LABEL: name: impl{instr}\n"
