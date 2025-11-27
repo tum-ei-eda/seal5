@@ -112,10 +112,11 @@ class CoreDSL2Writer:
             return
         # TODO: allow atrbitrary attrs in cdsl2llvm parser, not only for operands
         allowed_attrs = ["is_unsigned", "is_signed", "is_imm", "is_reg", "in", "out", "inout", "is_32_bit"]
-        if self.reduced and attr.name.lower() not in allowed_attrs:
+        attr_name = attr if isinstance(attr, str) else attr.name
+        if self.reduced and attr_name.lower() not in allowed_attrs:
             return
         self.write("[[")
-        self.write(attr.name.lower())
+        self.write(attr_name.lower())
         if val is not None:
             self.write("=")
 
