@@ -148,6 +148,7 @@ def indexed_reference(self: behav.IndexedReference, context):
                 op_name = index.reference.name
                 assert op_name in context.operands
                 op = context.operands[op_name]
+                reg_ty_ = arch.DataType.U
                 if mem_name == "X":
                     if offset == 0:
                         reg_class = model.Seal5RegisterClass.GPR
@@ -158,6 +159,8 @@ def indexed_reference(self: behav.IndexedReference, context):
                 elif mem_name == "F":
                     assert offset == 0
                     reg_class = model.Seal5RegisterClass.FPR
+                    assert mem_size in [32, 64]
+                    reg_ty_ = arch.DataType.F if mem_size == 32 else arch.DataType.F
                 elif mem_name == "CSR":
                     assert offset == 0
                     reg_class = model.Seal5RegisterClass.CSR
@@ -166,7 +169,7 @@ def indexed_reference(self: behav.IndexedReference, context):
                     reg_class = model.Seal5RegisterClass.UNKNOWN
                 if not isinstance(op, model.Seal5RegOperand):
                     op = model.Seal5RegOperand(op.name, op.ty, op.attributes, op.constraints, reg_class=reg_class)
-                reg_ty = model.Seal5Type(arch.DataType.U, mem_size, mem_lanes)
+                reg_ty = model.Seal5Type(reg_ty_, mem_size, mem_lanes)
                 op.reg_ty = reg_ty
                 context.operands[op_name] = op
     # input("1111")

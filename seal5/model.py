@@ -58,6 +58,7 @@ class Seal5InstructionSet(InstructionSet):
         self.register_groups = register_groups
         self.settings: ExtensionsSettings = None
         self._xlen = None
+        self._flen = None
 
     @property
     def xlen(self):
@@ -68,6 +69,16 @@ class Seal5InstructionSet(InstructionSet):
                     break
         assert self._xlen is not None, "Could not determine XLEN"
         return self._xlen
+
+    @property
+    def flen(self):
+        if self._flen is None:
+            for mem_name, mem_def in self.memories.items():
+                if mem_name == "F" or MemoryAttribute.IS_FLOAT_REG in mem_def.attributes:
+                    self._flen = mem_def.size
+                    break
+        assert self._flen is not None, "Could not determine FLEN"
+        return self._flen
 
 
 class Seal5RegisterClass(IntEnum):
@@ -202,6 +213,8 @@ class Seal5Type:
             sign_letter = "u"
         elif self.datatype == DataType.S:
             sign_letter = "s"
+        elif self.datatype in [DataType.F, DataType.D]:
+            sign_letter = "f"
         assert sign_letter is not None
         if self.lanes is None:
             lanes = 1
@@ -449,7 +462,13 @@ class Seal5Instruction(Instruction):
             if Seal5OperandAttribute.IS_REG in op.attributes:
                 assert Seal5OperandAttribute.REG_CLASS in op.attributes
                 cls = op.attributes[Seal5OperandAttribute.REG_CLASS]
-                assert cls in ["GPR", "GPRC"]
+                assert cls in ["GPR", "GPRC", "FPR"], f"Unhandled reg class: {cls}"
+                if cls == "FPR":
+                    assert Seal5OperandAttribute.REG_TYPE in op.attributes
+                    reg_type = op.attributes[Seal5OperandAttribute.REG_TYPE]
+                    assert reg_type[0] == "f"
+                    flen = int(reg_type[1:])
+                    cls = f"FPR{flen}"
                 pre = cls
             elif Seal5OperandAttribute.IS_IMM in op.attributes:
                 assert Seal5OperandAttribute.TYPE in op.attributes

@@ -47,7 +47,9 @@ def gen_riscv_register_info_str(set_def):
             continue  # Already supported
             # TODO: check size and width
         if group.reg_class == Seal5RegisterClass.FPR:
-            raise NotImplementedError("Floating point registers not supported")
+            continue  # Already supported
+            # TODO: check size and width
+            # raise NotImplementedError("Floating point registers not supported")
         if group.reg_class == Seal5RegisterClass.CSR:
             raise NotImplementedError("CSR registers not yet supported")
         if group.reg_class == Seal5RegisterClass.CUSTOM:
