@@ -166,6 +166,8 @@ class Seal5InstrAttribute(Enum):
     LLVM_INSTR = auto()
     HAS_CALL = auto()
     HAS_LOOP = auto()
+    AUTO_UNROLL_IMM = auto()
+    AUTO_INTRIN = auto()
 
 
 class Seal5FunctionAttribute(Enum):
@@ -184,6 +186,7 @@ class Seal5OperandAttribute(Enum):
     REG_CLASS = auto()
     REG_TYPE = auto()
     IS_IMM_LEAF = auto()
+    IS_UNROLL_IMM = auto()
 
 
 class Seal5DataType(Enum):
@@ -206,6 +209,30 @@ class Seal5Type:
         self.datatype = datatype
         self.width = width
         self.lanes = lanes
+
+    @property
+    def is_scalar(self):
+        return self.lanes in [None, 1]
+
+    @property
+    def is_vector(self):
+        return self.lanes is not None and self.lanes > 0
+
+    @property
+    def is_int(self):
+        return self.datatype in [DataType.U, DataType.S]
+
+    @property
+    def is_unsigned_int(self):
+        return self.datatype == DataType.U
+
+    @property
+    def is_signed_int(self):
+        return self.datatype == DataType.S
+
+    @property
+    def is_float(self):
+        return self.datatype in [DataType.F, DataType.D]
 
     def __repr__(self):
         sign_letter = None
