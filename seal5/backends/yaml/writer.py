@@ -60,6 +60,7 @@ def main():
     # print("model", model)
     data = {"extensions": {}}
     parents = {}
+    # TODO: dump intrinsics?
     for set_name, set_def in model_obj.sets.items():
         # print("set", set_def)
         is_group_set = False
