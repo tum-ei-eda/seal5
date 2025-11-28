@@ -304,6 +304,7 @@ def run_pattern_gen(
             with open(stat_file, "w", encoding="utf-8") as f:
                 yaml.dump(all_stats, f)
         ll_files = []
+        has_imm = False
         if len(pat) > 0:
             pat = "\n".join(pat)
             pat_file = str(dest) + ".pat"
@@ -314,6 +315,7 @@ def run_pattern_gen(
             assert len(uses) > 0
             uses = list(set(uses))
             uses_str = ",".join(uses) + "\n"
+            has_imm = "imm" in uses_str  # TODO: handle any imm name!
 
             uses_file = str(dest) + ".uses"
             with open(uses_file, "w", encoding="utf-8") as f:
@@ -323,45 +325,58 @@ def run_pattern_gen(
             ll_files.append(ll_file)
         else:
             is_err = True
-        assert instr is not None
-        # TODO: optimize?
-        # TODO: generate patterns for each xlen
-        # TODO: get real mnemonic
-        mnemonic = instr.lower()
-        # TODO: get real llvm instr name
-        llvm_instr = instr
-        # TODO: move to different pass
-        # TODO: make optional
-        if xlen is None:
-            xlens = [32, 64]
-        else:
-            xlens = [xlen]
-        test_header = ""
-        test_mir_checks = ""
-        test_asm_checks = ""
-        for xlen in xlens:
-            test_header += f"""; RUN: llc -mtriple=riscv{xlen} -stop-after=instruction-select -mattr={mattr} %s -global-isel=1 -o - \\
+        generate_tests = "auto"
+        if generate_tests == "auto":
+            generate_tests = not has_imm
+        assert isinstance(generate_tests, bool)
+        test_files = []
+        if generate_tests:
+            # print("ll_files", ll_files)
+            assert instr is not None
+            # TODO: optimize?
+            # TODO: generate patterns for each xlen
+            # TODO: get real mnemonic
+            mnemonic = instr.lower()
+            # TODO: get real llvm instr name
+            llvm_instr = instr
+            # TODO: move to different pass
+            # TODO: make optional
+            if xlen is None:
+                xlens = [32, 64]
+            else:
+                xlens = [xlen]
+            test_header = ""
+            test_mir_checks = ""
+            test_asm_checks = ""
+            for xlen in xlens:
+                test_header += f"""; RUN: llc -mtriple=riscv{xlen} -stop-after=instruction-select -mattr={mattr} %s -global-isel=1 -o - \\
 ; RUN: | FileCheck -check-prefix=RV{xlen}-MIR %s
 ; RUN: llc -mtriple=riscv{xlen} -mattr={mattr} %s -global-isel=1 -o - \\
 ; RUN: | FileCheck -check-prefix=RV{xlen}-ASM %s
 """
-            test_mir_checks += f"  ; RV{xlen}-MIR-LABEL: name: impl{instr}\n"
-            # test_mir_checks += f"  ; RV{xlen}-MIR: LW\n"  # TODO: once per reg input operand
-            test_mir_checks += f"  ; RV{xlen}-MIR: {llvm_instr}\n"
-            test_mir_checks += f"  ; RV{xlen}-MIR-NEXT: SW\n"  # TODO: once per dest?
-            test_mir_checks += f"  ; RV{xlen}-MIR-NEXT: PseudoRET\n"
-            test_asm_checks += f"  ; RV{xlen}-ASM-LABEL: impl{instr}:\n"
-            # test_asm_checks += f"  ; RV{xlen}-ASM: lw\n"  # TODO: once per reg input operand
-            test_asm_checks += f"  ; RV{xlen}-ASM: {mnemonic}\n"
-            test_asm_checks += f"  ; RV{xlen}-ASM-NEXT: sw\n"  # TODO: once per dest?
-            test_asm_checks += f"  ; RV{xlen}-ASM-NEXT: ret\n"
-        assert len(ll_files) == 1
-        ll_file = ll_files[0]
-        test_content = combine_test_fragments(ll_file, instr, test_header, test_mir_checks, test_asm_checks)
-        test_file = ll_file.replace(".ll", ".test-cg.ll")
-        with open(test_file, "w") as f:
-            f.write(test_content)
-        test_files = [test_file]
+                test_mir_checks += f"  ; RV{xlen}-MIR-LABEL: name: impl{instr}\n"
+                # test_mir_checks += f"  ; RV{xlen}-MIR: LW\n"  # TODO: once per reg input operand
+                test_mir_checks += f"  ; RV{xlen}-MIR: {llvm_instr}\n"
+                test_mir_checks += f"  ; RV{xlen}-MIR-NEXT: SW\n"  # TODO: once per dest?
+                test_mir_checks += f"  ; RV{xlen}-MIR-NEXT: PseudoRET\n"
+                test_asm_checks += f"  ; RV{xlen}-ASM-LABEL: impl{instr}:\n"
+                # test_asm_checks += f"  ; RV{xlen}-ASM: lw\n"  # TODO: once per reg input operand
+                test_asm_checks += f"  ; RV{xlen}-ASM: {mnemonic}\n"
+                test_asm_checks += f"  ; RV{xlen}-ASM-NEXT: sw\n"  # TODO: once per dest?
+                test_asm_checks += f"  ; RV{xlen}-ASM-NEXT: ret\n"
+            # print("test_header", test_header)
+            # print("test_mir_checks", test_mir_checks)
+            # print("test_asm_checks", test_asm_checks)
+            assert len(ll_files) == 1
+            ll_file = ll_files[0]
+            test_content = combine_test_fragments(ll_file, instr, test_header, test_mir_checks, test_asm_checks)
+            # print("test_content", test_content)
+            test_file = ll_file.replace(".ll", ".test-cg.ll")
+            with open(test_file, "w") as f:
+                f.write(test_content)
+            test_files += [test_file]
+        # input(">")
+        # print("G")
         # else:
         #     if break_on_err:
         #         print("\n".join(rest))
