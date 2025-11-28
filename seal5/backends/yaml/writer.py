@@ -59,6 +59,7 @@ def main():
     # preprocess model
     # print("model", model)
     data = {"extensions": {}}
+    # TODO: dump intrinsics?
     for set_name, set_def in model_obj.sets.items():
         # print("set", set_def)
         is_group_set = False
