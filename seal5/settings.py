@@ -28,9 +28,12 @@ from dacite import from_dict, Config
 
 from seal5.types import PatchStage
 from seal5.utils import parse_cond
-from seal5.logging import Logger
 
-logger = Logger("settings")
+
+def get_logger():
+    from seal5.logging import Logger
+
+    return Logger("settings")
 
 
 DEFAULT_SETTINGS = {
@@ -43,7 +46,7 @@ DEFAULT_SETTINGS = {
         "file": {
             "level": "DEBUG",
             "rotate": True,
-            "backup_count": 3,
+            "limit": 3,
         },
     },
     "git": {
@@ -185,6 +188,7 @@ class YAMLSettings:  # TODO: make abstract
         try:
             return from_dict(data_class=cls, data=data, config=Config(strict=True))
         except dacite.exceptions.UnexpectedDataError as err:
+            logger = get_logger()
             logger.error("Unexpected key in Seal5Settings. Check for missmatch between Seal5 versions!")
             raise err
 
@@ -413,6 +417,7 @@ class FileLoggingSettings(YAMLSettings):
     level: Union[int, str] = logging.INFO
     limit: Optional[int] = None  # TODO: implement
     rotate: bool = False  # TODO: implement
+    filename: str = "seal5.log"
 
 
 @dataclass

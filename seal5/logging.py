@@ -29,6 +29,7 @@ import pickle
 from typing import List, NamedTuple, Tuple, Optional, Union
 import threading
 from pathlib import Path
+from seal5.settings import FileLoggingSettings
 
 PROJECT_NAME = "seal5"
 HOSTNAME = "localhost"
@@ -37,13 +38,6 @@ _env_val: Optional[str] = os.getenv("SEAL5_INTERNALS_LOGGING_PORT")
 SEAL5_INTERNALS_LOGGING_PORT: Optional[int] = int(_env_val) if _env_val is not None else None
 _log_server = None
 _logger = None
-
-
-class LogConfig(NamedTuple):
-    filename: Union[Path, str]
-    level: int | str = logging.DEBUG
-    rotate: bool = False
-    backup_count: int = 0
 
 
 def resolve_log_level(value: str | int):
@@ -93,8 +87,8 @@ def get_logger(loggername: None | str = None, level=logging.DEBUG):
 
 
 def initialize_logging_server(
-    logfiles: None | List[LogConfig] = [
-        LogConfig("log_debug.log", logging.DEBUG, rotate=True, backup_count=3),
+    logfiles: None | List[FileLoggingSettings] = [
+        FileLoggingSettings(filename="log_debug.log", level=logging.DEBUG, rotate=True, limit=3),
     ],
     stream_log_level: int | str = logging.INFO,
 ):
