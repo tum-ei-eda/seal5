@@ -302,6 +302,7 @@ class Seal5Flow:
     ):
         """Initialize Seal5 flow."""
         del verbose  # unused
+        update_rotary_logger()
         self.logger.info("Initializing Seal5")
         start = time.time()
         metrics = {}

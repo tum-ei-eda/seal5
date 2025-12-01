@@ -107,9 +107,8 @@ def initialize_logging_server(
         for config in logfiles:
             if config.rotate:
                 file_handler = logging.handlers.RotatingFileHandler(
-                    config.filename, maxBytes=1000000000, backupCount=config.backup_count
+                    config.filename, maxBytes=1000000000, backupCount=config.limit if config.limit else 3
                 )
-                file_handler.doRollover()
             else:
                 file_handler = logging.FileHandler(config.filename, "w")
             file_handler.setFormatter(get_formatter(False))
@@ -147,12 +146,19 @@ def check_logging_server():
     return False
 
 
+def update_rotary_logger():
+    if _logger is not None:
+        for handler in _logger.handlers[:]:
+            if isinstance(handler, logging.handlers.RotatingFileHandler):
+                handler.doRollover()
+
+
 def update_log_level(console_level=None, file_level=None):
     """Set command line or file log level at runtime."""
     if _logger is not None:
         for handler in _logger.handlers[:]:
             if (
-                isinstance(handler, (logging.FileHandler, logging.handlers.TimedRotatingFileHandler))
+                isinstance(handler, (logging.FileHandler, logging.handlers.RotatingFileHandler))
                 and file_level is not None
             ):
                 file_level = resolve_log_level(file_level)
