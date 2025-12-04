@@ -359,8 +359,10 @@ class Seal5Instruction(Instruction):
         self._llvm_asm_order = None
         self._llvm_constraints = None
         self._llvm_reads = None
+        self._llvm_intrin_reads = None
         self._llvm_writes = None
         self._llvm_ins_str = None
+        self._llvm_intrin_ins_str = None
         self._llvm_outs_str = None
         self._llvm_imm_types = None
         self._process_fields()
@@ -476,14 +478,17 @@ class Seal5Instruction(Instruction):
         #     asm_idx = asm_order.index(f"${op_name}")
         #     assert asm_idx == op_idx, "Order of asm operands does not match CDSL operands"
 
-    def _llvm_process_operands(self):
+    def _llvm_process_operands(self, intrin=False):
         operands = self.operands
         reads = []
+        intrin_reads = []
         writes = []
         constraints = []
         self._llvm_check_operands()
         imm_types = set()
+        intrin_imm_types = set()
         for op_name, op in operands.items():
+            intrin_pre = None
             if len(op.constraints) > 0:
                 raise NotImplementedError
             if Seal5OperandAttribute.IS_REG in op.attributes:
@@ -502,8 +507,13 @@ class Seal5Instruction(Instruction):
                 ty = op.attributes[Seal5OperandAttribute.TYPE]
                 assert ty[0] in ["u", "s"]
                 sz = int(ty[1:])
+                # TODO: always add seal5 prefix?
+                # TODO: differentiate between immleafs?
                 pre = f"{ty[0]}imm{sz}"
-                imm_types.add(pre)
+                if intrin:
+                    intrin_pre = f"seal5_t{pre}"
+                    imm_types.add(pre)
+                intrin_imm_types.add(intrin_pre)
                 # TODO: handle lsb0, lsb00,...
                 # TODO: annotate operands via attributes
 
@@ -514,6 +524,8 @@ class Seal5Instruction(Instruction):
                 writes.append(op_str2)
                 op_str = f"{pre}:${op_name}"
                 reads.append(op_str)
+                if intrin:
+                    intrin_reads.append(op_str)
                 constraint = f"${op_name} = ${op_name}_wb"
                 constraints.append(constraint)
 
@@ -522,9 +534,14 @@ class Seal5Instruction(Instruction):
                 writes.append(op_str)
             elif Seal5OperandAttribute.IN in op.attributes:
                 op_str = f"{pre}:${op_name}"
-                reads.append(op_str)
+                if intrin:
+                    intrin_op_str = f"{intrin_pre}:${op_name}" if intrin_pre is not None else op_str
+                    reads.append(op_str)
+                intrin_reads.append(intrin_op_str)
         self._llvm_constraints = constraints
         self._llvm_reads = reads
+        if intrin:
+            self._llvm_intrin_reads = intrin_reads
         self._llvm_writes = writes
         self._llvm_imm_types = imm_types
 
@@ -569,6 +586,12 @@ class Seal5Instruction(Instruction):
         return self._llvm_reads
 
     @property
+    def llvm_intrin_reads(self):
+        if self._llvm_intrin_reads is None:
+            self._llvm_process_operands(intrin=True)
+        return self._llvm_intrin_reads
+
+    @property
     def llvm_writes(self):
         if self._llvm_writes is None:
             self._llvm_process_operands()
@@ -590,6 +613,17 @@ class Seal5Instruction(Instruction):
                 assert len(reads) == 0
             self._llvm_ins_str = ins_str
         return self._llvm_ins_str
+
+    @property
+    def llvm_intrin_ins_str(self):
+        if self._llvm_intrin_ins_str is None:
+            reads = self.llvm_intrin_reads
+            reads_ = [(x.split(":", 1)[1] if ":" in x else x) for x in reads]
+            ins_str = ", ".join([reads[reads_.index(x)] for x in self._llvm_asm_order if x in reads_])
+            if len(ins_str) == 0:
+                assert len(reads) == 0
+            self._llvm_intrin_ins_str = ins_str
+        return self._llvm_intrin_ins_str
 
     @property
     def llvm_outs_str(self):

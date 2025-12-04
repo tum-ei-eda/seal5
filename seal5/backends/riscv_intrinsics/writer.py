@@ -226,7 +226,14 @@ def build_attr(arch: str, intrinsic: IntrinsicDefn):
             attr += ", "
         attr += ir_type_to_pattern(arg.arg_type)
     attr += "],\n"
-    attr += "    [IntrNoMem, IntrSpeculatable, IntrWillReturn]>;\n"
+    temp = ["IntrNoMem", "IntrSpeculatable", "IntrWillReturn"]
+    for i, arg in enumerate(intrinsic.args):
+        print("i", i)
+        print("arg", arg)
+        # TODO: if imm, add ImmArg<ArgIndex<0>>
+
+    temp_str = ", ".join(temp)
+    attr += f"    [{temp_str}]>;\n"
     return attr
 
 

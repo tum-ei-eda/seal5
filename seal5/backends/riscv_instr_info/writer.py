@@ -233,8 +233,9 @@ def gen_riscv_instr_info_str(instr, set_def):
 def gen_intrinsic_pattern(instr, set_name, intrinsic: IntrinsicDefn, ext_settings: Optional[ExtensionsSettings] = None):
     assert ext_settings is not None
     arch_ = ext_settings.get_arch(name=set_name)
+    # TODO: handle non-trivial operand order
     pat = f"""class Pat_{instr.name}<SDPatternOperator OpNode, Instruction Inst>
-: Pat<(OpNode {instr.llvm_ins_str}), (Inst {instr.llvm_ins_str})>;
+: Pat<(OpNode {instr.llvm_intrin_ins_str}), (Inst {instr.llvm_intrin_ins_str})>;
 def : Pat_{instr.name}<int_riscv_{arch_}_{intrinsic.intrinsic_name}, {instr.name}>;"""
     return pat
 
