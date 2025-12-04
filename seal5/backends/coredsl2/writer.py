@@ -125,11 +125,19 @@ class CoreDSL2Writer:
                         return helper(val[0])
                     return "(" + ",".join([helper(x) for x in val]) + ")"
                 if isinstance(val, str):  # TODO: replace with string literal
-                    return val  # TODO: operation
+                    if '"' not in val:
+                        val = '"' + val + '"'
+                    return val
                 if isinstance(val, int):  # TODO: replace with int literal
                     return str(val)  # TODO: operation
                 if isinstance(val, behav.IntLiteral):
-                    return str(val.value)
+                    size = val.bit_size
+                    value = val.value
+                    if size and value != 0 and not val.signed:
+                        # hex mode
+                        return f"{size}'h{value:x}"
+                    else:
+                        return str(val.value)
                 if isinstance(val, behav.StringLiteral):
                     val = val.value
                     if '"' not in val:
@@ -349,6 +357,7 @@ def main():
     parser.add_argument("--splitted", action="store_true", help="Split per set and instruction")
     parser.add_argument("--ext", type=str, default="core_desc", help="Default file extension (if using --splitted)")
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
+    parser.add_argument("--ignore-failing", action="store_true", help="Do not crash in case of errors.")
     parser.add_argument("--compat", action="store_true")
     args = parser.parse_args()
 
@@ -427,6 +436,13 @@ def main():
         content = writer.text
         with open(out_path, "w", encoding="utf-8") as f:
             f.write(content)
+    if not args.ignore_failing:
+        n_failed = metrics["n_failed"]
+        if n_failed > 0:
+            failed = metrics["failed_instructions"]
+            failing_str = ", ".join(failed)
+            logger.error("%s intructions failed: %s", n_failed, failing_str)
+            raise RuntimeError("Abort due to errors")
     if args.metrics:
         metrics_file = args.metrics
         metrics_df = pd.DataFrame({key: [val] for key, val in metrics.items()})

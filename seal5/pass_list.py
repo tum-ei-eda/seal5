@@ -1948,7 +1948,7 @@ def detect_loops(
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
     name = input_file.name
-    logger.info("Detecting imm leafs for %s", name)
+    logger.info("Detecting loops for %s", name)
     args = [
         settings.models_dir / name,
         "--log",
@@ -1971,6 +1971,51 @@ def detect_loops(
             env=env,
             print_func=logger.info if verbose else logger.debug,
             live=verbose,
+        )
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
+
+
+def annotate_opcodes(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    use_subprocess: bool = False,
+    log_level: str = "debug",
+    **_kwargs,
+):
+    assert inplace
+    gen_metrics_file = True
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Annotating opcodes for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        log_level,
+    ]
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (name + "_annotate_opcodes_metrics.csv")
+        args.extend(["--metrics", metrics_file])
+    if not use_subprocess:
+        from seal5.transform.annotate_opcodes import AnnotateOpcodes
+
+        args = sanitize_args(args)
+        AnnotateOpcodes(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.annotate_opcodes.annotate",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
         )
     metrics = {}
     if gen_metrics_file:

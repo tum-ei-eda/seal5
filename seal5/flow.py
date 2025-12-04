@@ -81,6 +81,7 @@ TRANSFORM_PASS_MAP = [
     ("detect_imm_leafs", passes.detect_imm_leafs, {}),
     ("detect_calls", passes.detect_calls, {}),
     ("detect_loops", passes.detect_loops, {}),
+    ("annotate_opcodes", passes.annotate_opcodes, {}),
     ("check_pattern_support", passes.check_pattern_support, {}),
     ("write_cdsl_full", passes.write_cdsl, {"split": False, "compat": False}),
     # TODO: determine static constraints (xlen,...) -> subtargetvmap

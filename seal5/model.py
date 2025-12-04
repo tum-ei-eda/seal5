@@ -177,6 +177,14 @@ class Seal5InstrAttribute(Enum):
     LLVM_INSTR = auto()
     HAS_CALL = auto()
     HAS_LOOP = auto()
+    OPCODE = auto()
+    OPCODE_NAME = auto()
+    FUNCT3 = auto()
+    FUNCT7 = auto()
+    ENC_FORMAT = auto()
+    ENC_PATTERN = auto()
+    ENC_MASK = auto()
+    ENC_MATCH = auto()
 
 
 class Seal5FunctionAttribute(Enum):
