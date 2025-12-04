@@ -46,6 +46,7 @@ from seal5.tools import llvm, cdsl2llvm, inject_patches
 from seal5.resources.resources import get_patches, get_test_cfg
 from seal5.passes import Seal5Pass, PassType, PassScope, PassManager, filter_passes
 import seal5.pass_list as passes
+from seal5.testgen_utils import collect_generated_test_files
 from seal5.build_cache import combine_hashes, hash_arguments, get_patch_id, query_build_cache
 
 
@@ -466,7 +467,6 @@ class Seal5Flow:
                 use_ninja=self.settings.llvm.ninja,
             )
             self.logger.info("Completed build of llc")
-        # input("qqqqqq")
         end = time.time()
         diff = end - start
         metrics["start"] = start
@@ -778,8 +778,6 @@ class Seal5Flow:
             if patch_settings.stage not in ret:
                 ret[patch_settings.stage] = []
             ret[patch_settings.stage].append(patch_settings)
-        # print("ret", ret)
-        # input("!r!")
         return ret
 
     def resolve_patch_file(self, path):
@@ -816,6 +814,10 @@ class Seal5Flow:
             comment = patch.comment
             msg = f"{prefix} {comment}"
             llvm_dir = self.directory
+            generated_test_files = collect_generated_test_files(patch.index)
+            # TODO: maybe move to pass_list?
+            if len(generated_test_files) > 0:
+                self.settings.test.paths.extend(generated_test_files)
             inject_patches.generate_patch(
                 patch.index,
                 llvm_dir=llvm_dir,
