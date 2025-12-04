@@ -9,6 +9,7 @@ seal5.settings
    .. autosummary::
    
       check_supported_types
+      get_logger
    
    .. rubric:: Classes
 

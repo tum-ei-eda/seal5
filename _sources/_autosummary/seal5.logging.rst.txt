@@ -15,6 +15,7 @@ seal5.logging
       resolve_log_level
       stop_logging_server
       update_log_level
+      update_rotary_logger
    
    .. rubric:: Classes
 
