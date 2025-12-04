@@ -46,6 +46,7 @@ from seal5.tools import llvm, cdsl2llvm, inject_patches
 from seal5.resources.resources import get_patches, get_test_cfg
 from seal5.passes import Seal5Pass, PassType, PassScope, PassManager, filter_passes
 import seal5.pass_list as passes
+from seal5.build_cache import combine_hashes, hash_arguments, get_patch_id, query_build_cache
 
 
 logger = Logger("flow")
@@ -343,7 +344,7 @@ class Seal5Flow:
         self.meta_dir.mkdir(exist_ok=True)
         create_seal5_directories(
             self.meta_dir,
-            ["deps", "models", "logs", "build", "install", "temp", "inputs", "gen", "patches", "tests"],
+            ["deps", "models", "logs", "build", "install", "temp", "inputs", "gen", "patches", "tests", "cache"],
         )
         if not check_logging_server() and self.settings.logs_dir.is_dir():
             initialize_logging_server(
@@ -559,19 +560,35 @@ class Seal5Flow:
             config = self.settings.llvm.default_config
         llvm_config = self.settings.llvm.configs.get(config, None)
         assert llvm_config is not None, f"Invalid llvm config: {config}"
+        build_dir = self.settings.get_llvm_build_dir(config=config, fallback=True, check=False)
         cmake_options = llvm_config.options
         ccache_settings = self.settings.llvm.ccache
         if kwargs.get("enable_ccache", False):
             ccache_settings.enable = True
-        llvm.build_llvm(
-            Path(self.settings.directory),
-            self.settings.get_llvm_build_dir(config=config, fallback=True, check=False),
-            cmake_options=cmake_options,
-            target=target,
-            use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
-            ccache_settings=ccache_settings,
-            verbose=verbose,
-        )
+        use_build_cache = False
+        if kwargs.get("enable_build_cache", False):
+            use_build_cache = True
+        cached = False
+        if use_build_cache:
+            build_hash = combine_hashes(
+                hash_arguments(), get_patch_id(Path(self.settings.directory), self.settings.llvm.state.base_commit)
+            )
+            cache_dir = self.settings.cache_dir
+            cached = query_build_cache(build_dir, cache_dir)
+
+        if cached:
+            assert build_hash is not None
+            logger.info("Using cache %s", build_hash)
+        else:
+            llvm.build_llvm(
+                Path(self.settings.directory),
+                build_dir,
+                cmake_options=cmake_options,
+                target=target,
+                use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
+                ccache_settings=ccache_settings,
+                verbose=verbose,
+            )
         end = time.time()
         diff = end - start
         metrics["start"] = start
