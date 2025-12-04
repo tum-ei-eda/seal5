@@ -167,7 +167,7 @@ def run_seal5_flow(
     # Clone & install Seal5 dependencies
     # 1. CDSL2LLVM (add PHASE_0 patches)
     if setup:
-        seal5_flow.setup(force=True, progress=progress, verbose=verbose)
+        seal5_flow.setup(force=True, progress=progress, verbose=verbose, skip_patterns=skip_patterns)
 
     # Apply initial patches
     if not prepatched:

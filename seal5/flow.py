@@ -385,6 +385,7 @@ class Seal5Flow:
         force: bool = False,
         progress: bool = False,
         verbose: bool = False,
+        skip_patterns: bool = False,
     ):
         """Setup Seal5 dependencies."""
         del interactive  # unused
@@ -411,63 +412,64 @@ class Seal5Flow:
             weak=True,
         )
         self.settings.add_patch(inject_markers_patch_settings)
-        self.logger.info("Cloning CDSL2LLVM")
-        # cdsl2llvm_dependency.clone(self.settings.deps_dir / "cdsl2llvm", overwrite=force, depth=1)
-        pattern_gen_settings = self.settings.tools.pattern_gen
-        kwargs = {}
-        if pattern_gen_settings.clone_url is not None:
-            kwargs["clone_url"] = pattern_gen_settings.clone_url
-        if pattern_gen_settings.ref is not None:
-            kwargs["ref"] = pattern_gen_settings.ref
-        llvm_version = self.settings.llvm.state.version
-        if llvm_version is not None:
-            kwargs["llvm_version"] = llvm_version
-        cdsl2llvm_dependency = CDSL2LLVMDependency(**kwargs)
-        cdsl2llvm_dependency.clone(
-            self.settings.deps_dir / "cdsl2llvm",
-            overwrite=force,
-            depth=pattern_gen_settings.clone_depth,
-            sparse=pattern_gen_settings.sparse_checkout,
-            progress=progress,
-        )
-        integrated_pattern_gen = self.settings.tools.pattern_gen.integrated
-        if integrated_pattern_gen:
-            has_patterngen_patch = any(patch.name == "pattern_gen_support" for patch in self.settings.patches)
-            if not has_patterngen_patch:
-                self.logger.info("Adding PatternGen to target LLVM")
-                patch_settings = cdsl2llvm.get_pattern_gen_patches(
-                    self.settings.deps_dir / "cdsl2llvm",
-                    self.settings.temp_dir,
+        if not skip_patterns:
+            self.logger.info("Cloning CDSL2LLVM")
+            # cdsl2llvm_dependency.clone(self.settings.deps_dir / "cdsl2llvm", overwrite=force, depth=1)
+            pattern_gen_settings = self.settings.tools.pattern_gen
+            kwargs = {}
+            if pattern_gen_settings.clone_url is not None:
+                kwargs["clone_url"] = pattern_gen_settings.clone_url
+            if pattern_gen_settings.ref is not None:
+                kwargs["ref"] = pattern_gen_settings.ref
+            llvm_version = self.settings.llvm.state.version
+            if llvm_version is not None:
+                kwargs["llvm_version"] = llvm_version
+            cdsl2llvm_dependency = CDSL2LLVMDependency(**kwargs)
+            cdsl2llvm_dependency.clone(
+                self.settings.deps_dir / "cdsl2llvm",
+                overwrite=force,
+                depth=pattern_gen_settings.clone_depth,
+                sparse=pattern_gen_settings.sparse_checkout,
+                progress=progress,
+            )
+            integrated_pattern_gen = self.settings.tools.pattern_gen.integrated
+            if integrated_pattern_gen:
+                has_patterngen_patch = any(patch.name == "pattern_gen_support" for patch in self.settings.patches)
+                if not has_patterngen_patch:
+                    self.logger.info("Adding PatternGen to target LLVM")
+                    patch_settings = cdsl2llvm.get_pattern_gen_patches(
+                        self.settings.deps_dir / "cdsl2llvm",
+                        self.settings.temp_dir,
+                    )
+                    self.settings.add_patch(patch_settings)
+            else:
+                self.logger.info("Building PatternGen")
+                llvm_config = LLVMConfig(
+                    options={
+                        "CMAKE_BUILD_TYPE": "Release",
+                        "LLVM_BUILD_TOOLS": False,
+                        "LLVM_ENABLE_ASSERTIONS": False,
+                        "LLVM_OPTIMIZED_TABLEGEN": True,
+                        "LLVM_ENABLE_PROJECT": [],
+                        "LLVM_TARGETS_TO_BUILD": ["RISCV"],
+                    }
                 )
-                self.settings.add_patch(patch_settings)
-        else:
-            self.logger.info("Building PatternGen")
-            llvm_config = LLVMConfig(
-                options={
-                    "CMAKE_BUILD_TYPE": "Release",
-                    "LLVM_BUILD_TOOLS": False,
-                    "LLVM_ENABLE_ASSERTIONS": False,
-                    "LLVM_OPTIMIZED_TABLEGEN": True,
-                    "LLVM_ENABLE_PROJECT": [],
-                    "LLVM_TARGETS_TO_BUILD": ["RISCV"],
-                }
-            )
-            cmake_options = llvm_config.options
-            cdsl2llvm.build_pattern_gen(
-                self.settings.deps_dir / "cdsl2llvm",
-                self.settings.deps_dir / "cdsl2llvm" / "llvm" / "build",
-                cmake_options=cmake_options,
-                use_ninja=self.settings.llvm.ninja,
-            )
-            self.logger.info("Completed build of PatternGen")
-            self.logger.info("Building llc")
-            cdsl2llvm.build_llc(
-                self.settings.deps_dir / "cdsl2llvm",
-                self.settings.deps_dir / "cdsl2llvm" / "llvm" / "build",
-                cmake_options=cmake_options,
-                use_ninja=self.settings.llvm.ninja,
-            )
-            self.logger.info("Completed build of llc")
+                cmake_options = llvm_config.options
+                cdsl2llvm.build_pattern_gen(
+                    self.settings.deps_dir / "cdsl2llvm",
+                    self.settings.deps_dir / "cdsl2llvm" / "llvm" / "build",
+                    cmake_options=cmake_options,
+                    use_ninja=self.settings.llvm.ninja,
+                )
+                self.logger.info("Completed build of PatternGen")
+                self.logger.info("Building llc")
+                cdsl2llvm.build_llc(
+                    self.settings.deps_dir / "cdsl2llvm",
+                    self.settings.deps_dir / "cdsl2llvm" / "llvm" / "build",
+                    cmake_options=cmake_options,
+                    use_ninja=self.settings.llvm.ninja,
+                )
+                self.logger.info("Completed build of llc")
         end = time.time()
         diff = end - start
         metrics["start"] = start
