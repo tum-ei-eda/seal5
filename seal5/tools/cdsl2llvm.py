@@ -19,7 +19,7 @@
 """PatternGen utils for seal5."""
 import re
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 from collections import defaultdict
 
 import yaml
@@ -143,7 +143,7 @@ def build_llc(
 def run_pattern_gen(
     build_dir: Path,
     src: Path,
-    dest: Path,
+    dest: Union[str, Path],
     verbose: bool = False,
     ext=None,
     mattr=None,
@@ -161,6 +161,9 @@ def run_pattern_gen(
     # pattern_gen_args.extend(["-custom-legalizer-settings=foo", "-disable-gisel-legality-check"])
 
     if dest:
+        if isinstance(dest, str):
+            dest = Path(dest)
+        assert dest.parent.is_dir(), f"Missing destination directory: {dest}"
         pattern_gen_args.extend(["-o", str(dest)])
 
     if ext:
