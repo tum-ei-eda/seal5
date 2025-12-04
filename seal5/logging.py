@@ -26,10 +26,9 @@ import os
 import socketserver
 import struct
 import pickle
-from typing import List, Tuple
+from typing import List, Optional
 import threading
-from pathlib import Path
-from typing import Optional
+from seal5.settings import FileLoggingSettings
 
 PROJECT_NAME = "seal5"
 HOSTNAME = "localhost"
@@ -87,9 +86,8 @@ def get_logger(loggername: None | str = None, level=logging.DEBUG):
 
 
 def initialize_logging_server(
-    logfiles: None | List[Tuple[Path | str, int]] = [
-        ("log_debug.log", logging.DEBUG),
-        ("log_info.log", logging.INFO),
+    logfiles: None | List[FileLoggingSettings] = [
+        FileLoggingSettings(filename="log_debug.log", level=logging.DEBUG, rotate=True, limit=3),
     ],
     stream_log_level: int | str = logging.INFO,
 ):
@@ -105,10 +103,15 @@ def initialize_logging_server(
     logger.addHandler(stream_handler)
 
     if logfiles is not None:
-        for log_file, log_level in logfiles:
-            file_handler = logging.FileHandler(log_file, "w")
+        for config in logfiles:
+            if config.rotate:
+                file_handler = logging.handlers.RotatingFileHandler(
+                    config.filename, maxBytes=1000000000, backupCount=config.limit if config.limit else 3
+                )
+            else:
+                file_handler = logging.FileHandler(config.filename, "w")
             file_handler.setFormatter(get_formatter(False))
-            file_handler.setLevel(resolve_log_level(log_level))
+            file_handler.setLevel(resolve_log_level(config.level))
             logger.addHandler(file_handler)
 
     try:
@@ -142,12 +145,19 @@ def check_logging_server():
     return False
 
 
+def update_rotary_logger():
+    if _logger is not None:
+        for handler in _logger.handlers[:]:
+            if isinstance(handler, logging.handlers.RotatingFileHandler):
+                handler.doRollover()
+
+
 def update_log_level(console_level=None, file_level=None):
     """Set command line or file log level at runtime."""
     if _logger is not None:
         for handler in _logger.handlers[:]:
             if (
-                isinstance(handler, (logging.FileHandler, logging.handlers.TimedRotatingFileHandler))
+                isinstance(handler, (logging.FileHandler, logging.handlers.RotatingFileHandler))
                 and file_level is not None
             ):
                 file_level = resolve_log_level(file_level)
