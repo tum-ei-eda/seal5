@@ -8,6 +8,7 @@ seal5.pass\_list
 
    .. autosummary::
    
+      annotate_opcodes
       check_pattern_support
       collect_immediate_operands
       collect_operand_types

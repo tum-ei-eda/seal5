@@ -9,5 +9,8 @@ seal5.riscv\_utils
    .. autosummary::
    
       build_riscv_mattr
+      detect_format
+      detect_funct3_funct7
+      detect_opcode
       get_riscv_defaults
    

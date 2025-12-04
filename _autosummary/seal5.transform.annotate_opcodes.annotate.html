@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>seal5.transform.explicit_truncations.visitor &mdash; Seal5 v0.1.2 documentation</title>
+  <title>seal5.transform.annotate_opcodes.annotate &mdash; Seal5 v0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
@@ -19,8 +19,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="seal5.transform.filter_model" href="seal5.transform.filter_model.html" />
-    <link rel="prev" title="seal5.transform.explicit_truncations.transform" href="seal5.transform.explicit_truncations.transform.html" /> 
+    <link rel="next" title="seal5.transform.check_pattern_support" href="seal5.transform.check_pattern_support.html" />
+    <link rel="prev" title="seal5.transform.annotate_opcodes" href="seal5.transform.annotate_opcodes.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -62,7 +62,10 @@
 <li class="toctree-l2"><a class="reference internal" href="seal5.testgen_utils.html">seal5.testgen_utils</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.tools.html">seal5.tools</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="seal5.transform.html">seal5.transform</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.annotate_opcodes.html">seal5.transform.annotate_opcodes</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="seal5.transform.annotate_opcodes.html">seal5.transform.annotate_opcodes</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">seal5.transform.annotate_opcodes.annotate</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.check_pattern_support.html">seal5.transform.check_pattern_support</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.collect_immediate_operands.html">seal5.transform.collect_immediate_operands</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.collect_operand_types.html">seal5.transform.collect_operand_types</a></li>
@@ -78,11 +81,7 @@
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.drop_unused.html">seal5.transform.drop_unused</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.eliminate_mod_rfs.html">seal5.transform.eliminate_mod_rfs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.eliminate_rd_cmp_zero.html">seal5.transform.eliminate_rd_cmp_zero</a></li>
-<li class="toctree-l3 current"><a class="reference internal" href="seal5.transform.explicit_truncations.html">seal5.transform.explicit_truncations</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="seal5.transform.explicit_truncations.transform.html">seal5.transform.explicit_truncations.transform</a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#">seal5.transform.explicit_truncations.visitor</a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.transform.explicit_truncations.html">seal5.transform.explicit_truncations</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.filter_model.html">seal5.transform.filter_model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.infer_types.html">seal5.transform.infer_types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.inline_functions.html">seal5.transform.inline_functions</a></li>
@@ -119,10 +118,10 @@
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="seal5.html">seal5</a></li>
           <li class="breadcrumb-item"><a href="seal5.transform.html">seal5.transform</a></li>
-          <li class="breadcrumb-item"><a href="seal5.transform.explicit_truncations.html">seal5.transform.explicit_truncations</a></li>
-      <li class="breadcrumb-item active">seal5.transform.explicit_truncations.visitor</li>
+          <li class="breadcrumb-item"><a href="seal5.transform.annotate_opcodes.html">seal5.transform.annotate_opcodes</a></li>
+      <li class="breadcrumb-item active">seal5.transform.annotate_opcodes.annotate</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/_autosummary/seal5.transform.explicit_truncations.visitor.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/_autosummary/seal5.transform.annotate_opcodes.annotate.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -130,79 +129,22 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-seal5.transform.explicit_truncations.visitor">
-<span id="seal5-transform-explicit-truncations-visitor"></span><h1>seal5.transform.explicit_truncations.visitor<a class="headerlink" href="#module-seal5.transform.explicit_truncations.visitor" title="Link to this heading"></a></h1>
-<p>A transformation module for simplifying M2-ISA-R behavior expressions. The following
-simplifications are done:</p>
-<ul class="simple">
-<li><p>Resolvable <code class="xref py py-class docutils literal notranslate"><span class="pre">m2isar.metamodel.arch.Constant</span></code> s are replaced by
-<cite>m2isar.metamodel.arch.IntLiteral</cite> s representing their value</p></li>
-<li><p>Fully resolvable arithmetic operations are carried out and their results
-represented as a matching <code class="xref py py-class docutils literal notranslate"><span class="pre">m2isar.metamodel.arch.IntLiteral</span></code></p></li>
-<li><p>Conditions and loops with fully resolvable conditions are either discarded entirely
-or transformed into code blocks without any conditions</p></li>
-<li><p>Ternaries with fully resolvable conditions are transformed into only the matching part</p></li>
-<li><p>Type conversions of <code class="xref py py-class docutils literal notranslate"><span class="pre">m2isar.metamodel.arch.IntLiteral</span></code> s apply the desired
-type directly to the <code class="xref py py-class docutils literal notranslate"><span class="pre">IntLiteral</span></code> and discard the type conversion</p></li>
-</ul>
+  <section id="module-seal5.transform.annotate_opcodes.annotate">
+<span id="seal5-transform-annotate-opcodes-annotate"></span><h1>seal5.transform.annotate_opcodes.annotate<a class="headerlink" href="#module-seal5.transform.annotate_opcodes.annotate" title="Link to this heading"></a></h1>
+<p>Annotate opcode and encoding fmt using CoreDSL2 attributes.</p>
 <p class="rubric">Functions</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">assignment</span></code>(self, context)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">annotate_opcodes</span></code>(instr_def, enc_mask, enc_match)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">binary_operation</span></code>(self, context)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parser</span></code>()</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">break_</span></code>(self, context)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code>(argv)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">callable_</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">concat_operation</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">conditional</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">group</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">indexed_reference</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">int_literal</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">loop</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">named_reference</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">number_literal</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">operation</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">return_</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">scalar_definition</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">slice_operation</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ternary</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">type_conv</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">unary_operation</span></code>(self, context)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code>(args)</p></td>
 <td><p></p></td>
 </tr>
 </tbody>
@@ -213,8 +155,8 @@ type directly to the <code class="xref py py-class docutils literal notranslate"
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="seal5.transform.explicit_truncations.transform.html" class="btn btn-neutral float-left" title="seal5.transform.explicit_truncations.transform" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="seal5.transform.filter_model.html" class="btn btn-neutral float-right" title="seal5.transform.filter_model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="seal5.transform.annotate_opcodes.html" class="btn btn-neutral float-left" title="seal5.transform.annotate_opcodes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="seal5.transform.check_pattern_support.html" class="btn btn-neutral float-right" title="seal5.transform.check_pattern_support" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

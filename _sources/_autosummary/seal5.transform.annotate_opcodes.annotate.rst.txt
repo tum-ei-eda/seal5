@@ -1,0 +1,15 @@
+seal5.transform.annotate\_opcodes.annotate
+==========================================
+
+.. automodule:: seal5.transform.annotate_opcodes.annotate
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      annotate_opcodes
+      get_parser
+      main
+      run
+   

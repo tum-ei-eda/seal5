@@ -1,0 +1,13 @@
+seal5.transform.annotate\_opcodes
+=================================
+
+.. automodule:: seal5.transform.annotate_opcodes
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   annotate
