@@ -1,3 +1,4 @@
+---
 name: Bug Report
 description: If Seal5 is not behaving as expected, please file a report here.
 body:
@@ -15,25 +16,22 @@ body:
       description: What did you *want* to happen?
     validations:
       required: true
-  - type: markdown
+  - type: textarea
+    id: environment
     attributes:
-      value: |
-        ---
-        Please provide relevant properties of your System/Environment (OS, Python Version,...)
-  - type: markdown
+      label: Environment Details
+      description: Please provide relevant properties of your System/Environment (OS, Python Version,...)
+  - type: textarea
+    id: command
     attributes:
-      value: |
-        ---
-        Please provide the executed commands or Python Code.
-  - type: markdown
-    attributes:
-      value: |
-        ---
-        You may also upload some files (Log files, CoreDSL code, YAML Config,...) so we can reproduce your issue.
+      label: Executed Commands or Code
+      description: Please provide relevant properties of your System/Environment (OS, Python Version,...)
+        Please provide the executed steps (commands or Python Code).
   - type: textarea
     id: reproduction-material
     attributes:
       label: Reproduction material
+      description: You may also upload some files (Log files, CoreDSL code, YAML Config,...) so we can reproduce your issue.
   - type: markdown
     attributes:
       value: ---
