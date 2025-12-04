@@ -175,7 +175,9 @@ def run_seal5_flow(
 
     if build:
         # Build initial LLVM
-        seal5_flow.build(verbose=verbose, config=build_config, enable_ccache=ccache, enable_build_cache=enable_build_cache)
+        seal5_flow.build(
+            verbose=verbose, config=build_config, enable_ccache=ccache, enable_build_cache=enable_build_cache
+        )
 
     if transform:
         # Transform inputs
@@ -194,7 +196,9 @@ def run_seal5_flow(
 
     if build:
         # Build patched LLVM
-        seal5_flow.build(verbose=verbose, config=build_config, enable_ccache=ccache, enable_build_cache=enable_build_cache)
+        seal5_flow.build(
+            verbose=verbose, config=build_config, enable_ccache=ccache, enable_build_cache=enable_build_cache
+        )
 
     if not skip_patterns:
         if build:
@@ -224,7 +228,9 @@ def run_seal5_flow(
 
     if build:
         # Build patched LLVM
-        seal5_flow.build(verbose=verbose, config=build_config, enable_ccache=ccache, enable_build_cache=enable_build_cache)
+        seal5_flow.build(
+            verbose=verbose, config=build_config, enable_ccache=ccache, enable_build_cache=enable_build_cache
+        )
 
     if test:
         # Test patched LLVM

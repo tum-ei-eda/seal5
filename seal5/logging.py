@@ -26,9 +26,8 @@ import os
 import socketserver
 import struct
 import pickle
-from typing import List, NamedTuple, Tuple, Optional, Union
+from typing import List, Optional
 import threading
-from pathlib import Path
 from seal5.settings import FileLoggingSettings
 
 PROJECT_NAME = "seal5"

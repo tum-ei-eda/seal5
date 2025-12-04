@@ -735,8 +735,10 @@ class Seal5Settings(YAMLSettings):
                 if ps.weak:
                     self.patches.append(patch_settings)
                     added = True
+                    logger = get_logger()
                     logger.info("Overriding weak patch '%s'", ps.name)
                 elif patch_settings.weak:
+                    logger = get_logger()
                     logger.info("Skipping weak patch '%s'", ps.name)
                 else:
                     raise RuntimeError(
