@@ -390,6 +390,25 @@ class Seal5Flow:
         self.logger.info("Installing Seal5 dependencies")
         start = time.time()
         metrics = {}
+        self.logger.info("Generating default patches")
+        gitignore_patch_settings = PatchSettings(
+            name="gitignore",
+            stage=int(PatchStage.PHASE_0),
+            generated=False,
+            target="llvm",
+            weak=True,
+        )
+        self.settings.add_patch(gitignore_patch_settings)
+        llvm_version = self.settings.llvm.state.version
+        major = llvm_version.major
+        inject_markers_patch_settings = PatchSettings(
+            name=f"insert_markers_llvm{major}",
+            stage=int(PatchStage.PHASE_0),
+            generated=False,
+            target="llvm",
+            weak=True,
+        )
+        self.settings.add_patch(inject_markers_patch_settings)
         self.logger.info("Cloning CDSL2LLVM")
         # cdsl2llvm_dependency.clone(self.settings.deps_dir / "cdsl2llvm", overwrite=force, depth=1)
         pattern_gen_settings = self.settings.tools.pattern_gen
