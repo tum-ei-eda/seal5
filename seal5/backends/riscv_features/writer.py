@@ -23,7 +23,9 @@ from seal5.model_utils import load_model
 from .templates import template_dir
 
 
-logger = logging.getLogger("riscv_features")
+from seal5.logging import Logger
+
+logger = Logger("backends.riscv_features")
 
 
 def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings, llvm_settings: LLVMSettings):
@@ -67,7 +69,8 @@ def gen_riscv_features_str(name: str, ext_settings: ExtensionsSettings, llvm_set
     content_template = Template(filename=str(template_dir / f"{template_name}.mako"))
     if slim:
         # TODO: support experimental- prefix
-        assert feature.lower() == arch_, "LLVM 20 requires matching arch and feature names"
+        feature_lower = feature.lower()
+        assert feature_lower == arch_, f"LLVM 20 requires matching arch and feature names ({feature_lower} vs. {arch_})"
         assert predicate == (f"Vendor{feature}" if vendor else f"StdExt{feature}")
     content_text = content_template.render(
         predicate=predicate, feature=feature, arch=arch_, description=description, major=major, minor=minor
@@ -92,7 +95,7 @@ def main():
     args = parser.parse_args()
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)

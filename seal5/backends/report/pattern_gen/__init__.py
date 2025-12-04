@@ -16,6 +16,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""Version module for seal5."""
-
-__version__ = "0.3.1"
+"""Seal5 status backend"""

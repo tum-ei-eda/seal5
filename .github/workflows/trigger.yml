@@ -1,3 +1,4 @@
+---
 ##
 ## Copyright (c) 2024 TUM Department of Electrical and Computer Engineering.
 ##
@@ -16,21 +17,19 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 ##
-
 name: Trigger Seal5 ETISS Test Flow
-
 on:
   push:
-    branches: [ "main" ]
-
+    branches: [main]
 jobs:
   trigger_repo:
     runs-on: ubuntu-latest
     steps:
-    - name: Trigger Seal5 ETISS Test Flow
-      uses: peter-evans/repository-dispatch@v3
-      with:
-         token: ${{ secrets.SEAL5_ACCESS_TOKEN }}
-         repository: tum-ei-eda/seal5_etiss_test_env
-         event-type: seal5-event
-         client-payload: '{"triggered_run_id": "${{ github.run_id }}", "ref": "${{ github.sha }}", "from": "seal5"}'
+      - name: Trigger Seal5 ETISS Test Flow
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.SEAL5_ACCESS_TOKEN }}
+          repository: tum-ei-eda/seal5_etiss_test_env
+          event-type: seal5-event
+          client-payload: '{"triggered_run_id": "${{ github.run_id }}", "ref": "${{ github.sha }}",
+            "from": "seal5"}'

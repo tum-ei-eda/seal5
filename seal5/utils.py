@@ -27,9 +27,9 @@ import multiprocessing
 from pathlib import Path
 from typing import List, Callable, Optional
 
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
-logger = get_logger()
+logger = Logger("utils")
 
 
 def str2bool(value, allow_none=False):

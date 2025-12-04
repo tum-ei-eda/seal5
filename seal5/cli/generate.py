@@ -19,10 +19,10 @@
 """Generating Seal5 patches"""
 
 from seal5.flow import Seal5Flow
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
 
-logger = get_logger()
+logger = Logger("cli")
 
 
 def add_generate_options(parser):
