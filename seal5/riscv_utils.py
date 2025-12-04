@@ -109,11 +109,11 @@ def detect_funct3_funct7(instr_def):
         # print("e", e, dir(e))
         if isinstance(e, arch.BitVal):
             length = e.length
-            if size == 7+5:
+            if size == 7 + 5:
                 val = e.value
                 if length == 3:
                     funct3 = val
-            elif size == 7+5+3+5+5:
+            elif size == 7 + 5 + 3 + 5 + 5:
                 val = e.value
                 if length == 7:
                     funct7 = val

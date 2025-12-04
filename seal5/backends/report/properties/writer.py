@@ -14,8 +14,6 @@ import pathlib
 
 import pandas as pd
 
-from m2isar.metamodel import arch
-
 from seal5.model import Seal5OperandAttribute, Seal5InstrAttribute
 from seal5.model_utils import load_model
 from seal5.riscv_utils import detect_opcode, detect_format
