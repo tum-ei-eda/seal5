@@ -63,6 +63,7 @@ INIT = str2bool(os.environ.get("INIT", 1))
 SETUP = str2bool(os.environ.get("SETUP", 1))
 PROGRESS = str2bool(os.environ.get("PROGRESS", 1))
 CCACHE = str2bool(os.environ.get("CCACHE", 0))
+BUILD_CACHE = str2bool(os.environ.get("BUILD_CACHE", 0))
 CLONE_DEPTH = int(os.environ.get("CLONE_DEPTH", -1))
 LOG_LEVEL = os.environ.get("SEAL5_LOG_LEVEL", None)
 NAME = os.environ.get("NAME", None)
@@ -82,6 +83,7 @@ def run_seal5_flow(
     progress: bool = PROGRESS,
     build_config: Optional[str] = BUILD_CONFIG,
     ccache: bool = CCACHE,
+    enable_build_cache: bool = BUILD_CACHE,
     ignore_error: bool = IGNORE_ERROR,
     skip_patterns: bool = SKIP_PATTERNS,
     test: bool = TEST,
@@ -158,7 +160,7 @@ def run_seal5_flow(
         seal5_flow.patch(verbose=verbose, stages=[PatchStage.PHASE_0])
 
     # Build initial LLVM
-    seal5_flow.build(verbose=verbose, config=build_config, enable_ccache=ccache)
+    seal5_flow.build(verbose=verbose, config=build_config, enable_ccache=ccache, enable_build_cache=enable_build_cache)
 
     # Transform inputs
     #   1. Create M2-ISA-R metamodel
@@ -173,12 +175,24 @@ def run_seal5_flow(
     seal5_flow.patch(verbose=verbose, stages=[PatchStage.PHASE_1, PatchStage.PHASE_2])
 
     # Build patched LLVM
-    seal5_flow.build(verbose=verbose, config=build_config, enable_ccache=ccache)
+    seal5_flow.build(verbose=verbose, config=build_config, enable_ccache=ccache, enable_build_cache=enable_build_cache)
 
     if not skip_patterns:
         # Build PatternGen & llc
-        seal5_flow.build(verbose=verbose, config=build_config, target="pattern-gen", enable_ccache=ccache)
-        seal5_flow.build(verbose=verbose, config=build_config, target="llc", enable_ccache=ccache)
+        seal5_flow.build(
+            verbose=verbose,
+            config=build_config,
+            target="pattern-gen",
+            enable_ccache=ccache,
+            enable_build_cache=enable_build_cache,
+        )
+        seal5_flow.build(
+            verbose=verbose,
+            config=build_config,
+            target="llc",
+            enable_ccache=ccache,
+            enable_build_cache=enable_build_cache,
+        )
 
         # Generate remaining patches
         seal5_flow.generate(verbose=VERBOSE, only=["pattern_gen"])
@@ -187,7 +201,7 @@ def run_seal5_flow(
         seal5_flow.patch(verbose=verbose, stages=list(range(PatchStage.PHASE_3, PatchStage.PHASE_5 + 1)))
 
     # Build patched LLVM
-    seal5_flow.build(verbose=verbose, config=build_config, enable_ccache=ccache)
+    seal5_flow.build(verbose=verbose, config=build_config, enable_ccache=ccache, enable_build_cache=enable_build_cache)
 
     if test:
         # Test patched LLVM
