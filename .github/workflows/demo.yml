@@ -1,3 +1,4 @@
+---
 ##
 ## Copyright (c) 2024 TUM Department of Electrical and Computer Engineering.
 ##
@@ -19,71 +20,68 @@
 
 # Seal5 demonstration (also serves as end-to-end testj
 name: Usage Demo (Manual)
-
 on:
   workflow_dispatch:
     inputs:
       script:
-        description: "Script"
+        description: Script
         required: true
-        default: "demo.py"
+        default: demo.py
       verbose:
-        description: "Verbose (0/1)"
+        description: Verbose (0/1)
         required: true
-        default: "0"
+        default: '0'
       progress:
-        description: "Enable progress bars (0/1)"
+        description: Enable progress bars (0/1)
         required: true
-        default: "1"
+        default: '1'
       # ccache:
       #   description: "Enable ccache (0/1)"
       #   required: true
       #   default: "0"
       clone_depth:
-        description: "Clone Depth (-1 for full clone)"
+        description: Clone Depth (-1 for full clone)
         required: true
-        default: "1"
+        default: '1'
       # fast:
       #   description: "Fast (0/1)"
       #   required: true
       #   default: "0"
       ignore_error:
-        description: "Ignore Errors in TEST stage (0/1)"
+        description: Ignore Errors in TEST stage (0/1)
         required: true
-        default: "1"
+        default: '1'
       build_config:
-        description: "Build Config (debug/release/...)"
+        description: Build Config (debug/release/...)
         required: true
-        default: "release_assertions"
+        default: release_assertions
       test:
-        description: "Run LLVM tests"
+        description: Run LLVM tests
         required: true
-        default: "1"
+        default: '1'
       install:
-        description: "Install LLVM (and upload as artifact)"
+        description: Install LLVM (and upload as artifact)
         required: true
-        default: "1"
+        default: '1'
       deploy:
-        description: "Install LLVM Sources (and upload as artifact)"
+        description: Install LLVM Sources (and upload as artifact)
         required: true
-        default: "1"
+        default: '1'
       # export:
       #   description: "Install Seal5 Artifacts (and upload as artifact)"
       #   required: true
       #   default: "1"
-      llvm_ref:
-        description: "Tag/Branch/Commit of LLVM repository"
-        required: true
-        # default: "llvmorg-18.1.0-rc3"
-        default: "llvmorg-19.1.0"
       # TODO: maybe add Python/OS version here?
+      llvm_ref:
+        description: Tag/Branch/Commit of LLVM repository
+        required: true
+        default: llvmorg-19.1.0
 # push:
 #   branches:
 #     - main
 # pull_request:
 #   branches:
 #     - main
-
 jobs:
   demo:
     runs-on: ${{ matrix.os }}
@@ -91,134 +89,149 @@ jobs:
       SEAL5_NUM_THREADS: 1
     strategy:
       matrix:
-        python-version: ["3.10"]
-        os: ["ubuntu-latest"]
-        ccache: ["1"]
-        export: ["1"]
+        python-version: ['3.10']
+        os: [ubuntu-latest]
+        ccache: ['1']
+        export: ['1']
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: recursive
-    - name: Setup ccache
-      if: ${{ matrix.ccache == '1' }}
-      uses: hendrikmuhs/ccache-action@v1
-      with:
-        max-size: 2G
-        key: ${{ matrix.os }}-${{ github.event.inputs.script }}-${{ github.event.inputs.build_config }}
-        variant: sccache
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install APT packages
-      run: |
-        sudo apt -qq install -y python3-pip python3-venv cmake make ninja-build
-    - name: Initialize Virtualenv
-      run: |
-        python -m pip install --upgrade pip
-        python -m venv .venv
-    - name: Install dependencies
-      run: |
-        source .venv/bin/activate
-        pip install -r requirements.txt
-        pip list
-    - name: Run package creation
-      run: |
-        source .venv/bin/activate
-        pip install -e .
-    - name: Determine program
-      id: ctx
-      run: |
-        if [[ "${{ github.event.inputs.script }}" == *.py ]]
-        then
-            echo "program=python3" >> $GITHUB_OUTPUT
-        elif [[ "${{ github.event.inputs.script }}" == *.sh ]]
-        then
-            echo "program=bash" >> $GITHUB_OUTPUT
-        else
-            echo "Invalid file extension!"
-            exit 1
-        fi
-    - name: Run the demo
-      run: |
-        source .venv/bin/activate
-        VERBOSE=${{ github.event.inputs.verbose }} PROGRESS=${{ github.event.inputs.progress }} LLVM_REF=${{ github.event.inputs.llvm_ref }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ github.event.inputs.test }} INSTALL=${{ github.event.inputs.install }} DEPLOY=${{ github.event.inputs.deploy }} EXPORT=${{ matrix.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
-    - name: Generate Reports
-      run: |
-        source .venv/bin/activate
-        mkdir reports/
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup ccache
+        if: ${{ matrix.ccache == '1' }}
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          max-size: 2G
+          key: ${{ matrix.os }}-${{ github.event.inputs.script }}-${{ github.event.inputs.build_config
+            }}
+          variant: sccache
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install APT packages
+        run: |
+          sudo apt -qq install -y python3-pip python3-venv cmake make ninja-build
+      - name: Initialize Virtualenv
+        run: |
+          python -m pip install --upgrade pip
+          python -m venv .venv
+      - name: Install dependencies
+        run: |
+          source .venv/bin/activate
+          pip install -r requirements.txt
+          pip list
+      - name: Run package creation
+        run: |
+          source .venv/bin/activate
+          pip install -e .
+      - name: Determine program
+        id: ctx
+        run: |
+          if [[ "${{ github.event.inputs.script }}" == *.py ]]
+          then
+              echo "program=python3" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event.inputs.script }}" == *.sh ]]
+          then
+              echo "program=bash" >> $GITHUB_OUTPUT
+          else
+              echo "Invalid file extension!"
+              exit 1
+          fi
+      - name: Run the demo
+        run: |
+          source .venv/bin/activate
+          VERBOSE=${{ github.event.inputs.verbose }} PROGRESS=${{ github.event.inputs.progress }} LLVM_REF=${{ github.event.inputs.llvm_ref }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ github.event.inputs.test }} INSTALL=${{ github.event.inputs.install }} DEPLOY=${{ github.event.inputs.deploy }} EXPORT=${{ matrix.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
+      - name: Generate Reports
+        run: |
+          source .venv/bin/activate
+          mkdir reports/
 
-        # Properties
-        python3 -m seal5.backends.report.properties.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --output reports/properties.csv
-        python3 -m seal5.backends.report.properties.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --output reports/properties.md
-        echo "### Properties" >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        cat reports/properties.md >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
+          # Properties
+          python3 -m seal5.backends.report.properties.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --output reports/properties.csv
+          python3 -m seal5.backends.report.properties.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --output reports/properties.md
+          echo "### Properties" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat reports/properties.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
 
-        # Status
-        python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/status.csv
-        python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/status_compact.csv
-        python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/status.md --markdown-icons
-        python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/status_compact.md --markdown-icons
-        echo "### Passes" >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        cat reports/status_compact.md >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
+          # Status
+          python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/status.csv
+          python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/status_compact.csv
+          python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/status.md --markdown-icons
+          python3 -m seal5.backends.report.status.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/status_compact.md --markdown-icons
+          echo "### Passes" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat reports/status_compact.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
 
-        # Test Results
-        python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/test_results.csv --coverage reports/test_coverage.csv
-        python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/test_results_compact.csv --coverage reports/test_coverage_compact.csv
-        python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/test_results.md --coverage reports/test_coverage.md --markdown-icons
-        python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/test_results_compact.md --coverage reports/test_coverage_compact.md --markdown-icons
-        echo "### Test Coverage" >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        cat reports/test_coverage_compact.md >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        echo "### Test Results" >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        cat reports/test_results_compact.md >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
+          # PatternGen
+          python3 -m seal5.backends.report.pattern_gen.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/pattern_gen.csv
+          python3 -m seal5.backends.report.pattern_gen.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --agg --output reports/pattern_gen_agg.csv
+          python3 -m seal5.backends.report.pattern_gen.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/pattern_gen.md
+          python3 -m seal5.backends.report.pattern_gen.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --agg --output reports/pattern_gen_agg.md
+          echo "### PatternGen (All)" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat reports/pattern_gen.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          echo "### PatternGen (Summary)" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat reports/pattern_gen_agg.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
 
-        # Diff
-        python3 -m seal5.backends.report.diff.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/diff.csv
-        python3 -m seal5.backends.report.diff.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/diff.md
-        echo "### Diff" >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        cat reports/diff.md >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
+          # Test Results
+          python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/test_results.csv --coverage reports/test_coverage.csv
+          python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/test_results_compact.csv --coverage reports/test_coverage_compact.csv
+          python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/test_results.md --coverage reports/test_coverage.md --markdown-icons
+          python3 -m seal5.backends.report.test_results.writer /tmp/seal5_llvm/.seal5/models/*.seal5model --yaml /tmp/seal5_llvm/.seal5/settings.yml --compact --output reports/test_results_compact.md --coverage reports/test_coverage_compact.md --markdown-icons
+          echo "### Test Coverage" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat reports/test_coverage_compact.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          echo "### Test Results" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat reports/test_results_compact.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
 
-        # Stage Times
-        python3 -m seal5.backends.report.times.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/stage_times.csv --sum-level 2
-        python3 -m seal5.backends.report.times.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/stage_times.md --sum-level 2
-        python3 -m seal5.backends.report.times.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/stage_times.mermaid --sum-level 2
-        echo "### Stage/Pass Times" >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        cat reports/stage_times.md >> $GITHUB_STEP_SUMMARY
-        echo >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`mermaid" >> $GITHUB_STEP_SUMMARY
-        cat reports/stage_times.mermaid >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-    - name: Upload Seal5 Reports
-      uses: actions/upload-artifact@v4
-      with:
-        name: demo-reports
-        path: reports/
-    - name: Upload Seal5 Metadata
-      uses: actions/upload-artifact@v4
-      if: "${{ github.event.inputs.export == '1' }}"
-      with:
-        name: demo-export
-        path: /tmp/seal5_llvm.tar.gz
-    - name: Upload Seal5 LLVM Installation
-      uses: actions/upload-artifact@v4
-      if: "${{ github.event.inputs.install == '1' }}"
-      with:
-        name: demo-install
-        path: /tmp/seal5_llvm/.seal5/install/${{ github.event.inputs.build_config }}
-    - name: Upload Seal5 LLVM Sources
-      uses: actions/upload-artifact@v4
-      if: "${{ github.event.inputs.deploy == '1' }}"
-      with:
-        name: demo-source
-        path: /tmp/seal5_llvm_source.zip
+          # Diff
+          python3 -m seal5.backends.report.diff.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/diff.csv
+          python3 -m seal5.backends.report.diff.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --output reports/diff.md
+          echo "### Diff" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat reports/diff.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+
+          # Stage Times
+          python3 -m seal5.backends.report.times.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/stage_times.csv --sum-level 2
+          python3 -m seal5.backends.report.times.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/stage_times.md --sum-level 2
+          python3 -m seal5.backends.report.times.writer --yaml /tmp/seal5_llvm/.seal5/settings.yml --pass-times --output reports/stage_times.mermaid --sum-level 2
+          echo "### Stage/Pass Times" >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          cat reports/stage_times.md >> $GITHUB_STEP_SUMMARY
+          echo >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`mermaid" >> $GITHUB_STEP_SUMMARY
+          cat reports/stage_times.mermaid >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+      - name: Upload Seal5 Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-reports
+          path: reports/
+      - name: Upload Seal5 Metadata
+        uses: actions/upload-artifact@v4
+        if: ${{ github.event.inputs.export == '1' }}
+        with:
+          name: demo-export
+          path: /tmp/seal5_llvm.tar.gz
+      - name: Upload Seal5 LLVM Installation
+        uses: actions/upload-artifact@v4
+        if: ${{ github.event.inputs.install == '1' }}
+        with:
+          name: demo-install
+          path: /tmp/seal5_llvm/.seal5/install/${{ github.event.inputs.build_config }}
+      - name: Upload Seal5 LLVM Sources
+        uses: actions/upload-artifact@v4
+        if: ${{ github.event.inputs.deploy == '1' }}
+        with:
+          name: demo-source
+          path: /tmp/seal5_llvm_source.zip

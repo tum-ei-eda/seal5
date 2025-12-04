@@ -16,7 +16,9 @@ import yaml
 
 from seal5.model_utils import load_model
 
-logger = logging.getLogger("yaml_writer")
+from seal5.logging import Logger
+
+logger = Logger("backends.yaml_writer")
 
 # @dataclass
 # class Seal5Settings(YAMLSettings):
@@ -45,7 +47,7 @@ def main():
     args = parser.parse_args()
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
@@ -59,10 +61,18 @@ def main():
     data = {"extensions": {}}
     for set_name, set_def in model_obj.sets.items():
         # print("set", set_def)
+        is_group_set = False
+        if len(set_def.instructions) == 0:
+            assert len(set_def.extension) > 0
+            is_group_set = True
         set_data = {"instructions": []}
         riscv_data = {}
-        riscv_data["xlen"] = set_def.xlen
-        set_data["riscv"] = riscv_data
+        if is_group_set:
+            # set_data["implies"] = set_def.extension
+            set_data["requires"] = set_def.extension
+        else:
+            riscv_data["xlen"] = set_def.xlen
+            set_data["riscv"] = riscv_data
         llvm_imm_types = set()
         for instr in set_def.instructions.values():
             set_data["instructions"].append(instr.name)

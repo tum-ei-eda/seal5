@@ -28,7 +28,9 @@ from seal5.model_utils import load_model
 
 from .templates import template_dir
 
-logger = logging.getLogger("riscv_instr_info")
+from seal5.logging import Logger
+
+logger = Logger("backends.riscv_instr_info")
 
 
 class Operand:
@@ -262,7 +264,7 @@ def main():
     args = parser.parse_args()
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
@@ -292,6 +294,8 @@ def main():
         content = ""
         # errs = []
         for set_name, set_def in model_obj.sets.items():
+            if len(set_def.instructions) == 0:
+                continue
             metrics["n_sets"] += 1
             set_name_lower = set_name.lower()
             artifacts[set_name] = []

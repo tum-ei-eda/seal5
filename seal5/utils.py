@@ -27,9 +27,11 @@ import multiprocessing
 from pathlib import Path
 from typing import List, Callable, Optional
 
-from seal5.logging import get_logger
 
-logger = get_logger()
+def get_logger():
+    from seal5.logging import Logger
+
+    return Logger("utils")
 
 
 def str2bool(value, allow_none=False):
@@ -69,7 +71,7 @@ def exec_getout(
     live: bool = False,
     print_func: Callable = print,
     handle_exit=None,
-    err_func: Callable = logger.error,
+    err_func: Optional[Callable] = None,
     **kwargs,
 ) -> str:
     """Wrapper for running a program in a subprocess.
@@ -94,7 +96,14 @@ def exec_getout(
     out : str
         The command line output of the command
     """
-    logger.debug("- Executing: %s", str(args))
+
+    if err_func is None:
+        logger = get_logger()  # instantiate here
+        err_func = logger.error
+        logger.debug("- Executing: %s", str(args))
+    else:
+        err_func = print
+
     if ignore_output:
         assert not live
         subprocess.run(args, **kwargs, check=True)

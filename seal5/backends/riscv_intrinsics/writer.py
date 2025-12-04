@@ -21,7 +21,9 @@ from seal5.index import NamedPatch, write_index_yaml
 from seal5.settings import IntrinsicDefn
 from seal5.model_utils import load_model
 
-logger = logging.getLogger("riscv_intrinsics")
+from seal5.logging import Logger
+
+logger = Logger("backends.riscv_intrinsics")
 
 
 # See https://github.com/llvm-mirror/clang/blob/master/include/clang/Basic/Builtins.def
@@ -166,9 +168,18 @@ def build_target(arch: str, intrinsic: IntrinsicDefn):
 
 
 def build_target_new(
-    arch: str, intrinsic: IntrinsicDefn, prefix: Optional[str] = "__builtin_riscv", xlen: Optional[int] = None
+    arch: str,
+    attr: str,
+    intrinsic: IntrinsicDefn,
+    prefix: Optional[str] = "__builtin_riscv",
+    xlen: Optional[int] = None,
+    has_side_effects: bool = False,
 ):
-    attributes = ["NoThrow", "Const"]  # TODO: expose/use/group
+    # TODO: get side effects for intrinsic from instr_def?
+    has_side_effects_ = has_side_effects or len(intrinsic.args) == 0
+    attributes = ["NoThrow"]  # TODO: expose/use/group
+    if not has_side_effects_:
+        attributes.append("Const")
     if prefix != "__builtin_riscv":
         # Use: let Spellings = ["__builtin_riscv_" # NAME];
         raise NotImplementedError("Clang builtin custom prefix")
@@ -177,7 +188,7 @@ def build_target_new(
         ret_str = ir_type_to_text(intrinsic.ret_type, signed=intrinsic.ret_signed, legacy=False)
     args_str = ", ".join([ir_type_to_text(arg.arg_type, signed=arg.signed, legacy=False) for arg in intrinsic.args])
     prototype_str = f"{ret_str}({args_str})"
-    features = [arch]
+    features = [attr]
     if xlen is not None:
         features.append(f"{xlen}bit")
     features_str = ",".join(features)
@@ -185,7 +196,7 @@ def build_target_new(
     if len(attributes) > 0:
         attributes_str = ", ".join(attributes)
         ret = f"""let Attributes = [{attributes_str}] in {{
-{target}
+  {target}
 }} // Attributes = [{attributes_str}]
 """
     else:
@@ -203,17 +214,29 @@ def ir_type_to_pattern(ir_type: str):
 
 def build_attr(arch: str, intrinsic: IntrinsicDefn):
     # uses_mem = False  # TODO: use
-    attr = f"  def int_riscv_{arch}_{intrinsic.intrinsic_name} : Intrinsic<\n    ["
+    ret = f"  def int_riscv_{arch}_{intrinsic.intrinsic_name} : Intrinsic<\n    ["
     if intrinsic.ret_type:
-        attr += f"{ir_type_to_pattern(intrinsic.ret_type)}"
-    attr += "],\n    ["
+        ret += f"{ir_type_to_pattern(intrinsic.ret_type)}"
+    ret += "],\n    ["
     for idx, arg in enumerate(intrinsic.args):
         if idx:
-            attr += ", "
-        attr += ir_type_to_pattern(arg.arg_type)
-    attr += "],\n"
-    attr += "    [IntrNoMem, IntrSpeculatable, IntrWillReturn]>;\n"
-    return attr
+            ret += ", "
+        ret += ir_type_to_pattern(arg.arg_type)
+    ret += "],\n"
+    attrs = []
+    no_mem = True  # TODO: expose
+    if no_mem:
+        attrs.append("IntrNoMem")
+    if True:
+        attrs.append("IntrSpeculatable")
+        attrs.append("IntrWillReturn")
+    has_side_effects = False  # TODO: expose
+    has_side_effects_ = has_side_effects or len(intrinsic.args) == 0
+    if has_side_effects_:
+        attrs.append("IntrHasSideEffects")
+    attrs_str = ", ".join(attrs)
+    ret += f"    [{attrs_str}]>;\n"
+    return ret
 
 
 def build_emit(arch: str, intrinsic: IntrinsicDefn):
@@ -252,7 +275,7 @@ def main():
     args = parser.parse_args()
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
@@ -338,10 +361,13 @@ def main():
                     continue
                 try:
                     arch_ = ext_settings.get_arch(name=set_name)
+                    attr_ = ext_settings.get_attr(name=set_name)
                     if llvm_version is not None and llvm_version.major < 19:
                         patch_frags["target"].contents += build_target(arch=arch_, intrinsic=intrinsic)
                     else:
-                        patch_frags["target"].contents += build_target_new(arch=arch_, intrinsic=intrinsic, xlen=xlen)
+                        patch_frags["target"].contents += build_target_new(
+                            arch=arch_, attr=attr_, intrinsic=intrinsic, xlen=xlen
+                        )
                     patch_frags["attr"].contents += build_attr(arch=arch_, intrinsic=intrinsic)
                     patch_frags["emit"].contents += build_emit(arch=arch_, intrinsic=intrinsic)
                     metrics["n_success"] += 1

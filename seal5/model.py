@@ -82,45 +82,67 @@ class Seal5RegisterClass(IntEnum):
 
 
 class Seal5Register:
-    def __init__(self, name: str, size: int, width: int, signed: bool, reg_class: Seal5RegisterClass):
+    def __init__(self, name: str, size: int, width: int, signed: bool, is_const: bool, reg_class: Seal5RegisterClass):
         self.name = name
         self.size = size
         self.width = width
         self.signed = signed  # TODO: use
+        self.is_const = is_const
         self.reg_class = reg_class
         # TODO: attributes
 
     def __repr__(self):
         return (
             f"{type(self)}({self.name}, size={self.size}, "
-            f"width={self.width}, signed={self.signed}, "
+            f"width={self.width}, signed={self.signed}, is_const={self.is_const}"
             f"reg_class={self.reg_class})"
         )
 
 
 class Seal5RegisterGroup:
-    def __init__(self, names: List[str], size: int, width: int, signed: bool, reg_class: Seal5RegisterClass):
+    def __init__(
+        self,
+        names: List[str],
+        reg_size: int,
+        reg_width: int,
+        reg_signed: bool,
+        reg_is_const: bool,
+        reg_class: Seal5RegisterClass,
+    ):
         self.names = names
-        self.size = size
-        self.width = width
-        self.signed = signed  # TODO: use
+        self.reg_size = reg_size
+        self.reg_width = reg_width
+        self.reg_signed = reg_signed  # TODO: use
+        self.reg_is_const = reg_is_const
+        # TODO: drop reg-specifics?
         self.reg_class = reg_class
 
     def __repr__(self):
         return (
-            f"{type(self)}({self.names}, size={self.size}, width={self.width}, "
-            f"signed={self.signed}, reg_class={self.reg_class})"
+            f"{type(self)}({self.names}, size={self.size}, reg_size={self.reg_size}, reg_width={self.reg_width}, "
+            f"reg_signed={self.reg_signed}, reg_is_const={self.reg_is_const}, reg_class={self.reg_class})"
         )
 
     @property
     def registers(self):
         return [
-            Seal5Register(name, size=self.size, width=self.width, signed=self.signed, reg_class=self.reg_class)
+            Seal5Register(
+                name,
+                size=self.reg_size,
+                width=self.reg_width,
+                signed=self.reg_signed,
+                is_const=self.reg_is_const,
+                reg_class=self.reg_class,
+            )
             for name in self.names
         ]
 
-    def __len__(self):
+    @property
+    def size(self):
         return len(self.names)
+
+    def __len__(self):
+        return self.size
 
     # TODO: allow indexing i.e. via group[12]
 

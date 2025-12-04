@@ -16,7 +16,9 @@ import pathlib
 from seal5.settings import Seal5Settings, ExtensionsSettings, RISCVSettings
 from seal5.model_utils import load_model, dump_model
 
-logger = logging.getLogger("process_settings")
+from seal5.logging import Logger
+
+logger = Logger("transform.process_settings")
 
 
 def get_parser():
@@ -31,7 +33,7 @@ def get_parser():
 
 def run(args):
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
@@ -53,16 +55,22 @@ def run(args):
 
     for set_name, set_def in model_obj.sets.items():
         model_settings = settings.models.get(model_name)
+        is_group_set = False
+        if len(set_def.instructions) == 0:
+            assert len(set_def.extension) > 0
+            is_group_set = True
         ext_settings = None
         if model_settings is not None:
             ext_settings = model_settings.extensions.get(set_name, None)
         if ext_settings is None:
-            ext_settings = ExtensionsSettings(feature=set_name.replace("_", ""))
-        riscv_settings = ext_settings.riscv
-        if riscv_settings is None:
-            riscv_settings = RISCVSettings(xlen=set_def.xlen)
-        if riscv_settings.xlen is None:
-            riscv_settings.xlen = set_def.xlen
+            ext_settings = ExtensionsSettings()
+            ext_settings.feature = ext_settings.get_feature(set_name)
+        if not is_group_set:
+            riscv_settings = ext_settings.riscv
+            if riscv_settings is None:
+                riscv_settings = RISCVSettings(xlen=set_def.xlen)
+            if riscv_settings.xlen is None:
+                riscv_settings.xlen = set_def.xlen
         if set_def.settings is None:
             set_def.settings = ext_settings  # TODO: decide how to do this properly
         else:
