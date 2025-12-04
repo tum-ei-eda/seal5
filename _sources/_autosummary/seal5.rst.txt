@@ -25,6 +25,7 @@
    resources
    riscv_utils
    settings
+   testgen_utils
    tools
    transform
    types

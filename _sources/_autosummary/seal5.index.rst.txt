@@ -22,4 +22,5 @@ seal5.index
       NamedPatch
       Patch
       RangedPatch
+      TestFile
    

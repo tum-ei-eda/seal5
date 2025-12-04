@@ -1,0 +1,12 @@
+seal5.testgen\_utils
+====================
+
+.. automodule:: seal5.testgen_utils
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      collect_generated_test_files
+   
