@@ -1,6 +1,5 @@
 """Utilities for loading and dumping metamodels."""
 
-import logging
 from pathlib import Path
 import pickle
 from typing import Union
