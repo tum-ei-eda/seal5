@@ -12,3 +12,4 @@ mako
 tqdm
 pandas
 tabulate
+psutil
