@@ -10,5 +10,6 @@ seal5.backends.riscv\_register\_info.writer
    
       gen_riscv_register_info_str
       main
+      write_riscv_register_class_info
       write_riscv_register_info
    
