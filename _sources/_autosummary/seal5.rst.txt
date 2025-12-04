@@ -11,6 +11,7 @@
    :recursive:
 
    backends
+   build_cache
    cli
    dependencies
    flow

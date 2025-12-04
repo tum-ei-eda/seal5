@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>seal5.transform.filter_model.filter &mdash; Seal5 v0.1.2 documentation</title>
+  <title>seal5.build_cache &mdash; Seal5 v0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
@@ -19,8 +19,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="seal5.transform.infer_types" href="seal5.transform.infer_types.html" />
-    <link rel="prev" title="seal5.transform.filter_model" href="seal5.transform.filter_model.html" /> 
+    <link rel="next" title="seal5.cli" href="seal5.cli.html" />
+    <link rel="prev" title="seal5.backends.yaml.writer" href="seal5.backends.yaml.writer.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -45,7 +45,7 @@
               <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="seal5.html">seal5</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="seal5.backends.html">seal5.backends</a></li>
-<li class="toctree-l2"><a class="reference internal" href="seal5.build_cache.html">seal5.build_cache</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">seal5.build_cache</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.cli.html">seal5.cli</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.dependencies.html">seal5.dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.flow.html">seal5.flow</a></li>
@@ -60,34 +60,7 @@
 <li class="toctree-l2"><a class="reference internal" href="seal5.riscv_utils.html">seal5.riscv_utils</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.settings.html">seal5.settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.tools.html">seal5.tools</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="seal5.transform.html">seal5.transform</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.check_pattern_support.html">seal5.transform.check_pattern_support</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.collect_immediate_operands.html">seal5.transform.collect_immediate_operands</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.collect_operand_types.html">seal5.transform.collect_operand_types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.collect_raises.html">seal5.transform.collect_raises</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.collect_register_operands.html">seal5.transform.collect_register_operands</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.converter.html">seal5.transform.converter</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.detect_calls.html">seal5.transform.detect_calls</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.detect_imm_leafs.html">seal5.transform.detect_imm_leafs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.detect_inouts.html">seal5.transform.detect_inouts</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.detect_loops.html">seal5.transform.detect_loops</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.detect_registers.html">seal5.transform.detect_registers</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.detect_side_effects.html">seal5.transform.detect_side_effects</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.drop_unused.html">seal5.transform.drop_unused</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.eliminate_mod_rfs.html">seal5.transform.eliminate_mod_rfs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.eliminate_rd_cmp_zero.html">seal5.transform.eliminate_rd_cmp_zero</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.explicit_truncations.html">seal5.transform.explicit_truncations</a></li>
-<li class="toctree-l3 current"><a class="reference internal" href="seal5.transform.filter_model.html">seal5.transform.filter_model</a><ul class="current">
-<li class="toctree-l4 current"><a class="current reference internal" href="#">seal5.transform.filter_model.filter</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.infer_types.html">seal5.transform.infer_types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.inline_functions.html">seal5.transform.inline_functions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.optimize_instructions.html">seal5.transform.optimize_instructions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.process_settings.html">seal5.transform.process_settings</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.simplify_trivial_slices.html">seal5.transform.simplify_trivial_slices</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="seal5.transform.html">seal5.transform</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.types.html">seal5.types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.utils.html">seal5.utils</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.version.html">seal5.version</a></li>
@@ -115,11 +88,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="seal5.html">seal5</a></li>
-          <li class="breadcrumb-item"><a href="seal5.transform.html">seal5.transform</a></li>
-          <li class="breadcrumb-item"><a href="seal5.transform.filter_model.html">seal5.transform.filter_model</a></li>
-      <li class="breadcrumb-item active">seal5.transform.filter_model.filter</li>
+      <li class="breadcrumb-item active">seal5.build_cache</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/_autosummary/seal5.transform.filter_model.filter.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/_autosummary/seal5.build_cache.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -127,27 +98,33 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-seal5.transform.filter_model.filter">
-<span id="seal5-transform-filter-model-filter"></span><h1>seal5.transform.filter_model.filter<a class="headerlink" href="#module-seal5.transform.filter_model.filter" title="Link to this heading"></a></h1>
-<p>Filter M2-ISA-R/Seal5 metamodel.</p>
+  <section id="module-seal5.build_cache">
+<span id="seal5-build-cache"></span><h1>seal5.build_cache<a class="headerlink" href="#module-seal5.build_cache" title="Link to this heading"></a></h1>
 <p class="rubric">Functions</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parser</span></code>()</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">combine_hashes</span></code>(first, second)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code>(argv)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_lower_dirs</span></code>(directory[, default])</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code>(args)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_mount_info</span></code>(mountpoint)</p></td>
 <td><p></p></td>
 </tr>
-</tbody>
-</table>
-<p class="rubric">Classes</p>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">DropUnusedContext</span></code>(names)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_patch_id</span></code>(repo_path, base_commit[, ...])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">hash_arguments</span></code>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_fuseoverlayfs</span></code>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">query_build_cache</span></code>(build_hash, build_dir, ...)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_lower_dirs</span></code>(directory, lower_dirs)</p></td>
 <td><p></p></td>
 </tr>
 </tbody>
@@ -158,8 +135,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="seal5.transform.filter_model.html" class="btn btn-neutral float-left" title="seal5.transform.filter_model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="seal5.transform.infer_types.html" class="btn btn-neutral float-right" title="seal5.transform.infer_types" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="seal5.backends.yaml.writer.html" class="btn btn-neutral float-left" title="seal5.backends.yaml.writer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="seal5.cli.html" class="btn btn-neutral float-right" title="seal5.cli" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
