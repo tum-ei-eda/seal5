@@ -30,9 +30,15 @@ from typing import Optional, List, Dict, Tuple, Union
 import git
 import seal5.logging
 
-from seal5.logging import Logger, check_logging_server, initialize_logging_server, stop_logging_server
+from seal5.logging import (
+    Logger,
+    check_logging_server,
+    initialize_logging_server,
+    stop_logging_server,
+    update_rotary_logger,
+)
 from seal5.types import Seal5State, PatchStage
-from seal5.settings import Seal5Settings, PatchSettings, DEFAULT_SETTINGS, LLVMConfig, LLVMVersion
+from seal5.settings import Seal5Settings, PatchSettings, DEFAULT_SETTINGS, LLVMConfig, LLVMVersion, FileLoggingSettings
 
 from seal5.dependencies import CDSL2LLVMDependency
 from seal5 import utils
@@ -208,7 +214,15 @@ class Seal5Flow:
             self.meta_dir = self.settings._meta_dir
         if self.settings.logs_dir.is_dir():
             initialize_logging_server(
-                [(self.settings.log_file_path, self.settings.logging.file.level)], self.settings.logging.console.level
+                [
+                    FileLoggingSettings(
+                        filename=self.settings.log_file_path,
+                        level=self.settings.logging.file.level,
+                        rotate=self.settings.logging.file.rotate,
+                        limit=self.settings.logging.file.limit,
+                    )
+                ],
+                self.settings.logging.console.level,
             )
         self.logger = Logger("flow")
         atexit.register(self.close_servers)
@@ -288,6 +302,7 @@ class Seal5Flow:
     ):
         """Initialize Seal5 flow."""
         del verbose  # unused
+        update_rotary_logger()
         self.logger.info("Initializing Seal5")
         start = time.time()
         metrics = {}
@@ -332,7 +347,15 @@ class Seal5Flow:
         )
         if not check_logging_server() and self.settings.logs_dir.is_dir():
             initialize_logging_server(
-                [(self.settings.log_file_path, self.settings.logging.file.level)], self.settings.logging.console.level
+                [
+                    FileLoggingSettings(
+                        filename=self.settings.log_file_path,
+                        level=self.settings.logging.file.level,
+                        rotate=self.settings.logging.file.rotate,
+                        limit=self.settings.logging.file.limit,
+                    )
+                ],
+                self.settings.logging.console.level,
             )
         add_test_cfg(self.settings.tests_dir)
         if version_info:
