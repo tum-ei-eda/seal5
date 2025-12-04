@@ -8,7 +8,6 @@
 
 """Classes to recursively import files of a CoreDSL model."""
 
-import logging
 import pathlib
 
 from .parser_gen import CoreDSL2Listener, CoreDSL2Parser, CoreDSL2Visitor

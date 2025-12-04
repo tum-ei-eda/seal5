@@ -19,7 +19,6 @@ simplifications are done:
 * Type conversions of :class:`m2isar.metamodel.arch.IntLiteral` s apply the desired
   type directly to the :class:`IntLiteral` and discard the type conversion
 """
-import logging
 from m2isar.metamodel import behav
 
 from seal5.logging import Logger
