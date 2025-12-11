@@ -78,6 +78,8 @@ def get_mount_info(mountpoint):
             # Look for fuse-overlayfs process
             if "fuse-overlayfs" in proc.info["name"]:
                 cmdline = proc.info["cmdline"]
+                if cmdline is None:
+                    continue
                 # Check if the mountpoint is in the command line
                 if any(str(mountpoint) in arg for arg in cmdline):
                     # Look for upperdir argument
@@ -111,28 +113,29 @@ def query_build_cache(build_hash, build_dir, cache_dir):
     overlay_dir = cache_dir / build_hash
     work_dir = cache_dir / "work"
     empty_dir = cache_dir / "empty"
+    if mount_info is not None and mount_info.name == build_hash:
+        return True
     cached = False
-    if mount_info is None or mount_info.name != build_hash:
-        volume_dir = overlay_dir / "volume"
-        if mount_info is None:
-            if not overlay_dir.is_dir():
-                lower_dirs = [empty_dir]
-                empty_dir.mkdir(parents=True, exist_ok=True)
-                volume_dir.mkdir(parents=True, exist_ok=True)
-                work_dir.mkdir(parents=True, exist_ok=True)
-            else:
-                lower_dirs = get_lower_dirs(overlay_dir, [empty_dir])
-                cached = True
+    volume_dir = overlay_dir / "volume"
+    if mount_info is None:
+        if not overlay_dir.is_dir():
+            lower_dirs = [empty_dir]
+            empty_dir.mkdir(parents=True, exist_ok=True)
+            volume_dir.mkdir(parents=True, exist_ok=True)
+            work_dir.mkdir(parents=True, exist_ok=True)
         else:
-            fuseoverlayfs.unmount(build_dir)
-            if not overlay_dir.is_dir():
-                volume_dir.mkdir(parents=True, exist_ok=True)
-                lower_dirs = get_lower_dirs(mount_info)
-                lower_dirs.append(mount_info / "volume")
-                save_lower_dirs(overlay_dir, lower_dirs)
-            else:
-                lower_dirs = get_lower_dirs(overlay_dir, [empty_dir])
-                cached = True
-        build_dir.mkdir(parents=True, exist_ok=True)
-        fuseoverlayfs.mount(build_dir, lower_dirs, workdir=work_dir, upperdir=volume_dir)
-    return cached
+            lower_dirs = get_lower_dirs(overlay_dir, [empty_dir])
+            cached = True
+    else:
+        fuseoverlayfs.unmount(build_dir)
+        if not overlay_dir.is_dir():
+            volume_dir.mkdir(parents=True, exist_ok=True)
+            lower_dirs = get_lower_dirs(mount_info)
+            lower_dirs.append(mount_info / "volume")
+            save_lower_dirs(overlay_dir, lower_dirs)
+        else:
+            lower_dirs = get_lower_dirs(overlay_dir, [empty_dir])
+            cached = True
+    build_dir.mkdir(parents=True, exist_ok=True)
+    fuseoverlayfs.mount(build_dir, lower_dirs, workdir=work_dir, upperdir=volume_dir)
+return cached
