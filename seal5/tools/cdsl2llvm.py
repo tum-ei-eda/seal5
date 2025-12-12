@@ -111,6 +111,7 @@ def get_pattern_gen_patches(
         index=str(index_file),
         generated=True,
         target="llvm",
+        priority=80,
     )
 
     return patch_settings

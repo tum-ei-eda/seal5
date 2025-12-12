@@ -220,6 +220,7 @@ class YAMLSettings:  # TODO: make abstract
 
     def merge(self, other: "YAMLSettings", overwrite: bool = False, inplace: bool = False):
         """Merge two instances of YAMLSettings."""
+        ret = None
         if not inplace:
             ret = replace(self)  # Make a copy of self
         for f1 in fields(other):
@@ -353,6 +354,15 @@ class PatchSettings(YAMLSettings):
     generated: bool = False
     applied: bool = False
     onlyif: Optional[str] = None
+    # high priority (p=100) patches will be applied before lower priority ones (p=10)
+    priority: Optional[float] = None
+
+    def get_priority(self):
+        prio = self.priority
+        if prio is None:
+            return 10
+        assert isinstance(prio, (float, int))
+        return prio
 
     def check_enabled(self, settings: YAMLSettings):
         if self.onlyif is not None:
