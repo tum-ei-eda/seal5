@@ -400,6 +400,7 @@ class Seal5Flow:
             generated=False,
             target="llvm",
             weak=True,
+            priority=100,  # This patch has to be applied first!
         )
         self.settings.add_patch(gitignore_patch_settings)
         llvm_version = self.settings.llvm.state.version
@@ -721,7 +722,7 @@ class Seal5Flow:
     # def collect_patches(self, stage: Optional[PatchStage]):
     #     return ret
 
-    def collect_patches(self):
+    def collect_patches(self, ignore_priorities: bool = False):
         """Collect Seal5 patches."""
         # generated patches
         temp: Dict[Tuple[str, str], PatchSettings] = {}
@@ -781,6 +782,11 @@ class Seal5Flow:
             if patch_settings.stage not in ret:
                 ret[patch_settings.stage] = []
             ret[patch_settings.stage].append(patch_settings)
+        if not ignore_priorities:
+            ret = {
+                stage: list(reversed(sorted(patches, key=lambda patch: patch.get_priority())))
+                for stage, patches in ret.items()
+            }
         return ret
 
     def resolve_patch_file(self, path):
