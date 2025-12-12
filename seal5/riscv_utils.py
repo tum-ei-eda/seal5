@@ -92,7 +92,7 @@ def detect_opcode(instr_def):  # TODO: move to transform and store as attr
         size += length
     if size != 32:  # TODO: support compressed opcodes
         assert size == 16
-        return "COMPRESSED"
+        return "COMPRESSED", opcode
     assert opcode is not None
     found = OPCODE_LOOKUP_REV.get(opcode, None)
     assert found is not None, f"Opcode not found: {bin(opcode)}"
