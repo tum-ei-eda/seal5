@@ -411,6 +411,7 @@ class Seal5Flow:
             generated=False,
             target="llvm",
             weak=True,
+            priority=90,  # This patch has to be applied before patterngen patch!
         )
         self.settings.add_patch(inject_markers_patch_settings)
         if not skip_patterns:
