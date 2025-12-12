@@ -785,7 +785,9 @@ class Seal5Flow:
             ret[patch_settings.stage].append(patch_settings)
         if not ignore_priorities:
             ret = {
-                stage: list(reversed(sorted(patches, key=lambda patch: patch.get_priority())))
+                # Pythons sort should be stable, which means patched of equal/default prio will
+                # be applied in the order thay havee been added
+                stage: list(sorted(patches, key=lambda patch: patch.get_priority(), reverse=True))
                 for stage, patches in ret.items()
             }
         return ret
