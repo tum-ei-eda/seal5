@@ -51,6 +51,7 @@ def main():
     if args.test_results:
         try:
             test_result_df = pd.read_csv(pathlib.Path(args.test_results))
+            test_result_df = test_result_df[~pd.isna(test_result_df["instr"])]
         except pd.errors.EmptyDataError:
             logger.warning("Skipping empty file: %s", args.test_results)
             test_result_df = None
