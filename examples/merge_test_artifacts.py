@@ -69,6 +69,8 @@ def main():
 
     status_props_df = pd.merge(status_df, props_df)
     if test_result_df is not None:
+        print("test_result_df", test_result_df)
+        print("test_result_df.dtypes", test_result_df.dtypes)
         stat_prop_result_df = pd.merge(
             status_props_df, test_result_df, on=["model", "set", "xlen", "instr"], how="left"
         )
