@@ -10,11 +10,24 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "seal5"
+description = "Seal5 - Semi-automated LLVM Support for RISC-V Extensions including Autovectorization"
 # dynamic = ["version", "dependencies", "optional-dependencies"]
 dynamic = ["version", "dependencies"]
 requires-python = ">=3.10"
 license = {text = "Apache-2.0"}
 readme = "README.md"
+authors = [
+    {name = "Philipp van Kempen", email = "philipp.van-kempen@tum.de"},
+]
+maintainers = [
+    {name = "Philipp van Kempen", email = "philipp.van-kempen@tum.de"},
+]
+
+[project.urls]
+Homepage = "https://tum-ei-eda.github.io/seal5"
+Documentation = "https://tum-ei-eda.github.io/seal5"
+Repository = "https://github.com/tum-ei-eda/seal5.git"
+"Bug Tracker" = "https://github.com/tum-ei-eda/seal5/issues"
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
