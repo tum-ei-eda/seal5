@@ -64,7 +64,7 @@ jobs:
         deploy: ['1']
         export: ['1']
         ccache: ['1']
-        llvm-ref: [llvmorg-19.1.7, llvmorg-20.1.0]
+        llvm-ref: [llvmorg-19.1.7, llvmorg-20.1.0, llvmorg-21.1.7]
     env:
       SEAL5_NUM_THREADS: 1
     runs-on: ${{ matrix.os }}

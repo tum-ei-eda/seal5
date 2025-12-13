@@ -9,6 +9,10 @@ https://github.com/tum-ei-eda/seal5/discussions/104
 
 You are also welcome to start a discussion on GitHub to gather early feedback.
 
+## Porting Seal5 to new LLVM Releases
+
+See [PORTING.md](PORTING.md) for more details!
+
 ## 🏁 Finding Something to Work On
 
 We use labels to highlight contributor-friendly tasks:

@@ -200,6 +200,8 @@ Seal5 issue tracker: https://github.com/tum-ei-eda/seal5/issues
 
 CoreDSL2LLVM/PatternGen issue tracker: https://github.com/mathis-s/CoreDSL2LLVM/issues
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for more details!
+
 ## References
 
 - **Seal5: Semi-Automated LLVM Support for RISC-V ISA Extensions Including Autovectorization** ([https://ieeexplore.ieee.org/abstract/document/10741856](https://ieeexplore.ieee.org/abstract/document/10741856))
