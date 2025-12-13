@@ -5,7 +5,8 @@ pyyaml
 # m2isar @ git+https://github.com/PhilippvK/M2-ISA-R.git@seal5
 # m2isar @ git+https://github.com/PhilippvK/M2-ISA-R.git@seal5_new
 # m2isar @ git+https://github.com/PhilippvK/M2-ISA-R.git@seal5_new_rebase_2025
-m2isar @ git+https://github.com/tum-ei-eda/M2-ISA-R.git@0.0.3
+# m2isar @ git+https://github.com/tum-ei-eda/M2-ISA-R.git@0.0.3
+m2isar==0.0.6
 importlib_resources
 dacite
 mako
