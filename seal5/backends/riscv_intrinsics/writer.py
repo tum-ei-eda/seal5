@@ -313,6 +313,7 @@ def main():
         if not settings or not settings.intrinsics.intrinsics:
             logger.warning("No intrinsics configured; didn't need to invoke intrinsics writer.")
             quit()  # TODO: refactor this
+        legacy = False
         if settings:
             llvm_settings = settings.llvm
             if llvm_settings:
@@ -320,9 +321,13 @@ def main():
                 if llvm_state:
                     llvm_version = llvm_state.version  # unused today, but needed very soon
                     assert llvm_version.major >= 17
+                    legacy = llvm_version.major <= 20
+        cg_builtin_file_new = "clang/lib/CodeGen/TargetBuiltins/RISCV.cpp"
+        cg_builtin_file_old = "clang/lib/CodeGen/CGBuiltin.cpp"
+        cg_builtin_file = cg_builtin_file_old if legacy else cg_builtin_file_new
         patch_frags = {
             "attr": PatchFrag(patchee="llvm/include/llvm/IR/IntrinsicsRISCV.td", tag="intrinsics_riscv"),
-            "emit": PatchFrag(patchee="clang/lib/CodeGen/CGBuiltin.cpp", tag="cg_builtin"),
+            "emit": PatchFrag(patchee=cg_builtin_file, tag="cg_builtin"),
         }
         if llvm_version is not None and llvm_version.major < 19:
             patch_frags["target"] = PatchFrag(
