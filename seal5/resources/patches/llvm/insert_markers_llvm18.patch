@@ -1,3 +1,41 @@
+diff --git a/clang/include/clang/Basic/BuiltinsRISCV.def b/clang/include/clang/Basic/BuiltinsRISCV.def
+--- a/clang/include/clang/Basic/BuiltinsRISCV.def
++++ b/clang/include/clang/Basic/BuiltinsRISCV.def
+@@ -89,5 +89,8 @@ TARGET_BUILTIN(__builtin_riscv_sm3p1, "UiUi", "nc", "zksh")
+ TARGET_BUILTIN(__builtin_riscv_ntl_load, "v.", "t", "zihintntl")
+ TARGET_BUILTIN(__builtin_riscv_ntl_store, "v.", "t", "zihintntl")
+
++// BuiltinsRISCV.def - builtins_riscv - INSERTION_START
++// BuiltinsRISCV.def - builtins_riscv - INSERTION_END
++
+ #undef BUILTIN
+ #undef TARGET_BUILTIN
+diff --git a/clang/lib/CodeGen/CGBuiltin.cpp b/clang/lib/CodeGen/CGBuiltin.cpp
+--- a/clang/lib/CodeGen/CGBuiltin.cpp
++++ b/clang/lib/CodeGen/CGBuiltin.cpp
+@@ -21243,6 +21243,9 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
+     ID = Intrinsic::riscv_sha256sum1;
+     break;
+
++// CGBuiltin.cpp - cg_builtin - INSERTION_START
++// CGBuiltin.cpp - cg_builtin - INSERTION_END
++
+   // Zksed
+   case RISCV::BI__builtin_riscv_sm4ks:
+     ID = Intrinsic::riscv_sm4ks;
+diff --git a/llvm/include/llvm/IR/IntrinsicsRISCV.td b/llvm/include/llvm/IR/IntrinsicsRISCV.td
+--- a/llvm/include/llvm/IR/IntrinsicsRISCV.td
++++ b/llvm/include/llvm/IR/IntrinsicsRISCV.td
+@@ -1882,6 +1882,9 @@ let TargetPrefix = "riscv" in {
+   // Zvksh
+   def int_riscv_vsm3c    : RISCVBinaryAAXUnMaskedZvk<IsVI=1>;
+   def int_riscv_vsm3me   : RISCVBinaryAAXUnMasked;
++
++// IntrinsicsRISCV.td - intrinsics_riscv - INSERTION_START
++// IntrinsicsRISCV.td - intrinsics_riscv - INSERTION_END
+ } // TargetPrefix = "riscv"
+
+ // Vendor extensions
 diff --git a/llvm/include/llvm/InitializePasses.h b/llvm/include/llvm/InitializePasses.h
 --- a/llvm/include/llvm/InitializePasses.h
 +++ b/llvm/include/llvm/InitializePasses.h
