@@ -122,15 +122,42 @@ jobs:
               echo "Invalid file extension!"
               exit 1
           fi
+      - name: Install build caching deps
+        if: ${{ matrix.build_cache == '1' }}
+        run: |
+          sudo apt -qq install -y libfuse3-dev
+          sudo apt -qq install -y fuse-overlayfs
+          source .venv/bin/activate
+          pip install -r requirements_extra.txt
+      - name: Remove unused software
+        if: ${{ matrix.build_cache == '1' }}
+        run: |
+          echo "Available storage before:"
+          sudo df -h
+          echo
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /usr/lib/jvm
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /usr/local/.ghcup
+          sudo rm -rf /usr/local/julia*
+          sudo rm -rf /usr/local/share/chromium
+          sudo rm -rf /opt/microsoft /opt/google
+          sudo rm -rf /opt/az
+          sudo rm -rf /usr/local/share/powershell
+          echo "Available storage after:"
+          sudo df -h
       - name: Run the demo
         run: |
           source .venv/bin/activate
-          VERBOSE=${{ matrix.verbose }} PROGRESS=${{ env.PROGRESS }} LLVM_REF=${{ matrix.llvm-ref }} CCACHE=${{ env.CCACHE }} CLONE_DEPTH=${{ matrix.clone_depth }} BUILD_CONFIG=${{ matrix.build_config }} IGNORE_ERROR=${{ matrix.ignore_error }} TEST=${{ env.TEST }} INSTALL=${{ env.INSTALL }} DEPLOY=${{ env.DEPLOY }} EXPORT=${{ env.EXPORT }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} BUILD_CACHE=${{ matrix.build_cache }} examples/${{ matrix.script }}
+          VERBOSE=${{ matrix.verbose }} PROGRESS=${{ env.PROGRESS }} LLVM_REF=${{ matrix.llvm-ref }} CCACHE=${{ env.CCACHE }} CLONE_DEPTH=${{ matrix.clone_depth }} BUILD_CONFIG=${{ matrix.build_config }} IGNORE_ERROR=${{ matrix.ignore_error }} TEST=${{ env.TEST }} INSTALL=${{ env.INSTALL }} DEPLOY=${{ env.DEPLOY }} EXPORT=${{ env.EXPORT }} BUILD_CACHE=${{ matrix.build_cache }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ matrix.script }}
       - name: Run the demo (again)
         if: ${{ matrix.build_cache == '1' }}
         run: |
           source .venv/bin/activate
-          VERBOSE=${{ matrix.verbose }} PROGRESS=${{ env.PROGRESS }} LLVM_REF=${{ matrix.llvm-ref }} CCACHE=${{ env.CCACHE }} CLONE_DEPTH=${{ matrix.clone_depth }} BUILD_CONFIG=${{ matrix.build_config }} IGNORE_ERROR=${{ matrix.ignore_error }} TEST=${{ env.TEST }} INSTALL=${{ env.INSTALL }} DEPLOY=${{ env.DEPLOY }} EXPORT=${{ env.EXPORT }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} BUILD_CACHE=${{ matrix.build_cache }} examples/${{ matrix.script }}
+          VERBOSE=${{ matrix.verbose }} PROGRESS=${{ env.PROGRESS }} LLVM_REF=${{ matrix.llvm-ref }} CCACHE=${{ env.CCACHE }} CLONE_DEPTH=${{ matrix.clone_depth }} BUILD_CONFIG=${{ matrix.build_config }} IGNORE_ERROR=${{ matrix.ignore_error }} TEST=${{ env.TEST }} INSTALL=${{ env.INSTALL }} DEPLOY=${{ env.DEPLOY }} EXPORT=${{ env.EXPORT }} BUILD_CACHE=${{ matrix.build_cache }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ matrix.script }}
       - name: Generate Reports
         run: |
           source .venv/bin/activate

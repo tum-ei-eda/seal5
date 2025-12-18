@@ -19,7 +19,6 @@
 ##
 
 # Seal5 demonstration (also serves as end-to-end testj
----
 name: Usage Demo (Manual)
 on:
   workflow_dispatch:
@@ -28,18 +27,10 @@ on:
         description: Script
         required: true
         default: demo.py
-      # ccache:
-      #   description: "Enable ccache (0/1)"
-      #   required: true
-      #   default: "0"
       clone_depth:
         description: Clone Depth (-1 for full clone)
         required: true
         default: '1'
-      # fast:
-      #   description: "Fast (0/1)"
-      #   required: true
-      #   default: "0"
       ignore_error:
         description: Ignore Errors in TEST stage (0/1)
         required: true
@@ -52,21 +43,10 @@ on:
         description: Enable build cache (only for testing)
         required: true
         default: '0'
-      # export:
-      #   description: "Install Seal5 Artifacts (and upload as artifact)"
-      #   required: true
-      #   default: "1"
-      # TODO: maybe add Python/OS version here?
       llvm_ref:
         description: Tag/Branch/Commit of LLVM repository
         required: true
         default: llvmorg-19.1.0
-# push:
-#   branches:
-#     - main
-# pull_request:
-#   branches:
-#     - main
 jobs:
   demo:
     runs-on: ${{ matrix.os }}
@@ -127,15 +107,42 @@ jobs:
               echo "Invalid file extension!"
               exit 1
           fi
+      - name: Install build caching deps
+        if: ${{ github.event.inputs.build_cache == '1' }}
+        run: |
+          sudo apt -qq install -y libfuse3-dev
+          sudo apt -qq install -y fuse-overlayfs
+          source .venv/bin/activate
+          pip install -r requirements_extra.txt
+      - name: Remove unused software
+        if: ${{ github.event.inputs.build_cache == '1' }}
+        run: |
+          echo "Available storage before:"
+          sudo df -h
+          echo
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /usr/lib/jvm
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /usr/local/.ghcup
+          sudo rm -rf /usr/local/julia*
+          sudo rm -rf /usr/local/share/chromium
+          sudo rm -rf /opt/microsoft /opt/google
+          sudo rm -rf /opt/az
+          sudo rm -rf /usr/local/share/powershell
+          echo "Available storage after:"
+          sudo df -h
       - name: Run the demo
         run: |
           source .venv/bin/activate
-          VERBOSE=${{ github.event.inputs.verbose }} PROGRESS=${{ matrix.progress }} LLVM_REF=${{ github.event.inputs.llvm_ref }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ matrix.text }} INSTALL=${{ matrix.install }} DEPLOY=${{ matrix.deploy }} EXPORT=${{ matrix.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} BUILD_CACHE=${{ github.event.inputs.build_cache }} examples/${{ github.event.inputs.script }}
+          VERBOSE=${{ github.event.inputs.verbose }} PROGRESS=${{ matrix.progress }} LLVM_REF=${{ github.event.inputs.llvm_ref }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ matrix.text }} INSTALL=${{ matrix.install }} DEPLOY=${{ matrix.deploy }} EXPORT=${{ matrix.export }} BUILD_CACHE=${{ github.event.inputs.build_cache }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
       - name: Run the demo (again)
-        if: ${{ matrix.build_cache == '1' }}
+        if: ${{ github.event.inputs.build_cache == '1' }}
         run: |
           source .venv/bin/activate
-          VERBOSE=${{ github.event.inputs.verbose }} PROGRESS=${{ matrix.progress }} LLVM_REF=${{ github.event.inputs.llvm_ref }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ matrix.text }} INSTALL=${{ matrix.install }} DEPLOY=${{ matrix.deploy }} EXPORT=${{ matrix.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} BUILD_CACHE=${{ github.event.inputs.build_cache }} examples/${{ github.event.inputs.script }}
+          VERBOSE=${{ github.event.inputs.verbose }} PROGRESS=${{ matrix.progress }} LLVM_REF=${{ github.event.inputs.llvm_ref }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ matrix.text }} INSTALL=${{ matrix.install }} DEPLOY=${{ matrix.deploy }} EXPORT=${{ matrix.export }} BUILD_CACHE=${{ github.event.inputs.build_cache }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
       - name: Generate Reports
         run: |
           source .venv/bin/activate

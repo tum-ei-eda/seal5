@@ -598,7 +598,7 @@ class Seal5Flow:
                 hash_arguments(), get_patch_id(Path(self.settings.directory), self.settings.llvm.state.base_commit)
             )
             cache_dir = self.settings.cache_dir
-            cached = query_build_cache(build_dir, cache_dir)
+            cached = query_build_cache(build_hash, build_dir, cache_dir)
 
         if cached:
             assert build_hash is not None
