@@ -138,4 +138,4 @@ def query_build_cache(build_hash, build_dir, cache_dir):
             cached = True
     build_dir.mkdir(parents=True, exist_ok=True)
     fuseoverlayfs.mount(build_dir, lower_dirs, workdir=work_dir, upperdir=volume_dir)
-return cached
+    return cached
