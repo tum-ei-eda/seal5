@@ -27,6 +27,7 @@ from seal5.logging import Logger
 
 logger = Logger("backends.riscv_features")
 
+
 def gen_riscv_features_str(
     name: str, ext_settings: ExtensionsSettings, llvm_settings: LLVMSettings, all_sets, generate_tests
 ):
