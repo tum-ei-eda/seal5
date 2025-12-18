@@ -125,12 +125,12 @@ jobs:
       - name: Run the demo
         run: |
           source .venv/bin/activate
-          VERBOSE=${{ matrix.verbose }} PROGRESS=${{ env.PROGRESS }} LLVM_REF=${{ matrix.llvm-ref }} CCACHE=${{ env.CCACHE }} CLONE_DEPTH=${{ matrix.clone_depth }} BUILD_CONFIG=${{ matrix.build_config }} IGNORE_ERROR=${{ matrix.ignore_error }} TEST=${{ env.TEST }} INSTALL=${{ env.INSTALL }} DEPLOY=${{ env.DEPLOY }} EXPORT=${{ env.EXPORT }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ matrix.script }}
+          VERBOSE=${{ matrix.verbose }} PROGRESS=${{ env.PROGRESS }} LLVM_REF=${{ matrix.llvm-ref }} CCACHE=${{ env.CCACHE }} CLONE_DEPTH=${{ matrix.clone_depth }} BUILD_CONFIG=${{ matrix.build_config }} IGNORE_ERROR=${{ matrix.ignore_error }} TEST=${{ env.TEST }} INSTALL=${{ env.INSTALL }} DEPLOY=${{ env.DEPLOY }} EXPORT=${{ env.EXPORT }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} BUILD_CACHE=${{ matrix.build_cache }} examples/${{ matrix.script }}
       - name: Run the demo (again)
         if: ${{ matrix.build_cache == '1' }}
         run: |
           source .venv/bin/activate
-          VERBOSE=${{ matrix.verbose }} PROGRESS=${{ env.PROGRESS }} LLVM_REF=${{ matrix.llvm-ref }} CCACHE=${{ env.CCACHE }} CLONE_DEPTH=${{ matrix.clone_depth }} BUILD_CONFIG=${{ matrix.build_config }} IGNORE_ERROR=${{ matrix.ignore_error }} TEST=${{ env.TEST }} INSTALL=${{ env.INSTALL }} DEPLOY=${{ env.DEPLOY }} EXPORT=${{ env.EXPORT }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ matrix.script }}
+          VERBOSE=${{ matrix.verbose }} PROGRESS=${{ env.PROGRESS }} LLVM_REF=${{ matrix.llvm-ref }} CCACHE=${{ env.CCACHE }} CLONE_DEPTH=${{ matrix.clone_depth }} BUILD_CONFIG=${{ matrix.build_config }} IGNORE_ERROR=${{ matrix.ignore_error }} TEST=${{ env.TEST }} INSTALL=${{ env.INSTALL }} DEPLOY=${{ env.DEPLOY }} EXPORT=${{ env.EXPORT }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} BUILD_CACHE=${{ matrix.build_cache }} examples/${{ matrix.script }}
       - name: Generate Reports
         run: |
           source .venv/bin/activate

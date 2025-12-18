@@ -19,6 +19,7 @@
 ##
 
 # Seal5 demonstration (also serves as end-to-end testj
+---
 name: Usage Demo (Manual)
 on:
   workflow_dispatch:
@@ -27,14 +28,6 @@ on:
         description: Script
         required: true
         default: demo.py
-      verbose:
-        description: Verbose (0/1)
-        required: true
-        default: '0'
-      progress:
-        description: Enable progress bars (0/1)
-        required: true
-        default: '1'
       # ccache:
       #   description: "Enable ccache (0/1)"
       #   required: true
@@ -55,18 +48,10 @@ on:
         description: Build Config (debug/release/...)
         required: true
         default: release_assertions
-      test:
-        description: Run LLVM tests
+      build_cache:
+        description: Enable build cache (only for testing)
         required: true
-        default: '1'
-      install:
-        description: Install LLVM (and upload as artifact)
-        required: true
-        default: '1'
-      deploy:
-        description: Install LLVM Sources (and upload as artifact)
-        required: true
-        default: '1'
+        default: '0'
       # export:
       #   description: "Install Seal5 Artifacts (and upload as artifact)"
       #   required: true
@@ -92,7 +77,11 @@ jobs:
         python-version: ['3.10']
         os: [ubuntu-latest]
         ccache: ['1']
+        test: ['1']
         export: ['1']
+        verbose: ['1']
+        process: ['1']
+        install: ['1']
     steps:
       - uses: actions/checkout@v4
         with:
@@ -141,7 +130,12 @@ jobs:
       - name: Run the demo
         run: |
           source .venv/bin/activate
-          VERBOSE=${{ github.event.inputs.verbose }} PROGRESS=${{ github.event.inputs.progress }} LLVM_REF=${{ github.event.inputs.llvm_ref }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ github.event.inputs.test }} INSTALL=${{ github.event.inputs.install }} DEPLOY=${{ github.event.inputs.deploy }} EXPORT=${{ matrix.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
+          VERBOSE=${{ github.event.inputs.verbose }} PROGRESS=${{ matrix.progress }} LLVM_REF=${{ github.event.inputs.llvm_ref }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ matrix.text }} INSTALL=${{ matrix.install }} DEPLOY=${{ matrix.deploy }} EXPORT=${{ matrix.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} BUILD_CACHE=${{ github.event.inputs.build_cache }} examples/${{ github.event.inputs.script }}
+      - name: Run the demo (again)
+        if: ${{ matrix.build_cache == '1' }}
+        run: |
+          source .venv/bin/activate
+          VERBOSE=${{ github.event.inputs.verbose }} PROGRESS=${{ matrix.progress }} LLVM_REF=${{ github.event.inputs.llvm_ref }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ matrix.text }} INSTALL=${{ matrix.install }} DEPLOY=${{ matrix.deploy }} EXPORT=${{ matrix.export }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} BUILD_CACHE=${{ github.event.inputs.build_cache }} examples/${{ github.event.inputs.script }}
       - name: Generate Reports
         run: |
           source .venv/bin/activate
@@ -219,19 +213,19 @@ jobs:
           path: reports/
       - name: Upload Seal5 Metadata
         uses: actions/upload-artifact@v4
-        if: ${{ github.event.inputs.export == '1' }}
+        if: ${{ matrix.export == '1' }}
         with:
           name: demo-export
           path: /tmp/seal5_llvm.tar.gz
       - name: Upload Seal5 LLVM Installation
         uses: actions/upload-artifact@v4
-        if: ${{ github.event.inputs.install == '1' }}
+        if: ${{ matrix.install == '1' }}
         with:
           name: demo-install
           path: /tmp/seal5_llvm/.seal5/install/${{ github.event.inputs.build_config }}
       - name: Upload Seal5 LLVM Sources
         uses: actions/upload-artifact@v4
-        if: ${{ github.event.inputs.deploy == '1' }}
+        if: ${{ matrix.deploy == '1' }}
         with:
           name: demo-source
           path: /tmp/seal5_llvm_source.zip
