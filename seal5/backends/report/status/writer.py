@@ -17,7 +17,9 @@ import pandas as pd
 from seal5.settings import Seal5Settings
 from seal5.model_utils import load_model
 
-logger = logging.getLogger("status_writer")
+from seal5.logging import Logger
+
+logger = Logger("backends.status_writer")
 
 
 def main():
@@ -36,7 +38,7 @@ def main():
     args = parser.parse_args()
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # if args.output is None:
     #     assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."

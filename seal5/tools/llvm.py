@@ -28,11 +28,11 @@ from git import RemoteProgress
 from tqdm import tqdm
 
 from seal5 import utils
-from seal5.logging import get_logger
+from seal5.logging import Logger
 from seal5.tools.git import get_author_from_settings
 from seal5.settings import GitSettings, CcacheSettings
 
-logger = get_logger()
+logger = Logger("tools")
 
 
 def lookup_ccache():
@@ -216,9 +216,23 @@ def test_llvm(base: Path, build_dir: Path, test_paths: Optional[List[str]] = Non
         def handler(_code, _out):
             return 0
 
+        test_path = Path(test_path)
+        if test_path.is_absolute():
+            test_file = test_path
+        else:
+            test_file = base / test_path
+            if not test_file.is_file():
+                try:
+                    test_path = test_path.relative_to(base)
+                except ValueError as exc:
+                    raise RuntimeError(
+                        f"Relative test path needs to be relative to base ({base}): {test_path}"
+                    ) from exc
+                test_file = base / test_path
+                assert test_file.is_file()
         out = utils.exec_getout(
             lit_exe,
-            base / test_path,
+            test_file,
             print_func=logger.info if verbose else logger.debug,
             live=True,
             env=env,
@@ -235,6 +249,7 @@ def test_llvm(base: Path, build_dir: Path, test_paths: Optional[List[str]] = Non
 
 
 def detect_llvm_imm_types(llvm_dir: Union[str, Path]):
+    # TODO: detect which ones are ImmLeafs!
     def get_grep_cmd(prefix):
         return f"grep -r \"def {prefix}imm\" llvm/lib/Target/RISCV | cut -d':' -f2 | tr -s ' ' | sed -e \"s/def //g\""
 

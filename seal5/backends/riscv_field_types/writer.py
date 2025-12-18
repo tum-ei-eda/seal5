@@ -17,7 +17,9 @@ from seal5.index import write_index_yaml, NamedPatch
 
 from seal5.settings import Seal5Settings
 
-logger = logging.getLogger("riscv_field_types")
+from seal5.logging import Logger
+
+logger = Logger("backends.riscv_field_types")
 
 SEAL5_RISCV_FIELDS_SUPPORT = """class Seal5RISCVUImmOp<int bitsNum> : RISCVOp {
   let ParserMatchClass = UImmAsmOperand<bitsNum>;
@@ -37,11 +39,19 @@ class Seal5RISCVSImmLeafOp<int bitsNum> :
 """
 
 
-def gen_riscv_field_types_str(field_types):
+def gen_riscv_field_types_str(field_types, llvm_settings):
     # print("gen_riscv_field_types_str", field_types)
     riscv_field_types_contents = [SEAL5_RISCV_FIELDS_SUPPORT] if len(field_types) > 0 else []
     riscv_operands_asm_contents = []
     riscv_operands_enum_contents = []
+
+    llvm_major_version = None
+    if llvm_settings:
+        llvm_state = llvm_settings.state
+        if llvm_state:
+            llvm_version = llvm_state.version  # unused today, but needed very soon
+            llvm_major_version = llvm_version.major
+    assert llvm_major_version is not None
 
     for field_type in field_types:
         # print("field_type", field_type)
@@ -77,11 +87,17 @@ def gen_riscv_field_types_str(field_types):
             assert False  # Should not be reached
         riscv_field_types_contents.append(temp)
         sign_letter_upper = sign_letter.upper()
-        if sign_letter_upper == "U":
+        if llvm_major_version >= 21:
+            temp = (
+                f"bool is{sign_letter_upper}Imm{imm_size}() const {{ return is{sign_letter_upper}Imm<{imm_size}>(); }}"
+            )
+        elif sign_letter_upper == "U":
+            assert llvm_major_version < 21
             temp = (
                 f"bool is{sign_letter_upper}Imm{imm_size}() const {{ return Is{sign_letter_upper}Imm<{imm_size}>(); }}"
             )
         elif sign_letter_upper == "S":
+            assert llvm_major_version < 21
             # TODO: introduce `template <unsigned N> bool IsSImm() const {`
             # to make this more clean
             temp = f"""bool is{sign_letter_upper}Imm{imm_size}() const {{
@@ -122,13 +138,15 @@ def main():
     args = parser.parse_args()
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     # top_level = pathlib.Path(args.top_level)
     assert args.yaml is not None
     assert pathlib.Path(args.yaml).is_file()
     settings = Seal5Settings.from_yaml_file(args.yaml)
+    llvm_settings = settings.llvm
+    assert llvm_settings is not None
 
     # print("settings", settings)
     # print("settings.models", settings.models)
@@ -171,7 +189,7 @@ def main():
     # TODO: error handling?
     if len(missing_imm_types) > 0:
         field_types_content, riscv_operands_asm_content, riscv_operands_enum_content = gen_riscv_field_types_str(
-            missing_imm_types
+            missing_imm_types, llvm_settings
         )
     else:
         field_types_content, riscv_operands_asm_content, riscv_operands_enum_content = "", "", ""

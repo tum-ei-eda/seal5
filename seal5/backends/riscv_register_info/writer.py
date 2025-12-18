@@ -18,15 +18,56 @@ from seal5.index import NamedPatch, write_index_yaml
 from seal5.model import Seal5RegisterClass
 from seal5.model_utils import load_model
 
-logger = logging.getLogger("riscv_instr_info")
+from seal5.logging import Logger
+
+logger = Logger("backends.riscv_register_info")
 
 
 def write_riscv_register_info(reg):
-    """Generate code for RISCVRegisterInfo.td LLVM patch."""
+    """Generate code for RISCVRegisterInfo.td LLVM patch (RISCVReg)."""
     # registers_template = Template(filename=str(template_dir / "registers_tablegen.mako"))
 
     # out_str = registers_template.render()
-    out_str = f'def {reg.name} : RISCVReg<0, "{reg.name.lower()}">;'
+    out_str = ""
+    if reg.is_const:
+        out_str += "let isConstant = true in\n  "
+    out_str += f'def {reg.name} : RISCVReg<0, "{reg.name.lower()}">;'
+
+    return out_str
+
+
+def write_riscv_register_class_info(group_name, group, group_regs):
+    """Generate code for RISCVRegisterInfo.td LLVM patch (RISCVRegisterClass)."""
+    # registers_template = Template(filename=str(template_dir / "registers_tablegen.mako"))
+
+    # out_str = registers_template.render()
+    # TODO: get xlen?
+    reg_width = group.reg_width
+    # tablegen type infer fails for types < i32?
+    reg_width = max(reg_width, 32)
+    VT_LOOKUP = {
+        Seal5RegisterClass.GPR: ("XLenVT", reg_width),
+        Seal5RegisterClass.FPR: (f"f{reg_width}", reg_width),
+        Seal5RegisterClass.CSR: ("XLenVT", reg_width),
+        Seal5RegisterClass.CUSTOM: (f"i{reg_width}", reg_width),
+    }
+    vt_name, vt_size = VT_LOOKUP.get(group.reg_class)
+    vt_names = [vt_name]
+    vt_sizes = [vt_size]
+    vts_str = ", ".join(vt_names)
+    align = max(vt_sizes)
+    lo = 0
+    hi = group.size - 1
+    alt = group.names[0] != f"{group_name}0"
+    out_str = ""
+    if group.reg_class == Seal5RegisterClass.CUSTOM:
+        out_str += "let isAllocatable = 0 in\n  "
+    # TODO: pass lo/hi to Seal5RegisterGroup
+    if alt:
+        seq_str = ", ".join(group.names)
+    else:
+        seq_str = f'(sequence "{group_name}%u", {lo}, {hi})'
+    out_str += f"def {group_name} : RISCVRegisterClass<[{vts_str}], {align}, (add {seq_str})>;"
 
     return out_str
 
@@ -38,22 +79,31 @@ def gen_riscv_register_info_str(set_def):
     # print("registers", registers)
     # print("register_groups", register_groups)
     group_regs = {group_name: group.names for group_name, group in register_groups.items()}
-    all_group_regs = [name for names in group_regs.values() for name in names]
-    ret = []
+    # print("group_regs", group_regs)
+    # all_group_regs = [name for names in group_regs.values() for name in names]
+    # print("all_group_regs", all_group_regs)
+    ret_groups = []
+    to_skip = []
     for group_name, group in register_groups.items():
         if group.reg_class == Seal5RegisterClass.GPR:
+            to_skip.extend(group.names)
             continue  # Already supported
             # TODO: check size and width
         if group.reg_class == Seal5RegisterClass.FPR:
             raise NotImplementedError("Floating point registers not supported")
-        if group.reg_class == Seal5RegisterClass.CSR:
+        elif group.reg_class == Seal5RegisterClass.CSR:
             raise NotImplementedError("CSR registers not yet supported")
-        if group.reg_class == Seal5RegisterClass.CUSTOM:
-            raise NotImplementedError("Custom register goups not yet supported")
-        raise ValueError(f"Unhandled case: {group.reg_class}")
+        elif group.reg_class == Seal5RegisterClass.CUSTOM:
+            group_regs = [registers[name] for name in group.names]
+            tablegen_str = write_riscv_register_class_info(group_name, group, group_regs)
+            ret_groups.append(tablegen_str)
+            # raise NotImplementedError("Custom register goups not yet supported")
+        else:
+            raise ValueError(f"Unhandled case: {group.reg_class}")
+    ret = []
     for reg_name, reg in registers.items():
-        if reg_name in all_group_regs:
-            logger.debug("Skipping group register %s", reg_name)
+        if reg_name in to_skip:
+            logger.debug("Skipping register %s", reg_name)
             continue
         assert reg.reg_class not in [Seal5RegisterClass.GPR, Seal5RegisterClass.FPR, Seal5RegisterClass.CSR]
         if reg.reg_class == Seal5RegisterClass.CUSTOM:
@@ -64,7 +114,7 @@ def gen_riscv_register_info_str(set_def):
             raise ValueError(f"Unhandled case: {reg.reg_class}")
             # width = reg.width
             # TODO: use width?
-    return "\n".join(ret)
+    return "\n".join(ret + ret_groups)
 
 
 def main():
@@ -84,7 +134,7 @@ def main():
     args = parser.parse_args()
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)

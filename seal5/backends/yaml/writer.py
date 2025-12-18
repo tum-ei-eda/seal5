@@ -16,7 +16,9 @@ import yaml
 
 from seal5.model_utils import load_model
 
-logger = logging.getLogger("yaml_writer")
+from seal5.logging import Logger
+
+logger = Logger("backends.yaml_writer")
 
 # @dataclass
 # class Seal5Settings(YAMLSettings):
@@ -45,7 +47,7 @@ def main():
     args = parser.parse_args()
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
@@ -71,11 +73,11 @@ def main():
         else:
             riscv_data["xlen"] = set_def.xlen
             set_data["riscv"] = riscv_data
-            llvm_imm_types = set()
-            for instr in set_def.instructions.values():
-                set_data["instructions"].append(instr.name)
-                llvm_imm_types.update(instr.llvm_imm_types)
-            set_data["required_imm_types"] = list(llvm_imm_types)
+        llvm_imm_types = set()
+        for instr in set_def.instructions.values():
+            set_data["instructions"].append(instr.name)
+            llvm_imm_types.update(instr.llvm_imm_types)
+        set_data["required_imm_types"] = list(llvm_imm_types)
         data["extensions"][set_name] = set_data
     data = {"models": {model_name: data}}
     with open(out_path, "w", encoding="utf-8") as f:

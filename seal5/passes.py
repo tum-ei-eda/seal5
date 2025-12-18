@@ -1,19 +1,22 @@
 import os
 import time
-import multiprocessing
+
+# import multiprocessing
 from pathlib import Path
 from enum import Enum, IntFlag, auto
 from dataclasses import dataclass
 from typing import Callable, Optional, List
 from concurrent.futures import ThreadPoolExecutor
 
-from seal5.logging import get_logger
+from seal5.logging import Logger
 from seal5.settings import Seal5Settings
 
-logger = get_logger()
+logger = Logger("passes")
 
 
-NUM_THREADS = int(os.environ.get("SEAL5_NUM_THREADS", multiprocessing.cpu_count()))
+# DEFAULT_NUM_THREADS = multiprocessing.cpu_count()
+DEFAULT_NUM_THREADS = 1
+NUM_THREADS = int(os.environ.get("SEAL5_NUM_THREADS", DEFAULT_NUM_THREADS))
 
 
 class PassFormat(IntFlag):

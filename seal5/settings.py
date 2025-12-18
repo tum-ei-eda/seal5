@@ -28,9 +28,12 @@ from dacite import from_dict, Config
 
 from seal5.types import PatchStage
 from seal5.utils import parse_cond
-from seal5.logging import get_logger
 
-logger = get_logger()
+
+def get_logger():
+    from seal5.logging import Logger
+
+    return Logger("settings")
 
 
 DEFAULT_SETTINGS = {
@@ -42,8 +45,8 @@ DEFAULT_SETTINGS = {
         },
         "file": {
             "level": "DEBUG",
-            "rotate": False,
-            "limit": 1000,
+            "rotate": True,
+            "limit": 3,
         },
     },
     "git": {
@@ -185,6 +188,7 @@ class YAMLSettings:  # TODO: make abstract
         try:
             return from_dict(data_class=cls, data=data, config=Config(strict=True))
         except dacite.exceptions.UnexpectedDataError as err:
+            logger = get_logger()
             logger.error("Unexpected key in Seal5Settings. Check for missmatch between Seal5 versions!")
             raise err
 
@@ -216,6 +220,7 @@ class YAMLSettings:  # TODO: make abstract
 
     def merge(self, other: "YAMLSettings", overwrite: bool = False, inplace: bool = False):
         """Merge two instances of YAMLSettings."""
+        ret = None
         if not inplace:
             ret = replace(self)  # Make a copy of self
         for f1 in fields(other):
@@ -345,9 +350,19 @@ class PatchSettings(YAMLSettings):
     index: Optional[Union[Path, str]] = None
     # _file: Optional[Union[Path, str]] = field(init=False, repr=False)
     enable: bool = True
+    weak: bool = False  # Default patch than can be overriden
     generated: bool = False
     applied: bool = False
     onlyif: Optional[str] = None
+    # high priority (p=100) patches will be applied before lower priority ones (p=10)
+    priority: Optional[float] = None
+
+    def get_priority(self):
+        prio = self.priority
+        if prio is None:
+            return 10
+        assert isinstance(prio, (float, int))
+        return prio
 
     def check_enabled(self, settings: YAMLSettings):
         if self.onlyif is not None:
@@ -413,6 +428,7 @@ class FileLoggingSettings(YAMLSettings):
     level: Union[int, str] = logging.INFO
     limit: Optional[int] = None  # TODO: implement
     rotate: bool = False  # TODO: implement
+    filename: str = "seal5.log"
 
 
 @dataclass
@@ -570,7 +586,7 @@ class ExtensionsSettings(YAMLSettings):
             feature = self.get_feature(name=name)
             assert feature is not None
             arch = feature.lower()
-            assert len(arch) > 0
+            assert len(arch) > 1
             if arch[0] != "x":
                 arch = f"x{arch}"
             # if self.experimental:
@@ -578,11 +594,21 @@ class ExtensionsSettings(YAMLSettings):
         assert arch[0] in ["z", "x"], "Arch needs to be start with z/x"
         return arch
 
+    def get_attr(self, name: Optional[str] = None):
+        """Get extension attr."""
+        attr = self.get_arch(name)
+        if self.experimental:
+            attr = "experimental-" + attr
+        return attr
+
     def get_feature(self, name: Optional[str] = None):
         """Get extension feature."""
         if self.feature is None:
             assert name is not None
             feature = name.replace("_", "")
+            assert len(feature) > 1
+            if feature.lower()[0] != "x":
+                feature = f"X{feature}"
             return feature
         return self.feature
 
@@ -711,12 +737,29 @@ class Seal5Settings(YAMLSettings):
             dest = self.settings_file
         self.to_yaml_file(dest)
 
-    def add_patch(self, patch_settings: PatchSettings):
+    def add_patch(self, patch_settings: PatchSettings, force: bool = False):
         """Add patch to Seal5 seetings."""
+        patches = []
+        added = False
         for ps in self.patches:
             if ps.name == patch_settings.name:
-                raise RuntimeError(f"Duplicate patch '{ps.name}'. Either clean patches or rename patch.")
-        self.patches.append(patch_settings)
+                if ps.weak:
+                    self.patches.append(patch_settings)
+                    added = True
+                    logger = get_logger()
+                    logger.info("Overriding weak patch '%s'", ps.name)
+                elif patch_settings.weak:
+                    logger = get_logger()
+                    logger.info("Skipping weak patch '%s'", ps.name)
+                else:
+                    raise RuntimeError(
+                        f"Duplicate patch '{ps.name}'. Either use force=True, clean patches or rename patch."
+                    )
+            else:
+                patches.append(ps)
+        if not added:
+            patches.append(patch_settings)
+        self.patches = patches
 
     @property
     def model_names(self):
@@ -802,6 +845,11 @@ class Seal5Settings(YAMLSettings):
     def patches_dir(self):  # TODO: maybe merge with gen_dir
         """Seal5 patches_dir getter."""
         return self._meta_dir / "patches"
+
+    @property
+    def cache_dir(self):
+        """Seal5 cache_dir getter."""
+        return self._meta_dir / "cache"
 
     @property
     def log_file_path(self):

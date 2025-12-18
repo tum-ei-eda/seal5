@@ -19,14 +19,10 @@
 """Demo script for the Seal5 Flow."""
 import os
 
-# import logging
 from pathlib import Path
 
 from seal5.wrapper import run_seal5_flow
-from seal5.logging import set_log_level
 
-# set_log_level(console_level=logging.DEBUG, file_level=logging.DEBUG)
-set_log_level(console_level="DEBUG", file_level="DEBUG")
 
 EXAMPLES_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
 DEST_DIR = os.environ.get("DEST_DIR", "/tmp")
@@ -40,7 +36,7 @@ FILES = [
     EXAMPLES_DIR / "openasip" / "tests" / "base" / "*.c",
     EXAMPLES_DIR / "openasip" / "tests" / "base" / "*.s",
     EXAMPLES_DIR / "openasip" / "tests" / "base" / "*.ll",
-    EXAMPLES_DIR / "openasip" / "tests" / "base" / "*.mir",
+    # EXAMPLES_DIR / "openasip" / "tests" / "base" / "*.mir",
     # YAML inputs
     EXAMPLES_DIR / "openasip" / "cfg" / "OpenASIP_paper.yml",
     EXAMPLES_DIR / "openasip" / "cfg" / "OpenASIP_base.yml",

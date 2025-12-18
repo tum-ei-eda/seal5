@@ -20,7 +20,9 @@ from seal5.model import Seal5InstrAttribute, Seal5OperandAttribute
 from seal5.model_utils import load_model, dump_model
 
 
-logger = logging.getLogger("check_pattern_support")
+from seal5.logging import Logger
+
+logger = Logger("transform.check_pattern_support")
 
 
 def get_parser():
@@ -36,7 +38,7 @@ def get_parser():
 
 def run(args):
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)

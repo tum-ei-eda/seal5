@@ -21,13 +21,14 @@
 
 import argparse
 import pathlib
-import logging
 
 import pandas as pd
 
 # import numpy as np
+from seal5.logging import Logger
 
-logger = logging.getLogger(__name__)
+
+logger = Logger("examples." + __name__)
 
 
 def main():
@@ -50,6 +51,7 @@ def main():
     if args.test_results:
         try:
             test_result_df = pd.read_csv(pathlib.Path(args.test_results))
+            test_result_df = test_result_df[~pd.isna(test_result_df["instr"])]
         except pd.errors.EmptyDataError:
             logger.warning("Skipping empty file: %s", args.test_results)
             test_result_df = None
@@ -67,7 +69,7 @@ def main():
         raise RuntimeError("Path to Test Coverage file must be specified")
 
     status_props_df = pd.merge(status_df, props_df)
-    if test_result_df is not None:
+    if test_result_df is not None and len(test_result_df) > 0:
         stat_prop_result_df = pd.merge(
             status_props_df, test_result_df, on=["model", "set", "xlen", "instr"], how="left"
         )
@@ -78,7 +80,7 @@ def main():
 
     stat_prop_result_df.fillna(value=0, inplace=True)
 
-    if test_cv_df is not None:
+    if test_cv_df is not None and len(test_cv_df) > 0:
         stat_prop_result_cv_df = pd.merge(
             stat_prop_result_df, test_cv_df, on=["model", "set", "xlen", "instr"], how="left"
         )
@@ -107,14 +109,14 @@ def main():
         }
     )
 
-    if test_result_df is not None:
+    if test_result_df is not None and len(test_result_df) > 0:
         stat_prop_result_cv_test = stat_prop_result_cv_df.groupby(level=[0, 1, 2])[
             ["n_pass", "n_fail", "n_tests", "state"]
         ].agg({"n_pass": rounded_mean, "n_fail": rounded_mean, "n_tests": rounded_mean, "state": "unique"})
     else:
         stat_prop_result_cv_test = None
 
-    if test_cv_df is not None:
+    if test_cv_df is not None and len(test_cv_df) > 0:
         stat_prop_result_coverage = stat_prop_result_cv_df.groupby(level=[0, 1, 2])[
             ["n_exists", "n_required", "n_optional", "n_required_exists", "n_optional_exists", "coverage"]
         ].agg(
@@ -266,7 +268,7 @@ def main():
         .drop("n_total", axis=1)
     )
 
-    if stat_prop_result_cv_test is not None:
+    if stat_prop_result_cv_test is not None and len(stat_prop_result_cv_test) > 0:
         final_test_results = (
             stat_prop_result_cv_test.drop("n_pass", axis=1).drop("n_fail", axis=1).drop("n_tests", axis=1)
         )
@@ -275,7 +277,7 @@ def main():
         )
     else:
         final_test_table = final_status_results
-    if stat_prop_result_coverage is not None:
+    if stat_prop_result_coverage is not None and len(stat_prop_result_coverage) > 0:
         final_coverage_results = (
             stat_prop_result_coverage.drop("n_exists", axis=1)
             .drop("n_required", axis=1)
