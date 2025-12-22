@@ -337,6 +337,7 @@ class Seal5Flow:
                     git_settings=self.settings.git,
                     depth=clone_depth or self.settings.llvm.clone_depth,
                 )
+        llvm.update_excludes(self.repo, self.meta_dir)
         if self.meta_dir.is_dir():
             if force is False and not utils.ask_user(
                 "Overwrite existing .seal5 diretcory?", default=False, interactive=interactive

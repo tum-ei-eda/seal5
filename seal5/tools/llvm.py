@@ -44,6 +44,34 @@ def lookup_ccache():
     return None  # Not found
 
 
+def update_excludes(repo: git.Repo, meta_dir: Path):
+    print("update_excludes", repo, meta_dir)
+    repo_dir = Path(repo.git_dir).parent
+    print("repo_dir", repo_dir)
+    excludes_file = Path(repo.git_dir) / "info" / "exclude"
+    print("excludes_file", excludes_file)
+    is_rel = meta_dir.is_relative_to(repo_dir)
+    print("is_rel", is_rel)
+    if not is_rel:
+        print("ret")
+        return
+    rel_dir = meta_dir.relative_to(repo_dir)
+    print("rel_dir", rel_dir)
+    lines_to_add = [str(rel_dir)]
+    print("lines_to_add", lines_to_add)
+    if excludes_file.is_file():
+        with excludes_file.open("r+") as f:
+            lines = f.read().splitlines()
+            for line_to_add in lines_to_add:
+                if line_to_add.strip() not in lines:
+                    f.write(line_to_add)
+    else:
+        # If file doesn't exist, create it
+        excludes_file.parent.mkdir(parents=True, exist_ok=True)
+        for line_to_add in lines_to_add:
+            excludes_file.write_text(line_to_add)
+
+
 def check_llvm_repo(path: Path):
     repo = git.Repo(path)
     if repo.is_dirty(untracked_files=True):
