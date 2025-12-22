@@ -17,46 +17,12 @@ import pathlib
 from m2isar.metamodel import arch
 
 from seal5.model_utils import load_model, dump_model
+from seal5.riscv_utils import OPCODE_LOOKUP
+
 
 from seal5.logging import Logger
 
 logger = Logger("transform.filter_model")
-
-
-OPCODE_LOOKUP = {
-    "LOAD": 0b00000,
-    "LOAD-FP": 0b00001,
-    "custom-0": 0b00010,
-    "MISC-MEM": 0b00011,
-    "OP-IMM": 0b00100,
-    "AUIPC": 0b00101,
-    "OP-IMM-32": 0b00110,
-    # "48bit": 0b00111,
-    "STORE": 0b01000,
-    "STORE-FP": 0b01001,
-    "custom-1": 0b01010,
-    "AMO": 0b01011,
-    "OP": 0b01100,
-    "LUI": 0b01101,
-    "OP-32": 0b01110,
-    # "64bit": 0b01111,
-    "MADD": 0b10000,
-    "MSUB": 0b10001,
-    "NMADD": 0b10010,
-    "NMSUB": 0b10011,
-    "OP-FP": 0b10100,
-    "OP-V": 0b10101,
-    "custom-2": 0b10110,  # rv128i
-    # "48bit2": 0b10111,
-    "BRANCH": 0b11000,
-    "JALR": 0b11001,
-    # "reserved": 0b11010,
-    "JAL": 0b11011,
-    "SYSTEM": 0b11100,
-    "OP-P": 0b11101,
-    "custom-3": 0b11110,
-    # "80bit+": 0b11111,
-}
 
 
 class DropUnusedContext:

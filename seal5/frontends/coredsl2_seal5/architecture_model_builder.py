@@ -112,7 +112,7 @@ class ArchitectureModelBuilder(CoreDSL2Visitor):
                 raise M2ValueError("unexpected item encountered")
 
         # instantiate M2-ISA-R object
-        i = arch.InstructionSet(name, extension, constants, memories, functions, instructions)
+        i = arch.InstructionSet(name, extension, constants, memories, functions, instructions, {})
 
         if name in self._instruction_sets:
             raise M2DuplicateError(f'instruction set "{name}" already defined')
@@ -185,6 +185,8 @@ class ArchitectureModelBuilder(CoreDSL2Visitor):
         assembly = ctx.assembly.text.replace('"', "") if ctx.assembly is not None else None
         mnemonic = ctx.mnemonic.text.replace('"', "") if ctx.mnemonic is not None else None
 
+        # TODO: add parsing of operands
+        # i = arch.Instruction(ctx.name.text, attributes, {}, encoding, mnemonic, assembly, ctx.behavior, None)
         i = arch.Instruction(ctx.name.text, attributes, encoding, mnemonic, assembly, ctx.behavior, None)
         self._instr_classes.add(i.size)
 
