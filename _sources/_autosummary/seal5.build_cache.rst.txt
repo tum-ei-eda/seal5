@@ -1,0 +1,19 @@
+seal5.build\_cache
+==================
+
+.. automodule:: seal5.build_cache
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      combine_hashes
+      get_lower_dirs
+      get_mount_info
+      get_patch_id
+      hash_arguments
+      init_fuseoverlayfs
+      query_build_cache
+      save_lower_dirs
+   
