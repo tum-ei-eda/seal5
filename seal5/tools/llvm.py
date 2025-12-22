@@ -188,6 +188,7 @@ def build_llvm(
     install: bool = False,
     install_dir: Optional[Union[str, Path]] = None,
     ccache_settings: Optional[CcacheSettings] = None,
+    skip_configure: bool = False,
 ):
     if cmake_options is None:
         cmake_options = {}
@@ -212,16 +213,17 @@ def build_llvm(
                 env["CCACHE_DIR"] = ccache_directory
     cmake_args = utils.get_cmake_args(cmake_options)
     dest.mkdir(exist_ok=True)
-    utils.cmake(
-        src / "llvm",
-        *cmake_args,
-        use_ninja=use_ninja,
-        debug=debug,
-        cwd=dest,
-        env=env,
-        print_func=logger.info if verbose else logger.debug,
-        live=True,
-    )
+    if not skip_configure:
+        utils.cmake(
+            src / "llvm",
+            *cmake_args,
+            use_ninja=use_ninja,
+            debug=debug,
+            cwd=dest,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
     if install:
         assert target is None
         target = "install"

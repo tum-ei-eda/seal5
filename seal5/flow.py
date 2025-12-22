@@ -576,7 +576,7 @@ class Seal5Flow:
         # TODO: only allow single instr set for now and track inputs in settings
         self.logger.info("Completed load of Seal5 inputs")
 
-    def build(self, config=None, target="all", verbose: bool = False, **kwargs):
+    def build(self, config=None, target="all", verbose: bool = False, skip_configure: bool = False, **kwargs):
         """Build Seal5 LLVM."""
         self.logger.info("Building Seal5 LLVM (%s)", target)
         start = time.time()
@@ -612,6 +612,7 @@ class Seal5Flow:
                 target=target,
                 use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
                 ccache_settings=ccache_settings,
+                skip_configure=skip_configure,
                 verbose=verbose,
             )
         end = time.time()

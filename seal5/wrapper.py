@@ -177,7 +177,11 @@ def run_seal5_flow(
     if build:
         # Build initial LLVM
         seal5_flow.build(
-            verbose=verbose, config=build_config, enable_ccache=ccache, enable_build_cache=enable_build_cache
+            verbose=verbose,
+            config=build_config,
+            enable_ccache=ccache,
+            enable_build_cache=enable_build_cache,
+            skip_configure=False,
         )
 
     if transform:
@@ -198,7 +202,11 @@ def run_seal5_flow(
     if build:
         # Build patched LLVM
         seal5_flow.build(
-            verbose=verbose, config=build_config, enable_ccache=ccache, enable_build_cache=enable_build_cache
+            verbose=verbose,
+            config=build_config,
+            enable_ccache=ccache,
+            enable_build_cache=enable_build_cache,
+            skip_configure=True,
         )
 
     if not skip_patterns:
@@ -210,6 +218,7 @@ def run_seal5_flow(
                 target="pattern-gen",
                 enable_ccache=ccache,
                 enable_build_cache=enable_build_cache,
+                skip_configure=True,
             )
             seal5_flow.build(
                 verbose=verbose,
@@ -217,6 +226,7 @@ def run_seal5_flow(
                 target="llc",
                 enable_ccache=ccache,
                 enable_build_cache=enable_build_cache,
+                skip_configure=True,
             )
 
         if generate:
@@ -230,7 +240,11 @@ def run_seal5_flow(
     if build:
         # Build patched LLVM
         seal5_flow.build(
-            verbose=verbose, config=build_config, enable_ccache=ccache, enable_build_cache=enable_build_cache
+            verbose=verbose,
+            config=build_config,
+            enable_ccache=ccache,
+            enable_build_cache=enable_build_cache,
+            skip_configure=True,
         )
 
     if test:
