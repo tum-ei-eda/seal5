@@ -63,7 +63,11 @@ def get_patch_id(repo_path, base_commit, target_commit="HEAD"):
     # Run 'git patch-id' by piping the diff to it
     with os.fdopen(r_fd, "rb") as r:
         # patch_id will be a string like: '<patch-id> <zeroes or commit-hash>'
-        patch_id = repo.git.execute(["git", "patch-id"], istream=r).split()[0]
+        patch_id = repo.git.execute(["git", "patch-id"], istream=r)
+        if len(patch_id) == 0:
+            return "00"
+        patch_id = patch_id.split()
+        patch_id = patch_id[0]
     t.join()
     return patch_id
 
