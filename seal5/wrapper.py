@@ -120,9 +120,10 @@ def run_seal5_flow(
 
     has_stage0_tag = not (seal5_flow.repo is None or f"seal5-{seal5_flow.name}-stage0" not in seal5_flow.repo.tags)
     if prepatched == "auto":
-        prepatched = has_stage0_tag
+        prepatched = has_stage0_tag and not enable_build_cache
     if prepatched:
         assert has_stage0_tag, "PREPATCHED can only be used after LLVM was patched at least once."
+        assert not enable_build_cache, "PREPATCHED can not be used when BUILD_CACHE is on."
         logger.info("Skipping PHASE0 patch using PREPATCHED feature.")
 
     # Clone LLVM and init seal5 metadata directory
