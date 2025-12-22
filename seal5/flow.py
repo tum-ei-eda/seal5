@@ -855,7 +855,14 @@ class Seal5Flow:
         if dest is None:
             raise RuntimeError(f"Unsupported patch target: {target}")
         # TODO: check if clean
-        repo.git.apply(file)
+        custom_apply = True
+        if custom_apply:
+            import subprocess
+
+            # TODO: use utils
+            subprocess.run(["git", "apply", file], cwd=repo.working_tree_dir)
+        else:
+            repo.git.apply(file)
         author = self.settings.git.author
         mail = self.settings.git.mail
         actor = git.Actor(author, mail)
@@ -865,7 +872,12 @@ class Seal5Flow:
             msg = f"Apply patch: {patch.name}"
         if prefix:
             msg = prefix + " " + msg
-        repo.git.add(A=True)
+        if custom_apply:
+            import subprocess
+
+            subprocess.run(["git", "add", "-A"], cwd=repo.working_tree_dir)
+        else:
+            repo.git.add(A=True)
         repo.index.commit(msg, author=actor)
         patch.applied = True
         self.settings.save()
