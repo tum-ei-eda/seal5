@@ -120,9 +120,10 @@ def run_seal5_flow(
 
     has_stage0_tag = not (seal5_flow.repo is None or f"seal5-{seal5_flow.name}-stage0" not in seal5_flow.repo.tags)
     if prepatched == "auto":
-        prepatched = has_stage0_tag
+        prepatched = has_stage0_tag and not enable_build_cache
     if prepatched:
         assert has_stage0_tag, "PREPATCHED can only be used after LLVM was patched at least once."
+        assert not enable_build_cache, "PREPATCHED can not be used when BUILD_CACHE is on."
         logger.info("Skipping PHASE0 patch using PREPATCHED feature.")
 
     # Clone LLVM and init seal5 metadata directory
@@ -176,7 +177,11 @@ def run_seal5_flow(
     if build:
         # Build initial LLVM
         seal5_flow.build(
-            verbose=verbose, config=build_config, enable_ccache=ccache, enable_build_cache=enable_build_cache
+            verbose=verbose,
+            config=build_config,
+            enable_ccache=ccache,
+            enable_build_cache=enable_build_cache,
+            skip_configure=False,
         )
 
     if transform:
@@ -197,7 +202,11 @@ def run_seal5_flow(
     if build:
         # Build patched LLVM
         seal5_flow.build(
-            verbose=verbose, config=build_config, enable_ccache=ccache, enable_build_cache=enable_build_cache
+            verbose=verbose,
+            config=build_config,
+            enable_ccache=ccache,
+            enable_build_cache=enable_build_cache,
+            skip_configure=True,
         )
 
     if not skip_patterns:
@@ -209,6 +218,7 @@ def run_seal5_flow(
                 target="pattern-gen",
                 enable_ccache=ccache,
                 enable_build_cache=enable_build_cache,
+                skip_configure=True,
             )
             seal5_flow.build(
                 verbose=verbose,
@@ -216,6 +226,7 @@ def run_seal5_flow(
                 target="llc",
                 enable_ccache=ccache,
                 enable_build_cache=enable_build_cache,
+                skip_configure=True,
             )
 
         if generate:
@@ -229,7 +240,11 @@ def run_seal5_flow(
     if build:
         # Build patched LLVM
         seal5_flow.build(
-            verbose=verbose, config=build_config, enable_ccache=ccache, enable_build_cache=enable_build_cache
+            verbose=verbose,
+            config=build_config,
+            enable_ccache=ccache,
+            enable_build_cache=enable_build_cache,
+            skip_configure=True,
         )
 
     if test:

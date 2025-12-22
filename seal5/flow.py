@@ -337,6 +337,7 @@ class Seal5Flow:
                     git_settings=self.settings.git,
                     depth=clone_depth or self.settings.llvm.clone_depth,
                 )
+        llvm.update_excludes(self.repo, self.meta_dir)
         if self.meta_dir.is_dir():
             if force is False and not utils.ask_user(
                 "Overwrite existing .seal5 diretcory?", default=False, interactive=interactive
@@ -575,7 +576,7 @@ class Seal5Flow:
         # TODO: only allow single instr set for now and track inputs in settings
         self.logger.info("Completed load of Seal5 inputs")
 
-    def build(self, config=None, target="all", verbose: bool = False, **kwargs):
+    def build(self, config=None, target="all", verbose: bool = False, skip_configure: bool = False, **kwargs):
         """Build Seal5 LLVM."""
         self.logger.info("Building Seal5 LLVM (%s)", target)
         start = time.time()
@@ -598,7 +599,7 @@ class Seal5Flow:
                 hash_arguments(), get_patch_id(Path(self.settings.directory), self.settings.llvm.state.base_commit)
             )
             cache_dir = self.settings.cache_dir
-            cached = query_build_cache(build_dir, cache_dir)
+            cached = query_build_cache(build_hash, build_dir, cache_dir)
 
         if cached:
             assert build_hash is not None
@@ -611,6 +612,7 @@ class Seal5Flow:
                 target=target,
                 use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
                 ccache_settings=ccache_settings,
+                skip_configure=skip_configure,
                 verbose=verbose,
             )
         end = time.time()
