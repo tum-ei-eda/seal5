@@ -231,25 +231,25 @@ jobs:
       - name: Upload Seal5 Reports
         uses: actions/upload-artifact@v4
         with:
-          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-reports
+          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-${{ matrix.build_cache }}-reports
           path: reports/
       - name: Upload Seal5 Metadata
         uses: actions/upload-artifact@v4
         if: ${{ env.EXPORT == '1' }}
         with:
-          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-export
+          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-${{ matrix.build_cache }}-export
           path: /tmp/seal5_llvm.tar.gz
       - name: Upload Seal5 LLVM Installation
         uses: actions/upload-artifact@v4
         if: ${{ env.INSTALL == '1' }}
         with:
-          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-install
+          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-${{ matrix.build_cache }}-install
           path: /tmp/seal5_llvm/.seal5/install/${{ matrix.build_config }}
       - name: Upload Seal5 LLVM Sources Grouped_stat_prop_result_all.md
         uses: actions/upload-artifact@v4
         if: ${{ env.DEPLOY == '1' }}
         with:
-          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-source
+          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-${{ matrix.build_cache }}-source
           path: /tmp/seal5_llvm_source.zip
       - name: Aggregate and Publish Test Results
         run: |
@@ -283,7 +283,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{ env.DEPLOY == '1' }}
         with:
-          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-aggregated-test-results
+          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-${{ matrix.build_cache }}-aggregated-test-results
           path: |-
             Grouped_stat_prop_result_all.html
             Grouped_stat_prop_result_cv.html
