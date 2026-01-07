@@ -229,27 +229,28 @@ jobs:
           cat reports/stage_times.mermaid >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
       - name: Upload Seal5 Reports
+        if: ${{ matrix.build_cache == '0' }}
         uses: actions/upload-artifact@v4
         with:
-          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-${{ matrix.build_cache }}-reports
+          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-reports
           path: reports/
       - name: Upload Seal5 Metadata
         uses: actions/upload-artifact@v4
-        if: ${{ env.EXPORT == '1' }}
+        if: ${{ env.EXPORT == '1' && matrix.build_cache == '0' }}
         with:
-          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-${{ matrix.build_cache }}-export
+          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-export
           path: /tmp/seal5_llvm.tar.gz
       - name: Upload Seal5 LLVM Installation
         uses: actions/upload-artifact@v4
-        if: ${{ env.INSTALL == '1' }}
+        if: ${{ env.INSTALL == '1' && matrix.build_cache == '0' }}
         with:
-          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-${{ matrix.build_cache }}-install
+          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-install
           path: /tmp/seal5_llvm/.seal5/install/${{ matrix.build_config }}
       - name: Upload Seal5 LLVM Sources Grouped_stat_prop_result_all.md
         uses: actions/upload-artifact@v4
-        if: ${{ env.DEPLOY == '1' }}
+        if: ${{ env.DEPLOY == '1' && matrix.build_cache == '0' }}
         with:
-          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-${{ matrix.build_cache }}-source
+          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-source
           path: /tmp/seal5_llvm_source.zip
       - name: Aggregate and Publish Test Results
         run: |
@@ -281,12 +282,35 @@ jobs:
           # echo >> $GITHUB_STEP_SUMMARY
       - name: Upload Grouped and Aggregated Test Results
         uses: actions/upload-artifact@v4
-        if: ${{ env.DEPLOY == '1' }}
+        if: ${{ env.DEPLOY == '1' && matrix.build_cache == '0' }}
         with:
-          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-${{ matrix.build_cache }}-aggregated-test-results
+          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-aggregated-test-results
           path: |-
             Grouped_stat_prop_result_all.html
             Grouped_stat_prop_result_cv.html
             Grouped_stat_prop_result_cv_wo_instr.html
             Grouped_stat_prop_result_test.html
             Grouped_stat_prop_result_test_wo_instr.html
+  combine:
+    needs: [demo]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Configure Git
+        run: |
+          git config --global user.name "${GITHUB_ACTOR}"
+          git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+      - name: Download all reports
+        uses: actions/download-artifact@v7
+        with:
+          path: artifacts/
+          pattern: demo-*-reports
+          github-token: ${{ github.token }}
+      - name: Upload combined reports
+        uses: actions/upload-artifact@v6
+        with:
+          name: combined-reports
+          path: artifacts/
