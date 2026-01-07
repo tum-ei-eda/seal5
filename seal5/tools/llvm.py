@@ -236,8 +236,10 @@ def test_llvm(base: Path, build_dir: Path, test_paths: Optional[List[str]] = Non
     failing_tests = []
     for test_path in test_paths:
 
-        def handler(_code, _out):
-            return 0
+        def handler(code, _out):
+            if code == 1:
+                return 0
+            return code
 
         test_path = Path(test_path)
         if test_path.is_absolute():
