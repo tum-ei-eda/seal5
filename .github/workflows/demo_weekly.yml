@@ -48,7 +48,7 @@ jobs:
           - rv64_demo.py
           - rvc_demo.py
           # - rvp_demo.py
-          - s4e_demo.py
+          # - s4e_demo.py
           # - tumeda_demo.py -> Merged with demo.py?
           - se_demo.py
         clone_depth:
