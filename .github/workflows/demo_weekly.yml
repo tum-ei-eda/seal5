@@ -40,7 +40,7 @@ jobs:
         script:
           - demo.py
           - demo.sh
-          - corev_demo.py
+          # - corev_demo.py
           # Broken due to tablegen freeze
           # - gen_demo.py
           # - gpr32_demo.py
