@@ -72,10 +72,10 @@ jobs:
         with:
           max-size: 512M
           append-timestamp: false
-          key: ${{ matrix.os }}-${{ github.event.inputs.script }}-${{ matrix.llvm_ref }}-${{ github.event.inputs.build_config 
+          key: ${{ matrix.os }}-${{ github.event.inputs.script }}-${{ matrix.llvm-ref }}-${{ github.event.inputs.build_config 
             }}
           restore-keys: |
-            ${{ matrix.os }}-${{ github.event.inputs.script }}-${{ matrix.llvm_ref }}-${{ github.event.inputs.build_config 
+            ${{ matrix.os }}-${{ github.event.inputs.script }}-${{ matrix.llvm-ref }}-${{ github.event.inputs.build_config 
             }}
             ${{ matrix.os }}-${{ github.event.inputs.script }}-${{ github.event.inputs.build_config 
             }}
