@@ -319,4 +319,6 @@ jobs:
           path: artifacts/
       - name: Combine Reports into a single job summary
         run: |
+          python3 -m pip install pandas tabulate
+          set -o pipefail
           python3 examples/combine_reports.py artifacts/demo-*-reports/ --markdown-icons | tee -a $GITHUB_STEP_SUMMARY
