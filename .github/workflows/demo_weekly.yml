@@ -314,3 +314,6 @@ jobs:
         with:
           name: combined-reports
           path: artifacts/
+      - name: Combine Reports into a single job summary
+        run: |
+          python3 examples/combine_reports.py artifacts/*/* --markdown-icons | tee -a $GITHUB_STEP_SUMMARY
