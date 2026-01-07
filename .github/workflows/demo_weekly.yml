@@ -85,7 +85,14 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1
         with:
           max-size: 512M
-          key: ${{ matrix.os }}-${{ matrix.script }}-${{ matrix.build_config }}
+          append-timestamp: false
+          key: ${{ matrix.os }}-${{ matrix.script }}-${{ matrix.llvm_ref }}-${{ matrix.build_config 
+            }}
+          restore-keys: |
+            ${{ matrix.os }}-${{ matrix.script }}-${{ matrix.llvm_ref }}-${{ matrix.build_config 
+            }}
+            ${{ matrix.os }}-${{ matrix.script }}-${{ github.event.inputs.build_config 
+            }}
           variant: sccache
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -319,6 +326,7 @@ jobs:
           path: artifacts/
       - name: Combine Reports into a single job summary
         run: |
+          python3 -m pip install -e .
           python3 -m pip install pandas tabulate
           set -o pipefail
           python3 examples/combine_reports.py artifacts/demo-*-reports/ --markdown-icons | tee -a $GITHUB_STEP_SUMMARY
