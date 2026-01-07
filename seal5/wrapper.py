@@ -119,8 +119,10 @@ def run_seal5_flow(
         seal5_flow.clean(temp=True, patches=True, models=True, inputs=True, interactive=interactive)
 
     has_stage0_tag = not (seal5_flow.repo is None or f"seal5-{seal5_flow.name}-stage0" not in seal5_flow.repo.tags)
+    logger.info("Using BUILD_CACHE=%d", enable_build_cache)
     if prepatched == "auto":
         prepatched = has_stage0_tag and not enable_build_cache
+    logger.info("Using PREPATCHED=%d", prepatched)
     if prepatched:
         assert has_stage0_tag, "PREPATCHED can only be used after LLVM was patched at least once."
         assert not enable_build_cache, "PREPATCHED can not be used when BUILD_CACHE is on."

@@ -36,6 +36,7 @@ def gen_riscv_features_str(
     implies = ext_settings.requires
     feature = ext_settings.get_feature(name=name)
     arch_ = ext_settings.get_arch(name=name)
+    attr_ = ext_settings.get_attr(name=name)
     description = ext_settings.get_description(name=name)
     predicate = ext_settings.get_predicate(name=name)
     version = ext_settings.get_version()
@@ -71,6 +72,7 @@ def gen_riscv_features_str(
                     slim = True
 
     test_template_name = "test_riscv_attributes"
+    test_template_name2 = "test_riscv_ext"
     if legacy:
         template_name = "riscv_features"
     else:
@@ -87,6 +89,7 @@ def gen_riscv_features_str(
 
     content_template = Template(filename=str(template_dir / f"{template_name}.mako"))
     test_template = Template(filename=str(template_dir / f"{test_template_name}.mako"))
+    test_template2 = Template(filename=str(template_dir / f"{test_template_name2}.mako"))
     if slim:
         # TODO: support experimental- prefix
         feature_lower = feature.lower()
@@ -105,7 +108,7 @@ def gen_riscv_features_str(
     if generate_tests:
         test_name = f"{arch_}.test-attrs.ll"
         xlen = ext_settings.riscv.xlen if ext_settings.riscv is not None else 32
-        attrs_str = f"+{arch_}"
+        attrs_str = f"+{attr_}"
         label = arch_.upper()
         expected_archs = [f"{arch_}{major}p{minor}"]
         expected_archs += implies_archs_with_ver
@@ -118,6 +121,16 @@ def gen_riscv_features_str(
             expected=expected,
         )
         test_files[test_name] = test_content
+        test_name2 = f"{arch_}.test-ext.c"
+        expected_rows = []
+        attrs_str = f"+{attr_}"
+        expected = f"{arch_} {major}.{minor} '{feature}' ({description})"
+        expected_rows.append(expected)
+        test_content2 = test_template2.render(
+            attrs_str=attrs_str,
+            expected_rows=expected_rows,
+        )
+        test_files[test_name2] = test_content2
     return content_text + "\n", test_files
 
 

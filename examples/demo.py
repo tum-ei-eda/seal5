@@ -30,6 +30,7 @@ DEST = os.environ.get("DEST", DEST_DIR + "/seal5_llvm_demo").rstrip("/")
 FILES = [
     # CoreDSL inputs
     EXAMPLES_DIR / "example" / "cdsl" / "Example.core_desc",
+    EXAMPLES_DIR / "tumeda" / "cdsl" / "XCoreVNand.core_desc",
     # Test inputs
     EXAMPLES_DIR / "example" / "tests" / "xexample-*.s",
     EXAMPLES_DIR / "example" / "tests" / "xexample-*.ll",
@@ -43,6 +44,7 @@ FILES = [
     EXAMPLES_DIR / "common" / "cfg" / "passes.yml",
     EXAMPLES_DIR / "common" / "cfg" / "git.yml",
     EXAMPLES_DIR / "example" / "cfg" / "intrinsics.yml",
+    EXAMPLES_DIR / "tumeda" / "cfg" / "intrinsics.yml",
 ]
 
 run_seal5_flow(FILES, name="demo", dest=DEST)
