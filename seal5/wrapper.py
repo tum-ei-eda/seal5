@@ -233,7 +233,7 @@ def run_seal5_flow(
 
         if generate:
             # Generate remaining patches
-            seal5_flow.generate(verbose=VERBOSE, only=["pattern_gen"])
+            seal5_flow.generate(verbose=verbose, only=["pattern_gen"])
 
         if patch:
             # Apply patches
