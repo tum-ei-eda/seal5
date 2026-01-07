@@ -30,6 +30,10 @@ from typing import List, Optional
 import threading
 from seal5.settings import FileLoggingSettings
 
+logging.getLogger("git").setLevel(logging.WARNING)
+logging.getLogger("git.cmd").setLevel(logging.WARNING)
+logging.getLogger("git.util").setLevel(logging.WARNING)
+
 PROJECT_NAME = "seal5"
 HOSTNAME = "localhost"
 SEAL5_LOGGING_PORT = int(os.getenv("SEAL5_LOGGING_PORT", 0))
