@@ -36,11 +36,13 @@ def main():
         report_dir = Path(report_dir)
         # print("report_dir", report_dir)
         assert report_dir.is_dir()
-        name = report_dir.parent.name
-        if name == ".seal5":
-            name = report_dir.parent.parent.name
+        temp_dir = report_dir
+        name = report_dir.name
+        while name in [".seal5", "reports"]:
+            temp_dir = temp_dir.parent
+            name = temp_dir.name
         # print("name", name)
-        assert name not in all_names
+        assert name not in all_names, f"Duplicate name: {name}"
         all_names.add(name)
         test_results_compact_csv = report_dir / "test_results_compact.csv"
         assert test_results_compact_csv.is_file()
