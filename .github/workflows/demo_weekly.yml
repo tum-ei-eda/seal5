@@ -295,6 +295,9 @@ jobs:
     needs: [demo]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
