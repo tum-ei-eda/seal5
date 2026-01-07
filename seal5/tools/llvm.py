@@ -45,20 +45,13 @@ def lookup_ccache():
 
 
 def update_excludes(repo: git.Repo, meta_dir: Path):
-    print("update_excludes", repo, meta_dir)
     repo_dir = Path(repo.git_dir).parent
-    print("repo_dir", repo_dir)
     excludes_file = Path(repo.git_dir) / "info" / "exclude"
-    print("excludes_file", excludes_file)
     is_rel = meta_dir.is_relative_to(repo_dir)
-    print("is_rel", is_rel)
     if not is_rel:
-        print("ret")
         return
     rel_dir = meta_dir.relative_to(repo_dir)
-    print("rel_dir", rel_dir)
     lines_to_add = [str(rel_dir)]
-    print("lines_to_add", lines_to_add)
     if excludes_file.is_file():
         with excludes_file.open("r+") as f:
             lines = f.read().splitlines()
