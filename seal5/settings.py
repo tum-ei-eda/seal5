@@ -688,6 +688,7 @@ class Seal5Settings(YAMLSettings):
     directory: Optional[str] = None
     name: Optional[str] = None
     meta_dir: Optional[str] = None
+    build_dir: Optional[str] = None
     logging: Optional[LoggingSettings] = None
     filter: Optional[FilterSettings] = None
     llvm: Optional[LLVMSettings] = None
@@ -784,9 +785,11 @@ class Seal5Settings(YAMLSettings):
         return self._meta_dir / "deps"
 
     @property
-    def build_dir(self):
+    def _build_dir(self):
         """Seal5 build_dir getter."""
-        return self._meta_dir / "build"
+        if self.build_dir is None:
+            return self._meta_dir / "build"
+        return Path(self.build_dir)
 
     def get_llvm_build_dir(self, config: Optional[str] = None, fallback: bool = True, check: bool = False):
         if config is None:
@@ -796,12 +799,12 @@ class Seal5Settings(YAMLSettings):
 
         assert config is not None, "Could not resolve LLVM build dir"
 
-        llvm_build_dir = self.build_dir / config
+        llvm_build_dir = self._build_dir / config
 
         if not llvm_build_dir.is_dir():
             assert fallback, f"LLVM build dir {llvm_build_dir} does not exist and fallback is disabled."
             # Look for non-empty subdirs for .seal5/build
-            candidates = [f for f in self.build_dir.iterdir() if f.is_dir() and any(f.iterdir())]
+            candidates = [f for f in self._build_dir.iterdir() if f.is_dir() and any(f.iterdir())]
             if len(candidates) > 0:
                 llvm_build_dir = candidates[0]
         if check:

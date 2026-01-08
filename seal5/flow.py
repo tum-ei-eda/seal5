@@ -175,6 +175,23 @@ def handle_meta_dir(meta_dir: Optional[Union[str, Path]], directory: Union[str, 
     return meta_dir.resolve()
 
 
+def handle_build_dir(build_dir: Optional[Union[str, Path]], meta_dir: Union[str, Path]):
+    """Handle selection of build directory."""
+    if build_dir is None:
+        build_dir = os.getenv("SEAL5_BUILD_DIR")
+        if build_dir is None:
+            build_dir = "default"
+    if build_dir == "default":
+        if not isinstance(meta_dir, Path):
+            assert isinstance(meta_dir, str)
+            meta_dir = Path(meta_dir)
+        build_dir = meta_dir / "build"
+    if not isinstance(build_dir, Path):
+        assert isinstance(build_dir, str)
+        build_dir = Path(build_dir)
+    return build_dir.resolve()
+
+
 def create_seal5_directories(path: Path, directories: list):
     """Create Seal5 directories."""
     logger.debug("Creating Seal5 directories")
@@ -198,10 +215,15 @@ class Seal5Flow:
     """Seal5 Flow."""
 
     def __init__(
-        self, directory: Optional[Path] = None, meta_dir: Optional[Union[str, Path]] = None, name: Optional[str] = None
+        self,
+        directory: Optional[Path] = None,
+        meta_dir: Optional[Union[str, Path]] = None,
+        build_dir: Optional[Union[str, Path]] = None,
+        name: Optional[str] = None,
     ):
         self.directory: Path = handle_directory(directory)
         self.meta_dir: Path = handle_meta_dir(meta_dir, self.directory, name)
+        self.build_dir: Path = handle_build_dir(build_dir, meta_dir)
         self.name: str = name
         self.state: Seal5State = Seal5State.UNKNOWN
         self.passes: List[Seal5Pass] = []
@@ -209,12 +231,16 @@ class Seal5Flow:
             git.Repo(self.directory) if self.directory.is_dir() and utils.is_populated(self.directory) else None
         )
         self.check()
-        self.settings: Seal5Settings = Seal5Settings.from_dict({"meta_dir": str(self.meta_dir), **DEFAULT_SETTINGS})
+        self.settings: Seal5Settings = Seal5Settings.from_dict(
+            {"meta_dir": str(self.meta_dir), "build_dir": str(self.build_dir), **DEFAULT_SETTINGS}
+        )
         # self.settings: Seal5Settings = Seal5Settings(directory=self.directory)
         self.settings.directory = str(self.directory)
         if self.settings.settings_file.is_file():
             self.settings = Seal5Settings.from_yaml_file(self.settings.settings_file)
             self.meta_dir = self.settings._meta_dir
+            # self.build_dir = self.settings._build_dir
+            self.settings.build_dir = str(self.build_dir)
         if self.settings.logs_dir.is_dir():
             initialize_logging_server(
                 [
