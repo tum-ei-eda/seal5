@@ -95,9 +95,9 @@ def main():
         # status_df.to_markdown(out_path, tablefmt="grid", index=False)
         # status_df.to_markdown(out_path, index=False)
         label = "Failing" if IGNORE_GOOD_TESTS else "All"
-        status_md = all_status_compact_df.to_markdown(tablefmt="grid", index=False)
-        test_results_md = all_test_results_compact_df.to_markdown(tablefmt="grid", index=False)
-        test_coverage_md = all_test_coverage_compact_df.to_markdown(tablefmt="grid", index=False)
+        status_md = all_status_compact_df.to_markdown(index=False)
+        test_results_md = all_test_results_compact_df.to_markdown(index=False)
+        test_coverage_md = all_test_coverage_compact_df.to_markdown(index=False)
         content = f"""
 ## {label} Passes
 
