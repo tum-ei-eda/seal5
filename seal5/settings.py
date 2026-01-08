@@ -555,6 +555,8 @@ class ExtensionsSettings(YAMLSettings):
     vendor: Optional[bool] = None
     description: Optional[str] = None
     requires: Optional[List[str]] = None
+    parent: Optional[str] = None
+    max_parent: Optional[str] = None
     # implies: Optional[List[str]] = None
     instructions: Optional[List[str]] = None
     riscv: Optional[RISCVSettings] = None
