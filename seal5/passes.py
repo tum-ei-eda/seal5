@@ -125,6 +125,7 @@ class Seal5Pass:
                                 # FIX
                                 for key, val in passes_settings__.overrides.items():
                                     passes_settings__.overrides[key] = {**val}
+                                passes_settings__.overrides = {**passes_settings__.overrides}
                                 passes_settings__ = passes_settings__.merge(ext_passes_settings)
                             if check_filter(self.name, passes_settings__.skip, passes_settings__.only):
                                 logger.info("Skipped pass %s for extension %s", self.name, ext_name)
@@ -159,6 +160,7 @@ class Seal5Pass:
                             # FIX
                             for key, val in passes_settings_.overrides.items():
                                 passes_settings_.overrides[key] = {**val}
+                            passes_settings_.overrides = {**passes_settings_.overrides}
                             passes_settings_ = passes_settings_.merge(model_passes_settings)
                         if check_filter(self.name, passes_settings_.skip, passes_settings_.only):
                             logger.info("Skipped pass %s for model %s", self.name, input_model)
