@@ -256,7 +256,7 @@ class YAMLSettings:  # TODO: make abstract
                                             assert isinstance(v2[dict_key], YAMLSettings)
                                             v2[dict_key].merge(dict_val, overwrite=overwrite, inplace=True)
                                         elif isinstance(dict_val, dict):
-                                            v2[dict_key].update(dict_val)
+                                            v2[dict_key].update({**dict_val})
                                         else:
                                             v2[dict_key] = dict_val
                                     else:

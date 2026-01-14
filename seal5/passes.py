@@ -1,5 +1,6 @@
 import os
 import time
+import dataclasses
 
 # import multiprocessing
 from pathlib import Path
@@ -108,7 +109,7 @@ class Seal5Pass:
             if self.pass_scope == PassScope.SET:
                 with ThreadPoolExecutor(max_workers=parallel) as executor:
                     futures = []
-                    passes_settings_ = passes_settings
+                    passes_settings_ = dataclasses.replace(passes_settings)
                     for input_model in inputs:
                         model_settings = settings.models[input_model]
                         model_passes_settings = model_settings.passes
@@ -117,11 +118,14 @@ class Seal5Pass:
                         if check_filter(self.name, passes_settings_.skip, passes_settings_.only):
                             logger.info("Skipped pass %s for model %s", self.name, input_model)
                             continue
-                        passes_settings__ = passes_settings_
+                        passes_settings__ = dataclasses.replace(passes_settings_)
                         for ext_name, ext_settings in model_settings.extensions.items():
                             ext_passes_settings = model_settings.passes
                             if ext_passes_settings is not None:
-                                passes_settings__ = passes_settings_.merge(ext_passes_settings)
+                                # FIX
+                                for key, val in passes_settings__.overrides.items():
+                                    passes_settings__.overrides[key] = {**val}
+                                passes_settings__ = passes_settings__.merge(ext_passes_settings)
                             if check_filter(self.name, passes_settings__.skip, passes_settings__.only):
                                 logger.info("Skipped pass %s for extension %s", self.name, ext_name)
                                 continue
@@ -146,12 +150,15 @@ class Seal5Pass:
 
                 with ThreadPoolExecutor(max_workers=parallel) as executor:
                     futures = []
-                    passes_settings_ = passes_settings
+                    passes_settings_ = dataclasses.replace(passes_settings)
                     for input_model in inputs:
                         model_settings = settings.models.get(input_model)
                         model_passes_settings = model_settings.passes if model_settings is not None else None
                         kwargs__ = kwargs_.copy()
                         if model_passes_settings is not None:
+                            # FIX
+                            for key, val in passes_settings_.overrides.items():
+                                passes_settings_.overrides[key] = {**val}
                             passes_settings_ = passes_settings_.merge(model_passes_settings)
                         if check_filter(self.name, passes_settings_.skip, passes_settings_.only):
                             logger.info("Skipped pass %s for model %s", self.name, input_model)
