@@ -362,7 +362,8 @@ def main():
             xlen = riscv_settings_.xlen
             assert xlen is not None
             for intrinsic in settings.intrinsics.intrinsics:
-                if intrinsic.set_name is not None and intrinsic.set_name != set_name:
+                assert intrinsic.set_name is not None, f"Undefined set_name for intrinsic: {intrinsic}"
+                if intrinsic.set_name != set_name:
                     continue
                 try:
                     arch_ = ext_settings.get_arch(name=set_name)
