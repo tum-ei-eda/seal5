@@ -625,8 +625,13 @@ class Seal5Instruction(Instruction):
         uncompressed = None
         assert set_def is not None
         for _, instr_def in set_def.instructions.items():
-            if instr_def.name == uncompressed_instr:
+            name = instr_def.name
+            # handle SEAL5_ prefix?
+            if name.startswith("SEAL5_"):
+                name = name.replace("SEAL5_", "")
+            if name == uncompressed_instr:
                 uncompressed = instr_def
+                uncompressed_instr = instr_def.name
                 break
         assert uncompressed is not None, f"Could not find instr {uncompressed_instr} in set {set_def.name}"
         # TODO: rs1_wb vs. rd_wb?
