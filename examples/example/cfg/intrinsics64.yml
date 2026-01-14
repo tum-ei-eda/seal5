@@ -10,4 +10,5 @@ intrinsics:
       arg_type: i64
     instr_name: CV_SUBINCACC
     intrinsic_name: subincacc
+    set_name: XExample64
     ret_type: i64
