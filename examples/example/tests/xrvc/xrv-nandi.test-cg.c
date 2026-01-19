@@ -2,6 +2,6 @@
 // RUN: llvm-objdump --mattr=+i,+xrvc --disassembler-options=numeric -d %t.o | FileCheck %s
 
 int test_nandi(int a) {
-    // CHECK: 0b 75 f5 01 xrv.nandi x10, x10, 0x1f
+    // CHECK: 01f5750b xrv.nandi x10, x10, 0x1f
     return ~(a & 31);
 }
