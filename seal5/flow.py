@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 """Seal5 Flow API."""
+
 import os
 import sys
 import time
@@ -48,7 +49,6 @@ from seal5.passes import Seal5Pass, PassType, PassScope, PassManager, filter_pas
 import seal5.pass_list as passes
 from seal5.testgen_utils import collect_generated_test_files
 from seal5.build_cache import combine_hashes, hash_arguments, get_patch_id, query_build_cache
-
 
 logger = Logger("flow")
 

@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 """Patch utils for seal5."""
+
 import os
 import argparse
 from pathlib import Path

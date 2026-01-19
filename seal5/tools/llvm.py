@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 """LLVM utils for seal5."""
+
 import re
 import os
 import shutil

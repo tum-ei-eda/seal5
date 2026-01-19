@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 """Demo script for the Seal5 Flow."""
+
 import os
 
 from pathlib import Path

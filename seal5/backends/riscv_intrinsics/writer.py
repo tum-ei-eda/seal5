@@ -392,7 +392,7 @@ def main():
                     contents = f"// {arch_}\n{contents}\n"
                 elif id == "attr":
                     contents = f'let TargetPrefix = "riscv" in {{\n{contents}\n}}'
-                (root, ext) = os.path.splitext(out_path)
+                root, ext = os.path.splitext(out_path)
                 patch_path = root + "_" + id + ext
                 with open(patch_path, "w") as f:
                     f.write(contents.strip())

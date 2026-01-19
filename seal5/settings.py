@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 """Settings module for seal5."""
+
 import logging
 from pathlib import Path
 from dataclasses import dataclass, field, asdict, fields, replace
