@@ -16,8 +16,7 @@ import pandas as pd
 
 # from mako.template import Template
 
-from seal5.index import NamedPatch, TestFile, write_index_yaml
-from seal5.settings import ExtensionsSettings, LLVMSettings
+from seal5.index import NamedPatch, write_index_yaml
 from seal5.model_utils import load_model
 
 # from .templates import template_dir
@@ -128,7 +127,10 @@ def main():
                     predicate = ext.get_predicate(name=set_name, with_has=False)
                     decoder_namespace = ext.get_decoder_namespace(name=set_name)
                     desc = ext.get_description(name=set_name)
-                    line = f'TRY_TO_DECODE_FEATURE(RISCV::Feature{predicate}, DecoderTable{decoder_namespace}{elen}, "{desc} opcode table");'
+                    line = (
+                        f"TRY_TO_DECODE_FEATURE(RISCV::Feature{predicate}, DecoderTable{decoder_namespace}{elen},"
+                        f'"{desc} opcode table");'
+                    )
                     lines.append(line)
                 content = "\n".join(lines)
                 riscv_disass_decode_patch = NamedPatch(
@@ -138,9 +140,6 @@ def main():
                     # src_path=out_path,
                 )  # llvm20+
                 artifacts[None].append(riscv_disass_decode_patch)
-            # riscv_features_patch = NamedPatch("llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp", key="riscv_disass_decode_feature_48", src_path=out_path) # llvm20+
-            # riscv_features_patch = NamedPatch("llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp", key="riscv_disass_decode_feature_32", src_path=out_path)
-            # riscv_features_patch = NamedPatch("llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp", key="riscv_disass_decode_feature_16", src_path=out_path)
     else:
         raise NotImplementedError
     # input("!!!")
