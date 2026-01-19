@@ -28,7 +28,6 @@ import psutil
 
 from seal5.logging import Logger
 
-
 logger = Logger("build_cache")
 
 

@@ -124,6 +124,7 @@ def write_riscv_instruction_info(
     constraints: Optional[list] = None,
     formats=False,
     compressed_pat=None,
+    decoder_namespace: Optional[str] = None,
 ):
     if attrs is None:
         attrs = {}
@@ -158,6 +159,7 @@ def write_riscv_instruction_info(
         fields=fields,
         attrs=attrs,
         constraints_str=constraints_str,
+        decoder_namespace=decoder_namespace,
     )
     if compressed_pat:
         out_str += f"\n{compressed_pat}"
@@ -206,6 +208,9 @@ def gen_riscv_instr_info_str(instr, set_def):
     encoding = instr.encoding
     # print("encoding")
     attrs = instr.llvm_attributes
+    ext_settings = set_def.settings
+    decoder_namespace = ext_settings.get_decoder_namespace(name=set_def.name)
+
     # constraints = instr.constraints
     # if len(constraints) > 0:
     #     raise NotImplementedError
@@ -226,6 +231,7 @@ def gen_riscv_instr_info_str(instr, set_def):
         constraints=constraints,
         formats=formats,
         compressed_pat=compressed_pat,
+        decoder_namespace=decoder_namespace,
     )
     return tablegen_str
 

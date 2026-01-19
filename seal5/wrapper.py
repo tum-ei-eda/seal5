@@ -13,7 +13,6 @@ from seal5.types import PatchStage
 from seal5.utils import str2bool
 from seal5.logging import update_log_level
 
-
 logger = Logger("wrapper")
 
 

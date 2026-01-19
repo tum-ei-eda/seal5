@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 """Seal5 utility functions."""
+
 import os
 import sys
 import shutil

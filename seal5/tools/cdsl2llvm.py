@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 """PatternGen utils for seal5."""
+
 import re
 from pathlib import Path
 from typing import Optional, Union

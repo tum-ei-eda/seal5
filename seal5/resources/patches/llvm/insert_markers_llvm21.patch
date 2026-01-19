@@ -172,3 +172,43 @@ diff --git a/llvm/lib/Target/RISCV/RISCVRegisterInfo.td b/llvm/lib/Target/RISCV/
 +
 +// RISCVRegisterInfo.td - riscv_register_info - INSERTION_START
 +// RISCVRegisterInfo.td - riscv_register_info - INSERTION_END
+diff --git a/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp b/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp
+--- a/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp
++++ b/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp
+@@ -739,6 +739,9 @@ static constexpr FeatureBitset XCVFeatureGroup = {
+     RISCV::FeatureVendorXCValu,      RISCV::FeatureVendorXCVsimd,
+     RISCV::FeatureVendorXCVbi};
+
++// RISCVDisassembler.cpp - riscv_disass_feature_groups - INSERTION_START
++// RISCVDisassembler.cpp - riscv_disass_feature_groups - INSERTION_END
++
+ static constexpr FeatureBitset XRivosFeatureGroup = {
+     RISCV::FeatureVendorXRivosVisni,
+     RISCV::FeatureVendorXRivosVizip,
+@@ -798,6 +802,8 @@ static constexpr DecoderListEntry DecoderList32[]{
+     {DecoderTableXAndes32, XAndesGroup, "Andes extensions"},
+     // Standard Extensions
+     {DecoderTableXCV32, XCVFeatureGroup, "CORE-V extensions"},
++// RISCVDisassembler.cpp - riscv_disass_decoder_list_32 - INSERTION_START
++// RISCVDisassembler.cpp - riscv_disass_decoder_list_32 - INSERTION_END
+     {DecoderTableXqci32, XqciFeatureGroup, "Qualcomm uC Extensions"},
+     {DecoderTableXRivos32, XRivosFeatureGroup, "Rivos"},
+     {DecoderTable32, {}, "standard 32-bit instructions"},
+@@ -842,6 +848,8 @@ static constexpr DecoderListEntry DecoderList16[]{
+     {DecoderTableXqccmp16,
+      {RISCV::FeatureVendorXqccmp},
+      "Xqccmp (Qualcomm 16-bit Push/Pop & Double Move Instructions)"},
++// RISCVDisassembler.cpp - riscv_disass_decoder_list_16 - INSERTION_START
++// RISCVDisassembler.cpp - riscv_disass_decoder_list_16 - INSERTION_END
+     {DecoderTableXwchc16, {RISCV::FeatureVendorXwchc}, "WCH QingKe XW"},
+     // Standard Extensions
+     // DecoderTableZicfiss16 must be checked before DecoderTable16.
+@@ -888,6 +896,8 @@ DecodeStatus RISCVDisassembler::getInstruction16(MCInst &MI, uint64_t &Size,
+
+ static constexpr DecoderListEntry DecoderList48[]{
+     {DecoderTableXqci48, XqciFeatureGroup, "Qualcomm uC 48bit"},
++// RISCVDisassembler.cpp - riscv_disass_decoder_list_48 - INSERTION_START
++// RISCVDisassembler.cpp - riscv_disass_decoder_list_48 - INSERTION_END
+ };
+
+ DecodeStatus RISCVDisassembler::getInstruction48(MCInst &MI, uint64_t &Size,

@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 """Seal5 Flow API."""
+
 import os
 import sys
 import time
@@ -48,7 +49,6 @@ from seal5.passes import Seal5Pass, PassType, PassScope, PassManager, filter_pas
 import seal5.pass_list as passes
 from seal5.testgen_utils import collect_generated_test_files
 from seal5.build_cache import combine_hashes, hash_arguments, get_patch_id, query_build_cache
-
 
 logger = Logger("flow")
 
@@ -105,6 +105,7 @@ GENERATE_PASS_MAP = [
     ("riscv_field_types", passes.gen_riscv_field_types_patch, {}),
     ("riscv_instr_info", passes.gen_riscv_instr_info_patch, {}),
     ("riscv_intrinsics", passes.gen_riscv_intrinsics, {}),
+    ("riscv_disass", passes.gen_riscv_disass_patch, {}),  # Needs to be added after instr_info
     # subtarget_tests
     # register_types
     # operand_types
@@ -175,6 +176,23 @@ def handle_meta_dir(meta_dir: Optional[Union[str, Path]], directory: Union[str, 
     return meta_dir.resolve()
 
 
+def handle_build_dir(build_dir: Optional[Union[str, Path]], meta_dir: Union[str, Path]):
+    """Handle selection of build directory."""
+    if build_dir is None:
+        build_dir = os.getenv("SEAL5_BUILD_DIR")
+        if build_dir is None:
+            build_dir = "default"
+    if build_dir == "default":
+        if not isinstance(meta_dir, Path):
+            assert isinstance(meta_dir, str)
+            meta_dir = Path(meta_dir)
+        build_dir = meta_dir / "build"
+    if not isinstance(build_dir, Path):
+        assert isinstance(build_dir, str)
+        build_dir = Path(build_dir)
+    return build_dir.resolve()
+
+
 def create_seal5_directories(path: Path, directories: list):
     """Create Seal5 directories."""
     logger.debug("Creating Seal5 directories")
@@ -198,10 +216,15 @@ class Seal5Flow:
     """Seal5 Flow."""
 
     def __init__(
-        self, directory: Optional[Path] = None, meta_dir: Optional[Union[str, Path]] = None, name: Optional[str] = None
+        self,
+        directory: Optional[Path] = None,
+        meta_dir: Optional[Union[str, Path]] = None,
+        build_dir: Optional[Union[str, Path]] = None,
+        name: Optional[str] = None,
     ):
         self.directory: Path = handle_directory(directory)
         self.meta_dir: Path = handle_meta_dir(meta_dir, self.directory, name)
+        self.build_dir: Path = handle_build_dir(build_dir, self.meta_dir)
         self.name: str = name
         self.state: Seal5State = Seal5State.UNKNOWN
         self.passes: List[Seal5Pass] = []
@@ -209,12 +232,16 @@ class Seal5Flow:
             git.Repo(self.directory) if self.directory.is_dir() and utils.is_populated(self.directory) else None
         )
         self.check()
-        self.settings: Seal5Settings = Seal5Settings.from_dict({"meta_dir": str(self.meta_dir), **DEFAULT_SETTINGS})
+        self.settings: Seal5Settings = Seal5Settings.from_dict(
+            {"meta_dir": str(self.meta_dir), "build_dir": str(self.build_dir), **DEFAULT_SETTINGS}
+        )
         # self.settings: Seal5Settings = Seal5Settings(directory=self.directory)
         self.settings.directory = str(self.directory)
         if self.settings.settings_file.is_file():
             self.settings = Seal5Settings.from_yaml_file(self.settings.settings_file)
             self.meta_dir = self.settings._meta_dir
+            # self.build_dir = self.settings._build_dir
+            self.settings.build_dir = str(self.build_dir)
         if self.settings.logs_dir.is_dir():
             initialize_logging_server(
                 [

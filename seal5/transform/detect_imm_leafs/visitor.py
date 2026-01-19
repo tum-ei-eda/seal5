@@ -7,6 +7,7 @@
 # Technical University of Munich
 
 """TODO"""
+
 from functools import reduce
 
 from enum import IntFlag, auto

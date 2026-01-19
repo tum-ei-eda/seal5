@@ -22,7 +22,6 @@ from seal5.flow import Seal5Flow
 from seal5.logging import Logger
 from seal5.types import PatchStage
 
-
 logger = Logger("cli")
 
 

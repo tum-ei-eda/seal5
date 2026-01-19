@@ -21,7 +21,6 @@
 from seal5.logging import Logger
 from seal5.wrapper import run_seal5_flow
 
-
 logger = Logger("cli")
 
 

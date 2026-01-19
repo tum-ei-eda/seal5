@@ -16,21 +16,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""Type definitions for seal5."""
-
-from enum import Enum, IntEnum, auto
-
-
-class Seal5State(Enum):
-    UNKNOWN = auto()
-    UNINITIALIZED = auto()
-    INITIALIZED = auto()
-
-
-class PatchStage(IntEnum):
-    PHASE_0 = 0
-    PHASE_1 = 1
-    PHASE_2 = 2
-    PHASE_3 = 3
-    PHASE_4 = 4
-    PHASE_5 = 5
+"""Seal5 RISCVDisassembler.cpp backend"""

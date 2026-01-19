@@ -59,6 +59,7 @@ def main():
     # preprocess model
     # print("model", model)
     data = {"extensions": {}}
+    parents = {}
     for set_name, set_def in model_obj.sets.items():
         # print("set", set_def)
         is_group_set = False
@@ -70,6 +71,8 @@ def main():
         if is_group_set:
             # set_data["implies"] = set_def.extension
             set_data["requires"] = set_def.extension
+            for ext_ in set_def.extension:
+                parents[ext_] = set_name
         else:
             riscv_data["xlen"] = set_def.xlen
             set_data["riscv"] = riscv_data
@@ -77,8 +80,18 @@ def main():
         for instr in set_def.instructions.values():
             set_data["instructions"].append(instr.name)
             llvm_imm_types.update(instr.llvm_imm_types)
+        enc_sizes = set(instr_def.size for instr_def in set_def.instructions.values())
+        set_data["enc_sizes"] = list(enc_sizes)
         set_data["required_imm_types"] = list(llvm_imm_types)
         data["extensions"][set_name] = set_data
+    for set_name, set_data in data["extensions"].items():
+        parent = parents.get(set_name)
+        max_parent = parent
+        if max_parent is not None:
+            while max_parent in parents:
+                max_parent = parents[max_parent]
+        set_data["parent"] = parent
+        set_data["max_parent"] = max_parent
     data = {"models": {model_name: data}}
     with open(out_path, "w", encoding="utf-8") as f:
         yaml.dump(data, f)

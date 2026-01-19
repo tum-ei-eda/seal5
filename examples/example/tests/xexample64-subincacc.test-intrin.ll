@@ -8,6 +8,6 @@ define i64 @subincacc(i64 %a, i64 %b, i64 %c) {
 ; CHECK:       # %bb.0:
 ; CHECK-NEXT:    xexample64.subincacc a0, a1, a2
 ; CHECK-NEXT:    ret
-  %1 = call i64 @llvm.riscv.subincacc(i64 %a, i64 %b, i64 %c)
+  %1 = call i64 @llvm.riscv.xexample64.subincacc(i64 %a, i64 %b, i64 %c)
   ret i64 %1
 }

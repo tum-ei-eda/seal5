@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 """Settings module for seal5."""
+
 import logging
 from pathlib import Path
 from dataclasses import dataclass, field, asdict, fields, replace
@@ -256,7 +257,7 @@ class YAMLSettings:  # TODO: make abstract
                                             assert isinstance(v2[dict_key], YAMLSettings)
                                             v2[dict_key].merge(dict_val, overwrite=overwrite, inplace=True)
                                         elif isinstance(dict_val, dict):
-                                            v2[dict_key].update(dict_val)
+                                            v2[dict_key].update({**dict_val})
                                         else:
                                             v2[dict_key] = dict_val
                                     else:
@@ -547,6 +548,7 @@ class RISCVSettings(YAMLSettings):
 class ExtensionsSettings(YAMLSettings):
     """Seal5 extensions settings."""
 
+    # name: Optional[str] = None
     feature: Optional[str] = None
     predicate: Optional[str] = None
     arch: Optional[str] = None
@@ -555,12 +557,21 @@ class ExtensionsSettings(YAMLSettings):
     vendor: Optional[bool] = None
     description: Optional[str] = None
     requires: Optional[List[str]] = None
+    parent: Optional[str] = None
+    max_parent: Optional[str] = None
     # implies: Optional[List[str]] = None
     instructions: Optional[List[str]] = None
     riscv: Optional[RISCVSettings] = None
     passes: Optional[PassesSettings] = None
     required_imm_types: Optional[List[str]] = None
+    enc_sizes: Optional[List[int]] = None
     # patches
+
+    def get_decoder_namespace(self, name: Optional[str] = None):
+        if self.max_parent is not None:
+            return self.max_parent
+        else:
+            return name
 
     def get_version(self):
         """Get extension version."""
@@ -686,6 +697,7 @@ class Seal5Settings(YAMLSettings):
     directory: Optional[str] = None
     name: Optional[str] = None
     meta_dir: Optional[str] = None
+    build_dir: Optional[str] = None
     logging: Optional[LoggingSettings] = None
     filter: Optional[FilterSettings] = None
     llvm: Optional[LLVMSettings] = None
@@ -782,9 +794,11 @@ class Seal5Settings(YAMLSettings):
         return self._meta_dir / "deps"
 
     @property
-    def build_dir(self):
+    def _build_dir(self):
         """Seal5 build_dir getter."""
-        return self._meta_dir / "build"
+        if self.build_dir is None:
+            return self._meta_dir / "build"
+        return Path(self.build_dir)
 
     def get_llvm_build_dir(self, config: Optional[str] = None, fallback: bool = True, check: bool = False):
         if config is None:
@@ -794,12 +808,12 @@ class Seal5Settings(YAMLSettings):
 
         assert config is not None, "Could not resolve LLVM build dir"
 
-        llvm_build_dir = self.build_dir / config
+        llvm_build_dir = self._build_dir / config
 
         if not llvm_build_dir.is_dir():
             assert fallback, f"LLVM build dir {llvm_build_dir} does not exist and fallback is disabled."
             # Look for non-empty subdirs for .seal5/build
-            candidates = [f for f in self.build_dir.iterdir() if f.is_dir() and any(f.iterdir())]
+            candidates = [f for f in self._build_dir.iterdir() if f.is_dir() and any(f.iterdir())]
             if len(candidates) > 0:
                 llvm_build_dir = candidates[0]
         if check:
