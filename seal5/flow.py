@@ -223,7 +223,7 @@ class Seal5Flow:
     ):
         self.directory: Path = handle_directory(directory)
         self.meta_dir: Path = handle_meta_dir(meta_dir, self.directory, name)
-        self.build_dir: Path = handle_build_dir(build_dir, meta_dir)
+        self.build_dir: Path = handle_build_dir(build_dir, self.meta_dir)
         self.name: str = name
         self.state: Seal5State = Seal5State.UNKNOWN
         self.passes: List[Seal5Pass] = []
