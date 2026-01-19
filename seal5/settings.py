@@ -564,6 +564,7 @@ class ExtensionsSettings(YAMLSettings):
     riscv: Optional[RISCVSettings] = None
     passes: Optional[PassesSettings] = None
     required_imm_types: Optional[List[str]] = None
+    enc_sizes: Optional[List[int]] = None
     # patches
 
     def get_decoder_namespace(self, name: Optional[str] = None):

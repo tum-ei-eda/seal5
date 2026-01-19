@@ -80,6 +80,8 @@ def main():
         for instr in set_def.instructions.values():
             set_data["instructions"].append(instr.name)
             llvm_imm_types.update(instr.llvm_imm_types)
+        enc_sizes = set(instr_def.size for instr_def in set_def.instructions.values())
+        set_data["enc_sizes"] = list(enc_sizes)
         set_data["required_imm_types"] = list(llvm_imm_types)
         data["extensions"][set_name] = set_data
     for set_name, set_data in data["extensions"].items():

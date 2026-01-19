@@ -74,6 +74,8 @@ def main():
     from collections import defaultdict
 
     elen_extensions_map = defaultdict(list)
+    elen_decoder_namespace_map = defaultdict(set)
+    decoder_namespace2exts = defaultdict(list)
     if not args.splitted:
         # errs = []
         for set_name, set_def in model_obj.sets.items():
@@ -86,42 +88,70 @@ def main():
                 continue
             decoder_namespace = ext_settings.get_decoder_namespace(name=set_def.name)
             print("decoder_namespace", decoder_namespace)
-            instr_sizes = set(instr_def.size for instr_def in set_def.instructions.values())
-            print("instr_sizes", instr_sizes)
+            # instr_sizes = set(instr_def.size for instr_def in set_def.instructions.values())
+            # print("instr_sizes", instr_sizes)
+            decoder_namespace2exts[decoder_namespace].append((ext_settings, set_name))
             artifacts[set_name] = []
             metrics["n_sets"] += 1
             metrics["n_success"] += 1
             metrics["success_sets"].append(set_name)
-            for elen in instr_sizes:
+            for elen in ext_settings.enc_sizes:
                 elen_extensions_map[elen].append((ext_settings, set_name))
+                elen_decoder_namespace_map[elen].add(decoder_namespace)
             # content_, test_files_ = gen_riscv_features_str(
             #     set_name, ext_settings, llvm_settings, model_obj.sets, args.generate_tests
             # )
         # used_elens = list(elen_extensions_map.keys())
         # print("used_elens", used_elens)
         print("elen_extensions_map", elen_extensions_map)
+        print("decoder_namespace2exts", decoder_namespace2exts)
         assert llvm_settings is not None
         llvm_state = llvm_settings.state
         assert llvm_state is not None
         llvm_version = llvm_state.version
         print("llvm_version", llvm_version)
-        for elen, extensions in elen_extensions_map.items():
-            print("elen", elen)
-            print("extensions", extensions)
-            if elen == 48:
-                assert llvm_version.major >= 20
-            if llvm_version.major >= 21:
-                content = "TODO"
-                riscv_disass_groups_patch = NamedPatch(
+        if llvm_version.major >= 21:
+            content = ""
+            for decoder_namespace, exts in decoder_namespace2exts.items():
+                predicates = [ext.get_predicate(name=set_name) for ext, set_name in exts]
+                features_strs = [f"RISCV::Feature{predicate}," for predicate in predicates]
+                features_str = "\n".join(features_strs)
+                content_ = f"""static constexpr FeatureBitset {decoder_namespace}FeatureGroup = {{
+    {features_str}
+}};
+"""
+                content += content_
+            riscv_disass_groups_patch = NamedPatch(
+                "llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp",
+                key="riscv_disass_feature_groups",
+                content=content.strip(),
+            )  # llvm21+
+            artifacts[None].append(riscv_disass_groups_patch)
+            for elen, decoder_namespaces in elen_decoder_namespace_map.items():
+                print("elen", elen)
+                lines = []
+                for decoder_namespace in decoder_namespaces:
+                    desc = decoder_namespace
+                    line = (
+                        f"{{DecoderTable{decoder_namespace}{elen}, {decoder_namespace}FeatureGroup, "
+                        f'"{desc} opcode table"}},'
+                    )
+                    lines.append(line)
+                content = "\n".join(lines)
+                riscv_disass_decode_patch = NamedPatch(
                     "llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp",
-                    key="riscv_disass_feature_groups",
+                    key=f"riscv_disass_decoder_list_{elen}",
                     content=content,
-                )  # llvm21+
-                artifacts[None].append(riscv_disass_groups_patch)
-                # if is_group:
-                #     else:
-            else:
-                assert llvm_version.major in [19, 20]
+                    # src_path=out_path,
+                )  # llvm20+
+                artifacts[None].append(riscv_disass_decode_patch)
+        else:
+            assert llvm_version.major in [19, 20]
+            for elen, extensions in elen_extensions_map.items():
+                print("elen", elen)
+                print("extensions", extensions)
+                if elen == 48:
+                    assert llvm_version.major >= 20
                 lines = []
                 for ext, set_name in extensions:
                     predicate = ext.get_predicate(name=set_name, with_has=False)
