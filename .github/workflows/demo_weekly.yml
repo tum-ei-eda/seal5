@@ -57,15 +57,15 @@ jobs:
         build_config: [release_assertions]
         build_cache: ['0']
         llvm-ref: [llvmorg-19.1.7, llvmorg-20.1.0, llvmorg-21.1.7]
-        include:
-          - os: ubuntu-latest
-            python-version: '3.10'
-            script: demo.py
-            clone_depth: 1
-            ignore_error: '1'
-            build_config: release_assertions
-            build_cache: '1'
-            llvm-ref: llvmorg-21.1.7
+        # include:
+        #   - os: ubuntu-latest
+        #     python-version: '3.10'
+        #     script: demo.py
+        #     clone_depth: 1
+        #     ignore_error: '1'
+        #     build_config: release_assertions
+        #     build_cache: '1'
+        #     llvm-ref: llvmorg-21.1.7
     env:
       SEAL5_NUM_THREADS: 1
       DEPLOY: 1
