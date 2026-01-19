@@ -209,11 +209,7 @@ def gen_riscv_instr_info_str(instr, set_def):
     # print("encoding")
     attrs = instr.llvm_attributes
     ext_settings = set_def.settings
-    decoder_namespace = None
-    if ext_settings.max_parent is not None:
-        decoder_namespace = ext_settings.max_parent
-    else:
-        decoder_namespace = set_def.name
+    decoder_namespace = ext_settings.get_decoder_namespace(name=set_def.name)
 
     # constraints = instr.constraints
     # if len(constraints) > 0:

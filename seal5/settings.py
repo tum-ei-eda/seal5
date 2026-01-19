@@ -547,6 +547,7 @@ class RISCVSettings(YAMLSettings):
 class ExtensionsSettings(YAMLSettings):
     """Seal5 extensions settings."""
 
+    # name: Optional[str] = None
     feature: Optional[str] = None
     predicate: Optional[str] = None
     arch: Optional[str] = None
@@ -563,6 +564,12 @@ class ExtensionsSettings(YAMLSettings):
     passes: Optional[PassesSettings] = None
     required_imm_types: Optional[List[str]] = None
     # patches
+
+    def get_decoder_namespace(self, name: Optional[str] = None):
+        if self.max_parent is not None:
+            return self.max_parent
+        else:
+            return name
 
     def get_version(self):
         """Get extension version."""
