@@ -10,6 +10,7 @@ seal5.flow
    
       add_test_cfg
       create_seal5_directories
+      handle_build_dir
       handle_directory
       handle_meta_dir
       lookup_manual_patch

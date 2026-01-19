@@ -1,0 +1,13 @@
+seal5.backends.riscv\_disass
+============================
+
+.. automodule:: seal5.backends.riscv_disass
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   writer

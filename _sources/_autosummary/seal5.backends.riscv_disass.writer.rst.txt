@@ -1,0 +1,12 @@
+seal5.backends.riscv\_disass.writer
+===================================
+
+.. automodule:: seal5.backends.riscv_disass.writer
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      main
+   

@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>seal5.flow &mdash; Seal5 v0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -111,13 +111,16 @@
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_seal5_directories</span></code>(path, directories)</p></td>
 <td><p>Create Seal5 directories.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">handle_directory</span></code>(directory)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">handle_build_dir</span></code>(build_dir, meta_dir)</p></td>
+<td><p>Handle selection of build directory.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">handle_directory</span></code>(directory)</p></td>
 <td><p>Process passed directory.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">handle_meta_dir</span></code>(meta_dir, directory, _name)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">handle_meta_dir</span></code>(meta_dir, directory, _name)</p></td>
 <td><p>Handle selection of meta directory.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">lookup_manual_patch</span></code>(patch[, allow_missing])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">lookup_manual_patch</span></code>(patch[, allow_missing])</p></td>
 <td><p>Lookup manual Seal5 patch.</p></td>
 </tr>
 </tbody>
@@ -125,7 +128,7 @@
 <p class="rubric">Classes</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Seal5Flow</span></code>([directory, meta_dir, name])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Seal5Flow</span></code>([directory, meta_dir, build_dir, name])</p></td>
 <td><p>Seal5 Flow.</p></td>
 </tr>
 </tbody>

@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>seal5.cli.init &mdash; Seal5 v0.1.2 documentation</title>
+  <title>seal5.backends.riscv_disass.writer &mdash; Seal5 v0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
@@ -19,8 +19,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="seal5.cli.install" href="seal5.cli.install.html" />
-    <link rel="prev" title="seal5.cli.generate" href="seal5.cli.generate.html" /> 
+    <link rel="next" title="seal5.backends.riscv_features" href="seal5.backends.riscv_features.html" />
+    <link rel="prev" title="seal5.backends.riscv_disass" href="seal5.backends.riscv_disass.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -44,27 +44,28 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="seal5.html">seal5</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="seal5.backends.html">seal5.backends</a></li>
-<li class="toctree-l2"><a class="reference internal" href="seal5.build_cache.html">seal5.build_cache</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="seal5.cli.html">seal5.cli</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="seal5.cli.build.html">seal5.cli.build</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.cli.clean.html">seal5.cli.clean</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.cli.common.html">seal5.cli.common</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.cli.deploy.html">seal5.cli.deploy</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.cli.export.html">seal5.cli.export</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.cli.generate.html">seal5.cli.generate</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">seal5.cli.init</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.cli.install.html">seal5.cli.install</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.cli.load.html">seal5.cli.load</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.cli.main.html">seal5.cli.main</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.cli.patch.html">seal5.cli.patch</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.cli.reset.html">seal5.cli.reset</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.cli.setup.html">seal5.cli.setup</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.cli.test.html">seal5.cli.test</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.cli.transform.html">seal5.cli.transform</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.cli.wrapper.html">seal5.cli.wrapper</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="seal5.backends.html">seal5.backends</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="seal5.backends.coredsl2.html">seal5.backends.coredsl2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.backends.llvmir.html">seal5.backends.llvmir</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.backends.patterngen.html">seal5.backends.patterngen</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.backends.report.html">seal5.backends.report</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="seal5.backends.riscv_disass.html">seal5.backends.riscv_disass</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">seal5.backends.riscv_disass.writer</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.backends.riscv_features.html">seal5.backends.riscv_features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.backends.riscv_field_types.html">seal5.backends.riscv_field_types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.backends.riscv_gisel_legalizer.html">seal5.backends.riscv_gisel_legalizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.backends.riscv_instr_info.html">seal5.backends.riscv_instr_info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.backends.riscv_intrinsics.html">seal5.backends.riscv_intrinsics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.backends.riscv_isa_info.html">seal5.backends.riscv_isa_info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.backends.riscv_register_info.html">seal5.backends.riscv_register_info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.backends.viewer_seal5.html">seal5.backends.viewer_seal5</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.backends.yaml.html">seal5.backends.yaml</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="seal5.build_cache.html">seal5.build_cache</a></li>
+<li class="toctree-l2"><a class="reference internal" href="seal5.cli.html">seal5.cli</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.dependencies.html">seal5.dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.flow.html">seal5.flow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.index.html">seal5.index</a></li>
@@ -107,10 +108,11 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="seal5.html">seal5</a></li>
-          <li class="breadcrumb-item"><a href="seal5.cli.html">seal5.cli</a></li>
-      <li class="breadcrumb-item active">seal5.cli.init</li>
+          <li class="breadcrumb-item"><a href="seal5.backends.html">seal5.backends</a></li>
+          <li class="breadcrumb-item"><a href="seal5.backends.riscv_disass.html">seal5.backends.riscv_disass</a></li>
+      <li class="breadcrumb-item active">seal5.backends.riscv_disass.writer</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/_autosummary/seal5.cli.init.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/_autosummary/seal5.backends.riscv_disass.writer.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -118,20 +120,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-seal5.cli.init">
-<span id="seal5-cli-init"></span><h1>seal5.cli.init<a class="headerlink" href="#module-seal5.cli.init" title="Link to this heading"></a></h1>
-<p>Command line subcommand for initializing Seal5 environment.</p>
+  <section id="module-seal5.backends.riscv_disass.writer">
+<span id="seal5-backends-riscv-disass-writer"></span><h1>seal5.backends.riscv_disass.writer<a class="headerlink" href="#module-seal5.backends.riscv_disass.writer" title="Link to this heading"></a></h1>
+<p>Clean M2-ISA-R/Seal5 metamodel to .core_desc file.</p>
 <p class="rubric">Functions</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_init_options</span></code>(parser)</p></td>
-<td><p>Setup parser for init argument group.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parser</span></code>(subparsers)</p></td>
-<td><p>&quot;Define and return a subparser for the init subcommand.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">handle</span></code>(args)</p></td>
-<td><p>Callback function which will be called to process the init subcommand</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code>()</p></td>
+<td><p>Main app entrypoint.</p></td>
 </tr>
 </tbody>
 </table>
@@ -141,8 +137,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="seal5.cli.generate.html" class="btn btn-neutral float-left" title="seal5.cli.generate" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="seal5.cli.install.html" class="btn btn-neutral float-right" title="seal5.cli.install" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="seal5.backends.riscv_disass.html" class="btn btn-neutral float-left" title="seal5.backends.riscv_disass" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="seal5.backends.riscv_features.html" class="btn btn-neutral float-right" title="seal5.backends.riscv_features" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
