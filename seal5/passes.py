@@ -10,7 +10,7 @@ from typing import Callable, Optional, List
 from concurrent.futures import ThreadPoolExecutor
 
 from seal5.logging import Logger
-from seal5.settings import Seal5Settings
+from seal5.settings import Seal5Settings, PassesSettings
 
 logger = Logger("passes")
 
@@ -109,7 +109,14 @@ class Seal5Pass:
             if self.pass_scope == PassScope.SET:
                 with ThreadPoolExecutor(max_workers=parallel) as executor:
                     futures = []
-                    passes_settings_ = dataclasses.replace(passes_settings)
+                    # passes_settings_ = dataclasses.replace(passes_settings)
+                    passes_settings_ = PassesSettings(
+                        skip=[*passes_settings.skip],
+                        only=[*passes_settings.only],
+                        overrides=[*passes_settings.overrides],
+                    )
+                    for key, val in passes_settings_.overrides.items():
+                        passes_settings_.overrides[key] = {**val}
                     for input_model in inputs:
                         model_settings = settings.models[input_model]
                         model_passes_settings = model_settings.passes
@@ -118,13 +125,18 @@ class Seal5Pass:
                         if check_filter(self.name, passes_settings_.skip, passes_settings_.only):
                             logger.info("Skipped pass %s for model %s", self.name, input_model)
                             continue
-                        passes_settings__ = dataclasses.replace(passes_settings_)
+                        # passes_settings__ = dataclasses.replace(passes_settings_)
+                        # FIX
+                        passes_settings__ = PassesSettings(
+                            skip=[*passes_settings_.skip],
+                            only=[*passes_settings_.only],
+                            overrides={**passes_settings_.overrides},
+                        )
+                        for key, val in passes_settings__.overrides.items():
+                            passes_settings__.overrides[key] = {**val}
                         for ext_name, ext_settings in model_settings.extensions.items():
                             ext_passes_settings = model_settings.passes
                             if ext_passes_settings is not None:
-                                # FIX
-                                for key, val in passes_settings__.overrides.items():
-                                    passes_settings__.overrides[key] = {**val}
                                 passes_settings__.overrides = {**passes_settings__.overrides}
                                 passes_settings__ = passes_settings__.merge(ext_passes_settings)
                             if check_filter(self.name, passes_settings__.skip, passes_settings__.only):
@@ -151,15 +163,20 @@ class Seal5Pass:
 
                 with ThreadPoolExecutor(max_workers=parallel) as executor:
                     futures = []
-                    passes_settings_ = dataclasses.replace(passes_settings)
                     for input_model in inputs:
-                        model_settings = settings.models.get(input_model)
+                        # passes_settings_ = dataclasses.replace(passes_settings)
+                        # FIX
+                        passes_settings_ = PassesSettings(
+                            skip=[*passes_settings.skip],
+                            only=[*passes_settings.only],
+                            overrides={**passes_settings.overrides},
+                        )
+                        for key, val in passes_settings_.overrides.items():
+                            passes_settings_.overrides[key] = {**val}
+                            model_settings = settings.models.get(input_model)
                         model_passes_settings = model_settings.passes if model_settings is not None else None
                         kwargs__ = kwargs_.copy()
                         if model_passes_settings is not None:
-                            # FIX
-                            for key, val in passes_settings_.overrides.items():
-                                passes_settings_.overrides[key] = {**val}
                             passes_settings_.overrides = {**passes_settings_.overrides}
                             passes_settings_ = passes_settings_.merge(model_passes_settings)
                         if check_filter(self.name, passes_settings_.skip, passes_settings_.only):
