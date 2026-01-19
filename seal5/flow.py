@@ -105,6 +105,7 @@ GENERATE_PASS_MAP = [
     ("riscv_field_types", passes.gen_riscv_field_types_patch, {}),
     ("riscv_instr_info", passes.gen_riscv_instr_info_patch, {}),
     ("riscv_intrinsics", passes.gen_riscv_intrinsics, {}),
+    ("riscv_disass", passes.gen_riscv_disass_patch, {}),  # Needs to be added after instr_info
     # subtarget_tests
     # register_types
     # operand_types

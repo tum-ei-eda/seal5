@@ -2129,3 +2129,74 @@ def gen_riscv_field_types_patch(
     if gen_metrics_file:
         metrics = read_metrics(metrics_file)
     return PassResult(metrics=metrics)
+
+
+def gen_riscv_disass_patch(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    split: bool = False,
+    log_level: str = "warning",
+    gen_tests: bool = True,
+    **_kwargs,
+):
+    assert not split, "TODO"
+    # formats = True
+    gen_metrics_file = True
+    gen_index_file = True
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    new_name = name.replace(".seal5model", "")
+    logger.info("Writing RISCVDisassembler.cpp patch for %s", name)
+    out_dir = settings.patches_dir / new_name
+    out_dir.mkdir(exist_ok=True)
+
+    args = [
+        settings.models_dir / name,
+        "--log",
+        log_level if not verbose else "debug",
+        # "--output",
+        # out_dir / "riscv_disass.patch",
+    ]
+    if split:
+        args.append("--splitted")
+    if gen_metrics_file:
+        metrics_file = out_dir / ("riscv_disass_metrics.csv")
+        args.extend(["--metrics", metrics_file])
+    if gen_index_file:
+        index_file = out_dir / ("riscv_disass_index.yml")
+        args.extend(["--index", index_file])
+    if gen_tests:
+        args.append("--generate-tests")
+    utils.python(
+        "-m",
+        "seal5.backends.riscv_disass.writer",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=verbose,
+    )
+    if gen_index_file:
+        if index_file.is_file():
+            comment = f"Generated RISCVDisassembler.cpp patch for {input_file.name}"
+            if gen_tests:
+                comment += " + generated tests"
+            patch_name = f"riscv_disass_{input_file.stem}"
+            patch_settings = PatchSettings(
+                name=patch_name,
+                stage=int(PatchStage.PHASE_2),
+                comment=comment,
+                index=str(index_file),
+                generated=True,
+                target="llvm",
+            )
+            settings.add_patch(patch_settings)
+            settings.to_yaml_file(settings.settings_file)
+        else:
+            logger.warning("No patches found!")
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
