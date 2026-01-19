@@ -79,15 +79,15 @@ def main():
     if not args.splitted:
         # errs = []
         for set_name, set_def in model_obj.sets.items():
-            print("set_name", set_name)
+            # print("set_name", set_name)
             ext_settings = set_def.settings
-            print("ext_settings", ext_settings)
+            # print("ext_settings", ext_settings)
             if ext_settings is None:
                 metrics["n_skipped"] += 1
                 metrics["skipped_sets"].append(set_name)
                 continue
             decoder_namespace = ext_settings.get_decoder_namespace(name=set_def.name)
-            print("decoder_namespace", decoder_namespace)
+            # print("decoder_namespace", decoder_namespace)
             # instr_sizes = set(instr_def.size for instr_def in set_def.instructions.values())
             # print("instr_sizes", instr_sizes)
             decoder_namespace2exts[decoder_namespace].append((ext_settings, set_name))
@@ -103,13 +103,13 @@ def main():
             # )
         # used_elens = list(elen_extensions_map.keys())
         # print("used_elens", used_elens)
-        print("elen_extensions_map", elen_extensions_map)
-        print("decoder_namespace2exts", decoder_namespace2exts)
+        # print("elen_extensions_map", elen_extensions_map)
+        # print("decoder_namespace2exts", decoder_namespace2exts)
         assert llvm_settings is not None
         llvm_state = llvm_settings.state
         assert llvm_state is not None
         llvm_version = llvm_state.version
-        print("llvm_version", llvm_version)
+        # print("llvm_version", llvm_version)
         if llvm_version.major >= 21:
             content = ""
             for decoder_namespace, exts in decoder_namespace2exts.items():
@@ -128,7 +128,7 @@ def main():
             )  # llvm21+
             artifacts[None].append(riscv_disass_groups_patch)
             for elen, decoder_namespaces in elen_decoder_namespace_map.items():
-                print("elen", elen)
+                # print("elen", elen)
                 lines = []
                 for decoder_namespace in decoder_namespaces:
                     desc = decoder_namespace
@@ -148,8 +148,8 @@ def main():
         else:
             assert llvm_version.major in [19, 20]
             for elen, extensions in elen_extensions_map.items():
-                print("elen", elen)
-                print("extensions", extensions)
+                # print("elen", elen)
+                # print("extensions", extensions)
                 if elen == 48:
                     assert llvm_version.major >= 20
                 lines = []
