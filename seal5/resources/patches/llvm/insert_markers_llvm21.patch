@@ -175,12 +175,11 @@ diff --git a/llvm/lib/Target/RISCV/RISCVRegisterInfo.td b/llvm/lib/Target/RISCV/
 diff --git a/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp b/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp
 --- a/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp
 +++ b/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp
-@@ -739,6 +739,10 @@ static constexpr FeatureBitset XCVFeatureGroup = {
+@@ -739,6 +739,9 @@ static constexpr FeatureBitset XCVFeatureGroup = {
      RISCV::FeatureVendorXCValu,      RISCV::FeatureVendorXCVsimd,
      RISCV::FeatureVendorXCVbi};
 
 +// RISCVDisassembler.cpp - riscv_disass_feature_groups - INSERTION_START
-+    RISCV::FeatureStdExtXRVC};
 +// RISCVDisassembler.cpp - riscv_disass_feature_groups - INSERTION_END
 +
  static constexpr FeatureBitset XRivosFeatureGroup = {
