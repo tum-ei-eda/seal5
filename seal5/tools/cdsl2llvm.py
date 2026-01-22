@@ -219,6 +219,11 @@ def run_pattern_gen(
     pattern_gen_exe = build_dir / "bin" / "pattern-gen"
     assert pattern_gen_exe.is_file(), "pattern-gen not found"
 
+    # Write cmd file to easily rerun patterngen
+    cmd_str = " ".join(map(lambda x: str(x) if x.count(" ") == 0 else f"'{x}'", [pattern_gen_exe, *pattern_gen_args]))
+    cmd_file = str(dest) + ".cmd"
+    with open(cmd_file, "w", encoding="utf-8") as f:
+        f.write(cmd_str)
     try:
         out = utils.exec_getout(
             pattern_gen_exe,
