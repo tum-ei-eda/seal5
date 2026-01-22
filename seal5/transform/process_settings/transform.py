@@ -54,19 +54,20 @@ def run(args):
         model_obj.settings.merge(settings, overwrite=True, inplace=True)
 
     model_settings = settings.models.get(model_name)
-    ext_names = set(model_settings.extensions.keys())
-    set_names = set(model_obj.sets.keys())
-    unknown_exts = ext_names - set_names
-    ignore_unknown_sets = False
-    if len(unknown_exts) > 0:
-        exts_str = ", ".join(unknown_exts)
-        known_str = ", ".join(set_names)
-        msg = f"Unknown extensions found for model '{model_name}': {exts_str} (vs. {known_str})"
-        if ignore_unknown_sets:
-            logger.warning(msg)
-        else:
-            logger.error(msg)
-            raise RuntimeError(msg)
+    if model_settings is not None:
+        ext_names = set(model_settings.extensions.keys())
+        set_names = set(model_obj.sets.keys())
+        unknown_exts = ext_names - set_names
+        ignore_unknown_sets = False
+        if len(unknown_exts) > 0:
+            exts_str = ", ".join(unknown_exts)
+            known_str = ", ".join(set_names)
+            msg = f"Unknown extensions found for model '{model_name}': {exts_str} (vs. {known_str})"
+            if ignore_unknown_sets:
+                logger.warning(msg)
+            else:
+                logger.error(msg)
+                raise RuntimeError(msg)
     for set_name, set_def in model_obj.sets.items():
         is_group_set = False
         if len(set_def.instructions) == 0:
