@@ -30,7 +30,7 @@ DEST = os.environ.get("DEST", DEST_DIR + "/seal5_llvm_rv64").rstrip("/")
 
 FILES = [
     # CoreDSL inputs
-    EXAMPLES_DIR / "example" / "cdsl" / "ExampleRV64.core_desc",
+    EXAMPLES_DIR / "example" / "cdsl" / "Example64.core_desc",
     # Test inputs
     EXAMPLES_DIR / "example" / "tests" / "xexample64-*.s",
     EXAMPLES_DIR / "example" / "tests" / "xexample64-*.ll",
@@ -39,6 +39,7 @@ FILES = [
     EXAMPLES_DIR / "common" / "cfg" / "llvm.yml",
     EXAMPLES_DIR / "common" / "cfg" / "filter.yml",
     EXAMPLES_DIR / "common" / "cfg" / "patches.yml",
+    EXAMPLES_DIR / "common" / "cfg" / "riscv64.yml",
     EXAMPLES_DIR / "common" / "cfg" / "tests.yml",
     EXAMPLES_DIR / "common" / "cfg" / "passes.yml",
     EXAMPLES_DIR / "common" / "cfg" / "git.yml",
