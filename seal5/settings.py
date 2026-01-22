@@ -869,3 +869,6 @@ class Seal5Settings(YAMLSettings):
     def log_file_path(self):
         """Seal5 log_file_path getter."""
         return self.logs_dir / "seal5.log"
+
+
+#  TODO: implement Seal5Settings.validate()

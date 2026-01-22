@@ -265,6 +265,24 @@ class PassManager:
         # assert passes_settings is not None
         # assert passes_settings.per_model is not None
 
+        # Verify model settings
+        # TODO: move somewhere else?
+        if settings is not None:
+            if settings.models is not None:
+                model_names = set(input_models)
+                settings_model_names = set(settings.models.keys())
+                unknown_models = settings_model_names - model_names
+                ignore_unknown_models = False
+                if len(unknown_models) > 0:
+                    unknown_str = ", ".join(unknown_models)
+                    known_str = ", ".join(model_names)
+                    msg = f"Unknown model settings found: {unknown_str} (vs. {known_str})"
+                    if ignore_unknown_models:
+                        logger.warning(msg)
+                    else:
+                        logger.error(msg)
+                        raise RuntimeError(msg)
+
         for pass_ in self.pass_list:
             # input_models_ = []
             # for model_name in input_models:
