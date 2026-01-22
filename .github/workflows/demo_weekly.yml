@@ -68,10 +68,10 @@ jobs:
         #     llvm-ref: llvmorg-21.1.7
     env:
       SEAL5_NUM_THREADS: 1
-      DEPLOY: 1
-      EXPORT: 1
+      DEPLOY: 0
+      EXPORT: 0
       TEST: 1
-      INSTALL: 1
+      INSTALL: 0
       CCACHE: 1
       VERBOSE: 1
       PROGRESS: 1
