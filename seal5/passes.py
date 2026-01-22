@@ -235,6 +235,7 @@ class PassManager:
         self.parallel = parallel if parallel is not None else (parent.parallel if parent else NUM_THREADS)
         self.metrics: dict = {}
         self.open: bool = False
+        self.has_parent = parent is not None
 
     @property
     def size(self):
@@ -267,7 +268,7 @@ class PassManager:
 
         # Verify model settings
         # TODO: move somewhere else?
-        if settings is not None:
+        if settings is not None and not self.has_parent:
             if settings.models is not None:
                 model_names = set(input_models)
                 settings_model_names = set(settings.models.keys())
