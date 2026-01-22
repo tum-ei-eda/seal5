@@ -36,6 +36,9 @@ FILES = [
     EXAMPLES_DIR / "example" / "tests" / "xexample-*.s",
     EXAMPLES_DIR / "example" / "tests" / "xexample-*.ll",
     EXAMPLES_DIR / "example" / "tests" / "xexample-*.c",
+    EXAMPLES_DIR / "tumeda" / "tests" / "*.s",
+    EXAMPLES_DIR / "tumeda" / "tests" / "*.ll",
+    EXAMPLES_DIR / "tumeda" / "tests" / "*.c",
     # YAML inputs
     EXAMPLES_DIR / "common" / "cfg" / "llvm.yml",
     EXAMPLES_DIR / "common" / "cfg" / "filter.yml",
