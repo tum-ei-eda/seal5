@@ -25,7 +25,6 @@ def main():
     logger.setLevel(getattr(logging, args.log.upper()))
 
     dirs = args.report_dir
-    print("dirs", dirs)
 
     all_names = set()
     test_results_compact_dfs = []
