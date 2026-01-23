@@ -78,25 +78,6 @@ def scalar_definition(self: behav.ScalarDefinition, context):
 
 
 def assignment(self: behav.Assignment, context):
-    ### if self.target.inferred_type and self.expr.inferred_type:
-    ###     target_width = self.target.inferred_type.width
-    ###     expr_width = self.expr.inferred_type.width
-    ###     # print("tw", target_width)
-    ###     # print("ew", expr_width)
-    ###     # input("123")
-    ###     if target_width < expr_width:  # implicit truncation
-    ###         ty = self.expr.inferred_type
-    ###         ty._width = target_width
-    ###         group_ = behav.Group(self.expr)
-    ###         group_.inferred_type = ty
-    ###         self.expr = behav.SliceOperation(group_, behav.IntLiteral(target_width - 1), behav.IntLiteral(0))
-    ###         self.expr.inferred_type = ty
-    ### self.target = self.target.generate(context)
-    ### self.expr = self.expr.generate(context)
-
-    ### # if isinstance(self.expr, behav.IntLiteral) and isinstance(self.target, behav.ScalarDefinition):
-    ### #       self.target.scalar.value = self.expr.value
-
     return self
 
 
