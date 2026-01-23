@@ -17,17 +17,22 @@
 # limitations under the License.
 #
 """PatternGen utils for seal5."""
-from pathlib import Path
-from typing import Optional
 
-from seal5.logging import get_logger
+import re
+from pathlib import Path
+from typing import Optional, Union
+from collections import defaultdict
+
+import yaml
+
+from seal5.logging import Logger
 from seal5.settings import PatchSettings
 from seal5.types import PatchStage
 from seal5.index import File, Directory, NamedPatch, write_index_yaml
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 from seal5 import utils
 
-logger = get_logger()
+logger = Logger("tools")
 
 
 def build_pattern_gen(
@@ -107,6 +112,7 @@ def get_pattern_gen_patches(
         index=str(index_file),
         generated=True,
         target="llvm",
+        priority=80,
     )
 
     return patch_settings
@@ -139,7 +145,7 @@ def build_llc(
 def run_pattern_gen(
     build_dir: Path,
     src: Path,
-    dest: Path,
+    dest: Union[str, Path],
     verbose: bool = False,
     ext=None,
     mattr=None,
@@ -157,6 +163,9 @@ def run_pattern_gen(
     # pattern_gen_args.extend(["-custom-legalizer-settings=foo", "-disable-gisel-legality-check"])
 
     if dest:
+        if isinstance(dest, str):
+            dest = Path(dest)
+        assert dest.parent.is_dir(), f"Missing destination directory: {dest}"
         pattern_gen_args.extend(["-o", str(dest)])
 
     if ext:
@@ -194,6 +203,7 @@ def run_pattern_gen(
 
     if no_extend:
         pattern_gen_args.append("--no-extend")
+    pattern_gen_args.append("--stats")
 
     # break_on_err = True
     break_on_err = False
@@ -209,6 +219,13 @@ def run_pattern_gen(
     pattern_gen_exe = build_dir / "bin" / "pattern-gen"
     assert pattern_gen_exe.is_file(), "pattern-gen not found"
 
+    # Write cmd file to easily rerun patterngen
+    cmd_str = " ".join(
+        map(lambda x: str(x) if str(x).count(" ") == 0 else f"'{x}'", [pattern_gen_exe, *pattern_gen_args])
+    )
+    cmd_file = str(dest) + ".cmd"
+    with open(cmd_file, "w", encoding="utf-8") as f:
+        f.write(cmd_str)
     try:
         out = utils.exec_getout(
             pattern_gen_exe,
@@ -235,8 +252,12 @@ def run_pattern_gen(
         # reason = None
         # rest = []
         is_err = False
+        has_stats = False
+        all_stats = defaultdict(dict)
         for line in out.split("\n"):
             # print("line", line)
+            if len(line.strip()) == 0 or line.startswith("==="):
+                continue
             if found_pattern:
                 # print("A1")
                 pat.append(line)
@@ -250,12 +271,40 @@ def run_pattern_gen(
                 elif "Pattern Generation failed for" in line:
                     # reason = line
                     is_err = True
-        # print("pat", pat)
+            if has_stats:
+                parsed = re.compile(r"^\s*(\d+)\s([^\s]+)\s+-\s(.*)$").findall(line)
+                if len(parsed) > 0:
+                    assert len(parsed) == 1
+                    assert len(parsed[0]) == 3
+                    stat_count, stat_type, stat_descr = parsed[0]
+                    stat_count = int(stat_count)
+                    if stat_type not in ["pattern-gen"]:
+                        continue
+                    new_stats = {stat_descr: stat_count}
+                    all_stats[stat_type].update(new_stats)
+            else:
+                if "Statistics Collected" in line:
+                    has_stats = True
+        if len(all_stats) > 0:
+            all_stats = dict(all_stats)
+            stat_file = str(dest) + ".stats"
+            with open(stat_file, "w", encoding="utf-8") as f:
+                yaml.dump(all_stats, f)
         if len(pat) > 0:
             pat = "\n".join(pat)
             pat_file = str(dest) + ".pat"
             with open(pat_file, "w", encoding="utf-8") as f:
                 f.write(pat)
+
+            uses = re.compile(r":\$([^:\s(),]*)").findall(pat)
+            assert len(uses) > 0
+            uses = list(set(uses))
+            uses_str = ",".join(uses) + "\n"
+
+            uses_file = str(dest) + ".uses"
+            with open(uses_file, "w", encoding="utf-8") as f:
+                f.write(uses_str)
+
         else:
             is_err = True
         # else:

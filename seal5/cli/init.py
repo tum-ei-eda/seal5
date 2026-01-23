@@ -19,10 +19,9 @@
 """Command line subcommand for initializing Seal5 environment."""
 
 from seal5.flow import Seal5Flow
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
-
-logger = get_logger()
+logger = Logger("cli")
 
 
 def add_init_options(parser):
@@ -46,7 +45,7 @@ def add_init_options(parser):
     )
     init_parser.add_argument(
         "--clone-ref",
-        default="llvmorg-18.1.0-rc3",
+        default="llvmorg-19.1.0",
         help="Corresponding LLVM repository commit/tag",
     )
     init_parser.add_argument(

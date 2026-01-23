@@ -82,45 +82,67 @@ class Seal5RegisterClass(IntEnum):
 
 
 class Seal5Register:
-    def __init__(self, name: str, size: int, width: int, signed: bool, reg_class: Seal5RegisterClass):
+    def __init__(self, name: str, size: int, width: int, signed: bool, is_const: bool, reg_class: Seal5RegisterClass):
         self.name = name
         self.size = size
         self.width = width
         self.signed = signed  # TODO: use
+        self.is_const = is_const
         self.reg_class = reg_class
         # TODO: attributes
 
     def __repr__(self):
         return (
             f"{type(self)}({self.name}, size={self.size}, "
-            f"width={self.width}, signed={self.signed}, "
+            f"width={self.width}, signed={self.signed}, is_const={self.is_const}"
             f"reg_class={self.reg_class})"
         )
 
 
 class Seal5RegisterGroup:
-    def __init__(self, names: List[str], size: int, width: int, signed: bool, reg_class: Seal5RegisterClass):
+    def __init__(
+        self,
+        names: List[str],
+        reg_size: int,
+        reg_width: int,
+        reg_signed: bool,
+        reg_is_const: bool,
+        reg_class: Seal5RegisterClass,
+    ):
         self.names = names
-        self.size = size
-        self.width = width
-        self.signed = signed  # TODO: use
+        self.reg_size = reg_size
+        self.reg_width = reg_width
+        self.reg_signed = reg_signed  # TODO: use
+        self.reg_is_const = reg_is_const
+        # TODO: drop reg-specifics?
         self.reg_class = reg_class
 
     def __repr__(self):
         return (
-            f"{type(self)}({self.names}, size={self.size}, width={self.width}, "
-            f"signed={self.signed}, reg_class={self.reg_class})"
+            f"{type(self)}({self.names}, size={self.size}, reg_size={self.reg_size}, reg_width={self.reg_width}, "
+            f"reg_signed={self.reg_signed}, reg_is_const={self.reg_is_const}, reg_class={self.reg_class})"
         )
 
     @property
     def registers(self):
         return [
-            Seal5Register(name, size=self.size, width=self.width, signed=self.signed, reg_class=self.reg_class)
+            Seal5Register(
+                name,
+                size=self.reg_size,
+                width=self.reg_width,
+                signed=self.reg_signed,
+                is_const=self.reg_is_const,
+                reg_class=self.reg_class,
+            )
             for name in self.names
         ]
 
-    def __len__(self):
+    @property
+    def size(self):
         return len(self.names)
+
+    def __len__(self):
+        return self.size
 
     # TODO: allow indexing i.e. via group[12]
 
@@ -155,6 +177,14 @@ class Seal5InstrAttribute(Enum):
     LLVM_INSTR = auto()
     HAS_CALL = auto()
     HAS_LOOP = auto()
+    OPCODE = auto()
+    OPCODE_NAME = auto()
+    FUNCT3 = auto()
+    FUNCT7 = auto()
+    ENC_FORMAT = auto()
+    ENC_PATTERN = auto()
+    ENC_MASK = auto()
+    ENC_MATCH = auto()
 
 
 class Seal5FunctionAttribute(Enum):
@@ -325,6 +355,41 @@ class Seal5Instruction(Instruction):
         self._llvm_imm_types = None
         self._process_fields()
 
+    def get_asm_str(self):
+        if self.assembly is not None:
+            assert isinstance(self.assembly, str)
+            return self.assembly
+        assert self.operands is not None
+        # print("self.operands", self.operands)
+        # TODO: detect reg/imm and in/out/inout here!
+        # imm_operands = [op for op in self.operands.values() if Seal5OperandAttribute.IS_IMM in op.attributes]
+        # reg_operands = [op for op in self.operands.values() if Seal5OperandAttribute.IS_REG in op.attributes]
+        # sorted_operands = reg_operands + imm_operands
+        # assert len(sorted_operands) == len(self.operands), "Some operands are not imm or reg"
+        # TODO: only sort operands if not user-provided?
+        # just sort by first use?
+        sorted_operands = list(self.operands.values())
+
+        # Fallback to automatically generated asm string
+        def helper(op):
+            name = op.name
+            attributes = op.attributes
+            is_reg = Seal5OperandAttribute.IS_REG in attributes
+            is_imm = Seal5OperandAttribute.IS_IMM in attributes
+            if is_reg:
+                name = f"name({name})"
+            else:
+                assert is_imm, f"Operand {name} is not a reg or imm"
+            name = "{" + name + "}"
+            # print("name", name)
+            return name
+
+        asm_str = ", ".join([helper(op) for op in sorted_operands])
+        # print("asm_str", asm_str)
+        # input(">")
+        self.assembly = asm_str
+        return self.assembly
+
     def _process_fields(self):
         for field_name, field in self.fields.items():
             if field_name in self.operands:
@@ -448,7 +513,8 @@ class Seal5Instruction(Instruction):
         self._llvm_imm_types = imm_types
 
     def _llvm_process_assembly(self):
-        asm_str = self.assembly
+        asm_str = self.get_asm_str()
+        assert asm_str is not None
         asm_str = re.sub(r"name\(([a-zA-Z0-9_\+]+)\)", r"\g<1>", asm_str)
         asm_str = re.sub(r"{([a-zA-Z0-9_\+]+):[#0-9a-zA-Z\._]+}", r"{\g<1>}", asm_str)
         asm_str = re.sub(r"{([a-zA-Z0-9_\+]+)}", r"$\g<1>", asm_str)
@@ -559,8 +625,13 @@ class Seal5Instruction(Instruction):
         uncompressed = None
         assert set_def is not None
         for _, instr_def in set_def.instructions.items():
-            if instr_def.name == uncompressed_instr:
+            name = instr_def.name
+            # handle SEAL5_ prefix?
+            if name.startswith("SEAL5_"):
+                name = name.replace("SEAL5_", "")
+            if name == uncompressed_instr:
                 uncompressed = instr_def
+                uncompressed_instr = instr_def.name
                 break
         assert uncompressed is not None, f"Could not find instr {uncompressed_instr} in set {set_def.name}"
         # TODO: rs1_wb vs. rd_wb?

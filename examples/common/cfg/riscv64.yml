@@ -1,0 +1,10 @@
+---
+riscv:
+  xlen: 86
+  features:
+    - m
+    - fast-unaligned-access
+    - gpr32v
+    - 64bit
+  legalization: null
+  transform_info: null

@@ -2,13 +2,18 @@
 
 ## Supported LLVM Versions
 
-| **Seal5**             | **LLVM 17**                           | **LLVM 18**                               | **LLVM 19**                           | **Comment**      |
-|-----------------------|---------------------------------------|-------------------------------------------|---------------------------------------|------------------|
-| `v0.1.0`              | :white_check_mark: (`llvmorg-17.0.6`) | :x:                                       | :x:                                   | Limited support! |
-| `v0.1.1` ... `v0.1.4` | :question:                            | :white_check_mark: (`llvmorg-18.1.0-rc3`) | :x:                                   |                  |
-| `TODO`                | :question:                            | :question:                                | :white_check_mark: (`llvmorg-19.1.3`) | To be released!  |
+| **Seal5**             | **LLVM 17**                           | **LLVM 18**                               | **LLVM 19**                           | **LLVM 20**        | **LLVM 21**        | **LLVM 22**        | **Comment**                        |
+|-----------------------|---------------------------------------|-------------------------------------------|---------------------------------------|--------------------|--------------------|--------------------|------------------------------------|
+| `v0.1.0`              | :white_check_mark: (`llvmorg-17.0.6`) | :x:                                       | :x:                                   | :x:                | :x:                | :x:                | Limited support!                   |
+| `v0.1.1` ... `v0.1.4` | :question:                            | :white_check_mark: (`llvmorg-18.1.0-rc3`) | :x:                                   | :x:                | :x:                | :x:                |                                    |
+| `v0.2.0`              | :question:                            | :white_check_mark: (limited)              | :white_check_mark:                    | :x:                | :x:                | :x:                |                                    |
+| `v0.3.0` ... `v0.3.1` | :question:                            | :white_check_mark: (limited)              | :white_check_mark:                    | :white_check_mark: | :x:                | :x:                | NEW: Intrinsics & Builtins         |
+| `v0.3.2`              | :x:                                   | :x:                                       | :white_check_mark:                    | :white_check_mark: | :x:                | :x:                | NEW: Fixes, drop LLVM18 & Py3.8 support    |
+| `v0.3.3`              | :x:                                   | :x:                                       | :white_check_mark:                    | :white_check_mark: | :white_check_mark: | :x:                | NEW: LLVM21 support                |
+| (WIP)                 | :x:                                   | :x:                                       | :white_check_mark:                    | :white_check_mark: | :white_check_mark: | :x:                | NEW: Support Memory Codegen        |
+| (TODO)                | :x:                                   | :x:                                       | :white_check_mark:                    | :white_check_mark: | :white_check_mark: | :x:                | NEW: Support Multi-output Patterns |
 
-_(Last updated: 30.10.2024)_
+_(Last updated: 22.10.2025)_
 
 ## Supported Instructions
 

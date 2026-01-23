@@ -1,6 +1,6 @@
 ---
 models:
-  XExample64:
+  Example64:
     extensions:
       XExample64:
         feature: XExample

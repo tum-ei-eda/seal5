@@ -18,7 +18,9 @@ from m2isar.metamodel import arch
 
 from seal5.model_utils import load_model, dump_model
 
-logger = logging.getLogger("filter_model")
+from seal5.logging import Logger
+
+logger = Logger("transform.filter_model")
 
 
 OPCODE_LOOKUP = {
@@ -78,7 +80,7 @@ def get_parser():
 
 def run(args):
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
@@ -223,9 +225,19 @@ def run(args):
         if diff > 0:
             logger.debug("Filtered %d instructions for set %s", diff, set_name)
 
+        # for instr_name, instr_def in set_def.instructions.items():
+    for set_name, set_def in model_obj.sets.items():
+        set_def.extension = [
+            extension
+            for extension in set_def.extension
+            if extension in model_obj.sets and len(model_obj.sets[extension].instructions) > 0
+        ]
+
     # Remove sets without instructions
     model_obj.sets = {
-        set_name: set_def for set_name, set_def in model_obj.sets.items() if len(set_def.instructions) > 0
+        set_name: set_def
+        for set_name, set_def in model_obj.sets.items()
+        if len(set_def.instructions) > 0 or len(set_def.extension) > 0
     }
 
     dump_model(model_obj, out_path, compat=args.compat)

@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 """LLVM utils for seal5."""
+
 import re
 import os
 import shutil
@@ -28,11 +29,11 @@ from git import RemoteProgress
 from tqdm import tqdm
 
 from seal5 import utils
-from seal5.logging import get_logger
+from seal5.logging import Logger
 from seal5.tools.git import get_author_from_settings
 from seal5.settings import GitSettings, CcacheSettings
 
-logger = get_logger()
+logger = Logger("tools")
 
 
 def lookup_ccache():
@@ -42,6 +43,27 @@ def lookup_ccache():
         if found:
             return found
     return None  # Not found
+
+
+def update_excludes(repo: git.Repo, meta_dir: Path):
+    repo_dir = Path(repo.git_dir).parent
+    excludes_file = Path(repo.git_dir) / "info" / "exclude"
+    is_rel = meta_dir.is_relative_to(repo_dir)
+    if not is_rel:
+        return
+    rel_dir = meta_dir.relative_to(repo_dir)
+    lines_to_add = [str(rel_dir)]
+    if excludes_file.is_file():
+        with excludes_file.open("r+") as f:
+            lines = f.read().splitlines()
+            for line_to_add in lines_to_add:
+                if line_to_add.strip() not in lines:
+                    f.write(line_to_add)
+    else:
+        # If file doesn't exist, create it
+        excludes_file.parent.mkdir(parents=True, exist_ok=True)
+        for line_to_add in lines_to_add:
+            excludes_file.write_text(line_to_add)
 
 
 def check_llvm_repo(path: Path):
@@ -160,6 +182,7 @@ def build_llvm(
     install: bool = False,
     install_dir: Optional[Union[str, Path]] = None,
     ccache_settings: Optional[CcacheSettings] = None,
+    skip_configure: bool = False,
 ):
     if cmake_options is None:
         cmake_options = {}
@@ -184,16 +207,17 @@ def build_llvm(
                 env["CCACHE_DIR"] = ccache_directory
     cmake_args = utils.get_cmake_args(cmake_options)
     dest.mkdir(exist_ok=True)
-    utils.cmake(
-        src / "llvm",
-        *cmake_args,
-        use_ninja=use_ninja,
-        debug=debug,
-        cwd=dest,
-        env=env,
-        print_func=logger.info if verbose else logger.debug,
-        live=True,
-    )
+    if not skip_configure:
+        utils.cmake(
+            src / "llvm",
+            *cmake_args,
+            use_ninja=use_ninja,
+            debug=debug,
+            cwd=dest,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
     if install:
         assert target is None
         target = "install"
@@ -213,12 +237,28 @@ def test_llvm(base: Path, build_dir: Path, test_paths: Optional[List[str]] = Non
     failing_tests = []
     for test_path in test_paths:
 
-        def handler(_code, _out):
-            return 0
+        def handler(code, _out):
+            if code == 1:
+                return 0
+            return code
 
+        test_path = Path(test_path)
+        if test_path.is_absolute():
+            test_file = test_path
+        else:
+            test_file = base / test_path
+            if not test_file.is_file():
+                try:
+                    test_path = test_path.relative_to(base)
+                except ValueError as exc:
+                    raise RuntimeError(
+                        f"Relative test path needs to be relative to base ({base}): {test_path}"
+                    ) from exc
+                test_file = base / test_path
+                assert test_file.is_file()
         out = utils.exec_getout(
             lit_exe,
-            base / test_path,
+            test_file,
             print_func=logger.info if verbose else logger.debug,
             live=True,
             env=env,
@@ -235,6 +275,7 @@ def test_llvm(base: Path, build_dir: Path, test_paths: Optional[List[str]] = Non
 
 
 def detect_llvm_imm_types(llvm_dir: Union[str, Path]):
+    # TODO: detect which ones are ImmLeafs!
     def get_grep_cmd(prefix):
         return f"grep -r \"def {prefix}imm\" llvm/lib/Target/RISCV | cut -d':' -f2 | tr -s ' ' | sed -e \"s/def //g\""
 

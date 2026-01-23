@@ -7,7 +7,6 @@
 # Technical University of Munich
 
 import itertools
-import logging
 from typing import Union
 
 from m2isar import M2DuplicateError, M2NameError, M2TypeError, M2ValueError, flatten
@@ -15,7 +14,9 @@ from m2isar.metamodel import arch, behav, intrinsics
 from .parser_gen import CoreDSL2Parser, CoreDSL2Visitor
 from .utils import RADIX, SHORTHANDS, SIGNEDNESS
 
-logger = logging.getLogger("arch_builder")
+from seal5.logging import Logger
+
+logger = Logger("frontends.arch_builder")
 
 
 class ArchitectureModelBuilder(CoreDSL2Visitor):

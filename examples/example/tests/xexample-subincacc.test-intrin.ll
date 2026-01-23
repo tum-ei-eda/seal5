@@ -8,6 +8,6 @@ define i32 @subincacc(i32 %a, i32 %b, i32 %c) {
 ; CHECK:       # %bb.0:
 ; CHECK-NEXT:    xexample.subincacc a0, a1, a2
 ; CHECK-NEXT:    ret
-  %1 = call i32 @llvm.riscv.subincacc(i32 %a, i32 %b, i32 %c)
+  %1 = call i32 @llvm.riscv.xexample.subincacc(i32 %a, i32 %b, i32 %c)
   ret i32 %1
 }

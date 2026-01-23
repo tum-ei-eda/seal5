@@ -1,11 +1,11 @@
 ---
 patches:
   # manual patch
-  - name: gitignore
-    target: llvm
-    stage: 0
-    comment: ""
-    file: llvm/gitignore.patch
+  # - name: gitignore
+  #   target: llvm
+  #   stage: 0
+  #   comment: ""
+  #   file: llvm/gitignore.patch
   - name: gitlab_ci
     target: llvm
     stage: 0
@@ -15,15 +15,19 @@ patches:
     # file: gitlab_ci.patch
     # file: llvm/gitlab_ci.patch
     # file: /absolute/path/to/gitlab_ci.patch
-  - name: insert_markers_llvm17
-    onlyif: "settings.llvm.state.version.major == 17"
-  - name: insert_markers_llvm18
-    onlyif: "settings.llvm.state.version.major == 18 and settings.llvm.state.base_commit != 'fd4b1b78aea0b665940b4006aa5fdff288b3348d'"
-  - name: insert_markers_llvm18_48bit
-    onlyif: "settings.llvm.state.version.major == 18 and settings.llvm.state.base_commit == 'fd4b1b78aea0b665940b4006aa5fdff288b3348d'"
-  - name: insert_markers_llvm19
-    onlyif: "settings.llvm.state.version.major == 19"
-  - name: legalizer_split
+  # - name: insert_markers_llvm18
+  #   onlyif: "settings.llvm.state.version.major == 18 and settings.llvm.state.base_commit != 'fd4b1b78aea0b665940b4006aa5fdff288b3348d'"
+  # - name: insert_markers_llvm18_48bit
+  #   onlyif: "settings.llvm.state.version.major == 18 and settings.llvm.state.base_commit == 'fd4b1b78aea0b665940b4006aa5fdff288b3348d'"
+  # - name: insert_markers_llvm17
+  #   onlyif: "settings.llvm.state.version.major == 17"
+  # - name: insert_markers_llvm18
+  #   onlyif: "settings.llvm.state.version.major == 18"
+  # - name: insert_markers_llvm19
+  #   onlyif: "settings.llvm.state.version.major == 19"
+  # # - name: legalizer_split
+  # - name: insert_markers_llvm20
+  #   onlyif: "settings.llvm.state.version.major == 20"
   # TODO:  automatially select patch depending on llvm version
   # generated patch (TODO: implement)
   # - name: ???

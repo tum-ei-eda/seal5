@@ -17,36 +17,37 @@
 # limitations under the License.
 #
 """Demo script for the Seal5 Flow."""
+
 import os
 
-# import logging
 from pathlib import Path
 
 from seal5.wrapper import run_seal5_flow
-from seal5.logging import set_log_level
 
-# set_log_level(console_level=logging.DEBUG, file_level=logging.DEBUG)
-set_log_level(console_level="DEBUG", file_level="DEBUG")
-
+DEMO_NAME = os.environ.get("DEMO_NAME", "s4e")
 EXAMPLES_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
+DEMO_CDSL_DIR = Path(os.environ.get("DEMO_CDSL_DIR", EXAMPLES_DIR / DEMO_NAME / "cdsl"))
+DEMO_TESTS_DIR = Path(os.environ.get("DEMO_TESTS_DIR", EXAMPLES_DIR / DEMO_NAME / "tests"))
+DEMO_CFG_DIR = Path(os.environ.get("DEMO_CFG_DIR", EXAMPLES_DIR / DEMO_NAME / "cfg"))
+COMMON_CFG_DIR = Path(os.environ.get("COMMON_CFG_DIR", EXAMPLES_DIR / "common" / "cfg"))
 DEST_DIR = os.environ.get("DEST_DIR", "/tmp")
-DEST = os.environ.get("DEST", DEST_DIR + "/seal5_llvm_s4e").rstrip("/")
+DEST = os.environ.get("DEST", DEST_DIR + "/seal5_llvm_" + DEMO_NAME).rstrip("/")
 
 FILES = [
     # CoreDSL inputs
-    EXAMPLES_DIR / "s4e" / "cdsl" / "s4e-mac.core_desc",
+    DEMO_CDSL_DIR / "s4e-mac.core_desc",
     # Test inputs
-    EXAMPLES_DIR / "s4e" / "tests" / "*.s",
-    # EXAMPLES_DIR / "s4e" / "tests" / "*.ll",
-    EXAMPLES_DIR / "s4e" / "tests" / "*.c",
+    DEMO_TESTS_DIR / "*.s",
+    DEMO_TESTS_DIR / "*.c",
+    # DEMO_TESTS_DIR / "*.ll",
     # YAML inputs
-    EXAMPLES_DIR / "s4e" / "cfg" / "s4e-mac.yml",
-    EXAMPLES_DIR / "common" / "cfg" / "llvm.yml",
-    EXAMPLES_DIR / "common" / "cfg" / "filter.yml",
-    EXAMPLES_DIR / "common" / "cfg" / "patches.yml",
-    EXAMPLES_DIR / "common" / "cfg" / "riscv.yml",
-    EXAMPLES_DIR / "common" / "cfg" / "tests.yml",
-    EXAMPLES_DIR / "common" / "cfg" / "passes.yml",
-    EXAMPLES_DIR / "common" / "cfg" / "git.yml",
+    DEMO_CFG_DIR / "s4e-mac.yml",
+    COMMON_CFG_DIR / "llvm.yml",
+    COMMON_CFG_DIR / "filter.yml",
+    COMMON_CFG_DIR / "patches.yml",
+    COMMON_CFG_DIR / "riscv.yml",
+    COMMON_CFG_DIR / "tests.yml",
+    COMMON_CFG_DIR / "passes.yml",
+    COMMON_CFG_DIR / "git.yml",
 ]
-run_seal5_flow(FILES, name="s4e", dest=DEST)
+run_seal5_flow(FILES, name=DEMO_NAME, dest=DEST)

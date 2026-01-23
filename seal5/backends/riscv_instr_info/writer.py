@@ -28,7 +28,9 @@ from seal5.model_utils import load_model
 
 from .templates import template_dir
 
-logger = logging.getLogger("riscv_instr_info")
+from seal5.logging import Logger
+
+logger = Logger("backends.riscv_instr_info")
 
 
 class Operand:
@@ -122,6 +124,7 @@ def write_riscv_instruction_info(
     constraints: Optional[list] = None,
     formats=False,
     compressed_pat=None,
+    decoder_namespace: Optional[str] = None,
 ):
     if attrs is None:
         attrs = {}
@@ -156,6 +159,7 @@ def write_riscv_instruction_info(
         fields=fields,
         attrs=attrs,
         constraints_str=constraints_str,
+        decoder_namespace=decoder_namespace,
     )
     if compressed_pat:
         out_str += f"\n{compressed_pat}"
@@ -204,6 +208,9 @@ def gen_riscv_instr_info_str(instr, set_def):
     encoding = instr.encoding
     # print("encoding")
     attrs = instr.llvm_attributes
+    ext_settings = set_def.settings
+    decoder_namespace = ext_settings.get_decoder_namespace(name=set_def.name)
+
     # constraints = instr.constraints
     # if len(constraints) > 0:
     #     raise NotImplementedError
@@ -224,6 +231,7 @@ def gen_riscv_instr_info_str(instr, set_def):
         constraints=constraints,
         formats=formats,
         compressed_pat=compressed_pat,
+        decoder_namespace=decoder_namespace,
     )
     return tablegen_str
 
@@ -262,7 +270,7 @@ def main():
     args = parser.parse_args()
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
@@ -292,6 +300,8 @@ def main():
         content = ""
         # errs = []
         for set_name, set_def in model_obj.sets.items():
+            if len(set_def.instructions) == 0:
+                continue
             metrics["n_sets"] += 1
             set_name_lower = set_name.lower()
             artifacts[set_name] = []

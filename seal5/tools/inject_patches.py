@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 """Patch utils for seal5."""
+
 import os
 import argparse
 from pathlib import Path
@@ -26,9 +27,9 @@ from email.utils import formatdate
 import yaml
 
 from seal5 import utils
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
-logger = get_logger()
+logger = Logger("tools")
 
 
 def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=None, msg=None, append=None):
@@ -93,7 +94,7 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
                     start_mark += line
         if start_mark is None:
             # fallback
-            logger.warning("Marker not found: {path}, {key}. Retrying without key...")
+            logger.warning(f"Marker not found: {path}, {key}. Retrying without key...")
             if key:
                 return find_site(path, None)
             assert False, f"Marker not found: {path}, {key}"

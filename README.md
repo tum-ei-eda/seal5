@@ -3,12 +3,12 @@
 > [!NOTE]
 > Starting **July 11, 2024** we will be offering (monthly) Seal5 Development/User meetings.
 >
-> Next call: **Sep 12, 2024, 11:00**
->
-> Click [here](https://github.com/tum-ei-eda/seal5/discussions/104) for details, if you are interested!
+> Click [here](https://github.com/tum-ei-eda/seal5/discussions/104) for details (slides, next dates,...), if you are interested!
 
 > [!NOTE]
 > Seal5 was recently presented at the RISC-V Summit Europe 2024. Click [here](https://github.com/tum-ei-eda/seal5/discussions/107) to access the poster, slides & recording.
+>
+> Our Seal5 paper was published and presented on the DSD 2024 conference: See [References](https://github.com/tum-ei-eda/seal5?tab=readme-ov-file#references) section for details.
 
 [![pypi package](https://badge.fury.io/py/seal5.svg)](https://pypi.org/project/seal5)
 [![readthedocs](https://readthedocs.org/projects/seal5/badge/?version=latest)](https://seal5.readthedocs.io/en/latest/?version=latest)
@@ -42,7 +42,9 @@ sudo apt install python3-pip python3-venv cmake make ninja-build
 
 ### Python Requirements
 
-First, setup a virtual environment with Python v3.8 or newer.
+**Warning:** Python 3.8/3.9 is not supported anymore.
+
+First, setup a virtual environment with Python v3.10 or newer.
 
 Install all required python packages using the following command:
 
@@ -137,6 +139,49 @@ seal5 clean [--temp] [--patches] [--models] [--inputs]
 
 See [`examples/demo.py`](https://github.com/tum-ei-eda/seal5/blob/main/examples/demo.py) for example of end-to-end flow!
 
+Seal5 also provides an high-level "Wrapper-API" which allows executing an End-to-End Seal5 Session with minimal manual steps.
+
+Python Example:
+
+```python
+from seal5.wrapper import run_seal5_flow
+FILES = ["Example.core_desc",...]
+run_seal5_flow(FILES, name="demo", dest="/path/to/seal5_llvm")
+```
+
+Command-line Example:
+
+```sh
+seal5 --verbose --dir /path/to/seal5_llvm wrapper Example.core_desc
+```
+
+The Wrapper-API exposes some options via the environment variables listed below.
+
+```sh
+VERBOSE=0/1                     # Print detailed outputs of LLVM build and passes
+SKIP_PATTERNS=0/1               # Skip pattern-gen specific stages
+INTERACTIVE=0/1                 # Enable interactive user prompts (i.e. before removing files)
+PREPATCHED=auto/0/1             # Skip the PHASE0 passes (if they have been already applied)
+LLVM_URL=http://...             # Use a custom LLVM fork url
+LLVM_REF=llvmorg-19.1.7/...     # Which base llvm branch/tag to use
+BUILD_CONFIG=release/debug/...  # Override default LLVM build config
+IGNORE_ERROR=1/0                # Do not return non-zero exit code if a stage failed
+IGNORE_LLVM_IMM_TYPES=0/1       # Skip the automatic-detection of supported imm types by LLVM
+TEST=1/0                        # Skip the test stage if disabled
+INSTALL=1/0                     # Skip the install stage if disabled
+DEPLOY=1/0                      # Skip the deploy stage if disabled
+EXPORT=1/0                      # Skip the export stage if disabled
+CLEANUP=1/0                     # Skip the cleanup stage if disabled
+RESET=1/0                       # Skip the reset stage if disabled
+INIT=1/0                        # Skip the initialization stage if disabled
+SETUP=1/0                       # Skip the setup stage if disabled
+PROGRESS=0/1                    # Use progres bars during cloning and execution of transforms
+CCACHE=0/1                      # Enable caching of LLVM build artifacts to speedup re-builds (needs ccache or sccache installation)
+CLONE_DEPTH=-1/1/...            # Optionally limit the Git clone depth to speeup fetching the LLVM repo (-1: full-depth)
+NAME                            # Label of the Seal5 flow (used in Git tags,...)
+```
+
+
 ## Documentation
 
 Checkout [Seal5's ReadTheDocs Page](https://seal5.readthedocs.io/en/latest/?version=latest)!
@@ -155,9 +200,27 @@ Seal5 issue tracker: https://github.com/tum-ei-eda/seal5/issues
 
 CoreDSL2LLVM/PatternGen issue tracker: https://github.com/mathis-s/CoreDSL2LLVM/issues
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for more details!
+
 ## References
 
-N/A
+- **Seal5: Semi-Automated LLVM Support for RISC-V ISA Extensions Including Autovectorization** ([https://ieeexplore.ieee.org/abstract/document/10741856](https://ieeexplore.ieee.org/abstract/document/10741856))
+
+  *2024 27th Euromicro Conference on Digital System Design (DSD)*
+
+  BibTeX
+
+  ```bibtex
+  @inproceedings{van2024seal5,
+    title={Seal5: Semi-Automated LLVM Support for RISC-V ISA Extensions Including Autovectorization},
+    author={Van Kempen, Philipp and Salmen, Mathis and Mueller-Gritschneder, Daniel and Schlichtmann, Ulf},
+    booktitle={2024 27th Euromicro Conference on Digital System Design (DSD)},
+    pages={335--342},
+    year={2024},
+    organization={IEEE}
+  }
+  ```
+
 
 ## Acknowledgment
 
