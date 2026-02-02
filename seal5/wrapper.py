@@ -60,6 +60,7 @@ TRANSFORM = str2bool(os.environ.get("TRANSFORM", 1))
 GENERATE = str2bool(os.environ.get("GENERATE", 1))
 PATCH = str2bool(os.environ.get("PATCH", 1))
 BUILD = str2bool(os.environ.get("BUILD", 1))
+RERUN = str2bool(os.environ.get("RERUN", 1))
 TEST = str2bool(os.environ.get("TEST", 1))
 INSTALL = str2bool(os.environ.get("INSTALL", 1))
 DEPLOY = str2bool(os.environ.get("DEPLOY", 1))
@@ -99,6 +100,7 @@ def run_seal5_flow(
     generate: bool = GENERATE,
     patch: bool = PATCH,
     build: bool = BUILD,
+    rerun: bool = RERUN,
     test: bool = TEST,
     install: bool = INSTALL,
     deploy: bool = DEPLOY,
@@ -178,7 +180,7 @@ def run_seal5_flow(
     if not prepatched:
         seal5_flow.patch(verbose=verbose, stages=[PatchStage.PHASE_0], use_combined_patches=use_combined_patches)
 
-    if build:
+    if build and not rerun:
         # Build initial LLVM
         seal5_flow.build(
             verbose=verbose,
@@ -205,7 +207,7 @@ def run_seal5_flow(
             verbose=verbose, stages=[PatchStage.PHASE_1, PatchStage.PHASE_2], use_combined_patches=use_combined_patches
         )
 
-    if build:
+    if build and not rerun:
         # Build patched LLVM
         seal5_flow.build(
             verbose=verbose,
