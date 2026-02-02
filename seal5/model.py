@@ -355,9 +355,73 @@ class Seal5Instruction(Instruction):
         self._llvm_imm_types = None
         self._process_fields()
 
+    def check_asm_str(self, to_check: Optional[str] = None):
+        if to_check is None:
+            assert self.assembly is not None
+            to_check = self.assembly
+        required_op_names = set(self.operands.keys())
+        # required_ops = list(self.operands.values())
+        cur = to_check.replace(" ", "").replace("\n", "")
+        cur = re.sub(r"name\(([a-zA-Z0-9_\+]+)\)", r"\g<1>", cur)
+        # remove fmt
+        # cur = re.sub(r"\{(\w+):[^}]*\}", r"{\1}", cur)
+        cur = re.sub(r"{([a-zA-Z0-9_\+]+):[^}]*}", r"{\g<1>}", cur)
+        cur = re.sub(r"{([a-zA-Z0-9_\+]+)}", r"\g<1>", cur)
+        # remove offsets
+        cur = re.sub(r"[0-9]+\+([a-zA-Z0-9]+)", r"\g<1>", cur)
+        cur = re.sub(r"([a-zA-Z0-9]+)\+[0-9]+", r"\g<1>", cur)
+
+        def find_next_sep(inp):
+            seps = [",", "(", ")", "!"]
+            first_sep = None
+            first_pos = None
+            for sep in seps:
+                pos = inp.find(sep)
+                if pos is not None and pos >= 0:
+                    if first_sep is None or pos < first_pos:
+                        first_sep = sep
+                        first_pos = pos
+            return first_sep, first_pos
+
+        tokens = []
+        expected = None
+        while True:
+            if len(cur) == 0:
+                break
+            found = find_next_sep(cur)
+            if found is None or found[0] is None:
+                token = cur
+                tokens.append(token)
+                break
+            sep, pos = found
+            if expected:
+                assert sep == expected, f"Found '{sep}', expected '{expected}'"
+                expected = None
+            if sep == "(":
+                expected = ")"
+            token = cur[:pos]
+            cur = cur[pos + 1 :]
+            tokens.append(token)
+        unique_tokens = set(tokens)
+        token_counts = {token: tokens.count(token) for token in unique_tokens}
+        invalid_token_counts = {token: count for token, count in token_counts.items() if count > 1}
+        if len(invalid_token_counts):
+            names_str = ", ".join(invalid_token_counts.keys())
+            assert False, f"Duplicate op names in asm string: {names_str}"
+        missing_op_names = required_op_names - unique_tokens
+        if len(missing_op_names) > 0:
+            names_str = ", ".join(missing_op_names)
+            assert False, f"Unknown op name(s) in asm string: {names_str}"
+        unknown_op_names = unique_tokens - required_op_names
+        if len(unknown_op_names) > 0:
+            names_str = ", ".join(unknown_op_names)
+            assert False, f"Unknown op name(s) in asm string: {names_str}"
+        # input("@@@")
+
     def get_asm_str(self):
         if self.assembly is not None:
             assert isinstance(self.assembly, str)
+            self.check_asm_str(self.assembly)
             return self.assembly
         assert self.operands is not None
         # print("self.operands", self.operands)
@@ -387,6 +451,7 @@ class Seal5Instruction(Instruction):
         asm_str = ", ".join([helper(op) for op in sorted_operands])
         # print("asm_str", asm_str)
         # input(">")
+        self.check_asm_str(asm_str)
         self.assembly = asm_str
         return self.assembly
 
