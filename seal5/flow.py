@@ -898,9 +898,16 @@ class Seal5Flow:
         repo.index.commit(msg, author=actor)
         patch.applied = True
         self.settings.save()
+        return file
         # TODO: commit
 
-    def patch(self, verbose: bool = False, stages: List[PatchStage] = None, force: bool = False):
+    def patch(
+        self,
+        verbose: bool = False,
+        stages: List[PatchStage] = None,
+        use_combined_patches: bool = False,
+        force: bool = False,
+    ):
         """Patch Seal5 LLVM."""
         del verbose  # unused
         self.logger.info("Applying Seal5 patches")
@@ -911,15 +918,81 @@ class Seal5Flow:
         assert len(stages) > 0
         patches_per_stage = self.collect_patches()
         stages_metrics = {}
+        combined_stage_patch = True
         for stage in stages:
-            self.logger.info("Current stage: %s", stage)
+            # patch_files = []
+            stage_name = PatchStage(stage).name
+            self.logger.info("Current stage: %s", stage_name)
             patches = patches_per_stage.get(stage, [])
-            # print("patches", patches)
-            for patch in patches:
-                if patch.applied:
-                    # skipping
-                    continue
-                self.apply_patch(patch, force=force)
+            pending_patches = [
+                patch
+                for patch in patches
+                if not patch.applied and (patch.enable is None or patch.check_enabled(self.settings))
+            ]
+            # print("patches", patches, len(patches))
+            # print("pending_patches", pending_patches, len(pending_patches))
+
+            # def merge_patches(x):
+            #     return x
+
+            # pending_patches2 = merge_patches(pending_patches)
+            # print("pending_patches2", pending_patches2, len(pending_patches2))
+            combined_file = self.settings.patches_dir / "stages" / f"{stage_name}.patch"
+            combined_exists = combined_file.is_file()
+            # print("combined_exists", combined_exists)
+            # use_combined_patches = False
+            # use_combined_patches = True
+            if len(pending_patches) > 0 and use_combined_patches:
+                if combined_exists:
+                    pending_patches = []
+                    name = stage_name
+                    self.logger.info("Applying combined patch '%s'", name)
+                    dest = self.directory
+                    repo = git.Repo(dest)
+                    if not llvm.check_llvm_repo(dest):
+                        if force:
+                            repo.git.reset(".")
+                            repo.git.restore(".")
+                        else:
+                            raise RuntimeError("LLVM repository is not clean!")
+                    repo.git.apply(combined_file)
+                    author = self.settings.git.author
+                    mail = self.settings.git.mail
+                    actor = git.Actor(author, mail)
+                    prefix = self.settings.git.prefix
+                    msg = f"Combined {stage_name} patches"
+                    if prefix:
+                        msg = prefix + " " + msg
+                    repo.git.add(A=True)
+                    repo.index.commit(msg, author=actor)
+                else:
+                    logger.warning("No combined patch found for stage %s.", stage_name)
+            for patch in pending_patches:
+                _ = self.apply_patch(patch, force=force)
+                # patch_file = self.apply_patch(patch, force=force)
+                # print("patch_file", patch_file)
+                # patch_files.append(patch_file)
+            # print("patch_files", patch_files)
+            # if combined_stage_patch:
+            #     combined_file = self.settings.patches_dir / "stages" / f"{stage_name}.patch"
+            #     temp_file = Path(str(combined_file) + ".tmp")
+            #     combined_file.parent.mkdir(exist_ok=True)
+            #     print("combined_file", combined_file)
+            #     if len(patch_files) == 0:
+            #         print("nop")
+            #     elif len(patch_files) == 1:
+            #         patch_file = patch_files[0]
+            #         print(f"cp {patch_file} {temp_file}")
+            #     else:
+            #         remaining = patch_files
+            #         first = remaining.pop(0)
+            #         print(f"cp {first} {temp_file}")
+            #         while len(remaining) > 0:
+            #             cur = remaining.pop(0)
+            #             print(f"combinediff -q {temp_file} {cur} > {temp_file}2")
+            #             print(f"mv {temp_file}2 {temp_file}")
+            #     print(f"mv {temp_file} {combined_file}")
+            # input("€")
             assert self.repo is not None
             tag_name = f"seal5-{self.name}-stage{int(stage)}"
             tag_msg = f"Patched Seal5 LLVM after stage {stage}"
@@ -934,6 +1007,13 @@ class Seal5Flow:
             n_files_changed, n_insertions, n_deletions = inject_patches.analyze_diff(
                 self.repo, cur=tag_name, base=prev_tag
             )
+            if combined_stage_patch:
+                full_diff = inject_patches.get_full_diff(self.repo, cur=tag_name, base=prev_tag)
+                if len(full_diff.strip()) > 0:
+                    combined_file.parent.mkdir(exist_ok=True)
+                    logger.info("Writing combined %s patch to %s", stage_name, combined_file)
+                    with open(combined_file, "w") as f:
+                        f.write(full_diff)
             stage_metrics = {}
             stage_metrics["n_files_changed"] = n_files_changed
             stage_metrics["n_insertions"] = n_insertions

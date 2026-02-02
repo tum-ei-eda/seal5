@@ -54,6 +54,7 @@ LLVM_REF = os.environ.get("LLVM_REF", "llvmorg-19.1.7")
 BUILD_CONFIG = os.environ.get("BUILD_CONFIG", None)
 IGNORE_ERROR = str2bool(os.environ.get("IGNORE_ERROR", 1))
 IGNORE_LLVM_IMM_TYPES = str2bool(os.environ.get("IGNORE_LLVM_IMM_TYPES", 0))
+USE_COMBINED_PATCHES = str2bool(os.environ.get("USE_COMBINED_PATCHES", 0))
 LOAD = str2bool(os.environ.get("LOAD", 1))
 TRANSFORM = str2bool(os.environ.get("TRANSFORM", 1))
 GENERATE = str2bool(os.environ.get("GENERATE", 1))
@@ -107,6 +108,7 @@ def run_seal5_flow(
     init: bool = INIT,
     setup: bool = SETUP,
     ignore_llvm_imm_types: bool = IGNORE_LLVM_IMM_TYPES,
+    use_combined_patches: bool = USE_COMBINED_PATCHES,
     log_level: Optional[str] = LOG_LEVEL,
 ):
     """Single entry point (wrapper) to excute the full seal5 flow for a given set of files."""
@@ -115,7 +117,8 @@ def run_seal5_flow(
     # Optional: clean existing settings/models for fresh run
     if reset:
         seal5_flow.reset(settings=True, interactive=interactive)
-        seal5_flow.clean(temp=True, patches=True, models=True, inputs=True, interactive=interactive)
+        # seal5_flow.clean(temp=True, patches=True, models=True, inputs=True, interactive=interactive)
+        seal5_flow.clean(temp=True, patches=not use_combined_patches, models=True, inputs=True, interactive=interactive)
 
     has_stage0_tag = not (seal5_flow.repo is None or f"seal5-{seal5_flow.name}-stage0" not in seal5_flow.repo.tags)
     logger.info("Using BUILD_CACHE=%d", enable_build_cache)
@@ -173,7 +176,7 @@ def run_seal5_flow(
 
     # Apply initial patches
     if not prepatched:
-        seal5_flow.patch(verbose=verbose, stages=[PatchStage.PHASE_0])
+        seal5_flow.patch(verbose=verbose, stages=[PatchStage.PHASE_0], use_combined_patches=use_combined_patches)
 
     if build:
         # Build initial LLVM
@@ -198,7 +201,9 @@ def run_seal5_flow(
 
     if patch:
         # Apply next patches
-        seal5_flow.patch(verbose=verbose, stages=[PatchStage.PHASE_1, PatchStage.PHASE_2])
+        seal5_flow.patch(
+            verbose=verbose, stages=[PatchStage.PHASE_1, PatchStage.PHASE_2], use_combined_patches=use_combined_patches
+        )
 
     if build:
         # Build patched LLVM
@@ -236,7 +241,11 @@ def run_seal5_flow(
 
         if patch:
             # Apply patches
-            seal5_flow.patch(verbose=verbose, stages=list(range(PatchStage.PHASE_3, PatchStage.PHASE_5 + 1)))
+            seal5_flow.patch(
+                verbose=verbose,
+                stages=list(range(PatchStage.PHASE_3, PatchStage.PHASE_5 + 1)),
+                use_combined_patches=use_combined_patches,
+            )
 
     if build:
         # Build patched LLVM
