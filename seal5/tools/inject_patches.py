@@ -234,6 +234,20 @@ def process_arguments():
     return args
 
 
+def get_full_diff(repo, base: str, cur: Optional[str] = None):
+    args = ["git", "diff"]
+    args += [base]
+    if cur is not None:
+        args += [cur]
+    out = utils.exec_getout(
+        *args,
+        cwd=repo.working_tree_dir,
+        print_func=lambda *args, **kwargs: None,
+        live=False,
+    )
+    return out
+
+
 def analyze_diff(repo, base: str, cur: Optional[str] = None):
     args = ["git", "diff", "--shortstat"]
     args += [base]
