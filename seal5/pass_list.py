@@ -264,6 +264,50 @@ def explicit_truncations(
     return PassResult(metrics=metrics)
 
 
+def explicit_memory_names(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    use_subprocess: bool = False,
+    log_level: str = "debug",
+    **_kwargs,
+):
+    assert inplace
+    gen_metrics_file = True
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Adding excplicit memory names for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        log_level,
+    ]
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (name + "_explicit_memory_names_metrics.csv")
+        args.extend(["--metrics", metrics_file])
+    if not use_subprocess:
+        from seal5.transform.explicit_memory_names import ExplicitMemoryNames
+
+        args = sanitize_args(args)
+        ExplicitMemoryNames(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.explicit_memory_names.transform",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
+
+
 def process_settings(
     input_model: str,
     settings: Optional[Seal5Settings] = None,

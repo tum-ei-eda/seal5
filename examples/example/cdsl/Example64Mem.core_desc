@@ -1,0 +1,36 @@
+import "../../common/cdsl/rv_base/RV64I.core_desc"
+
+InstructionSet XExampleRV64Mem extends RV64I {
+    architectural_state {
+        extern char MEM64[1 << XLEN];
+        extern char MEMX[1 << XLEN];
+    }
+    instructions {
+        LDR {
+            encoding: 2'b0 :: imm[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b010 :: rd[4:0] :: 7'b0000011;
+            assembly: "{name(rd)}, {imm} {name(rs2)}({name(rs1)})";
+            behavior: {
+                unsigned<XLEN> load_address = X[rs1] + (X[rs2] << imm);
+                signed<64> res = (signed<64>)MEM64[load_address];
+                if ((rd) != 0) X[rd] = (unsigned<XLEN>)res;
+            }
+        }
+
+        STR {
+            encoding: 2'b1 :: rs3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'b010 :: imm[4:0] :: 7'b0000011;
+            assembly: "{name(rs3)}, {imm} {name(rs2)}({name(rs1)})";
+            behavior: {
+                unsigned<XLEN> load_address = X[rs1] + (X[rs2] << imm);
+                MEM64[load_address] = X[rs3];
+            }
+        }
+
+        LOADMAC {
+            encoding: 7'd40 :: rs2[4:0] :: rs1[4:0] :: 3'b010 :: rd[4:0] :: 7'b0000011;
+            assembly: "{name(rd)}, ({name(rs2)}), ({name(rs1)})";
+            behavior: {
+                X[rd] += MEMX[ X[rs1] ] * MEMX[ X[rs2] ];  // Spaces required due to ANTLR parser bug
+            }
+        }
+    }
+}

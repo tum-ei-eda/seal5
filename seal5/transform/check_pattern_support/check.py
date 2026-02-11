@@ -46,6 +46,18 @@ def run(args):
     out_path = (top_level.parent / top_level.stem) if args.output is None else args.output
 
     model_obj = load_model(top_level, compat=args.compat)
+    settings = model_obj.settings
+    llvm_settings = None
+    supports_mem = False
+    supports_branch = False
+    if settings.llvm:
+        llvm_settings = settings.llvm
+        llvm_state = llvm_settings.state
+        if llvm_state:
+            llvm_version = llvm_state.version
+            if llvm_version.major >= 19:
+                supports_mem = True
+                supports_branch = True
 
     metrics = {
         "n_sets": 0,
@@ -105,10 +117,10 @@ def run(args):
                     is_noop
                     or is_rvc
                     or (num_ins == 0)
-                    or (num_outs != 1)
-                    or may_load
-                    or may_store
-                    or is_branch
+                    or ((num_outs != 1) and not may_store)
+                    or (may_load and not supports_mem)
+                    or (may_store and not supports_mem)
+                    or (is_branch and not supports_branch)
                     or has_loop
                     or has_call
                     or uses_custom_reg
