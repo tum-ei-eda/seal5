@@ -104,6 +104,7 @@ def run(args):
             {},
             {},
             {},
+            {},
         )
 
     new_model_obj = seal5_model.Seal5Model(seal5_model.SEAL5_METAMODEL_VERSION, {}, sets, CodeInfoBase.database)

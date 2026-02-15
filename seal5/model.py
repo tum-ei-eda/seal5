@@ -43,13 +43,14 @@ class Seal5InstructionSet(InstructionSet):
         memories: "dict[str, Memory]",
         functions: "dict[str, Function]",
         instructions: "dict[tuple[int, int], Instruction]",
+        unencoded_instructions: "dict[str, Instruction]",
         intrinsics: "dict[str, Seal5Intrinsic]",
         constraints: "dict[str, Seal5Constraint]",
         aliases: "dict[str, Seal5Alias]",
         registers: "dict[str, Seal5Register]",
         register_groups: "dict[str, Seal5RegisterGroup]",
     ):
-        super().__init__(name, extension, constants, memories, functions, instructions)
+        super().__init__(name, extension, constants, memories, functions, instructions, unencoded_instructions)
 
         self.intrinsics = intrinsics
         self.constraints = constraints
@@ -342,6 +343,10 @@ class Seal5Instruction(Instruction):
         operands: "dict[str, Seal5Operand]",
     ):
         del operands  # TODO: use
+        function_info = None
+        # TODO: use user-defined operands
+        # operands_ = {}  # TODO
+        # super().__init__(name, attributes, operands_, encoding, mnemonic, assembly, operation, function_info)
         super().__init__(name, attributes, encoding, mnemonic, assembly, operation, function_info)
         self.constraints = constraints
         self.operands = {}
