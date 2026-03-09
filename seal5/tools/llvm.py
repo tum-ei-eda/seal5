@@ -206,7 +206,8 @@ def build_llvm(
     )
     if install:
         assert target is None
-        target = "install"
+        do_strip = cmake_options.get("CMAKE_INSTALL_DO_STRIP", False)
+        target = "install/strip" if do_strip else "install"
     utils.make(
         target=target, cwd=dest, print_func=logger.info if verbose else logger.debug, live=True, use_ninja=use_ninja
     )
