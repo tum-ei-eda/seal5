@@ -997,6 +997,10 @@ class Seal5Flow:
         for path in to_clean:
             utils.clean_path(path, interactive=interactive)
         # self.reset(verbose=verbose, interactive=interactive)
+        create_seal5_directories(
+            self.meta_dir,
+            ["deps", "models", "logs", "build", "install", "temp", "inputs", "gen", "patches", "tests"],
+        )
         end = time.time()
         diff = end - start
         metrics["start"] = start
