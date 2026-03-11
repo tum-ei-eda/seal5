@@ -157,6 +157,7 @@ def build_llvm(
     verbose: bool = False,
     cmake_options: Optional[dict] = None,
     install: bool = False,
+    reduced: bool = False,
     install_dir: Optional[Union[str, Path]] = None,
     ccache_settings: Optional[CcacheSettings] = None,
     cmake_extra_args: Optional[Union[str, List[str]]] = None,
@@ -204,10 +205,20 @@ def build_llvm(
         print_func=logger.info if verbose else logger.debug,
         live=True,
     )
+    if reduced and (target is not None or target == "all"):
+        target = (
+            "clang,llvm-config,llc,lld,pattern-gen,FileCheck,llvm-objdump,llvm-as,llvm-ar,llvm-mc,llvm-mca,opt"  # TODO
+        )
     if install:
         assert target is None
         do_strip = cmake_options.get("CMAKE_INSTALL_DO_STRIP", False)
-        target = "install/strip" if do_strip else "install"
+        if reduced:
+            if do_strip:
+                target = "install-llvm-config-stripped,install-clang-stripped,install-llc-stripped,install-lld-stripped,install-LLVMFileCheck-stripped,install-llvm-objdump-stripped,install-llvm-as-stripped,install-llvm-ar-stripped,install-llvm-mc-stripped,install-llvm-mca-stripped,install-opt-stripped,install-pattern-gen-stripped"
+            else:
+                target = "install-llvm-config,install-clang,install-llc,install-lld,install-LLVMFileCheck,install-llvm-objdump,install-llvm-as,install-llvm-ar,install-llvm-mc,install-llvm-mca,install-opt,install-pattern-gen"
+        else:
+            target = "install/strip" if do_strip else "install"
     utils.make(
         target=target, cwd=dest, print_func=logger.info if verbose else logger.debug, live=True, use_ninja=use_ninja
     )
