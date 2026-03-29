@@ -202,6 +202,7 @@ class Seal5OperandAttribute(Enum):
     TYPE = auto()
     REG_CLASS = auto()
     REG_TYPE = auto()
+    LLVM_TYPE = auto()
     IS_IMM_LEAF = auto()
 
 
@@ -538,6 +539,8 @@ class Seal5Instruction(Instruction):
         constraints = []
         self._llvm_check_operands()
         imm_types = set()
+        # imm_prefix = None
+        imm_prefix = "seal5_"
         for op_name, op in operands.items():
             if len(op.constraints) > 0:
                 raise NotImplementedError
@@ -552,7 +555,14 @@ class Seal5Instruction(Instruction):
                 assert ty[0] in ["u", "s"]
                 sz = int(ty[1:])
                 pre = f"{ty[0]}imm{sz}"
+                if imm_prefix is not None:
+                    pre = imm_prefix + pre
                 imm_types.add(pre)
+                if Seal5OperandAttribute.LLVM_TYPE not in op.attributes:
+                    # print("add Seal5OperandAttribute.LLVM_TYPE", pre)
+                    op.attributes[Seal5OperandAttribute.LLVM_TYPE] = pre
+                    # print("op.attributes", op.attributes)
+                    # input("%%%")
                 # TODO: handle lsb0, lsb00,...
                 # TODO: annotate operands via attributes
 
