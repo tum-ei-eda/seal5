@@ -315,6 +315,7 @@ class CoreDSL2Writer:
         # TODO: attributes?
         self.enter_block()
         for instruction in instructions.values():
+            instruction._llvm_process_operands()
             self.write_instruction(instruction)
         self.leave_block()
 
