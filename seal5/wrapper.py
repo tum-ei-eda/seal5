@@ -36,7 +36,7 @@ def group_files(files: List[Union[str, Path]]):
     return cdsl_files, cfg_files, test_files, other_files
 
 
-def prepatched_helper(val):
+def bool_auto_helper(val):
     if isinstance(val, str) and val.lower() == "auto":
         return "auto"
     return str2bool(val)
@@ -48,7 +48,7 @@ INSTALL_DIR = os.environ.get("INSTALL_DIR", None)
 VERBOSE = str2bool(os.environ.get("VERBOSE", 0))
 SKIP_PATTERNS = str2bool(os.environ.get("SKIP_PATTERNS", 0))
 INTERACTIVE = str2bool(os.environ.get("INTERACTIVE", 0))
-PREPATCHED = prepatched_helper(os.environ.get("PREPATCHED", "auto"))  # Possible values: [0,1,auto]
+PREPATCHED = bool_auto_helper(os.environ.get("PREPATCHED", "auto"))  # Possible values: [0,1,auto]
 LLVM_URL = os.environ.get("LLVM_URL", "https://github.com/llvm/llvm-project.git")
 LLVM_REF = os.environ.get("LLVM_REF", "llvmorg-19.1.7")
 BUILD_CONFIG = os.environ.get("BUILD_CONFIG", None)
@@ -60,7 +60,7 @@ TRANSFORM = str2bool(os.environ.get("TRANSFORM", 1))
 GENERATE = str2bool(os.environ.get("GENERATE", 1))
 PATCH = str2bool(os.environ.get("PATCH", 1))
 BUILD = str2bool(os.environ.get("BUILD", 1))
-RERUN = str2bool(os.environ.get("RERUN", 1))
+RERUN = bool_auto_helper(os.environ.get("RERUN", "auto"))  # Possible values: [0,1,auto]
 TEST = str2bool(os.environ.get("TEST", 1))
 INSTALL = str2bool(os.environ.get("INSTALL", 1))
 DEPLOY = str2bool(os.environ.get("DEPLOY", 1))
@@ -180,6 +180,12 @@ def run_seal5_flow(
     if not prepatched:
         seal5_flow.patch(verbose=verbose, stages=[PatchStage.PHASE_0], use_combined_patches=use_combined_patches)
 
+
+    if rerun == "auto":
+        build_dir = seal5_flow.settings.get_llvm_build_dir(config=build_config, fallback=True, check=False)
+        cmake_cache = build_dir / "CMakeCache.txt"
+        build_exists = cmake_cache.is_file()
+        rerun = build_exists
     if build and not rerun:
         # Build initial LLVM
         seal5_flow.build(
