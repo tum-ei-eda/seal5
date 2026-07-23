@@ -12,9 +12,3 @@ seal5.transform.filter\_model.filter
       main
       run
    
-   .. rubric:: Classes
-
-   .. autosummary::
-   
-      DropUnusedContext
-   

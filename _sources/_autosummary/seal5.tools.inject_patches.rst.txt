@@ -10,6 +10,7 @@ seal5.tools.inject\_patches
    
       analyze_diff
       generate_patch
+      get_full_diff
       main
       process_arguments
    
