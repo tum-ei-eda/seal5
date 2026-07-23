@@ -108,10 +108,11 @@ class CoreDSL2Writer:
         if val is not None:
             if isinstance(val, list) and len(val) == 0:
                 val = None
-        if self.reduced and val is not None:
-            return
+        # if self.reduced and val is not None:
+        #     return
         # TODO: allow atrbitrary attrs in cdsl2llvm parser, not only for operands
-        allowed_attrs = ["is_unsigned", "is_signed", "is_imm", "is_reg", "in", "out", "inout", "is_32_bit"]
+        # allowed_attrs = ["is_unsigned", "is_signed", "is_imm", "is_reg", "in", "out", "inout", "is_32_bit"]
+        allowed_attrs = ["is_unsigned", "is_signed", "is_imm", "is_reg", "in", "out", "inout", "is_32_bit", "llvm_type"]
         attr_name = attr if isinstance(attr, str) else attr.name
         if self.reduced and attr_name.lower() not in allowed_attrs:
             return
@@ -314,6 +315,7 @@ class CoreDSL2Writer:
         # TODO: attributes?
         self.enter_block()
         for instruction in instructions.values():
+            instruction._llvm_process_operands()
             self.write_instruction(instruction)
         self.leave_block()
 
