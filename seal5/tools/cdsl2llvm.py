@@ -17,17 +17,22 @@
 # limitations under the License.
 #
 """PatternGen utils for seal5."""
-from pathlib import Path
-from typing import Optional
 
-from seal5.logging import get_logger
+import re
+from pathlib import Path
+from typing import Optional, Union
+from collections import defaultdict
+
+import yaml
+
+from seal5.logging import Logger
 from seal5.settings import PatchSettings
 from seal5.types import PatchStage
 from seal5.index import File, Directory, NamedPatch, write_index_yaml
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 from seal5 import utils
 
-logger = get_logger()
+logger = Logger("tools")
 
 
 def build_pattern_gen(
@@ -107,6 +112,7 @@ def get_pattern_gen_patches(
         index=str(index_file),
         generated=True,
         target="llvm",
+        priority=80,
     )
 
     return patch_settings
@@ -136,10 +142,33 @@ def build_llc(
     utils.make("llc", cwd=dest, print_func=logger.info if verbose else logger.debug, live=True, use_ninja=use_ninja)
 
 
+def combine_test_fragments(
+    ll_file: Union[str, Path], instr: str, test_header: str, test_mir_checks: str, test_asm_checks: str
+):
+    with open(ll_file, "r") as f:
+        lines = f.read().splitlines()
+    ret_lines = []
+    ret_lines += test_header.splitlines()
+    insert_checks = False
+    # instr_name = None
+    for line in lines:
+        if insert_checks:
+            insert_checks = False
+            # instr_name = None
+            ret_lines += test_mir_checks.splitlines()
+            ret_lines += test_asm_checks.splitlines()
+        if line.startswith("define void @impl"):
+            insert_checks = True
+            # instr_name = line.split("(", 1)[0].split("impl", 1)[-1]
+        ret_lines.append(line)
+    ret = "\n".join(ret_lines)
+    return ret
+
+
 def run_pattern_gen(
     build_dir: Path,
     src: Path,
-    dest: Path,
+    dest: Union[str, Path],
     verbose: bool = False,
     ext=None,
     mattr=None,
@@ -157,6 +186,9 @@ def run_pattern_gen(
     # pattern_gen_args.extend(["-custom-legalizer-settings=foo", "-disable-gisel-legality-check"])
 
     if dest:
+        if isinstance(dest, str):
+            dest = Path(dest)
+        assert dest.parent.is_dir(), f"Missing destination directory: {dest}"
         pattern_gen_args.extend(["-o", str(dest)])
 
     if ext:
@@ -194,6 +226,7 @@ def run_pattern_gen(
 
     if no_extend:
         pattern_gen_args.append("--no-extend")
+    pattern_gen_args.append("--stats")
 
     # break_on_err = True
     break_on_err = False
@@ -209,6 +242,13 @@ def run_pattern_gen(
     pattern_gen_exe = build_dir / "bin" / "pattern-gen"
     assert pattern_gen_exe.is_file(), "pattern-gen not found"
 
+    # Write cmd file to easily rerun patterngen
+    cmd_str = " ".join(
+        map(lambda x: str(x) if str(x).count(" ") == 0 else f"'{x}'", [pattern_gen_exe, *pattern_gen_args])
+    )
+    cmd_file = str(dest) + ".cmd"
+    with open(cmd_file, "w", encoding="utf-8") as f:
+        f.write(cmd_str)
     try:
         out = utils.exec_getout(
             pattern_gen_exe,
@@ -235,8 +275,13 @@ def run_pattern_gen(
         # reason = None
         # rest = []
         is_err = False
+        has_stats = False
+        all_stats = defaultdict(dict)
+        instr = None
         for line in out.split("\n"):
             # print("line", line)
+            if len(line.strip()) == 0 or line.startswith("==="):
+                continue
             if found_pattern:
                 # print("A1")
                 pat.append(line)
@@ -245,19 +290,105 @@ def run_pattern_gen(
                 # print("A2")
                 if "Pattern for" in line:
                     # print("B1")
+                    instr = line.split(":", 1)[0].split(" ")[-1]
                     pat = [line.split(":", 1)[1]]
                     # found_pattern = True
                 elif "Pattern Generation failed for" in line:
                     # reason = line
                     is_err = True
-        # print("pat", pat)
+            if has_stats:
+                parsed = re.compile(r"^\s*(\d+)\s([^\s]+)\s+-\s(.*)$").findall(line)
+                if len(parsed) > 0:
+                    assert len(parsed) == 1
+                    assert len(parsed[0]) == 3
+                    stat_count, stat_type, stat_descr = parsed[0]
+                    stat_count = int(stat_count)
+                    if stat_type not in ["pattern-gen"]:
+                        continue
+                    new_stats = {stat_descr: stat_count}
+                    all_stats[stat_type].update(new_stats)
+            else:
+                if "Statistics Collected" in line:
+                    has_stats = True
+        if len(all_stats) > 0:
+            all_stats = dict(all_stats)
+            stat_file = str(dest) + ".stats"
+            with open(stat_file, "w", encoding="utf-8") as f:
+                yaml.dump(all_stats, f)
+        ll_files = []
+        has_imm = False
         if len(pat) > 0:
             pat = "\n".join(pat)
             pat_file = str(dest) + ".pat"
             with open(pat_file, "w", encoding="utf-8") as f:
                 f.write(pat)
+
+            uses = re.compile(r":\$([^:\s(),]*)").findall(pat)
+            assert len(uses) > 0
+            uses = list(set(uses))
+            uses_str = ",".join(uses) + "\n"
+            has_imm = "imm" in uses_str  # TODO: handle any imm name!
+
+            uses_file = str(dest) + ".uses"
+            with open(uses_file, "w", encoding="utf-8") as f:
+                f.write(uses_str)
+            ll_file = str(dest).replace(".td", ".ll")
+            assert Path(ll_file).is_file(), f"LLVM-IR file not found: {ll_file}"
+            ll_files.append(ll_file)
         else:
             is_err = True
+        generate_tests = "auto"
+        if generate_tests == "auto":
+            generate_tests = not has_imm
+        assert isinstance(generate_tests, bool)
+        test_files = []
+        if generate_tests:
+            # print("ll_files", ll_files)
+            assert instr is not None
+            # TODO: optimize?
+            # TODO: generate patterns for each xlen
+            # TODO: get real mnemonic
+            mnemonic = instr.lower()
+            # TODO: get real llvm instr name
+            llvm_instr = instr
+            # TODO: move to different pass
+            # TODO: make optional
+            if xlen is None:
+                xlens = [32, 64]
+            else:
+                xlens = [xlen]
+            test_header = ""
+            test_mir_checks = ""
+            test_asm_checks = ""
+            for xlen in xlens:
+                test_header += f"""; RUN: llc -mtriple=riscv{xlen} -stop-after=instruction-select -mattr={mattr} %s -global-isel=1 -o - \\
+; RUN: | FileCheck -check-prefix=RV{xlen}-MIR %s
+; RUN: llc -mtriple=riscv{xlen} -mattr={mattr} %s -global-isel=1 -o - \\
+; RUN: | FileCheck -check-prefix=RV{xlen}-ASM %s
+"""
+                test_mir_checks += f"  ; RV{xlen}-MIR-LABEL: name: impl{instr}\n"
+                # test_mir_checks += f"  ; RV{xlen}-MIR: LW\n"  # TODO: once per reg input operand
+                test_mir_checks += f"  ; RV{xlen}-MIR: {llvm_instr}\n"
+                test_mir_checks += f"  ; RV{xlen}-MIR-NEXT: SW\n"  # TODO: once per dest?
+                test_mir_checks += f"  ; RV{xlen}-MIR-NEXT: PseudoRET\n"
+                test_asm_checks += f"  ; RV{xlen}-ASM-LABEL: impl{instr}:\n"
+                # test_asm_checks += f"  ; RV{xlen}-ASM: lw\n"  # TODO: once per reg input operand
+                test_asm_checks += f"  ; RV{xlen}-ASM: {mnemonic}\n"
+                test_asm_checks += f"  ; RV{xlen}-ASM-NEXT: sw\n"  # TODO: once per dest?
+                test_asm_checks += f"  ; RV{xlen}-ASM-NEXT: ret\n"
+            # print("test_header", test_header)
+            # print("test_mir_checks", test_mir_checks)
+            # print("test_asm_checks", test_asm_checks)
+            assert len(ll_files) == 1
+            ll_file = ll_files[0]
+            test_content = combine_test_fragments(ll_file, instr, test_header, test_mir_checks, test_asm_checks)
+            # print("test_content", test_content)
+            test_file = ll_file.replace(".ll", ".test-cg.ll")
+            with open(test_file, "w") as f:
+                f.write(test_content)
+            test_files += [test_file]
+        # input(">")
+        # print("G")
         # else:
         #     if break_on_err:
         #         print("\n".join(rest))
@@ -279,6 +410,7 @@ def run_pattern_gen(
         #     reason_file = str(dest) + ".reason"
         #     with open(reason_file, "w") as f:
         #         f.write(reason)
+        return test_files
 
 
 def convert_ll_to_gmir(

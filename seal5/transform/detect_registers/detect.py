@@ -16,7 +16,9 @@ import pathlib
 import seal5.model as seal5_model
 from seal5.model_utils import load_model, dump_model
 
-logger = logging.getLogger("detect_registers")
+from seal5.logging import Logger
+
+logger = Logger("transform.detect_registers")
 
 
 def detect_registers(set_def: seal5_model.Seal5InstructionSet):
@@ -38,6 +40,7 @@ def detect_registers(set_def: seal5_model.Seal5InstructionSet):
         #  f"Unsupported dtype {mem.data_type} for memory {mem_name}"
         # signed = mem.data_type == arch.DataType.S
         signed = False
+        is_const = False
         reg_class = seal5_model.Seal5RegisterClass.CUSTOM
         if name == "X":
             reg_class = seal5_model.Seal5RegisterClass.GPR
@@ -50,13 +53,13 @@ def detect_registers(set_def: seal5_model.Seal5InstructionSet):
         if size > 1:  # TODO: check this!
             names = [f"{name}{i}" for i in range(mem.data_range.lower, mem.data_range.upper + 1)]
             # print("names", names)
-            group = seal5_model.Seal5RegisterGroup(names, size, width, signed, reg_class)
+            group = seal5_model.Seal5RegisterGroup(names, 1, width, signed, is_const, reg_class)
             # print("group", group)
             set_def.register_groups[name] = group
             for reg in group.registers:
                 set_def.registers[reg.name] = reg
         else:
-            reg = seal5_model.Seal5Register(name, size, width, signed, reg_class)
+            reg = seal5_model.Seal5Register(name, 1, width, signed, is_const, reg_class)
             # print("reg", reg)
             set_def.registers[name] = reg
 
@@ -73,7 +76,7 @@ def get_parser():
 
 def run(args):
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)

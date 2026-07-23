@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 """Utilities for handling Seal5 resources."""
+
 from typing import Optional
 
 import importlib_resources

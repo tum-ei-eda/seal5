@@ -2,6 +2,6 @@
 // RUN: llvm-objdump --disassembler-options=numeric -d %t.o | FileCheck %s
 
 __attribute__((naked)) void test_nand() {
-    // CHECK: ab ea b5 93 cv.nand.bitwise x21, x11, x27
+    // CHECK: 93b5eaab cv.nand.bitwise x21, x11, x27
     asm("cv.nand.bitwise x21, x11, x27");
 }

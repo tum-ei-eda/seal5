@@ -1,5 +1,5 @@
 -r requirements.txt
-black>=22.8.0
+black>=26.1
 flake8
 pylint
 build

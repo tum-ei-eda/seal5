@@ -19,7 +19,9 @@ from seal5.settings import Seal5Settings
 from seal5.model import Seal5InstrAttribute
 from seal5.model_utils import load_model
 
-logger = logging.getLogger("test_results_writer")
+from seal5.logging import Logger
+
+logger = Logger("backends.test_results_writer")
 
 
 def main():
@@ -39,7 +41,7 @@ def main():
     args = parser.parse_args()
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # if args.output is None:
     #     assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
@@ -196,6 +198,8 @@ def main():
         model_obj = load_model(top_level, compat=args.compat)
 
         for set_name, set_def in model_obj.sets.items():
+            if len(set_def.instructions) == 0:
+                continue
             xlen = set_def.xlen
             model_name = top_level.stem
 

@@ -22,7 +22,9 @@ from seal5.model_utils import load_model, dump_model
 
 from . import visitor
 
-logger = logging.getLogger("detect_loops")
+from seal5.logging import Logger
+
+logger = Logger("transform.detect_loops")
 
 
 class VisitorContext:
@@ -43,7 +45,7 @@ def get_parser():
 
 def run(args):
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)

@@ -58,6 +58,7 @@ class Seal5InstructionSet(InstructionSet):
         self.register_groups = register_groups
         self.settings: ExtensionsSettings = None
         self._xlen = None
+        self._flen = None
 
     @property
     def xlen(self):
@@ -68,6 +69,16 @@ class Seal5InstructionSet(InstructionSet):
                     break
         assert self._xlen is not None, "Could not determine XLEN"
         return self._xlen
+
+    @property
+    def flen(self):
+        if self._flen is None:
+            for mem_name, mem_def in self.memories.items():
+                if mem_name == "F" or MemoryAttribute.IS_FLOAT_REG in mem_def.attributes:
+                    self._flen = mem_def.size
+                    break
+        assert self._flen is not None, "Could not determine FLEN"
+        return self._flen
 
 
 class Seal5RegisterClass(IntEnum):
@@ -82,45 +93,67 @@ class Seal5RegisterClass(IntEnum):
 
 
 class Seal5Register:
-    def __init__(self, name: str, size: int, width: int, signed: bool, reg_class: Seal5RegisterClass):
+    def __init__(self, name: str, size: int, width: int, signed: bool, is_const: bool, reg_class: Seal5RegisterClass):
         self.name = name
         self.size = size
         self.width = width
         self.signed = signed  # TODO: use
+        self.is_const = is_const
         self.reg_class = reg_class
         # TODO: attributes
 
     def __repr__(self):
         return (
             f"{type(self)}({self.name}, size={self.size}, "
-            f"width={self.width}, signed={self.signed}, "
+            f"width={self.width}, signed={self.signed}, is_const={self.is_const}"
             f"reg_class={self.reg_class})"
         )
 
 
 class Seal5RegisterGroup:
-    def __init__(self, names: List[str], size: int, width: int, signed: bool, reg_class: Seal5RegisterClass):
+    def __init__(
+        self,
+        names: List[str],
+        reg_size: int,
+        reg_width: int,
+        reg_signed: bool,
+        reg_is_const: bool,
+        reg_class: Seal5RegisterClass,
+    ):
         self.names = names
-        self.size = size
-        self.width = width
-        self.signed = signed  # TODO: use
+        self.reg_size = reg_size
+        self.reg_width = reg_width
+        self.reg_signed = reg_signed  # TODO: use
+        self.reg_is_const = reg_is_const
+        # TODO: drop reg-specifics?
         self.reg_class = reg_class
 
     def __repr__(self):
         return (
-            f"{type(self)}({self.names}, size={self.size}, width={self.width}, "
-            f"signed={self.signed}, reg_class={self.reg_class})"
+            f"{type(self)}({self.names}, size={self.size}, reg_size={self.reg_size}, reg_width={self.reg_width}, "
+            f"reg_signed={self.reg_signed}, reg_is_const={self.reg_is_const}, reg_class={self.reg_class})"
         )
 
     @property
     def registers(self):
         return [
-            Seal5Register(name, size=self.size, width=self.width, signed=self.signed, reg_class=self.reg_class)
+            Seal5Register(
+                name,
+                size=self.reg_size,
+                width=self.reg_width,
+                signed=self.reg_signed,
+                is_const=self.reg_is_const,
+                reg_class=self.reg_class,
+            )
             for name in self.names
         ]
 
-    def __len__(self):
+    @property
+    def size(self):
         return len(self.names)
+
+    def __len__(self):
+        return self.size
 
     # TODO: allow indexing i.e. via group[12]
 
@@ -155,6 +188,16 @@ class Seal5InstrAttribute(Enum):
     LLVM_INSTR = auto()
     HAS_CALL = auto()
     HAS_LOOP = auto()
+    OPCODE = auto()
+    OPCODE_NAME = auto()
+    FUNCT3 = auto()
+    FUNCT7 = auto()
+    ENC_FORMAT = auto()
+    ENC_PATTERN = auto()
+    ENC_MASK = auto()
+    ENC_MATCH = auto()
+    AUTO_UNROLL_IMM = auto()
+    AUTO_INTRIN = auto()
 
 
 class Seal5FunctionAttribute(Enum):
@@ -172,7 +215,9 @@ class Seal5OperandAttribute(Enum):
     TYPE = auto()
     REG_CLASS = auto()
     REG_TYPE = auto()
+    LLVM_TYPE = auto()
     IS_IMM_LEAF = auto()
+    IS_UNROLL_IMM = auto()
 
 
 class Seal5DataType(Enum):
@@ -196,12 +241,38 @@ class Seal5Type:
         self.width = width
         self.lanes = lanes
 
+    @property
+    def is_scalar(self):
+        return self.lanes in [None, 1]
+
+    @property
+    def is_vector(self):
+        return self.lanes is not None and self.lanes > 0
+
+    @property
+    def is_int(self):
+        return self.datatype in [DataType.U, DataType.S]
+
+    @property
+    def is_unsigned_int(self):
+        return self.datatype == DataType.U
+
+    @property
+    def is_signed_int(self):
+        return self.datatype == DataType.S
+
+    @property
+    def is_float(self):
+        return self.datatype in [DataType.F, DataType.D]
+
     def __repr__(self):
         sign_letter = None
         if self.datatype == DataType.U:
             sign_letter = "u"
         elif self.datatype == DataType.S:
             sign_letter = "s"
+        elif self.datatype in [DataType.F, DataType.D]:
+            sign_letter = "f"
         assert sign_letter is not None
         if self.lanes is None:
             lanes = 1
@@ -319,15 +390,81 @@ class Seal5Instruction(Instruction):
         self._llvm_asm_order = None
         self._llvm_constraints = None
         self._llvm_reads = None
+        self._llvm_intrin_reads = None
         self._llvm_writes = None
         self._llvm_ins_str = None
+        self._llvm_intrin_ins_str = None
         self._llvm_outs_str = None
         self._llvm_imm_types = None
         self._process_fields()
 
+    def check_asm_str(self, to_check: Optional[str] = None):
+        if to_check is None:
+            assert self.assembly is not None
+            to_check = self.assembly
+        required_op_names = set(self.operands.keys())
+        # required_ops = list(self.operands.values())
+        cur = to_check.replace(" ", "").replace("\n", "")
+        cur = re.sub(r"name\(([a-zA-Z0-9_\+]+)\)", r"\g<1>", cur)
+        # remove fmt
+        # cur = re.sub(r"\{(\w+):[^}]*\}", r"{\1}", cur)
+        cur = re.sub(r"{([a-zA-Z0-9_\+]+):[^}]*}", r"{\g<1>}", cur)
+        cur = re.sub(r"{([a-zA-Z0-9_\+]+)}", r"\g<1>", cur)
+        # remove offsets
+        cur = re.sub(r"[0-9]+\+([a-zA-Z0-9]+)", r"\g<1>", cur)
+        cur = re.sub(r"([a-zA-Z0-9]+)\+[0-9]+", r"\g<1>", cur)
+
+        def find_next_sep(inp):
+            seps = [",", "(", ")", "!"]
+            first_sep = None
+            first_pos = None
+            for sep in seps:
+                pos = inp.find(sep)
+                if pos is not None and pos >= 0:
+                    if first_sep is None or pos < first_pos:
+                        first_sep = sep
+                        first_pos = pos
+            return first_sep, first_pos
+
+        tokens = []
+        expected = None
+        while True:
+            if len(cur) == 0:
+                break
+            found = find_next_sep(cur)
+            if found is None or found[0] is None:
+                token = cur
+                tokens.append(token)
+                break
+            sep, pos = found
+            if expected:
+                assert sep == expected, f"Found '{sep}', expected '{expected}'"
+                expected = None
+            if sep == "(":
+                expected = ")"
+            token = cur[:pos]
+            cur = cur[pos + 1 :]
+            tokens.append(token)
+        unique_tokens = set(tokens)
+        token_counts = {token: tokens.count(token) for token in unique_tokens}
+        invalid_token_counts = {token: count for token, count in token_counts.items() if count > 1}
+        if len(invalid_token_counts):
+            names_str = ", ".join(invalid_token_counts.keys())
+            assert False, f"Duplicate op names in asm string: {names_str}"
+        missing_op_names = required_op_names - unique_tokens
+        if len(missing_op_names) > 0:
+            names_str = ", ".join(missing_op_names)
+            assert False, f"Unknown op name(s) in asm string: {names_str}"
+        unknown_op_names = unique_tokens - required_op_names
+        if len(unknown_op_names) > 0:
+            names_str = ", ".join(unknown_op_names)
+            assert False, f"Unknown op name(s) in asm string: {names_str}"
+        # input("@@@")
+
     def get_asm_str(self):
         if self.assembly is not None:
             assert isinstance(self.assembly, str)
+            self.check_asm_str(self.assembly)
             return self.assembly
         assert self.operands is not None
         # print("self.operands", self.operands)
@@ -357,6 +494,7 @@ class Seal5Instruction(Instruction):
         asm_str = ", ".join([helper(op) for op in sorted_operands])
         # print("asm_str", asm_str)
         # input(">")
+        self.check_asm_str(asm_str)
         self.assembly = asm_str
         return self.assembly
 
@@ -436,28 +574,55 @@ class Seal5Instruction(Instruction):
         #     asm_idx = asm_order.index(f"${op_name}")
         #     assert asm_idx == op_idx, "Order of asm operands does not match CDSL operands"
 
-    def _llvm_process_operands(self):
+    def _llvm_process_operands(self, intrin=False):
         operands = self.operands
         reads = []
+        intrin_reads = []
         writes = []
         constraints = []
         self._llvm_check_operands()
         imm_types = set()
+        intrin_imm_types = set()
+        # imm_prefix = None
+        imm_prefix = "seal5_"
         for op_name, op in operands.items():
+            intrin_pre = None
             if len(op.constraints) > 0:
                 raise NotImplementedError
             if Seal5OperandAttribute.IS_REG in op.attributes:
                 assert Seal5OperandAttribute.REG_CLASS in op.attributes
                 cls = op.attributes[Seal5OperandAttribute.REG_CLASS]
-                assert cls in ["GPR", "GPRC"]
+                assert cls in ["GPR", "GPRC", "FPR"], f"Unhandled reg class: {cls}"
+                if cls == "FPR":
+                    assert Seal5OperandAttribute.REG_TYPE in op.attributes
+                    reg_type = op.attributes[Seal5OperandAttribute.REG_TYPE]
+                    assert reg_type[0] == "f"
+                    flen = int(reg_type[1:])
+                    cls = f"FPR{flen}"
                 pre = cls
             elif Seal5OperandAttribute.IS_IMM in op.attributes:
                 assert Seal5OperandAttribute.TYPE in op.attributes
                 ty = op.attributes[Seal5OperandAttribute.TYPE]
                 assert ty[0] in ["u", "s"]
                 sz = int(ty[1:])
+                # TODO: always add seal5 prefix?
+                # TODO: differentiate between immleafs?
                 pre = f"{ty[0]}imm{sz}"
+                if imm_prefix is not None:
+                    pre = imm_prefix + pre
                 imm_types.add(pre)
+                if intrin:
+                    if imm_prefix is not None:
+                        intrin_pre = f"{imm_prefix}t{pre}"
+                    else:
+                        intrin_pre = f"t{pre}"
+                    imm_types.add(pre)
+                intrin_imm_types.add(intrin_pre)
+                if Seal5OperandAttribute.LLVM_TYPE not in op.attributes:
+                    # print("add Seal5OperandAttribute.LLVM_TYPE", pre)
+                    op.attributes[Seal5OperandAttribute.LLVM_TYPE] = pre
+                    # print("op.attributes", op.attributes)
+                    # input("%%%")
                 # TODO: handle lsb0, lsb00,...
                 # TODO: annotate operands via attributes
 
@@ -468,6 +633,8 @@ class Seal5Instruction(Instruction):
                 writes.append(op_str2)
                 op_str = f"{pre}:${op_name}"
                 reads.append(op_str)
+                if intrin:
+                    intrin_reads.append(op_str)
                 constraint = f"${op_name} = ${op_name}_wb"
                 constraints.append(constraint)
 
@@ -476,9 +643,20 @@ class Seal5Instruction(Instruction):
                 writes.append(op_str)
             elif Seal5OperandAttribute.IN in op.attributes:
                 op_str = f"{pre}:${op_name}"
+                if intrin:
+                    intrin_op_str = f"{intrin_pre}:${op_name}" if intrin_pre is not None else op_str
+                    reads.append(op_str)
+                intrin_reads.append(intrin_op_str)
                 reads.append(op_str)
+            elif Seal5OperandAttribute.UNUSED in op.attributes:
+                # TODO: alternatively we could silently drop it or default to zeros?
+                raise RuntimeError(f"Found unused operand: {op_name}")
+            else:
+                raise RuntimeError(f"Found unused operand: {op_name}")
         self._llvm_constraints = constraints
         self._llvm_reads = reads
+        if intrin:
+            self._llvm_intrin_reads = intrin_reads
         self._llvm_writes = writes
         self._llvm_imm_types = imm_types
 
@@ -523,6 +701,12 @@ class Seal5Instruction(Instruction):
         return self._llvm_reads
 
     @property
+    def llvm_intrin_reads(self):
+        if self._llvm_intrin_reads is None:
+            self._llvm_process_operands(intrin=True)
+        return self._llvm_intrin_reads
+
+    @property
     def llvm_writes(self):
         if self._llvm_writes is None:
             self._llvm_process_operands()
@@ -544,6 +728,17 @@ class Seal5Instruction(Instruction):
                 assert len(reads) == 0
             self._llvm_ins_str = ins_str
         return self._llvm_ins_str
+
+    @property
+    def llvm_intrin_ins_str(self):
+        if self._llvm_intrin_ins_str is None:
+            reads = self.llvm_intrin_reads
+            reads_ = [(x.split(":", 1)[1] if ":" in x else x) for x in reads]
+            ins_str = ", ".join([reads[reads_.index(x)] for x in self._llvm_asm_order if x in reads_])
+            if len(ins_str) == 0:
+                assert len(reads) == 0
+            self._llvm_intrin_ins_str = ins_str
+        return self._llvm_intrin_ins_str
 
     @property
     def llvm_outs_str(self):
@@ -595,8 +790,13 @@ class Seal5Instruction(Instruction):
         uncompressed = None
         assert set_def is not None
         for _, instr_def in set_def.instructions.items():
-            if instr_def.name == uncompressed_instr:
+            name = instr_def.name
+            # handle SEAL5_ prefix?
+            if name.startswith("SEAL5_"):
+                name = name.replace("SEAL5_", "")
+            if name == uncompressed_instr:
                 uncompressed = instr_def
+                uncompressed_instr = instr_def.name
                 break
         assert uncompressed is not None, f"Could not find instr {uncompressed_instr} in set {set_def.name}"
         # TODO: rs1_wb vs. rd_wb?

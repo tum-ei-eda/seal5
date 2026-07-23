@@ -19,10 +19,9 @@
 """Command line subcommand for Testing seal5 environment."""
 
 from seal5.flow import Seal5Flow
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
-
-logger = get_logger()
+logger = Logger("cli")
 
 
 def add_test_options(parser):

@@ -7,6 +7,7 @@
 # Technical University of Munich
 
 """TODO"""
+
 from functools import reduce
 
 from enum import IntFlag, auto
@@ -224,8 +225,10 @@ def type_conv(self: behav.TypeConv, context):
 def callable_(self: behav.Callable, context):
     # print("callable")
     args = [stmt.generate(context) for stmt in self.args]
-
-    return reduce(lambda x, y: x | y, args)
+    if len(args) > 0:
+        return reduce(lambda x, y: x | y, args)
+    else:
+        return Mode.NONE
 
 
 def group(self: behav.Group, context):

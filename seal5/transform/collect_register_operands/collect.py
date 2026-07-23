@@ -21,7 +21,9 @@ from seal5.model_utils import load_model, dump_model
 
 from . import visitor
 
-logger = logging.getLogger("collect_register_operands")
+from seal5.logging import Logger
+
+logger = Logger("transform.collect_register_operands")
 
 
 class VisitorContext:
@@ -43,7 +45,7 @@ def get_parser():
 
 def run(args):
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)

@@ -6,5 +6,5 @@ int test_nand(int a, int b) {
     // CHECK: <test_nand>
     // Can't rely upon specific registers being used but at least instruction should have been used
     // CHECK: cv.nand.bitwise
-    return __builtin_xcv_nand_bitwise(a, b);
+    return __builtin_riscv_xcorevnand_xcv_nand_bitwise(a, b);
 }

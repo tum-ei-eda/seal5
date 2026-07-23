@@ -17,17 +17,28 @@ from seal5.index import write_index_yaml, NamedPatch
 
 from seal5.settings import Seal5Settings
 
-logger = logging.getLogger("riscv_field_types")
+from seal5.logging import Logger
 
-SEAL5_RISCV_FIELDS_SUPPORT = """class Seal5RISCVUImmOp<int bitsNum> : RISCVOp {
-  let ParserMatchClass = UImmAsmOperand<bitsNum>;
+logger = Logger("backends.riscv_field_types")
+
+SEAL5_RISCV_FIELDS_SUPPORT = """class Seal5SImmAsmOperand<int width, string suffix = "">
+    : ImmAsmOperand<"Seal5S", width, suffix> {
+  let PredicateMethod = "isSeal5SImm" # width;
+}
+
+class Seal5UImmAsmOperand<int width, string suffix = "">
+    : ImmAsmOperand<"Seal5U", width, suffix> {
+  let PredicateMethod = "isSeal5UImm" # width;
+}
+class Seal5RISCVUImmOp<int bitsNum> : RISCVOp {
+  let ParserMatchClass = Seal5UImmAsmOperand<bitsNum>;
   let DecoderMethod = "decodeUImmOperand<" # bitsNum # ">";
   let OperandType = "SEAL5_OPERAND_UIMM" # bitsNum;
 }
 class Seal5RISCVUImmLeafOp<int bitsNum> :
   Seal5RISCVUImmOp<bitsNum>, ImmLeaf<XLenVT, "return isUInt<" # bitsNum # ">(Imm);">;
 class Seal5RISCVSImmOp<int bitsNum> : RISCVOp {
-  let ParserMatchClass = SImmAsmOperand<bitsNum>;
+  let ParserMatchClass = Seal5SImmAsmOperand<bitsNum>;
   let EncoderMethod = "getImmOpValue";
   let DecoderMethod = "decodeSImmOperand<" # bitsNum # ">";
   let OperandType = "SEAL5_OPERAND_SIMM" # bitsNum;
@@ -37,19 +48,32 @@ class Seal5RISCVSImmLeafOp<int bitsNum> :
 """
 
 
-def gen_riscv_field_types_str(field_types):
+def gen_riscv_field_types_str(field_types, llvm_settings):
     # print("gen_riscv_field_types_str", field_types)
     riscv_field_types_contents = [SEAL5_RISCV_FIELDS_SUPPORT] if len(field_types) > 0 else []
     riscv_operands_asm_contents = []
     riscv_operands_enum_contents = []
 
+    llvm_major_version = None
+    if llvm_settings:
+        llvm_state = llvm_settings.state
+        if llvm_state:
+            llvm_version = llvm_state.version  # unused today, but needed very soon
+            llvm_major_version = llvm_version.major
+    assert llvm_major_version is not None
+
     for field_type in field_types:
         # print("field_type", field_type)
-        matches = re.compile(r"([us])imm(\d+|log2xlen)([_a-zA-Z].*)?").match(field_type)
+        matches = re.compile(r"([a-zA-Z0-9_]+)?([us])imm(\d+|log2xlen)([_a-zA-Z].*)?").match(field_type)
         assert matches is not None, f"Field type not supported: {field_type}"
         # print("matches", matches)
         groups = list(matches.groups())
-        sign_letter, imm_size, suffix = groups
+        prefix, sign_letter, imm_size, suffix = groups
+        if prefix:
+            assert prefix in ["seal5", "seal5_"]
+            prefix2 = "Seal5"
+        else:
+            prefix2 = ""
         # print("sign_letter", sign_letter)
         # print("imm_size", imm_size)
         # print("suffix", suffix)
@@ -77,14 +101,16 @@ def gen_riscv_field_types_str(field_types):
             assert False  # Should not be reached
         riscv_field_types_contents.append(temp)
         sign_letter_upper = sign_letter.upper()
-        if sign_letter_upper == "U":
-            temp = (
-                f"bool is{sign_letter_upper}Imm{imm_size}() const {{ return Is{sign_letter_upper}Imm<{imm_size}>(); }}"
-            )
+        if llvm_major_version >= 21:
+            temp = f"bool is{prefix2}{sign_letter_upper}Imm{imm_size}() const {{ return is{sign_letter_upper}Imm<{imm_size}>(); }}"
+        elif sign_letter_upper == "U":
+            assert llvm_major_version < 21
+            temp = f"bool is{prefix2}{sign_letter_upper}Imm{imm_size}() const {{ return Is{sign_letter_upper}Imm<{imm_size}>(); }}"
         elif sign_letter_upper == "S":
+            assert llvm_major_version < 21
             # TODO: introduce `template <unsigned N> bool IsSImm() const {`
             # to make this more clean
-            temp = f"""bool is{sign_letter_upper}Imm{imm_size}() const {{
+            temp = f"""bool is{prefix2}{sign_letter_upper}Imm{imm_size}() const {{
       if (!isImm())
         return false;
       RISCVMCExpr::VariantKind VK = RISCVMCExpr::VK_RISCV_None;
@@ -97,6 +123,8 @@ def gen_riscv_field_types_str(field_types):
             assert False  # Should not be reached
         riscv_operands_asm_contents.append(temp)
         field_type_upper = field_type.upper()
+        if "SEAL5_" in field_type_upper:
+            field_type_upper = field_type_upper.replace("SEAL5_", "")
         temp = f"  SEAL5_OPERAND_{field_type_upper},"
         riscv_operands_enum_contents.append(temp)
 
@@ -122,13 +150,15 @@ def main():
     args = parser.parse_args()
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     # top_level = pathlib.Path(args.top_level)
     assert args.yaml is not None
     assert pathlib.Path(args.yaml).is_file()
     settings = Seal5Settings.from_yaml_file(args.yaml)
+    llvm_settings = settings.llvm
+    assert llvm_settings is not None
 
     # print("settings", settings)
     # print("settings.models", settings.models)
@@ -171,7 +201,7 @@ def main():
     # TODO: error handling?
     if len(missing_imm_types) > 0:
         field_types_content, riscv_operands_asm_content, riscv_operands_enum_content = gen_riscv_field_types_str(
-            missing_imm_types
+            missing_imm_types, llvm_settings
         )
     else:
         field_types_content, riscv_operands_asm_content, riscv_operands_enum_content = "", "", ""

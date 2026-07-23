@@ -8,4 +8,5 @@ intrinsics:
       arg_type: i32
     instr_name: CV_NAND_BITWISE
     intrinsic_name: xcv_nand_bitwise
+    set_name: XCoreVNand
     ret_type: i32

@@ -1,4 +1,4 @@
-; RUN: llc -O0 -mtriple=riscv32 -mattr=+m,+xopenasipbase -verify-machineinstrs -global-isel=1 < %s \
+; RUN: llc -O0 -mtriple=riscv32 -mattr=+m,+experimental-xopenasipbase -verify-machineinstrs -global-isel=1 < %s \
 ; RUN:   | FileCheck %s --check-prefixes=CHECK,CHECK-GISEL
 
 declare i32 @llvm.umax.i32(i32, i32)

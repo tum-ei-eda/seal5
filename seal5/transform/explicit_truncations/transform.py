@@ -21,7 +21,9 @@ from seal5.model_utils import load_model, dump_model
 
 from . import visitor
 
-logger = logging.getLogger("explicit_truncations")
+from seal5.logging import Logger
+
+logger = Logger("transform.explicit_truncations")
 
 
 def get_parser():
@@ -37,7 +39,7 @@ def get_parser():
 
 def run(args):
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)

@@ -17,12 +17,14 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import pandas as pd
 
 from seal5.tools import cdsl2llvm
-from seal5.index import write_index_yaml, File, NamedPatch
+from seal5.index import write_index_yaml, File, NamedPatch, TestFile
 from seal5.model import Seal5InstrAttribute
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 from seal5.model_utils import load_model
 
-logger = logging.getLogger("patterngen_tablegen_writer")
+from seal5.logging import Logger
+
+logger = Logger("backends.patterngen_tablegen_writer")
 
 
 def main():
@@ -41,11 +43,13 @@ def main():
     parser.add_argument("--ext", type=str, default="td", help="Default file extension (if using --splitted)")
     parser.add_argument("--parallel", type=int, default=1, help="How many instructions should be processed in parallel")
     parser.add_argument("--compat", action="store_true")
+    parser.add_argument("--verbose", action="store_true")
+    parser.add_argument("--generate-tests", action="store_true")
     # parser.add_argument("--xlen", type=int, default=32, help="RISC-V XLEN")
     args = parser.parse_args()
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
@@ -83,6 +87,8 @@ def main():
 
         assert out_path.is_dir(), "Expecting output directory when using --splitted"
         for set_name, set_def in model_obj.sets.items():
+            if len(set_def.instructions) == 0:
+                continue
             xlen = set_def.xlen
             artifacts[set_name] = []
             metrics["n_sets"] += 1
@@ -131,7 +137,7 @@ def main():
                 assert install_dir is not None
                 install_dir = pathlib.Path(install_dir)
                 try:
-                    cdsl2llvm.run_pattern_gen(
+                    test_files = cdsl2llvm.run_pattern_gen(
                         # install_dir / "llvm" / "build",
                         install_dir,
                         input_file,
@@ -141,6 +147,7 @@ def main():
                         ext=predicate,
                         mattr=mattr,
                         xlen=xlen,
+                        verbose=args.verbose,
                     )
                     if output_file.is_file():
                         metrics["n_success"] += 1
@@ -157,6 +164,14 @@ def main():
                             artifacts[set_name].append(file_artifact)
                             include_path = f"{set_name}/{out_name}"
                             includes_.append(include_path)
+                        if args.generate_tests:
+                            # for test_file, test_content in test_files.items():
+                            for test_file in test_files:
+                                test_artifact = TestFile(
+                                    f"llvm/test/CodeGen/RISCV/seal5/generated/{pathlib.Path(test_file).name}",
+                                    src_path=test_file,
+                                )
+                                artifacts[set_name].append(test_artifact)
                     else:
                         metrics["n_failed"] += 1
                         metrics["failed_instructions"].append(instr_def.name)
@@ -180,7 +195,7 @@ def main():
                     if result_:
                         includes.extend(includes_)
             if len(includes) > 0:
-                set_includes_str = "\n".join([f'include "seal5/{inc}"' for inc in includes])
+                set_includes_str = "\n".join([f'include "seal5/{inc}"' for inc in sorted(includes)])
                 if len(set_includes_str.strip()) > 0:
                     set_includes_artifact_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}.td"
                     set_name_lower = set_name.lower()

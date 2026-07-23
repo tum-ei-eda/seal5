@@ -18,11 +18,10 @@
 #
 """Command line subcommand for Exporting Seal5 artifacts"""
 
-from seal5.logging import get_logger
+from seal5.logging import Logger
 from seal5.wrapper import run_seal5_flow
 
-
-logger = get_logger()
+logger = Logger("cli")
 
 
 def add_wrapper_options(parser):

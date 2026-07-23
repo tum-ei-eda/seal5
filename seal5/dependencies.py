@@ -27,12 +27,22 @@ import git
 from git import RemoteProgress
 from tqdm import tqdm
 
-from seal5.logging import get_logger
+from seal5.logging import Logger
 from seal5.settings import LLVMVersion
 from seal5.utils import is_populated
 #from .tools.llvm import CloneProgress  # TODO: move to other file
 
-logger = get_logger()
+logger = Logger("dependencies")
+
+class CloneProgress(RemoteProgress):
+    def __init__(self):
+        super().__init__()
+        self.pbar = tqdm()
+
+    def update(self, op_code, cur_count, max_count=None, message=""):
+        self.pbar.total = max_count
+        self.pbar.n = cur_count
+        self.pbar.refresh()
 
 class CloneProgress(RemoteProgress):
     def __init__(self):
@@ -149,7 +159,9 @@ def pick_coredsl2llvm_ref(ref: str, llvm_version: LLVMVersion):
 
     major, minor, patch = llvm_version.triple
 
-    if major == 20:
+    if major == 21:
+        ref = "llvm-21.1.7"
+    elif major == 20:
         ref = "llvm-20.1.0"
     elif major == 19:
         ref = "llvm-19.1.0"

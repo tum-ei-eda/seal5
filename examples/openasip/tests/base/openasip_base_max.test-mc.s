@@ -1,4 +1,4 @@
-# RUN: llvm-mc -triple=riscv32 --mattr=+xopenasipbase -show-encoding %s \
+# RUN: llvm-mc -triple=riscv32 --mattr=+experimental-xopenasipbase -show-encoding %s \
 # RUN:        | FileCheck %s --check-prefixes=CHECK-ENCODING,CHECK-INSTR
 
 openasip_base_max t0, t1, t2

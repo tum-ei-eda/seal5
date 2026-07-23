@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 """Patch utils for seal5."""
+
 import os
 import argparse
 from pathlib import Path
@@ -26,9 +27,9 @@ from email.utils import formatdate
 import yaml
 
 from seal5 import utils
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
-logger = get_logger()
+logger = Logger("tools")
 
 
 def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=None, msg=None, append=None):
@@ -93,7 +94,7 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
                     start_mark += line
         if start_mark is None:
             # fallback
-            logger.warning("Marker not found: {path}, {key}. Retrying without key...")
+            logger.warning(f"Marker not found: {path}, {key}. Retrying without key...")
             if key:
                 return find_site(path, None)
             assert False, f"Marker not found: {path}, {key}"
@@ -231,6 +232,20 @@ def process_arguments():
     )
     args = parser.parse_args()
     return args
+
+
+def get_full_diff(repo, base: str, cur: Optional[str] = None):
+    args = ["git", "diff"]
+    args += [base]
+    if cur is not None:
+        args += [cur]
+    out = utils.exec_getout(
+        *args,
+        cwd=repo.working_tree_dir,
+        print_func=lambda *args, **kwargs: None,
+        live=False,
+    )
+    return out
 
 
 def analyze_diff(repo, base: str, cur: Optional[str] = None):

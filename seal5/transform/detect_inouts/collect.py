@@ -23,7 +23,9 @@ from seal5.model_utils import load_model, dump_model
 from . import visitor
 from .utils import IOMode
 
-logger = logging.getLogger("detect_inouts")
+from seal5.logging import Logger
+
+logger = Logger("transform.detect_inouts")
 
 
 class VisitorContext:
@@ -31,6 +33,10 @@ class VisitorContext:
         self.reads = set()
         self.writes = set()
         self.stack = []
+
+    @property
+    def uses(self):
+        return self.reads | self.writes
 
     def push(self, mode):
         self.stack.append(mode)
@@ -60,7 +66,7 @@ def get_parser():
 
 def run(args):
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
@@ -99,6 +105,9 @@ def run(args):
                     elif op_name in context.writes:
                         if seal5.model.Seal5OperandAttribute.OUT not in instr_def.attributes:
                             op_def.attributes[seal5.model.Seal5OperandAttribute.OUT] = []
+                    if op_name not in context.uses:
+                        if seal5.model.Seal5OperandAttribute.UNUSED not in instr_def.attributes:
+                            op_def.attributes[seal5.model.Seal5OperandAttribute.UNUSED] = []
                 # print("---")
                 # print("instr_def.scalars.keys()", instr_def.scalars.keys())
                 for reg_name in context.reads:

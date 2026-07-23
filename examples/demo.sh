@@ -37,9 +37,9 @@ set -e
 export DEST=${DEST:-"/tmp/seal5_llvm_cli_demo"}
 # export NAME=${NAME:-"cli_demo"}
 
-Example_files=examples/example/cdsl/Example.core_desc
+CDSL_FILES=(examples/example/cdsl/Example.core_desc examples/tumeda/cdsl/XCoreVNand.core_desc)
 export SEAL5_HOME=$DEST
-Config_files=(examples/common/cfg/llvm.yml examples/common/cfg/filter.yml examples/common/cfg/patches.yml examples/common/cfg/riscv.yml examples/common/cfg/tests.yml examples/common/cfg/passes.yml examples/common/cfg/git.yml)
-Test_files=(examples/example/tests/xexample-*.s examples/example/tests/xexample-*.ll examples/example/tests/xexample-*.c)
+YAML_FILES=(examples/common/cfg/llvm.yml examples/common/cfg/filter.yml examples/common/cfg/patches.yml examples/common/cfg/riscv.yml examples/common/cfg/tests.yml examples/common/cfg/passes.yml examples/common/cfg/git.yml examples/example/cfg/intrinsics.yml examples/tumeda/cfg/intrinsics.yml)
+TEST_FILES=(examples/example/tests/xexample-*.s examples/example/tests/xexample-*.ll examples/example/tests/xexample-*.c examples/tumeda/tests/*.s examples/tumeda/tests/*.ll examples/tumeda/tests/*.c)
 
-seal5 --verbose --dir ${SEAL5_HOME} wrapper ${Example_files} ${Config_files[@]} ${Test_files[@]}
+seal5 --verbose --dir ${SEAL5_HOME} wrapper ${CDSL_FILES[@]} ${YAML_FILES[@]} ${TEST_FILES[@]}

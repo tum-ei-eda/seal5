@@ -3,15 +3,16 @@ from typing import Optional
 
 from seal5 import utils
 from seal5.tools import cdsl2llvm
-from seal5.logging import get_logger
+from seal5.logging import Logger
 from seal5.index import File, NamedPatch, write_index_yaml
 from seal5.passes import Seal5Pass, PassType, PassScope, PassManager, PassResult
 from seal5.types import PatchStage
 from seal5.settings import Seal5Settings, PatchSettings
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 from seal5.metrics import read_metrics
+from seal5.testgen_utils import collect_generated_test_files
 
-logger = get_logger()
+logger = Logger("pass_list")
 
 
 def sanitize_args(args):
@@ -26,7 +27,7 @@ def convert_models(
     inplace: bool = False,
     use_subprocess: bool = True,  # This breaks if parallel and called without process
     prefix: Optional[str] = None,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert not inplace
@@ -42,7 +43,7 @@ def convert_models(
         "-o",
         settings.models_dir / new_name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
     ]
     if prefix:
         assert isinstance(prefix, str)
@@ -59,7 +60,7 @@ def convert_models(
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
-            live=True,
+            live=verbose,
         )
     return PassResult(metrics=metrics)
 
@@ -71,7 +72,7 @@ def optimize_model(
     verbose: bool = False,
     inplace: bool = True,
     use_subprocess: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert inplace
@@ -82,7 +83,7 @@ def optimize_model(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
     ]
     if not use_subprocess:
         from seal5.transform.optimize_instructions import OptimizeInstructions
@@ -96,7 +97,7 @@ def optimize_model(
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
-            live=True,
+            live=verbose,
         )
 
 
@@ -107,7 +108,7 @@ def inline_functions(
     verbose: bool = False,
     inplace: bool = True,
     use_subprocess: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert inplace
@@ -118,7 +119,7 @@ def inline_functions(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
     ]
     # Warning: only functions marked with [[inline]] will be processed
     if not use_subprocess:
@@ -133,7 +134,7 @@ def inline_functions(
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
-            live=True,
+            live=verbose,
         )
     return PassResult(metrics={})
 
@@ -145,7 +146,7 @@ def infer_types(
     verbose: bool = False,
     inplace: bool = True,
     use_subprocess: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert inplace
@@ -156,7 +157,7 @@ def infer_types(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
     ]
     if not use_subprocess:
         from seal5.transform.infer_types import InferTypes
@@ -170,7 +171,7 @@ def infer_types(
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
-            live=True,
+            live=verbose,
         )
     return PassResult(metrics={})
 
@@ -182,7 +183,7 @@ def simplify_trivial_slices(
     verbose: bool = False,
     inplace: bool = True,
     use_subprocess: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert inplace
@@ -194,7 +195,7 @@ def simplify_trivial_slices(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
     ]
     if gen_metrics_file:
         # TODO: move to .seal5/metrics
@@ -212,7 +213,7 @@ def simplify_trivial_slices(
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
-            live=True,
+            live=verbose,
         )
     metrics = {}
     if gen_metrics_file:
@@ -227,7 +228,7 @@ def explicit_truncations(
     verbose: bool = False,
     inplace: bool = True,
     use_subprocess: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert inplace
@@ -239,7 +240,7 @@ def explicit_truncations(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
     ]
     if gen_metrics_file:
         # TODO: move to .seal5/metrics
@@ -257,7 +258,7 @@ def explicit_truncations(
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
-            live=True,
+            live=verbose,
         )
     if gen_metrics_file:
         metrics = read_metrics(metrics_file)
@@ -271,7 +272,7 @@ def process_settings(
     verbose: bool = False,
     inplace: bool = True,
     use_subprocess: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert inplace
@@ -283,7 +284,7 @@ def process_settings(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
         "--yaml",
         settings.settings_file,
     ]
@@ -299,7 +300,7 @@ def process_settings(
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
-            live=True,
+            live=verbose,
         )
     return PassResult(metrics={})
 
@@ -311,7 +312,7 @@ def filter_model(
     verbose: bool = False,
     inplace: bool = True,
     use_subprocess: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert inplace
@@ -349,7 +350,7 @@ def filter_model(
         settings.models_dir / name,
         *filter_args,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
     ]
     if not use_subprocess:
         from seal5.transform.filter_model import FilterModel
@@ -363,7 +364,7 @@ def filter_model(
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
-            live=True,
+            live=verbose,
         )
     return PassResult(metrics={})
 
@@ -375,7 +376,7 @@ def drop_unused(
     verbose: bool = False,
     inplace: bool = True,
     use_subprocess: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert inplace
@@ -386,7 +387,7 @@ def drop_unused(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
     ]
     if not use_subprocess:
         from seal5.transform.drop_unused import DropUnused
@@ -400,7 +401,7 @@ def drop_unused(
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
-            live=True,
+            live=verbose,
         )
 
 
@@ -411,7 +412,7 @@ def detect_registers(
     verbose: bool = False,
     inplace: bool = True,
     use_subprocess: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert inplace
@@ -422,7 +423,7 @@ def detect_registers(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
     ]
     if not use_subprocess:
         from seal5.transform.detect_registers import DetectRegisters
@@ -436,7 +437,7 @@ def detect_registers(
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
-            live=True,
+            live=verbose,
         )
     return PassResult(metrics={})
 
@@ -448,7 +449,7 @@ def detect_behavior_constraints(
     verbose: bool = False,
     inplace: bool = True,
     use_subprocess: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert inplace
@@ -460,7 +461,7 @@ def detect_behavior_constraints(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
     ]
     if gen_metrics_file:
         # TODO: move to .seal5/metrics
@@ -478,7 +479,7 @@ def detect_behavior_constraints(
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
-            live=True,
+            live=verbose,
         )
     metrics = {}
     if gen_metrics_file:
@@ -493,7 +494,7 @@ def detect_side_effects(
     verbose: bool = False,
     inplace: bool = True,
     use_subprocess: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert inplace
@@ -505,7 +506,7 @@ def detect_side_effects(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
     ]
     if gen_metrics_file:
         # TODO: move to .seal5/metrics
@@ -523,7 +524,7 @@ def detect_side_effects(
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
-            live=True,
+            live=verbose,
         )
     metrics = {}
     if gen_metrics_file:
@@ -538,7 +539,7 @@ def detect_inouts(
     verbose: bool = False,
     inplace: bool = True,
     use_subprocess: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert inplace
@@ -550,7 +551,7 @@ def detect_inouts(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
     ]
     if gen_metrics_file:
         # TODO: move to .seal5/metrics
@@ -568,7 +569,7 @@ def detect_inouts(
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
-            live=True,
+            live=verbose,
         )
     metrics = {}
     if gen_metrics_file:
@@ -583,7 +584,7 @@ def collect_operand_types(
     verbose: bool = False,
     inplace: bool = True,
     use_subprocess: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert inplace
@@ -594,7 +595,7 @@ def collect_operand_types(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
         "--skip-failing",
     ]
     if not use_subprocess:
@@ -609,9 +610,8 @@ def collect_operand_types(
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
-            live=True,
+            live=verbose,
         )
-    # input("<")
 
 
 def collect_register_operands(
@@ -621,7 +621,7 @@ def collect_register_operands(
     verbose: bool = False,
     inplace: bool = True,
     use_subprocess: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert inplace
@@ -633,7 +633,7 @@ def collect_register_operands(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
     ]
     if gen_metrics_file:
         # TODO: move to .seal5/metrics
@@ -651,7 +651,7 @@ def collect_register_operands(
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
-            live=True,
+            live=verbose,
         )
     metrics = {}
     if gen_metrics_file:
@@ -666,7 +666,7 @@ def collect_immediate_operands(
     verbose: bool = False,
     inplace: bool = True,
     use_subprocess: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert inplace
@@ -678,7 +678,7 @@ def collect_immediate_operands(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
     ]
     if gen_metrics_file:
         # TODO: move to .seal5/metrics
@@ -696,7 +696,7 @@ def collect_immediate_operands(
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
-            live=True,
+            live=verbose,
         )
     metrics = {}
     if gen_metrics_file:
@@ -711,7 +711,7 @@ def eliminate_rd_cmp_zero(
     verbose: bool = False,
     inplace: bool = True,
     use_subprocess: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert inplace
@@ -722,7 +722,7 @@ def eliminate_rd_cmp_zero(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
     ]
     if not use_subprocess:
         from seal5.transform.eliminate_rd_cmp_zero import EliminateRdCmpZero
@@ -736,7 +736,7 @@ def eliminate_rd_cmp_zero(
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
-            live=True,
+            live=verbose,
         )
     return PassResult(metrics={})
 
@@ -748,7 +748,7 @@ def eliminate_mod_rfs(
     verbose: bool = False,
     inplace: bool = True,
     use_subprocess: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert inplace
@@ -759,7 +759,7 @@ def eliminate_mod_rfs(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
     ]
     if not use_subprocess:
         from seal5.transform.eliminate_mod_rfs import EliminateModRFS
@@ -773,7 +773,7 @@ def eliminate_mod_rfs(
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
-            live=True,
+            live=verbose,
         )
 
 
@@ -784,7 +784,7 @@ def write_yaml(
     verbose: bool = False,
     inplace: bool = True,
     use_subprocess: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     del use_subprocess  # unused
@@ -799,7 +799,7 @@ def write_yaml(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
         "--output",
         settings.temp_dir / new_name,
     ]
@@ -809,7 +809,7 @@ def write_yaml(
         *args,
         env=env,
         print_func=logger.info if verbose else logger.debug,
-        live=True,
+        live=verbose,
     )
     new_settings: Seal5Settings = Seal5Settings.from_yaml_file(settings.temp_dir / new_name)
     settings.merge(new_settings, overwrite=False, inplace=True)
@@ -826,7 +826,7 @@ def write_cdsl(
     use_subprocess: bool = False,
     split: bool = False,
     compat: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     del use_subprocess  # unused
@@ -845,7 +845,7 @@ def write_cdsl(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
         "--output",
         settings.temp_dir / new_name,
     ]
@@ -864,7 +864,7 @@ def write_cdsl(
         *args,
         env=env,
         print_func=logger.info if verbose else logger.debug,
-        live=True,
+        live=verbose,
     )
     # args_compat = [
     #     settings.models_dir / name,
@@ -883,7 +883,7 @@ def write_cdsl(
     #     *args_compat,
     #     env=env,
     #     print_func=logger.info if verbose else logger.debug,
-    #     live=True,
+    #     live=verbose,
     # )
     # return PassResult(metrics={})
 
@@ -931,7 +931,7 @@ def write_cdsl(
 #                     *args,
 #                     env=env,
 #                     print_func=logger.info if verbose else logger.debug,
-#                     live=True,
+#                     live=verbose,
 #                 )
 #                 logger.info("Writing CDSL for %s/%s", sub, insn_name)
 #                 args = [
@@ -948,7 +948,7 @@ def write_cdsl(
 #                     *args,
 #                     env=env,
 #                     print_func=logger.info if verbose else logger.debug,
-#                     live=True,
+#                     live=verbose,
 #                 )
 #                 args_compat = [
 #                     settings.temp_dir / sub / set_name / f"{insn_name}.seal5model",
@@ -965,7 +965,7 @@ def write_cdsl(
 #                     *args_compat,
 #                     env=env,
 #                     print_func=logger.info if verbose else logger.debug,
-#                     live=True,
+#                     live=verbose,
 #                 )
 #    return PassResult(metrics={})
 
@@ -976,7 +976,7 @@ def convert_behav_to_llvmir(
     env: Optional[dict] = None,
     verbose: bool = False,
     split: bool = True,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert split, "TODO"
@@ -992,7 +992,7 @@ def convert_behav_to_llvmir(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
         "--output",
         settings.temp_dir / new_name,
     ]
@@ -1009,7 +1009,7 @@ def convert_behav_to_llvmir(
         *args,
         env=env,
         print_func=logger.info if verbose else logger.debug,
-        live=True,
+        live=verbose,
     )
     metrics = {}
     if gen_metrics_file:
@@ -1026,7 +1026,8 @@ def convert_behav_to_tablegen(
     formats: bool = True,
     patterns: bool = True,
     parallel: bool = False,
-    log_level: str = "debug",
+    gen_tests: bool = True,
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert split, "TODO"
@@ -1044,7 +1045,7 @@ def convert_behav_to_tablegen(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
         "--output",
         settings.temp_dir / new_name,
     ]
@@ -1061,18 +1062,22 @@ def convert_behav_to_tablegen(
     if gen_index_file:
         index_file = settings.temp_dir / (new_name + "_tblgen_patterns_index.yml")
         args.extend(["--index", index_file])
+    if gen_tests:
+        args.append("--generate-tests")
     if parallel:
         import multiprocessing
 
         num_threads = multiprocessing.cpu_count()
         args.extend(["--parallel", str(num_threads)])
+    if verbose:
+        args.append("--verbose")
     utils.python(
         "-m",
         "seal5.backends.patterngen.writer",
         *args,
         env=env,
         print_func=logger.info if verbose else logger.debug,
-        live=True,
+        live=verbose,
     )
     if gen_index_file:
         if index_file.is_file():
@@ -1085,6 +1090,7 @@ def convert_behav_to_tablegen(
                 generated=True,
                 target="llvm",
             )
+            generated_test_files = collect_generated_test_files(index_file)
             settings.add_patch(patch_settings)
             settings.to_yaml_file(settings.settings_file)
         else:
@@ -1101,7 +1107,8 @@ def gen_riscv_features_patch(
     env: Optional[dict] = None,
     verbose: bool = False,
     split: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
+    gen_tests: bool = True,
     **_kwargs,
 ):
     assert not split, "TODO"
@@ -1119,7 +1126,7 @@ def gen_riscv_features_patch(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
         "--output",
         out_dir / "riscv_features.patch",
     ]
@@ -1131,21 +1138,26 @@ def gen_riscv_features_patch(
     if gen_index_file:
         index_file = out_dir / ("riscv_features_index.yml")
         args.extend(["--index", index_file])
+    if gen_tests:
+        args.append("--generate-tests")
     utils.python(
         "-m",
         "seal5.backends.riscv_features.writer",
         *args,
         env=env,
         print_func=logger.info if verbose else logger.debug,
-        live=True,
+        live=verbose,
     )
     if gen_index_file:
         if index_file.is_file():
+            comment = f"Generated RISCVFeatures.td patch for {input_file.name}"
+            if gen_tests:
+                comment += " + generated tests"
             patch_name = f"riscv_features_{input_file.stem}"
             patch_settings = PatchSettings(
                 name=patch_name,
                 stage=int(PatchStage.PHASE_2),
-                comment=f"Generated RISCVFeatures.td patch for {input_file.name}",
+                comment=comment,
                 index=str(index_file),
                 generated=True,
                 target="llvm",
@@ -1166,7 +1178,7 @@ def gen_riscv_isa_info_patch(
     env: Optional[dict] = None,
     verbose: bool = False,
     split: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert not split, "TODO"
@@ -1192,7 +1204,7 @@ def gen_riscv_isa_info_patch(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
         "--output",
         out_dir / "riscv_isa_info.patch",
     ]
@@ -1210,7 +1222,7 @@ def gen_riscv_isa_info_patch(
         *args,
         env=env,
         print_func=logger.info if verbose else logger.debug,
-        live=True,
+        live=verbose,
     )
     if gen_index_file:
         if index_file.is_file():
@@ -1233,13 +1245,101 @@ def gen_riscv_isa_info_patch(
     return PassResult(metrics=metrics)
 
 
+def handle_auto_unroll_operands(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    # split: bool = False,
+    log_level: str = "warning",
+    ignore_failing: bool = False,
+    use_subprocess: bool = False,
+    **kwargs,
+):
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    # new_name = name.replace(".seal5model", "")
+    logger.info("Handle auto_unroll operands for %s", name)
+
+    settings.save()
+    args = [
+        settings.models_dir / name,
+        "--log",
+        log_level if not verbose else "debug",
+        # "--yaml",
+        # settings.settings_file,
+    ]
+    if ignore_failing:
+        args.append("--ignore-failing")
+    if not use_subprocess:
+        from seal5.transform.handle_auto_unroll_operands import HandleAutoUnrollOperands
+
+        args = sanitize_args(args)
+        HandleAutoUnrollOperands(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.handle_auto_unroll_operands.transform",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=verbose,
+        )
+    return PassResult(metrics={})
+
+
+def gen_auto_intrinsics(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    # split: bool = False,
+    log_level: str = "warning",
+    ignore_failing: bool = False,
+    use_subprocess: bool = False,
+    **kwargs,
+):
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    # new_name = name.replace(".seal5model", "")
+    logger.info("Generating auto-intrincics for %s", name)
+
+    settings.save()
+    args = [
+        settings.models_dir / name,
+        "--log",
+        log_level if not verbose else "debug",
+        # "--yaml",
+        # settings.settings_file,
+    ]
+    if ignore_failing:
+        args.append("--ignore-failing")
+    if not use_subprocess:
+        from seal5.transform.gen_auto_intrisics import GenAutoIntrinsics
+
+        args = sanitize_args(args)
+        GenAutoIntrinsics(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.gen_auto_intrinsics.transform",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=verbose,
+        )
+    return PassResult(metrics={})
+
+
 def gen_riscv_intrinsics(
     input_model: str,
     settings: Optional[Seal5Settings] = None,
     env: Optional[dict] = None,
     verbose: bool = False,
     split: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     ignore_failing: bool = False,
     **kwargs,
 ):
@@ -1258,7 +1358,7 @@ def gen_riscv_intrinsics(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
         "--output",
         out_dir / "riscv_intrinsics_info.patch",
     ]
@@ -1278,7 +1378,7 @@ def gen_riscv_intrinsics(
         *args,
         env=env,
         print_func=logger.info if verbose else logger.debug,
-        live=True,
+        live=verbose,
     )
     if gen_index_file:
         if index_file.is_file():
@@ -1307,7 +1407,7 @@ def gen_riscv_instr_info_patch(
     env: Optional[dict] = None,
     verbose: bool = False,
     split: bool = True,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     # assert not split, "TODO"
@@ -1331,7 +1431,7 @@ def gen_riscv_instr_info_patch(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
         "--output",
         out_path,
     ]
@@ -1349,7 +1449,7 @@ def gen_riscv_instr_info_patch(
         *args,
         env=env,
         print_func=logger.info if verbose else logger.debug,
-        live=True,
+        live=verbose,
     )
     if gen_index_file:
         if index_file.is_file():
@@ -1418,7 +1518,7 @@ def gen_riscv_register_info_patch(
         *args,
         env=env,
         print_func=logger.info if verbose else logger.debug,
-        live=True,
+        live=verbose,
     )
     if gen_index_file:
         if index_file.is_file():
@@ -1446,7 +1546,7 @@ def gen_riscv_gisel_legalizer_patch(
     settings: Optional[Seal5Settings] = None,
     env: Optional[dict] = None,
     verbose: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     gen_metrics_file = False  # TODO
@@ -1465,7 +1565,7 @@ def gen_riscv_gisel_legalizer_patch(
         "--yaml",
         settings.settings_file,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
         "--output",
         out_dir / "riscv_gisel_legalizer.patch",
     ]
@@ -1481,7 +1581,7 @@ def gen_riscv_gisel_legalizer_patch(
         *args,
         env=env,
         print_func=logger.info if verbose else logger.debug,
-        live=True,
+        live=verbose,
     )
     if gen_index_file:
         if index_file.is_file():
@@ -1611,6 +1711,8 @@ def convert_llvmir_to_gmir(
                 mattr = build_riscv_mattr(default_features, xlen)
                 if insn_names is None:
                     logger.warning("Skipping empty set %s", set_name)
+                    continue
+                if len(insn_names) == 0 and len(ext_settings.requires) > 0:
                     continue
                 assert len(insn_names) > 0, f"No instructions found in set: {set_name}"
                 # TODO: populate model in yaml backend!
@@ -1840,7 +1942,7 @@ def detect_imm_leafs(
     verbose: bool = False,
     inplace: bool = True,
     use_subprocess: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert inplace
@@ -1852,7 +1954,7 @@ def detect_imm_leafs(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
     ]
     if gen_metrics_file:
         # TODO: move to .seal5/metrics
@@ -1870,7 +1972,7 @@ def detect_imm_leafs(
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
-            live=True,
+            live=verbose,
         )
     metrics = {}
     if gen_metrics_file:
@@ -1885,7 +1987,7 @@ def detect_calls(
     verbose: bool = False,
     inplace: bool = True,
     use_subprocess: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert inplace
@@ -1897,7 +1999,7 @@ def detect_calls(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
     ]
     if gen_metrics_file:
         # TODO: move to .seal5/metrics
@@ -1915,7 +2017,7 @@ def detect_calls(
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
-            live=True,
+            live=verbose,
         )
     metrics = {}
     if gen_metrics_file:
@@ -1930,7 +2032,7 @@ def detect_loops(
     verbose: bool = False,
     inplace: bool = True,
     use_subprocess: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert inplace
@@ -1938,11 +2040,11 @@ def detect_loops(
     input_file = settings.models_dir / f"{input_model}.seal5model"
     assert input_file.is_file(), f"File not found: {input_file}"
     name = input_file.name
-    logger.info("Detecting imm leafs for %s", name)
+    logger.info("Detecting loops for %s", name)
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
     ]
     if gen_metrics_file:
         # TODO: move to .seal5/metrics
@@ -1957,6 +2059,51 @@ def detect_loops(
         utils.python(
             "-m",
             "seal5.transform.detect_loops.collect",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=verbose,
+        )
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
+
+
+def annotate_opcodes(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    use_subprocess: bool = False,
+    log_level: str = "debug",
+    **_kwargs,
+):
+    assert inplace
+    gen_metrics_file = True
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    logger.info("Annotating opcodes for %s", name)
+    args = [
+        settings.models_dir / name,
+        "--log",
+        log_level,
+    ]
+    if gen_metrics_file:
+        # TODO: move to .seal5/metrics
+        metrics_file = settings.temp_dir / (name + "_annotate_opcodes_metrics.csv")
+        args.extend(["--metrics", metrics_file])
+    if not use_subprocess:
+        from seal5.transform.annotate_opcodes import AnnotateOpcodes
+
+        args = sanitize_args(args)
+        AnnotateOpcodes(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.annotate_opcodes.annotate",
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
@@ -1975,7 +2122,7 @@ def check_pattern_support(
     verbose: bool = False,
     inplace: bool = True,
     use_subprocess: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     assert inplace
@@ -1987,7 +2134,7 @@ def check_pattern_support(
     args = [
         settings.models_dir / name,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
     ]
     if gen_metrics_file:
         # TODO: move to .seal5/metrics
@@ -2005,7 +2152,7 @@ def check_pattern_support(
             *args,
             env=env,
             print_func=logger.info if verbose else logger.debug,
-            live=True,
+            live=verbose,
         )
     metrics = {}
     if gen_metrics_file:
@@ -2018,7 +2165,7 @@ def gen_riscv_field_types_patch(
     settings: Optional[Seal5Settings] = None,
     env: Optional[dict] = None,
     verbose: bool = False,
-    log_level: str = "debug",
+    log_level: str = "warning",
     **_kwargs,
 ):
     gen_metrics_file = False  # TODO
@@ -2037,7 +2184,7 @@ def gen_riscv_field_types_patch(
         "--yaml",
         settings.settings_file,
         "--log",
-        log_level,
+        log_level if not verbose else "debug",
         "--output",
         out_dir / "riscv_gisel_legalizer.patch",
     ]
@@ -2053,7 +2200,7 @@ def gen_riscv_field_types_patch(
         *args,
         env=env,
         print_func=logger.info if verbose else logger.debug,
-        live=True,
+        live=verbose,
     )
     if gen_index_file:
         if index_file.is_file():
@@ -2062,6 +2209,77 @@ def gen_riscv_field_types_patch(
                 name=patch_name,
                 stage=int(PatchStage.PHASE_2),
                 comment="Generated RISCV field types patches",
+                index=str(index_file),
+                generated=True,
+                target="llvm",
+            )
+            settings.add_patch(patch_settings)
+            settings.to_yaml_file(settings.settings_file)
+        else:
+            logger.warning("No patches found!")
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
+
+
+def gen_riscv_disass_patch(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    split: bool = False,
+    log_level: str = "warning",
+    gen_tests: bool = True,
+    **_kwargs,
+):
+    assert not split, "TODO"
+    # formats = True
+    gen_metrics_file = True
+    gen_index_file = True
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    new_name = name.replace(".seal5model", "")
+    logger.info("Writing RISCVDisassembler.cpp patch for %s", name)
+    out_dir = settings.patches_dir / new_name
+    out_dir.mkdir(exist_ok=True)
+
+    args = [
+        settings.models_dir / name,
+        "--log",
+        log_level if not verbose else "debug",
+        # "--output",
+        # out_dir / "riscv_disass.patch",
+    ]
+    if split:
+        args.append("--splitted")
+    if gen_metrics_file:
+        metrics_file = out_dir / ("riscv_disass_metrics.csv")
+        args.extend(["--metrics", metrics_file])
+    if gen_index_file:
+        index_file = out_dir / ("riscv_disass_index.yml")
+        args.extend(["--index", index_file])
+    if gen_tests:
+        args.append("--generate-tests")
+    utils.python(
+        "-m",
+        "seal5.backends.riscv_disass.writer",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=verbose,
+    )
+    if gen_index_file:
+        if index_file.is_file():
+            comment = f"Generated RISCVDisassembler.cpp patch for {input_file.name}"
+            if gen_tests:
+                comment += " + generated tests"
+            patch_name = f"riscv_disass_{input_file.stem}"
+            patch_settings = PatchSettings(
+                name=patch_name,
+                stage=int(PatchStage.PHASE_2),
+                comment=comment,
                 index=str(index_file),
                 generated=True,
                 target="llvm",

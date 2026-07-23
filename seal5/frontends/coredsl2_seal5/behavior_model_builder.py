@@ -6,8 +6,6 @@
 # Chair of Electrical Design Automation
 # Technical University of Munich
 
-import logging
-
 from m2isar import M2NameError, M2SyntaxError, M2TypeError, flatten
 from m2isar.metamodel import arch, behav, intrinsics
 from m2isar.metamodel.utils import StaticType
@@ -16,7 +14,9 @@ from .utils import BOOLCONST, RADIX, SHORTHANDS, SIGNEDNESS
 
 # import seal5.model as seal5_model
 
-logger = logging.getLogger("behav_builder")
+from seal5.logging import Logger
+
+logger = Logger("frontends.behav_builder")
 
 
 class BehaviorModelBuilder(CoreDSL2Visitor):

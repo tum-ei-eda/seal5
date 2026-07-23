@@ -20,7 +20,9 @@ from seal5.model import Seal5InstrAttribute, Seal5OperandAttribute
 from seal5.model_utils import load_model, dump_model
 
 
-logger = logging.getLogger("check_pattern_support")
+from seal5.logging import Logger
+
+logger = Logger("transform.check_pattern_support")
 
 
 def get_parser():
@@ -36,7 +38,7 @@ def get_parser():
 
 def run(args):
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
@@ -89,7 +91,8 @@ def run(args):
                 )
                 may_load = Seal5InstrAttribute.MAY_LOAD in attributes
                 may_store = Seal5InstrAttribute.MAY_STORE in attributes
-                is_rvc = instr_def.size != 32
+                is_rvc = instr_def.size == 16
+                # is_extended = instr_def.size == 48
                 is_branch = arch.InstrAttribute.COND in attributes or arch.InstrAttribute.NO_CONT in attributes
                 has_loop = Seal5InstrAttribute.HAS_LOOP in attributes
                 # TODO: has_static_loop
