@@ -28,6 +28,12 @@ def detect_registers(set_def: seal5_model.Seal5InstructionSet):
             continue
         if mem.is_main_mem or mem.is_pc:
             continue
+        if "MEM" in mem_name:
+            continue
+        num_elems = abs(mem.data_range.upper - mem.data_range.lower) + 1
+        max_num_elems = 1000
+        if num_elems > max_num_elems:
+            continue
         assert mem_name not in set_def.registers, "Registers already added to set."
         name = mem_name
         # print("name", name)
