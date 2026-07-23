@@ -34,6 +34,10 @@ class VisitorContext:
         self.writes = set()
         self.stack = []
 
+    @property
+    def uses(self):
+        return self.reads | self.writes
+
     def push(self, mode):
         self.stack.append(mode)
 
@@ -101,6 +105,9 @@ def run(args):
                     elif op_name in context.writes:
                         if seal5.model.Seal5OperandAttribute.OUT not in instr_def.attributes:
                             op_def.attributes[seal5.model.Seal5OperandAttribute.OUT] = []
+                    if op_name not in context.uses:
+                        if seal5.model.Seal5OperandAttribute.UNUSED not in instr_def.attributes:
+                            op_def.attributes[seal5.model.Seal5OperandAttribute.UNUSED] = []
                 # print("---")
                 # print("instr_def.scalars.keys()", instr_def.scalars.keys())
                 for reg_name in context.reads:
