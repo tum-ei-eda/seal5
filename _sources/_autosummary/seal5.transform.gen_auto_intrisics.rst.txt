@@ -1,0 +1,13 @@
+seal5.transform.gen\_auto\_intrisics
+====================================
+
+.. automodule:: seal5.transform.gen_auto_intrisics
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   transform

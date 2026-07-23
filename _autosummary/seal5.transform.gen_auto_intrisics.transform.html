@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>seal5.transform.explicit_truncations &mdash; Seal5 v0.1.2 documentation</title>
+  <title>seal5.transform.gen_auto_intrisics.transform &mdash; Seal5 v0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
@@ -19,8 +19,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="seal5.transform.explicit_truncations.transform" href="seal5.transform.explicit_truncations.transform.html" />
-    <link rel="prev" title="seal5.transform.eliminate_rd_cmp_zero.visitor" href="seal5.transform.eliminate_rd_cmp_zero.visitor.html" /> 
+    <link rel="next" title="seal5.transform.handle_auto_unroll_operands" href="seal5.transform.handle_auto_unroll_operands.html" />
+    <link rel="prev" title="seal5.transform.gen_auto_intrisics" href="seal5.transform.gen_auto_intrisics.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -78,13 +78,12 @@
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.drop_unused.html">seal5.transform.drop_unused</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.eliminate_mod_rfs.html">seal5.transform.eliminate_mod_rfs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.eliminate_rd_cmp_zero.html">seal5.transform.eliminate_rd_cmp_zero</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">seal5.transform.explicit_truncations</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="seal5.transform.explicit_truncations.transform.html">seal5.transform.explicit_truncations.transform</a></li>
-<li class="toctree-l4"><a class="reference internal" href="seal5.transform.explicit_truncations.visitor.html">seal5.transform.explicit_truncations.visitor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.transform.explicit_truncations.html">seal5.transform.explicit_truncations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.transform.filter_model.html">seal5.transform.filter_model</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="seal5.transform.gen_auto_intrisics.html">seal5.transform.gen_auto_intrisics</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">seal5.transform.gen_auto_intrisics.transform</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.filter_model.html">seal5.transform.filter_model</a></li>
-<li class="toctree-l3"><a class="reference internal" href="seal5.transform.gen_auto_intrisics.html">seal5.transform.gen_auto_intrisics</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.handle_auto_unroll_operands.html">seal5.transform.handle_auto_unroll_operands</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.infer_types.html">seal5.transform.infer_types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.inline_functions.html">seal5.transform.inline_functions</a></li>
@@ -121,9 +120,10 @@
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="seal5.html">seal5</a></li>
           <li class="breadcrumb-item"><a href="seal5.transform.html">seal5.transform</a></li>
-      <li class="breadcrumb-item active">seal5.transform.explicit_truncations</li>
+          <li class="breadcrumb-item"><a href="seal5.transform.gen_auto_intrisics.html">seal5.transform.gen_auto_intrisics</a></li>
+      <li class="breadcrumb-item active">seal5.transform.gen_auto_intrisics.transform</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/_autosummary/seal5.transform.explicit_truncations.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/_autosummary/seal5.transform.gen_auto_intrisics.transform.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -131,16 +131,23 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-seal5.transform.explicit_truncations">
-<span id="seal5-transform-explicit-truncations"></span><h1>seal5.transform.explicit_truncations<a class="headerlink" href="#module-seal5.transform.explicit_truncations" title="Link to this heading"></a></h1>
-<p class="rubric">Modules</p>
+  <section id="module-seal5.transform.gen_auto_intrisics.transform">
+<span id="seal5-transform-gen-auto-intrisics-transform"></span><h1>seal5.transform.gen_auto_intrisics.transform<a class="headerlink" href="#module-seal5.transform.gen_auto_intrisics.transform" title="Link to this heading"></a></h1>
+<p>Generate missing intrinsics definitions automatically.</p>
+<p class="rubric">Functions</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="seal5.transform.explicit_truncations.transform.html#module-seal5.transform.explicit_truncations.transform" title="seal5.transform.explicit_truncations.transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform</span></code></a></p></td>
-<td><p>Remove (rd != 0) checks from M2-ISA-R/Seal5 metamodel.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parser</span></code>()</p></td>
+<td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="seal5.transform.explicit_truncations.visitor.html#module-seal5.transform.explicit_truncations.visitor" title="seal5.transform.explicit_truncations.visitor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">visitor</span></code></a></p></td>
-<td><p>A transformation module for simplifying M2-ISA-R behavior expressions.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code>(argv)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">next_power_of_two_ge_8</span></code>(n)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code>(args)</p></td>
+<td><p></p></td>
 </tr>
 </tbody>
 </table>
@@ -150,8 +157,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="seal5.transform.eliminate_rd_cmp_zero.visitor.html" class="btn btn-neutral float-left" title="seal5.transform.eliminate_rd_cmp_zero.visitor" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="seal5.transform.explicit_truncations.transform.html" class="btn btn-neutral float-right" title="seal5.transform.explicit_truncations.transform" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="seal5.transform.gen_auto_intrisics.html" class="btn btn-neutral float-left" title="seal5.transform.gen_auto_intrisics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="seal5.transform.handle_auto_unroll_operands.html" class="btn btn-neutral float-right" title="seal5.transform.handle_auto_unroll_operands" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

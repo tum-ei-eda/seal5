@@ -1,0 +1,13 @@
+seal5.transform.handle\_auto\_unroll\_operands
+==============================================
+
+.. automodule:: seal5.transform.handle_auto_unroll_operands
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   transform

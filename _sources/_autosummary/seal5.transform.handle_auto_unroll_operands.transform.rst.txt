@@ -1,0 +1,14 @@
+seal5.transform.handle\_auto\_unroll\_operands.transform
+========================================================
+
+.. automodule:: seal5.transform.handle_auto_unroll_operands.transform
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_parser
+      main
+      run
+   

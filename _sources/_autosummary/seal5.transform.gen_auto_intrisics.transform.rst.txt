@@ -1,0 +1,15 @@
+seal5.transform.gen\_auto\_intrisics.transform
+==============================================
+
+.. automodule:: seal5.transform.gen_auto_intrisics.transform
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_parser
+      main
+      next_power_of_two_ge_8
+      run
+   

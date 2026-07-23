@@ -29,6 +29,7 @@ seal5.pass\_list
       eliminate_rd_cmp_zero
       explicit_truncations
       filter_model
+      gen_auto_intrinsics
       gen_model_td
       gen_riscv_disass_patch
       gen_riscv_features_patch
@@ -40,6 +41,7 @@ seal5.pass\_list
       gen_riscv_register_info_patch
       gen_seal5_td
       gen_set_td
+      handle_auto_unroll_operands
       infer_types
       inline_functions
       optimize_model
