@@ -8,6 +8,7 @@ seal5.dependencies
 
    .. autosummary::
    
+      apply_repository_override
       pick_coredsl2llvm_ref
    
    .. rubric:: Classes
@@ -15,7 +16,9 @@ seal5.dependencies
    .. autosummary::
    
       CDSL2LLVMDependency
+      CloneProgress
       Dependency
       GitDependency
       M2ISARDependency
+      SubstituteRepoURL
    

@@ -16,9 +16,3 @@ seal5.tools.llvm
       test_llvm
       update_excludes
    
-   .. rubric:: Classes
-
-   .. autosummary::
-   
-      CloneProgress
-   
