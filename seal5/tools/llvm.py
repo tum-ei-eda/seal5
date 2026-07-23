@@ -99,6 +99,7 @@ def clone_llvm_repo(
     sha = None
     version_info = {}
     repo = None
+    clone_url = apply_repository_override(clone_url)
     if dest.is_dir() and utils.is_populated(dest):
         if refresh:
             logger.debug("Refreshing LLVM repository: %s", dest)
@@ -248,6 +249,7 @@ def test_llvm(base: Path, build_dir: Path, test_paths: Optional[List[str]] = Non
                 assert test_file.is_file()
         out = utils.exec_getout(
             lit_exe,
+            "--verbose" if verbose else "",
             test_file,
             print_func=logger.info if verbose else logger.debug,
             live=True,

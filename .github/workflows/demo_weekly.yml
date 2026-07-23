@@ -86,12 +86,12 @@ jobs:
         with:
           max-size: 512M
           append-timestamp: false
-          key: ${{ matrix.os }}-${{ matrix.script }}-${{ matrix.llvm-ref }}-${{ matrix.build_config 
+          key: ${{ matrix.os }}-${{ matrix.script }}-${{ matrix.llvm-ref }}-${{ matrix.build_config
             }}
           restore-keys: |
-            ${{ matrix.os }}-${{ matrix.script }}-${{ matrix.llvm-ref }}-${{ matrix.build_config 
+            ${{ matrix.os }}-${{ matrix.script }}-${{ matrix.llvm-ref }}-${{ matrix.build_config
             }}
-            ${{ matrix.os }}-${{ matrix.script }}-${{ github.event.inputs.build_config 
+            ${{ matrix.os }}-${{ matrix.script }}-${{ github.event.inputs.build_config
             }}
           variant: sccache
       - name: Set up Python ${{ matrix.python-version }}

@@ -1,0 +1,58 @@
+// Sample extension providing custom instructions for acceleraing
+// the four quarter-round transformations at the core of the
+// ChaCha20 cipher operation (per Wikipedia):
+//
+// a += b; d ^= a; d <<<= 16;
+// c += d; b ^= c; b <<<= 12;
+// a += b; d ^= a; d <<<=  8;
+// c += d; b ^= c; b <<<=  7;
+//
+//
+//
+// The choice of this as a sample was inspired by the Imperas
+// whitepaper "RISC-V Model Custom Extension Guide"
+
+InstructionSet XCHACHA extends RV32I {
+    instructions {
+        XORROL16 {
+            encoding: 7'b0000000 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b0001011;
+            assembly: {"chacha.xorrol16", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: {
+                if (rd != 0) {
+                    unsigned<32> xor = X[rs1] ^ X[rs2];
+                    X[rd] = (xor << 16) | (xor >> 16);
+                }
+            }
+        }
+        XORROL12 {
+            encoding: 7'b0000000 :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b0001011;
+            assembly: {"chacha.xorrol12", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: {
+                if (rd != 0) {
+                    unsigned<32> xor = X[rs1] ^ X[rs2];
+                    X[rd] = (xor << 12) | (xor >> 20);
+                }
+            }
+        }
+        XORROL8 {
+            encoding: 7'b0000000 :: rs2[4:0] :: rs1[4:0] :: 3'b010 :: rd[4:0] :: 7'b0001011;
+            assembly: {"chacha.xorrol8", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: {
+                if (rd != 0) {
+                    unsigned<32> xor = X[rs1] ^ X[rs2];
+                    X[rd] = (xor << 8) | (xor >> 24);
+                }
+            }
+        }
+        XORROL7 {
+            encoding: 7'b0000000 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0001011;
+            assembly: {"chacha.xorrol7", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: {
+                if (rd != 0) {
+                    unsigned<32> xor = X[rs1] ^ X[rs2];
+                    X[rd] = (xor << 7) | (xor >> 25);
+                }
+            }
+        }
+    }
+}
