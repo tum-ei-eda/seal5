@@ -1245,6 +1245,94 @@ def gen_riscv_isa_info_patch(
     return PassResult(metrics=metrics)
 
 
+def handle_auto_unroll_operands(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    # split: bool = False,
+    log_level: str = "warning",
+    ignore_failing: bool = False,
+    use_subprocess: bool = False,
+    **kwargs,
+):
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    # new_name = name.replace(".seal5model", "")
+    logger.info("Handle auto_unroll operands for %s", name)
+
+    settings.save()
+    args = [
+        settings.models_dir / name,
+        "--log",
+        log_level if not verbose else "debug",
+        # "--yaml",
+        # settings.settings_file,
+    ]
+    if ignore_failing:
+        args.append("--ignore-failing")
+    if not use_subprocess:
+        from seal5.transform.handle_auto_unroll_operands import HandleAutoUnrollOperands
+
+        args = sanitize_args(args)
+        HandleAutoUnrollOperands(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.handle_auto_unroll_operands.transform",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=verbose,
+        )
+    return PassResult(metrics={})
+
+
+def gen_auto_intrinsics(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    # split: bool = False,
+    log_level: str = "warning",
+    ignore_failing: bool = False,
+    use_subprocess: bool = False,
+    **kwargs,
+):
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    # new_name = name.replace(".seal5model", "")
+    logger.info("Generating auto-intrincics for %s", name)
+
+    settings.save()
+    args = [
+        settings.models_dir / name,
+        "--log",
+        log_level if not verbose else "debug",
+        # "--yaml",
+        # settings.settings_file,
+    ]
+    if ignore_failing:
+        args.append("--ignore-failing")
+    if not use_subprocess:
+        from seal5.transform.gen_auto_intrisics import GenAutoIntrinsics
+
+        args = sanitize_args(args)
+        GenAutoIntrinsics(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.gen_auto_intrinsics.transform",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=verbose,
+        )
+    return PassResult(metrics={})
+
+
 def gen_riscv_intrinsics(
     input_model: str,
     settings: Optional[Seal5Settings] = None,

@@ -58,6 +58,7 @@ class Seal5InstructionSet(InstructionSet):
         self.register_groups = register_groups
         self.settings: ExtensionsSettings = None
         self._xlen = None
+        self._flen = None
 
     @property
     def xlen(self):
@@ -68,6 +69,16 @@ class Seal5InstructionSet(InstructionSet):
                     break
         assert self._xlen is not None, "Could not determine XLEN"
         return self._xlen
+
+    @property
+    def flen(self):
+        if self._flen is None:
+            for mem_name, mem_def in self.memories.items():
+                if mem_name == "F" or MemoryAttribute.IS_FLOAT_REG in mem_def.attributes:
+                    self._flen = mem_def.size
+                    break
+        assert self._flen is not None, "Could not determine FLEN"
+        return self._flen
 
 
 class Seal5RegisterClass(IntEnum):
@@ -185,6 +196,8 @@ class Seal5InstrAttribute(Enum):
     ENC_PATTERN = auto()
     ENC_MASK = auto()
     ENC_MATCH = auto()
+    AUTO_UNROLL_IMM = auto()
+    AUTO_INTRIN = auto()
 
 
 class Seal5FunctionAttribute(Enum):
@@ -204,6 +217,7 @@ class Seal5OperandAttribute(Enum):
     REG_TYPE = auto()
     LLVM_TYPE = auto()
     IS_IMM_LEAF = auto()
+    IS_UNROLL_IMM = auto()
 
 
 class Seal5DataType(Enum):
@@ -227,12 +241,38 @@ class Seal5Type:
         self.width = width
         self.lanes = lanes
 
+    @property
+    def is_scalar(self):
+        return self.lanes in [None, 1]
+
+    @property
+    def is_vector(self):
+        return self.lanes is not None and self.lanes > 0
+
+    @property
+    def is_int(self):
+        return self.datatype in [DataType.U, DataType.S]
+
+    @property
+    def is_unsigned_int(self):
+        return self.datatype == DataType.U
+
+    @property
+    def is_signed_int(self):
+        return self.datatype == DataType.S
+
+    @property
+    def is_float(self):
+        return self.datatype in [DataType.F, DataType.D]
+
     def __repr__(self):
         sign_letter = None
         if self.datatype == DataType.U:
             sign_letter = "u"
         elif self.datatype == DataType.S:
             sign_letter = "s"
+        elif self.datatype in [DataType.F, DataType.D]:
+            sign_letter = "f"
         assert sign_letter is not None
         if self.lanes is None:
             lanes = 1
@@ -350,8 +390,10 @@ class Seal5Instruction(Instruction):
         self._llvm_asm_order = None
         self._llvm_constraints = None
         self._llvm_reads = None
+        self._llvm_intrin_reads = None
         self._llvm_writes = None
         self._llvm_ins_str = None
+        self._llvm_intrin_ins_str = None
         self._llvm_outs_str = None
         self._llvm_imm_types = None
         self._process_fields()
@@ -532,32 +574,50 @@ class Seal5Instruction(Instruction):
         #     asm_idx = asm_order.index(f"${op_name}")
         #     assert asm_idx == op_idx, "Order of asm operands does not match CDSL operands"
 
-    def _llvm_process_operands(self):
+    def _llvm_process_operands(self, intrin=False):
         operands = self.operands
         reads = []
+        intrin_reads = []
         writes = []
         constraints = []
         self._llvm_check_operands()
         imm_types = set()
+        intrin_imm_types = set()
         # imm_prefix = None
         imm_prefix = "seal5_"
         for op_name, op in operands.items():
+            intrin_pre = None
             if len(op.constraints) > 0:
                 raise NotImplementedError
             if Seal5OperandAttribute.IS_REG in op.attributes:
                 assert Seal5OperandAttribute.REG_CLASS in op.attributes
                 cls = op.attributes[Seal5OperandAttribute.REG_CLASS]
-                assert cls in ["GPR", "GPRC"]
+                assert cls in ["GPR", "GPRC", "FPR"], f"Unhandled reg class: {cls}"
+                if cls == "FPR":
+                    assert Seal5OperandAttribute.REG_TYPE in op.attributes
+                    reg_type = op.attributes[Seal5OperandAttribute.REG_TYPE]
+                    assert reg_type[0] == "f"
+                    flen = int(reg_type[1:])
+                    cls = f"FPR{flen}"
                 pre = cls
             elif Seal5OperandAttribute.IS_IMM in op.attributes:
                 assert Seal5OperandAttribute.TYPE in op.attributes
                 ty = op.attributes[Seal5OperandAttribute.TYPE]
                 assert ty[0] in ["u", "s"]
                 sz = int(ty[1:])
+                # TODO: always add seal5 prefix?
+                # TODO: differentiate between immleafs?
                 pre = f"{ty[0]}imm{sz}"
                 if imm_prefix is not None:
                     pre = imm_prefix + pre
                 imm_types.add(pre)
+                if intrin:
+                    if imm_prefix is not None:
+                        intrin_pre = f"{imm_prefix}t{pre}"
+                    else:
+                        intrin_pre = f"t{pre}"
+                    imm_types.add(pre)
+                intrin_imm_types.add(intrin_pre)
                 if Seal5OperandAttribute.LLVM_TYPE not in op.attributes:
                     # print("add Seal5OperandAttribute.LLVM_TYPE", pre)
                     op.attributes[Seal5OperandAttribute.LLVM_TYPE] = pre
@@ -573,6 +633,8 @@ class Seal5Instruction(Instruction):
                 writes.append(op_str2)
                 op_str = f"{pre}:${op_name}"
                 reads.append(op_str)
+                if intrin:
+                    intrin_reads.append(op_str)
                 constraint = f"${op_name} = ${op_name}_wb"
                 constraints.append(constraint)
 
@@ -581,6 +643,10 @@ class Seal5Instruction(Instruction):
                 writes.append(op_str)
             elif Seal5OperandAttribute.IN in op.attributes:
                 op_str = f"{pre}:${op_name}"
+                if intrin:
+                    intrin_op_str = f"{intrin_pre}:${op_name}" if intrin_pre is not None else op_str
+                    reads.append(op_str)
+                intrin_reads.append(intrin_op_str)
                 reads.append(op_str)
             elif Seal5OperandAttribute.UNUSED in op.attributes:
                 # TODO: alternatively we could silently drop it or default to zeros?
@@ -589,6 +655,8 @@ class Seal5Instruction(Instruction):
                 raise RuntimeError(f"Found unused operand: {op_name}")
         self._llvm_constraints = constraints
         self._llvm_reads = reads
+        if intrin:
+            self._llvm_intrin_reads = intrin_reads
         self._llvm_writes = writes
         self._llvm_imm_types = imm_types
 
@@ -633,6 +701,12 @@ class Seal5Instruction(Instruction):
         return self._llvm_reads
 
     @property
+    def llvm_intrin_reads(self):
+        if self._llvm_intrin_reads is None:
+            self._llvm_process_operands(intrin=True)
+        return self._llvm_intrin_reads
+
+    @property
     def llvm_writes(self):
         if self._llvm_writes is None:
             self._llvm_process_operands()
@@ -654,6 +728,17 @@ class Seal5Instruction(Instruction):
                 assert len(reads) == 0
             self._llvm_ins_str = ins_str
         return self._llvm_ins_str
+
+    @property
+    def llvm_intrin_ins_str(self):
+        if self._llvm_intrin_ins_str is None:
+            reads = self.llvm_intrin_reads
+            reads_ = [(x.split(":", 1)[1] if ":" in x else x) for x in reads]
+            ins_str = ", ".join([reads[reads_.index(x)] for x in self._llvm_asm_order if x in reads_])
+            if len(ins_str) == 0:
+                assert len(reads) == 0
+            self._llvm_intrin_ins_str = ins_str
+        return self._llvm_intrin_ins_str
 
     @property
     def llvm_outs_str(self):

@@ -113,7 +113,15 @@ def ir_type_lookup_new(llvm_ty, signed: bool):
         }
         ret = lookup[sz]
     if ret is None:
-        raise NotImplementedError("Unhandled llvm type: {llvm_ty}")
+        raise NotImplementedError(f"Unhandled llvm type: {llvm_ty}")
+    type_mapping = {
+        "int8_t": "signed char",
+        "uint8_t": "unsigned char",
+        "int16_t": "signed short",
+        "uint16_t": "unsigned short",
+    }
+    # TODO: add const for imm args?
+    ret = type_mapping.get(ret, ret)
     return ret
 
 
