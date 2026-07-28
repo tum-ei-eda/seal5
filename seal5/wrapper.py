@@ -96,8 +96,6 @@ def run_seal5_flow(
     enable_build_cache: bool = BUILD_CACHE,
     ignore_error: bool = IGNORE_ERROR,
     skip_patterns: bool = SKIP_PATTERNS,
-    test_only: bool = TEST_ONLY,
-    test: bool = TEST or test_only,
     load: bool = LOAD,
     transform: bool = TRANSFORM,
     generate: bool = GENERATE,
@@ -105,6 +103,7 @@ def run_seal5_flow(
     build: bool = BUILD,
     rerun: bool = RERUN,
     test: bool = TEST,
+    test_only: bool = TEST_ONLY,
     install: bool = INSTALL,
     deploy: bool = DEPLOY,
     export: bool = EXPORT,
@@ -269,7 +268,7 @@ def run_seal5_flow(
                 skip_configure=True,
             )
 
-    if test:
+    if test or test_only:
         # Test patched LLVM
         seal5_flow.test(verbose=verbose, ignore_error=ignore_error)
 
