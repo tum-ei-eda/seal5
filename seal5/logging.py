@@ -52,7 +52,7 @@ def get_formatter(minimal=False):
     if minimal:
         fmt = "[%(name)s::%(levelname)s] %(message)s"
     else:
-        fmt = "%(asctime)s [%(name)s::%(levelname)s] (%(pathname)s::%(lineno)d %(message)s"
+        fmt = "%(asctime)s [%(name)s::%(levelname)s] %(pathname)s::%(lineno)d - %(message)s"
     formatter = logging.Formatter(fmt)
     return formatter
 
