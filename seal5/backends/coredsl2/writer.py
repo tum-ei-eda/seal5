@@ -276,14 +276,16 @@ class CoreDSL2Writer:
         self.write("assembly: ")
         mnemonic = instruction.mnemonic
         assembly = instruction.assembly
-        if mnemonic and not self.reduced:
+        # if mnemonic and not self.reduced:
+        if mnemonic:
             self.write("{")
             self.write(f'"{mnemonic}"')
             self.write(", ")
         if assembly is None:
             assembly = ""
         self.write(f'"{assembly}"')
-        if mnemonic and not self.reduced:
+        # if mnemonic and not self.reduced:
+        if mnemonic:
             self.write("}")
         self.write(";", nl=True)
 
