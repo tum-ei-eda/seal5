@@ -71,6 +71,7 @@ def get_logger(loggername: None | str = None, level=logging.DEBUG):
     if not server_reachable:
         fallback_logger = logging.getLogger("fallback")  # fallback logger
         fallback_logger.setLevel(logging.DEBUG)
+        fallback_logger.propagate = False
 
         # Ensure a StreamHandler exists only once
         if not any(isinstance(h, logging.StreamHandler) for h in fallback_logger.handlers):
@@ -82,8 +83,10 @@ def get_logger(loggername: None | str = None, level=logging.DEBUG):
         return fallback_logger
 
     logger = logging.getLogger(f"{PROJECT_NAME}.{loggername if loggername is not None else 'unknown'}")
-    logger.handlers = []
+    # logger.handlers = []
+    logger.handlers.clear()
     logger.setLevel(level=level)
+    logger.propagate = False  # Critical: don't also reach seal5 locally
     socket_handler = logging.handlers.SocketHandler(HOSTNAME, SEAL5_INTERNALS_LOGGING_PORT)
     logger.addHandler(socket_handler)
     return logger
@@ -100,6 +103,12 @@ def initialize_logging_server(
     _logger = logger
     # This should be the lowest value and not changeable since logger is the first filter
     logger.setLevel(logging.DEBUG)
+    logger.propagate = False  # Prevent seal5 records reaching root
+
+    # Remove handlers left by an earlier initialization.
+    for handler in logger.handlers[:]:
+        logger.removeHandler(handler)
+        handler.close()
 
     stream_handler = logging.StreamHandler(sys.stdout)
     stream_handler.setFormatter(get_formatter(True))
@@ -158,17 +167,34 @@ def update_rotary_logger():
 
 def update_log_level(console_level=None, file_level=None):
     """Set command line or file log level at runtime."""
-    if _logger is not None:
-        for handler in _logger.handlers[:]:
-            if (
-                isinstance(handler, (logging.FileHandler, logging.handlers.RotatingFileHandler))
-                and file_level is not None
-            ):
-                file_level = resolve_log_level(file_level)
+    if _logger is None:
+        return
+
+    if console_level is not None:
+        console_level = resolve_log_level(console_level)
+
+    if file_level is not None:
+        file_level = resolve_log_level(file_level)
+
+    for handler in _logger.handlers[:]:
+        if isinstance(handler, (logging.FileHandler, logging.handlers.RotatingFileHandler)):
+            if file_level is not None:
                 handler.setLevel(file_level)
-            elif isinstance(handler, logging.StreamHandler) and console_level is not None:
-                console_level = resolve_log_level(console_level)
+            continue
+
+        if isinstance(handler, logging.StreamHandler):
+            if console_level is not None:
                 handler.setLevel(console_level)
+
+        # if (
+        #     isinstance(handler, (logging.FileHandler, logging.handlers.RotatingFileHandler))
+        #     and file_level is not None
+        # ):
+        #     file_level = resolve_log_level(file_level)
+        #     handler.setLevel(file_level)
+        # elif isinstance(handler, logging.StreamHandler) and console_level is not None:
+        #     console_level = resolve_log_level(console_level)
+        #     handler.setLevel(console_level)
 
 
 # --- Server (listener) that receives LogRecords ---
@@ -183,12 +209,13 @@ class LogRecordStreamHandler(socketserver.StreamRequestHandler):
             while len(chunk) < slen:
                 chunk += self.connection.recv(slen - len(chunk))
             record = logging.makeLogRecord(pickle.loads(chunk))
-            logger = logging.getLogger(record.name)
-            # The logger is sent, if it holds a socket_handler it will answer ending in a loop
-            socket_handlers = [h for h in logger.handlers if isinstance(h, logging.handlers.SocketHandler)]
-            for h in socket_handlers:
-                logger.removeHandler(h)
-            logger.handle(record)
+            # logger = logging.getLogger(record.name)
+            # # The logger is sent, if it holds a socket_handler it will answer ending in a loop
+            # socket_handlers = [h for h in logger.handlers if isinstance(h, logging.handlers.SocketHandler)]
+            # for h in socket_handlers:
+            #     logger.removeHandler(h)
+            # logger.handle(record)
+            logging.getLogger(PROJECT_NAME).handle(record)
 
 
 class LogRecordSocketReceiver(socketserver.ThreadingTCPServer):

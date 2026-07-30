@@ -98,10 +98,10 @@ def exec_getout(
         The command line output of the command
     """
 
+    logger = get_logger()  # instantiate here
+    logger.debug("- Executing: %s", str(args))
     if err_func is None:
-        logger = get_logger()  # instantiate here
         err_func = logger.error
-        logger.debug("- Executing: %s", str(args))
     else:
         err_func = print
 
