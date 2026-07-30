@@ -278,6 +278,10 @@ def run_pattern_gen(
         has_stats = False
         all_stats = defaultdict(dict)
         instr = None
+        mnemonic = None
+
+        pattern_re = re.compile(r"^Pattern for\s+(?P<instr>\S+)(?:\s+\[(?P<mnemonic>[^\]]+)\])?\s*:\s*(?P<pattern>.*)$")
+
         for line in out.split("\n"):
             # print("line", line)
             if len(line.strip()) == 0 or line.startswith("==="):
@@ -289,13 +293,41 @@ def run_pattern_gen(
             else:
                 # print("A2")
                 if "Pattern for" in line:
-                    # print("B1")
-                    instr = line.split(":", 1)[0].split(" ")[-1]
-                    pat = [line.split(":", 1)[1]]
-                    # found_pattern = True
+                    match_ = pattern_re.match(line.strip())
+                    if not match_:
+                        raise ValueError(f"Could not parse pattern line: {line!r}")
+
+                    instr_ = match_.group("instr")
+                    mnemonic_ = match_.group("mnemonic")  # None when [...] is absent
+                    pattern = match_.group("pattern")
+                    assert instr_ is not None
+                    if instr is None:
+                        instr = instr_
+                    else:
+                        assert instr == instr_, f"Expected same instr: {instr} vs. {instr_}"
+                    if mnemonic_ is not None:
+                        if mnemonic is None:
+                            mnemonic = mnemonic_
+                        else:
+                            assert mnemonic == mnemonic_, f"Expected same mnemonic: {mnemonic} vs. {mnemonic_}"
+                    pat = [pattern]
+                    print("instr", instr)
+                    print("mnemonic", mnemonic)
+                    print("pat", pat)
+                    found_pattern = True
                 elif "Pattern Generation failed for" in line:
                     # reason = line
                     is_err = True
+                # if "Pattern for" in line:
+                #     # print("B1")
+                #     instr_ = line.split(":", 1)[0].split(" ")[-1]
+                #     if instr is None:
+                #         instr = instr_
+                #     else:
+                #         assert instr == instr_, f"Expected same instr: {instr} vs. {instr_}"
+                #     mnemonic = "TODO"
+                #     pat = [line.split(":", 1)[1]]
+                #     # found_pattern = True
             if has_stats:
                 parsed = re.compile(r"^\s*(\d+)\s([^\s]+)\s+-\s(.*)$").findall(line)
                 if len(parsed) > 0:
@@ -339,16 +371,17 @@ def run_pattern_gen(
             is_err = True
         generate_tests = "auto"
         if generate_tests == "auto":
-            generate_tests = not has_imm
+            generate_tests = not has_imm and mnemonic is not None
         assert isinstance(generate_tests, bool)
         test_files = []
         if generate_tests:
             # print("ll_files", ll_files)
             assert instr is not None
+            assert mnemonic is not None
             # TODO: optimize?
             # TODO: generate patterns for each xlen
             # TODO: get real mnemonic
-            mnemonic = instr.lower()
+            # mnemonic = instr.lower()
             # TODO: get real llvm instr name
             llvm_instr = instr
             # TODO: move to different pass
