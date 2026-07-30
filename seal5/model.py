@@ -562,7 +562,7 @@ class Seal5Instruction(Instruction):
         # Test:
         # self.attributes[Seal5InstrAttribute.MAY_LOAD] = []
 
-    def _llvm_check_operands(self):
+    def _llvm_check_operands(self, allow_unused: bool = False):
         asm_order = self.llvm_asm_order
         operands = self.operands
         # check that number of operands is equal
@@ -573,6 +573,11 @@ class Seal5Instruction(Instruction):
         # for op_idx, op_name in enumerate(operands.keys()):
         #     asm_idx = asm_order.index(f"${op_name}")
         #     assert asm_idx == op_idx, "Order of asm operands does not match CDSL operands"
+        if not allow_unused:
+            for op_name, op in operands.items():
+                if Seal5OperandAttribute.UNUSED in op.attributes:
+                    # TODO: alternatively we could silently drop it or default to zeros?
+                    raise RuntimeError(f"Found unused operand: {op_name}")
 
     def _llvm_process_operands(self, intrin=False):
         operands = self.operands
@@ -645,14 +650,8 @@ class Seal5Instruction(Instruction):
                 op_str = f"{pre}:${op_name}"
                 if intrin:
                     intrin_op_str = f"{intrin_pre}:${op_name}" if intrin_pre is not None else op_str
-                    reads.append(op_str)
-                intrin_reads.append(intrin_op_str)
+                    intrin_reads.append(intrin_op_str)
                 reads.append(op_str)
-            elif Seal5OperandAttribute.UNUSED in op.attributes:
-                # TODO: alternatively we could silently drop it or default to zeros?
-                raise RuntimeError(f"Found unused operand: {op_name}")
-            else:
-                raise RuntimeError(f"Found unused operand: {op_name}")
         self._llvm_constraints = constraints
         self._llvm_reads = reads
         if intrin:
