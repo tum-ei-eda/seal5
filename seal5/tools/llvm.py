@@ -250,7 +250,7 @@ def test_llvm(base: Path, build_dir: Path, test_paths: Optional[List[str]] = Non
                 assert test_file.is_file()
         out = utils.exec_getout(
             lit_exe,
-            "--verbose" if verbose else "",
+            *(["--verbose"] if verbose else []),
             test_file,
             print_func=logger.info if verbose else logger.debug,
             live=True,
