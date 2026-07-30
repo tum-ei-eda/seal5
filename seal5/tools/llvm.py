@@ -76,13 +76,14 @@ def check_llvm_repo(path: Path):
             _, file = line.strip().split(" ", 1)
             if file == ".seal5/":
                 continue
+            if "generated/" in file:
+                continue
             dirty.append(file)
         if len(dirty) > 0:
             logger.debug("Dirty files in LLVM repository: %s", ", ".join(dirty))
             return False
 
     return True
-
 
 
 def clone_llvm_repo(
