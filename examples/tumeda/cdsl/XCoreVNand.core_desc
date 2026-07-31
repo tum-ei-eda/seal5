@@ -1,5 +1,6 @@
 // import "../rv_base/RISCVBase.core_desc"
-import "../../common/cdsl/rv_base/RV32I.core_desc"
+// import "../../common/cdsl/rv_base/RV32I.core_desc"
+import "RVI.core_desc"
 
 // InstructionSet XCoreVNand extends RISCVBase {
 InstructionSet XCoreVNand extends RV32I {

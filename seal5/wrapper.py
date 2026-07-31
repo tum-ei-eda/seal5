@@ -114,6 +114,7 @@ def run_seal5_flow(
     ignore_llvm_imm_types: bool = IGNORE_LLVM_IMM_TYPES,
     use_combined_patches: bool = USE_COMBINED_PATCHES,
     log_level: Optional[str] = LOG_LEVEL,
+    lookup_paths: Optional[List[str]] = None,  # TODO: expose via env?
 ):
     """Single entry point (wrapper) to excute the full seal5 flow for a given set of files."""
     seal5_flow = Seal5Flow(dest, name=name)
@@ -145,6 +146,7 @@ def run_seal5_flow(
             force=True,
             verbose=verbose,
             ignore_llvm_imm_types=ignore_llvm_imm_types,
+            lookup_paths=lookup_paths,
         )
 
     # Override log_level
@@ -158,7 +160,7 @@ def run_seal5_flow(
         cdsl_files, cfg_files, test_files, other_files = group_files(input_files)
 
         # Load CoreDSL inputs
-        seal5_flow.load(cdsl_files, verbose=verbose, overwrite=True)
+        seal5_flow.load(cdsl_files, verbose=verbose, overwrite=True, lookup_paths=lookup_paths)
 
         # Load test inputs
         seal5_flow.load(test_files, verbose=verbose, overwrite=True)
@@ -182,7 +184,6 @@ def run_seal5_flow(
         # Apply initial patches
         if not prepatched:
             seal5_flow.patch(verbose=verbose, stages=[PatchStage.PHASE_0], use_combined_patches=use_combined_patches)
-
 
         if rerun == "auto":
             build_dir = seal5_flow.settings.get_llvm_build_dir(config=build_config, fallback=True, check=False)
@@ -213,7 +214,9 @@ def run_seal5_flow(
         if patch:
             # Apply next patches
             seal5_flow.patch(
-                verbose=verbose, stages=[PatchStage.PHASE_1, PatchStage.PHASE_2], use_combined_patches=use_combined_patches
+                verbose=verbose,
+                stages=[PatchStage.PHASE_1, PatchStage.PHASE_2],
+                use_combined_patches=use_combined_patches,
             )
 
         if build and not rerun:

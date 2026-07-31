@@ -713,6 +713,7 @@ class Seal5Settings(YAMLSettings):
     tools: Optional[ToolsSettings] = None
     metrics: list = field(default_factory=list)
     intrinsics: Optional[IntrinsicsSettings] = None
+    lookup_paths: Optional[List[str]] = None
 
     def reset(self):
         """Reset Seal5 seetings."""
@@ -742,6 +743,7 @@ class Seal5Settings(YAMLSettings):
             legalization=None,
         )
         self.intrinsics = IntrinsicsSettings()
+        self.lookup_paths = []
 
     def save(self, dest: Optional[Path] = None):
         """Save Seal5 settings to file."""
@@ -869,6 +871,12 @@ class Seal5Settings(YAMLSettings):
     def log_file_path(self):
         """Seal5 log_file_path getter."""
         return self.logs_dir / "seal5.log"
+
+    def get_extra_includes(self):
+        if self.lookup_paths is None:
+            return []
+        assert isinstance(self.lookup_paths, list)
+        return self.lookup_paths
 
 
 #  TODO: implement Seal5Settings.validate()

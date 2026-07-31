@@ -42,4 +42,4 @@ export SEAL5_HOME=$DEST
 YAML_FILES=(examples/common/cfg/llvm.yml examples/common/cfg/filter.yml examples/common/cfg/patches.yml examples/common/cfg/riscv.yml examples/common/cfg/tests.yml examples/common/cfg/passes.yml examples/common/cfg/git.yml examples/example/cfg/intrinsics.yml examples/tumeda/cfg/intrinsics.yml)
 TEST_FILES=(examples/example/tests/xexample-*.s examples/example/tests/xexample-*.ll examples/example/tests/xexample-*.c examples/tumeda/tests/*.s examples/tumeda/tests/*.ll examples/tumeda/tests/*.c)
 
-seal5 --verbose --dir ${SEAL5_HOME} wrapper ${CDSL_FILES[@]} ${YAML_FILES[@]} ${TEST_FILES[@]}
+seal5 --verbose --dir ${SEAL5_HOME} wrapper ${CDSL_FILES[@]} ${YAML_FILES[@]} ${TEST_FILES[@]} -Iexamples/common/cdsl/rv_base/

@@ -51,4 +51,6 @@ FILES = [
     EXAMPLES_DIR / "tumeda" / "cfg" / "intrinsics.yml",
 ]
 
-run_seal5_flow(FILES, name="demo", dest=DEST)
+LOOKUP_PATHS = [EXAMPLES_DIR / "common" / "cdsl" / "rv_base"]
+
+run_seal5_flow(FILES, name="demo", dest=DEST, lookup_paths=LOOKUP_PATHS)
