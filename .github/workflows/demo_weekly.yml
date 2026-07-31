@@ -73,7 +73,8 @@ jobs:
       TEST: 1
       INSTALL: 0
       CCACHE: 1
-      VERBOSE: 1
+      # VERBOSE: 1
+      VERBOSE: 0
       PROGRESS: 1
     runs-on: ${{ matrix.os }}
     steps:
@@ -160,6 +161,12 @@ jobs:
         run: |
           source .venv/bin/activate
           VERBOSE=${{ env.VERBOSE }} PROGRESS=${{ env.PROGRESS }} LLVM_REF=${{ matrix.llvm-ref }} CCACHE=${{ env.CCACHE }} CLONE_DEPTH=${{ matrix.clone_depth }} BUILD_CONFIG=${{ matrix.build_config }} IGNORE_ERROR=${{ matrix.ignore_error }} TEST=${{ env.TEST }} INSTALL=${{ env.INSTALL }} DEPLOY=${{ env.DEPLOY }} EXPORT=${{ env.EXPORT }} BUILD_CACHE=${{ matrix.build_cache }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ matrix.script }}
+      - name: Upload Seal5 Logs (after error)
+        uses: actions/upload-artifact@v4
+        if: ${{ failing() }}
+        with:
+          name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-logs
+          path: /tmp/seal5_llvm/.seal5/logs/
       - name: Run the demo (again)
         if: ${{ matrix.build_cache == '1' }}
         run: |
