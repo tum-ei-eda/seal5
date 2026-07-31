@@ -76,13 +76,14 @@ def check_llvm_repo(path: Path):
             _, file = line.strip().split(" ", 1)
             if file == ".seal5/":
                 continue
+            if "generated/" in file:
+                continue
             dirty.append(file)
         if len(dirty) > 0:
             logger.debug("Dirty files in LLVM repository: %s", ", ".join(dirty))
             return False
 
     return True
-
 
 
 def clone_llvm_repo(
@@ -249,7 +250,7 @@ def test_llvm(base: Path, build_dir: Path, test_paths: Optional[List[str]] = Non
                 assert test_file.is_file()
         out = utils.exec_getout(
             lit_exe,
-            "--verbose" if verbose else "",
+            *(["--verbose"] if verbose else []),
             test_file,
             print_func=logger.info if verbose else logger.debug,
             live=True,

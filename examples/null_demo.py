@@ -39,13 +39,13 @@ DEST = os.environ.get("DEST", DEST_DIR + "/seal5_llvm_" + DEMO_NAME).rstrip("/")
 
 FILES = [
     # CoreDSL inputs
-#    DEMO_CDSL_DIR / "chacha20_llvm.core_desc",
+    #    DEMO_CDSL_DIR / "chacha20_llvm.core_desc",
     # Test inputs
     # DEMO_TESTS_DIR / "*.s",
     # DEMO_TESTS_DIR / "*.c",
     # DEMO_TESTS_DIR / "*.ll",
     # YAML inputs
-#    DEMO_CFG_DIR / "intrinsics.yml",
+    #    DEMO_CFG_DIR / "intrinsics.yml",
     COMMON_CFG_DIR / "llvm.yml",
     COMMON_CFG_DIR / "filter.yml",
     COMMON_CFG_DIR / "patches.yml",

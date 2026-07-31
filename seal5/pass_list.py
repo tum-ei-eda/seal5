@@ -1090,7 +1090,7 @@ def convert_behav_to_tablegen(
                 generated=True,
                 target="llvm",
             )
-            generated_test_files = collect_generated_test_files(index_file)
+            _ = collect_generated_test_files(index_file)
             settings.add_patch(patch_settings)
             settings.to_yaml_file(settings.settings_file)
         else:

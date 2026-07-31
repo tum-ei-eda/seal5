@@ -38,6 +38,7 @@ def add_wrapper_options(parser):
         default=None,
         help="Destination of artifacts",
     )
+    wrapper_parser.add_argument("-I", dest="includes", action="append", default=None, help="Extra include directories")
 
 
 def get_parser(subparsers):
@@ -50,4 +51,4 @@ def get_parser(subparsers):
 
 def handle(args):
     """Callback function which will be called to process the export subcommand"""
-    run_seal5_flow(args.files, dest=args.dir, out_dir=args.out_dir)
+    run_seal5_flow(args.files, dest=args.dir, out_dir=args.out_dir, lookup_paths=args.includes)

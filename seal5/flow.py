@@ -332,6 +332,7 @@ class Seal5Flow:
         force: bool = False,
         verbose: bool = False,
         ignore_llvm_imm_types: bool = False,
+        lookup_paths: Optional[List[Union[str, Path]]] = None,
     ):
         """Initialize Seal5 flow."""
         del verbose  # unused
@@ -400,6 +401,9 @@ class Seal5Flow:
         if not ignore_llvm_imm_types:
             supported_imm_types = llvm.detect_llvm_imm_types(self.directory)
             self.settings.llvm.state.supported_imm_types = list(supported_imm_types)
+        if lookup_paths is not None:
+            lookup_paths_str = list(map(str, lookup_paths))
+            self.settings.lookup_paths = lookup_paths_str
         self.settings.save()
         end = time.time()
         diff = end - start
@@ -548,7 +552,14 @@ class Seal5Flow:
             env["SEAL5_INTERNALS_LOGGING_PORT"] = str(seal5.logging.SEAL5_INTERNALS_LOGGING_PORT)
         return env
 
-    def parse_coredsl(self, file, out_dir, verbose: bool = False, log_level: str = "warning"):
+    def parse_coredsl(
+        self,
+        file,
+        out_dir,
+        verbose: bool = False,
+        log_level: str = "warning",
+        extra_includes: Optional[List[str]] = None,
+    ):
         """Parse CDSL file."""
         args = [
             file,
@@ -557,6 +568,8 @@ class Seal5Flow:
             "--log",
             log_level,
         ]
+        if extra_includes:
+            args += [f"-I{inc}" for inc in extra_includes]
         utils.python(
             "-m",
             "seal5.frontends.coredsl2_seal5.parser",
@@ -566,7 +579,9 @@ class Seal5Flow:
             live=verbose,
         )
 
-    def load_cdsl(self, file: Path, verbose: bool = False, overwrite: bool = False):
+    def load_cdsl(
+        self, file: Path, verbose: bool = False, overwrite: bool = False, extra_includes: Optional[List] = None
+    ):
         """Load CDSL file."""
         assert file.is_file(), f"File does not exist: {file}"
         filename: str = file.name
@@ -578,10 +593,14 @@ class Seal5Flow:
         self.settings.inputs.append(filename)
         # Parse CoreDSL file with M2-ISA-R (TODO: Standalone)
         dest = self.settings.models_dir
-        self.parse_coredsl(file, dest, verbose=verbose)
+        if not extra_includes:
+            extra_includes = self.settings.get_extra_includes()
+        self.parse_coredsl(file, dest, verbose=verbose, extra_includes=extra_includes)
         self.settings.save()
 
-    def load(self, files: List[Path], verbose: bool = False, overwrite: bool = False):
+    def load(
+        self, files: List[Path], verbose: bool = False, overwrite: bool = False, lookup_paths: Optional[List] = None
+    ):
         """Load files into Seal5 flow."""
         self.logger.info("Loading Seal5 inputs")
         # Expand glob patterns
@@ -598,7 +617,7 @@ class Seal5Flow:
             if ext.lower() in [".yml", ".yaml"]:
                 self.load_cfg(file, overwrite=overwrite)
             elif ext.lower() in [".core_desc"]:
-                self.load_cdsl(file, verbose=verbose, overwrite=overwrite)
+                self.load_cdsl(file, verbose=verbose, overwrite=overwrite, extra_includes=lookup_paths)
             elif ext.lower() in [".ll", ".c", ".cc", ".cpp", ".s", ".mir", ".gmir"]:
                 self.load_test(file, overwrite=overwrite)
             else:
