@@ -59,7 +59,8 @@ jobs:
         ccache: ['1']
         test: ['1']
         export: ['1']
-        verbose: ['1']
+        # verbose: ['1']
+        verbose: ['0']
         process: ['1']
         install: ['1']
     steps:
@@ -143,12 +144,18 @@ jobs:
       - name: Run the demo
         run: |
           source .venv/bin/activate
-          VERBOSE=${{ github.event.inputs.verbose }} PROGRESS=${{ matrix.progress }} LLVM_REF=${{ github.event.inputs.llvm_ref }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ matrix.text }} INSTALL=${{ matrix.install }} DEPLOY=${{ matrix.deploy }} EXPORT=${{ matrix.export }} BUILD_CACHE=${{ github.event.inputs.build_cache }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
+          VERBOSE=${{ matrix.verbose }} PROGRESS=${{ matrix.progress }} LLVM_REF=${{ github.event.inputs.llvm_ref }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ matrix.text }} INSTALL=${{ matrix.install }} DEPLOY=${{ matrix.deploy }} EXPORT=${{ matrix.export }} BUILD_CACHE=${{ github.event.inputs.build_cache }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
+      - name: Upload Seal5 Logs (after error)
+        uses: actions/upload-artifact@v4
+        if: ${{ failing() }}
+        with:
+          name: demo-logs
+          path: /tmp/seal5_llvm/.seal5/logs/
       - name: Run the demo (again)
         if: ${{ github.event.inputs.build_cache == '1' }}
         run: |
           source .venv/bin/activate
-          VERBOSE=${{ github.event.inputs.verbose }} PROGRESS=${{ matrix.progress }} LLVM_REF=${{ github.event.inputs.llvm_ref }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ matrix.text }} INSTALL=${{ matrix.install }} DEPLOY=${{ matrix.deploy }} EXPORT=${{ matrix.export }} BUILD_CACHE=${{ github.event.inputs.build_cache }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
+          VERBOSE=${{ matrix.verbose }} PROGRESS=${{ matrix.progress }} LLVM_REF=${{ github.event.inputs.llvm_ref }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ matrix.text }} INSTALL=${{ matrix.install }} DEPLOY=${{ matrix.deploy }} EXPORT=${{ matrix.export }} BUILD_CACHE=${{ github.event.inputs.build_cache }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
       - name: Generate Reports
         run: |
           source .venv/bin/activate
