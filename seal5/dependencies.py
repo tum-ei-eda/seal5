@@ -30,19 +30,11 @@ from tqdm import tqdm
 from seal5.logging import Logger
 from seal5.settings import LLVMVersion
 from seal5.utils import is_populated
-#from .tools.llvm import CloneProgress  # TODO: move to other file
+
+# from .tools.llvm import CloneProgress  # TODO: move to other file
 
 logger = Logger("dependencies")
 
-class CloneProgress(RemoteProgress):
-    def __init__(self):
-        super().__init__()
-        self.pbar = tqdm()
-
-    def update(self, op_code, cur_count, max_count=None, message=""):
-        self.pbar.total = max_count
-        self.pbar.n = cur_count
-        self.pbar.refresh()
 
 class CloneProgress(RemoteProgress):
     def __init__(self):
@@ -58,23 +50,25 @@ class CloneProgress(RemoteProgress):
 class Dependency:
     pass
 
+
 class SubstituteRepoURL:
     def __init__(self):
         self.repo_map = {}
-        for (var, val) in os.environ.items():
-            if var[:9] == 'REPO_URL_':
+        for var, val in os.environ.items():
+            if var[:9] == "REPO_URL_":
                 self.repo_map[var[9:]] = val
 
-    def url(self, url:str):
+    def url(self, url: str):
         # substitute shell-incompatible chars in url
-        key = re.sub('[-#?.,/]', '_', url)
-        for (var,val) in self.repo_map.items():
+        key = re.sub("[-#?.,/]", "_", url)
+        for var, val in self.repo_map.items():
             if key.find(var) >= 0:
                 return val
         return url
 
 
 substitute_repo_url = SubstituteRepoURL()
+
 
 def apply_repository_override(url: str):
     return substitute_repo_url.url(url)

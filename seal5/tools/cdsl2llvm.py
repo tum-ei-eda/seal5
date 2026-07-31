@@ -394,11 +394,14 @@ def run_pattern_gen(
             test_mir_checks = ""
             test_asm_checks = ""
             for xlen in xlens:
-                test_header += f"""; RUN: llc -mtriple=riscv{xlen} -stop-after=instruction-select -mattr={mattr} %s -global-isel=1 -o - \\
-; RUN: | FileCheck -check-prefix=RV{xlen}-MIR %s
-; RUN: llc -mtriple=riscv{xlen} -mattr={mattr} %s -global-isel=1 -o - \\
-; RUN: | FileCheck -check-prefix=RV{xlen}-ASM %s
-"""
+                test_header += (
+                    f"; RUN: llc -mtriple=riscv{xlen} -stop-after=instruction-select "
+                    f"-mattr={mattr} %s -global-isel=1 -o - \\\n"
+                    f"  ; RUN: | FileCheck -check-prefix=RV{xlen}-MIR %s\n"
+                    f"  ; RUN: llc -mtriple=riscv{xlen} -mattr={mattr} %s "
+                    f"-global-isel=1 -o - \\\n"
+                    f"  ; RUN: | FileCheck -check-prefix=RV{xlen}-ASM %s\n"
+                )
                 test_mir_checks += f"  ; RV{xlen}-MIR-LABEL: name: impl{instr}\n"
                 # test_mir_checks += f"  ; RV{xlen}-MIR: LW\n"  # TODO: once per reg input operand
                 test_mir_checks += f"  ; RV{xlen}-MIR: {llvm_instr}\n"

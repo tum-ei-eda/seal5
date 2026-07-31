@@ -102,10 +102,16 @@ def gen_riscv_field_types_str(field_types, llvm_settings):
         riscv_field_types_contents.append(temp)
         sign_letter_upper = sign_letter.upper()
         if llvm_major_version >= 21:
-            temp = f"bool is{prefix2}{sign_letter_upper}Imm{imm_size}() const {{ return is{sign_letter_upper}Imm<{imm_size}>(); }}"
+            temp = (
+                f"bool is{prefix2}{sign_letter_upper}Imm{imm_size}() const "
+                f"{{ return is{sign_letter_upper}Imm<{imm_size}>(); }}"
+            )
         elif sign_letter_upper == "U":
             assert llvm_major_version < 21
-            temp = f"bool is{prefix2}{sign_letter_upper}Imm{imm_size}() const {{ return Is{sign_letter_upper}Imm<{imm_size}>(); }}"
+            temp = (
+                f"bool is{prefix2}{sign_letter_upper}Imm{imm_size}() const "
+                f"{{ return Is{sign_letter_upper}Imm<{imm_size}>(); }}"
+            )
         elif sign_letter_upper == "S":
             assert llvm_major_version < 21
             # TODO: introduce `template <unsigned N> bool IsSImm() const {`
