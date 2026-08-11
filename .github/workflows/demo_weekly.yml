@@ -163,7 +163,7 @@ jobs:
           VERBOSE=${{ env.VERBOSE }} PROGRESS=${{ env.PROGRESS }} LLVM_REF=${{ matrix.llvm-ref }} CCACHE=${{ env.CCACHE }} CLONE_DEPTH=${{ matrix.clone_depth }} BUILD_CONFIG=${{ matrix.build_config }} IGNORE_ERROR=${{ matrix.ignore_error }} TEST=${{ env.TEST }} INSTALL=${{ env.INSTALL }} DEPLOY=${{ env.DEPLOY }} EXPORT=${{ env.EXPORT }} BUILD_CACHE=${{ matrix.build_cache }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ matrix.script }}
       - name: Upload Seal5 Logs (after error)
         uses: actions/upload-artifact@v4
-        if: ${{ failing() }}
+        if: ${{ failure() }}
         with:
           name: demo-${{ steps.ctx.outputs.name }}-${{ matrix.llvm-ref }}-logs
           path: /tmp/seal5_llvm/.seal5/logs/

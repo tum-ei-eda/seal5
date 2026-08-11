@@ -147,7 +147,7 @@ jobs:
           VERBOSE=${{ matrix.verbose }} PROGRESS=${{ matrix.progress }} LLVM_REF=${{ github.event.inputs.llvm_ref }} CCACHE=${{ matrix.ccache }} CLONE_DEPTH=${{ github.event.inputs.clone_depth }} BUILD_CONFIG=${{ github.event.inputs.build_config }} IGNORE_ERROR=${{ github.event.inputs.ignore_error }} TEST=${{ matrix.text }} INSTALL=${{ matrix.install }} DEPLOY=${{ matrix.deploy }} EXPORT=${{ matrix.export }} BUILD_CACHE=${{ github.event.inputs.build_cache }} DEST=/tmp/seal5_llvm ${{ steps.ctx.outputs.program }} examples/${{ github.event.inputs.script }}
       - name: Upload Seal5 Logs (after error)
         uses: actions/upload-artifact@v4
-        if: ${{ failing() }}
+        if: ${{ failure() }}
         with:
           name: demo-logs
           path: /tmp/seal5_llvm/.seal5/logs/
