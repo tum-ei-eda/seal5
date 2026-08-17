@@ -14,18 +14,26 @@ from typing import Dict, List, Optional, Union
 from m2isar.metamodel.arch import (
     InstructionSet,
     Instruction,
-    Constant,
+    Parameter,
     Memory,
+    Alias,
+    Register,
+    RegisterBank,
     Function,
     BaseNode,
-    InstrAttribute,
-    MemoryAttribute,
     BitField,
     BitVal,
-    DataType,
+    # DataType,
     SizedRefOrConst,
 )
-from m2isar.metamodel.behav import Operation, BinaryOperation, Operator, NamedReference, IntLiteral, SliceOperation
+from m2isar.metamodel.attribute_info import (
+    InstrAttribute,
+    # MemoryAttribute,
+    RegisterAttribute
+)
+from m2isar.metamodel.type_info import TypeKind
+from m2isar.metamodel.type_info import PrimitiveType, BitFieldType, FloatType, ArrayType, PointerType, FunctionType
+from m2isar.metamodel.behav import Operation, BinaryOperation, Operator, NamedReference, Literal, SliceOperation
 from m2isar.metamodel.code_info import FunctionInfo
 from m2isar.metamodel import M2Model
 
@@ -39,8 +47,11 @@ class Seal5InstructionSet(InstructionSet):
         self,
         name: str,
         extension: "list[str]",
-        constants: "dict[str, Constant]",
+        parameters: "dict[str, Parameter]",
         memories: "dict[str, Memory]",
+        memory_aliases: "dict[str, Alias]",
+        register_banks: "dict[str, Union[RegisterBank, Register]]",
+        register_aliases: "dict[str, Alias]",
         functions: "dict[str, Function]",
         instructions: "dict[tuple[int, int], Instruction]",
         intrinsics: "dict[str, Seal5Intrinsic]",
@@ -49,7 +60,7 @@ class Seal5InstructionSet(InstructionSet):
         registers: "dict[str, Seal5Register]",
         register_groups: "dict[str, Seal5RegisterGroup]",
     ):
-        super().__init__(name, extension, constants, memories, functions, instructions)
+        super().__init__(name, extension, parameters, memories, memory_aliases, register_banks, register_aliases, functions, instructions)
 
         self.intrinsics = intrinsics
         self.constraints = constraints
@@ -63,9 +74,9 @@ class Seal5InstructionSet(InstructionSet):
     @property
     def xlen(self):
         if self._xlen is None:
-            for mem_name, mem_def in self.memories.items():
-                if mem_name == "X" or MemoryAttribute.IS_MAIN_REG in mem_def.attributes:
-                    self._xlen = mem_def.size
+            for reg_name, reg_def in self.register_banks.items():
+                if reg_name == "X" or RegisterAttribute.IS_MAIN_REG in reg_def.attributes:
+                    self._xlen = reg_def.size
                     break
         assert self._xlen is not None, "Could not determine XLEN"
         return self._xlen
@@ -73,9 +84,9 @@ class Seal5InstructionSet(InstructionSet):
     @property
     def flen(self):
         if self._flen is None:
-            for mem_name, mem_def in self.memories.items():
-                if mem_name == "F" or MemoryAttribute.IS_FLOAT_REG in mem_def.attributes:
-                    self._flen = mem_def.size
+            for reg_name, reg_def in self.register_banks.items():
+                if reg_name == "F" or RegisterAttribute.IS_FLOAT_REG in reg_def.attributes:
+                    self._flen = reg_def.size
                     break
         assert self._flen is not None, "Could not determine FLEN"
         return self._flen
@@ -230,11 +241,56 @@ class Seal5DataType(Enum):
 #     IMM = auto()
 
 
+
+class DataType(Enum):
+    NONE = auto()
+    U = auto()
+    S = auto()
+    F = auto()
+    D = auto()
+    Q = auto()
+    B = auto()
+
+
+KIND2DATATYPE = {
+    TypeKind.NONE: DataType.NONE,
+    TypeKind.UINT: DataType.U,
+    TypeKind.INT: DataType.S,
+    TypeKind.FLOAT: DataType.F,
+}
+
 class Seal5Type:
     datatype: Union[DataType, Seal5DataType] = DataType.NONE
     width: Optional[int] = None
     lanes: Optional[int] = None
     # TODO: is_vector,...
+
+    @staticmethod
+    def from_type(ty: Union[PrimitiveType, BitFieldType, FloatType, ArrayType, PointerType, FunctionType]):
+        datatype = None
+        width = None
+        lanes = None
+        if isinstance(ty, PrimitiveType):
+            datatype = KIND2DATATYPE.get(ty.kind)
+            if datatype is None:
+                raise NotImplementedError(f"Kind: {ty.element_type.kind}")
+            width = ty.size
+        elif isinstance(ty, BitFieldType):
+            raise NotImplementedError(f"ty: {type(ty)}")
+        elif isinstance(ty, FloatType):
+            raise NotImplementedError(f"ty: {type(ty)}")
+        elif isinstance(ty, ArrayType):
+            datatype = KIND2DATATYPE.get(ty.element_type.kind)
+            if datatype is None:
+                raise NotImplementedError(f"Kind: {ty.element_type.kind}")
+            width = ty.element_type.size
+            lanes = ty.length
+        elif isinstance(ty, PointerType):
+            raise NotImplementedError(f"ty: {type(ty)}")
+        elif isinstance(ty, FunctionType):
+            raise NotImplementedError(f"ty: {type(ty)}")
+        return Seal5Type(datatype, width, lanes)
+
 
     def __init__(self, datatype, width, lanes):
         self.datatype = datatype
@@ -502,10 +558,8 @@ class Seal5Instruction(Instruction):
         for field_name, field in self.fields.items():
             if field_name in self.operands:
                 continue
-            width = field.size
-            datatype = field.data_type
-            lanes = None
-            ty = Seal5Type(width=width, datatype=datatype, lanes=lanes)
+            seal5_ty = Seal5Type.from_type(field.ty)
+            width = seal5_ty.width
             # op_attrs = {Seal5OperandAttribute.IN: []}
             op_attrs = {}
             # check for fixed bits
@@ -542,10 +596,10 @@ class Seal5Instruction(Instruction):
                 sz = upper - lower + 1
                 stmt = BinaryOperation(
                     SliceOperation(
-                        NamedReference(SizedRefOrConst(field_name, sz)), IntLiteral(upper), IntLiteral(lower)
+                        NamedReference(SizedRefOrConst(field_name, sz)), Literal(upper), Literal(lower)
                     ),
                     Operator("=="),
-                    IntLiteral(0),
+                    Literal(0),
                 )
                 constraint = Seal5Constraint([stmt])
                 constraints.append(constraint)
@@ -557,7 +611,7 @@ class Seal5Instruction(Instruction):
             # elif field_name in ["rd", "rs1", "rs2", "rs3"]:
             #     cls = Seal5RegOperand
             cls = Seal5Operand
-            op = cls(field_name, ty, op_attrs, constraints)
+            op = cls(field_name, seal5_ty, op_attrs, constraints)
             self.operands[field_name] = op
         # Test:
         # self.attributes[Seal5InstrAttribute.MAY_LOAD] = []
