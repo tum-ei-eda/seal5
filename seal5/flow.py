@@ -572,7 +572,7 @@ class Seal5Flow:
             args += [f"-I{inc}" for inc in extra_includes]
         utils.python(
             "-m",
-            "seal5.frontends.coredsl2_seal5.parser",
+            "m2isar.frontends.coredsl2_set.parser",
             *args,
             env=self.prepare_environment(),
             print_func=self.logger.info if verbose else self.logger.debug,
