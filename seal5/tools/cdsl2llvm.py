@@ -178,6 +178,7 @@ def run_pattern_gen(
     skip_verify=True,
     no_extend=True,
     debug=False,
+    mnemonic_override=None,
 ):
     """Excute pattern-gen executable."""
     if not isinstance(build_dir, Path):
@@ -369,6 +370,12 @@ def run_pattern_gen(
             ll_files.append(ll_file)
         else:
             is_err = True
+        # PatternGen guesses the mnemonic from the instruction name (e.g. assuming
+        # upstream CORE-V naming), which does not necessarily match the mnemonic
+        # actually declared in the CDSL source. Prefer the CDSL-declared mnemonic
+        # for test generation whenever the caller provides one.
+        if mnemonic_override is not None:
+            mnemonic = mnemonic_override
         generate_tests = "auto"
         if generate_tests == "auto":
             generate_tests = not has_imm and mnemonic is not None
