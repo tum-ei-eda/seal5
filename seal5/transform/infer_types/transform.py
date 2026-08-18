@@ -19,7 +19,8 @@ import pathlib
 
 from seal5.model_utils import load_model, dump_model
 
-from .visitor import InferTypesMutator, MinimalContext
+from .visitor import InferTypesMutator, WarningsManager
+from m2isar.warnings import WarningsInfo, add_warnings_flags, KNOWN_WARNINGS
 
 from seal5.logging import Logger
 
@@ -33,6 +34,7 @@ def get_parser():
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--compat", action="store_true")
+    add_warnings_flags(parser, KNOWN_WARNINGS, KNOWN_WARNINGS)
     return parser
 
 
@@ -47,10 +49,13 @@ def run(args):
 
     model_obj = load_model(top_level, compat=args.compat)
 
+    # Build warnings info from command-line arguments
+    warnings_info = args.warnings if hasattr(args, 'warnings') else None
+
     # Process instruction sets (Seal5 specific)
     for _, set_def in model_obj.sets.items():
         logger.debug("inferring types for set %s", set_def.name)
-        context = MinimalContext()
+        context = WarningsManager(warnings_info)
         mutator = InferTypesMutator()
         for _, instr_def in set_def.instructions.items():
             logger.debug("inferring types for instr %s", instr_def.name)
