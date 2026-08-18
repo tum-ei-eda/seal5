@@ -452,6 +452,7 @@ class Seal5Instruction(Instruction):
         self._llvm_intrin_ins_str = None
         self._llvm_outs_str = None
         self._llvm_imm_types = None
+        self._llvm_intrin_imm_types = None
         self._process_fields()
 
     def check_asm_str(self, to_check: Optional[str] = None):
@@ -667,16 +668,15 @@ class Seal5Instruction(Instruction):
                 # TODO: always add seal5 prefix?
                 # TODO: differentiate between immleafs?
                 pre = f"{ty[0]}imm{sz}"
-                if imm_prefix is not None:
-                    pre = imm_prefix + pre
-                imm_types.add(pre)
                 if intrin:
                     if imm_prefix is not None:
                         intrin_pre = f"{imm_prefix}t{pre}"
                     else:
                         intrin_pre = f"t{pre}"
-                    imm_types.add(pre)
-                intrin_imm_types.add(intrin_pre)
+                    intrin_imm_types.add(intrin_pre)
+                if imm_prefix is not None:
+                    pre = imm_prefix + pre
+                imm_types.add(pre)
                 if Seal5OperandAttribute.LLVM_TYPE not in op.attributes:
                     # print("add Seal5OperandAttribute.LLVM_TYPE", pre)
                     op.attributes[Seal5OperandAttribute.LLVM_TYPE] = pre
@@ -710,6 +710,7 @@ class Seal5Instruction(Instruction):
         self._llvm_reads = reads
         if intrin:
             self._llvm_intrin_reads = intrin_reads
+            self._llvm_intrin_imm_types = intrin_imm_types
         self._llvm_writes = writes
         self._llvm_imm_types = imm_types
 
@@ -770,6 +771,12 @@ class Seal5Instruction(Instruction):
         if self._llvm_imm_types is None:
             self._llvm_process_operands()
         return self._llvm_imm_types
+
+    @property
+    def llvm_intrin_imm_types(self):
+        if self._llvm_intrin_imm_types is None:
+            self._llvm_process_operands(intrin=True)
+        return self._llvm_intrin_imm_types
 
     @property
     def llvm_ins_str(self):

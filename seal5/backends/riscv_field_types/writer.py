@@ -64,13 +64,13 @@ def gen_riscv_field_types_str(field_types, llvm_settings):
 
     for field_type in field_types:
         # print("field_type", field_type)
-        matches = re.compile(r"([a-zA-Z0-9_]+)?([us])imm(\d+|log2xlen)([_a-zA-Z].*)?").match(field_type)
+        matches = re.compile(r"([a-zA-Z0-9]+_)?(t)?([us])imm(\d+|log2xlen)([_a-zA-Z].*)?").match(field_type)
         assert matches is not None, f"Field type not supported: {field_type}"
         # print("matches", matches)
         groups = list(matches.groups())
-        prefix, sign_letter, imm_size, suffix = groups
+        prefix, intrin_marker, sign_letter, imm_size, suffix = groups
         if prefix:
-            assert prefix in ["seal5", "seal5_"]
+            assert prefix in ["seal5_"]
             prefix2 = "Seal5"
         else:
             prefix2 = ""
@@ -81,6 +81,12 @@ def gen_riscv_field_types_str(field_types, llvm_settings):
         assert imm_size.isdigit()
         imm_size = int(imm_size)
         assert suffix is None  # TODO: handle suffixes
+        if intrin_marker == "t":
+            # Intrinsic-only immediate: plain SelectionDAG ImmLeaf, no asm operand/register class needed.
+            check_fn = f"isUInt<{imm_size}>(Imm)" if sign_letter == "u" else f"isInt<{imm_size}>(Imm)"
+            temp = f"def {field_type} : TImmLeaf<XLenVT, [{{return {check_fn};}}]>;"
+            riscv_field_types_contents.append(temp)
+            continue
         # TODO: leaf or not?
         is_leaf = True
         if sign_letter == "u":
