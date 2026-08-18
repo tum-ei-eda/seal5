@@ -570,6 +570,8 @@ class Seal5Flow:
         ]
         if extra_includes:
             args += [f"-I{inc}" for inc in extra_includes]
+        # print("args", args)
+        # input(">")
         utils.python(
             "-m",
             "m2isar.frontends.coredsl2_set.parser",

@@ -13,11 +13,9 @@ import argparse
 import logging
 import pathlib
 
-from m2isar.metamodel import patch_model
-
 from seal5.model_utils import load_model, dump_model
 
-from . import visitor
+from .visitor import EliminateModRfsVisitor
 
 from seal5.logging import Logger
 
@@ -47,11 +45,11 @@ def run(args):
 
     for _, set_def in model_obj.sets.items():
         logger.debug("eliminating op mod RFS for set %s", set_def.name)
-        patch_model(visitor)
+        visitor = EliminateModRfsVisitor()
         # TODO: handle RFS symbolically
         for _, instr_def in set_def.instructions.items():
             logger.debug("eliminating op mod RFS for instr %s", instr_def.name)
-            instr_def.operation.generate(None)
+            visitor.generate(instr_def.operation, None)
 
     dump_model(model_obj, out_path, compat=args.compat)
 
