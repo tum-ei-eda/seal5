@@ -14,6 +14,7 @@ import logging
 import pathlib
 
 from m2isar.metamodel import patch_model
+from m2isar.metamodel.attribute_info import RegisterAttribute
 
 from seal5.model_utils import load_model, dump_model
 
@@ -76,15 +77,32 @@ def run(args):
             }
         temp = ["memories", "memory_aliases", "register_banks", "register_aliases"]
         for kind in temp:
-            context = DropUnusedContext(list(getattr(set_def, kind).keys()))
+            container = getattr(set_def, kind)
+            if kind == "register_banks":
+                required_names = {
+                    name
+                    for name, bank in container.items()
+                    if name in {"X", "F", "PC"}
+                    or RegisterAttribute.IS_MAIN_REG in getattr(bank, "attributes", {})
+                    or RegisterAttribute.IS_FLOAT_REG in getattr(bank, "attributes", {})
+                }
+                keep_names = [name for name in container.keys() if name in required_names]
+                context = DropUnusedContext([name for name in container.keys() if name not in required_names])
+            else:
+                context = DropUnusedContext(list(container.keys()))
+                keep_names = []
             visitor = TrackUsesVisitor()
             for _, instr_def in set_def.instructions.items():
                 logger.debug("tracking use of %s for instr %s", kind, instr_def.name)
                 visitor.generate(instr_def.operation, context)
             if len(context.to_drop) > 0:
                 setattr(set_def, kind, {
-                    mem_name: mem for mem_name, mem in getattr(set_def, kind).items() if mem_name not in context.to_drop
+                    mem_name: mem for mem_name, mem in container.items() if mem_name not in context.to_drop
                 })
+            if kind == "register_banks":
+                for name in keep_names:
+                    if name not in getattr(set_def, kind):
+                        getattr(set_def, kind)[name] = container[name]
         context = DropUnusedContext(list(set_def.functions.keys()))
         visitor = TrackUsesVisitor()
         for _, instr_def in set_def.instructions.items():

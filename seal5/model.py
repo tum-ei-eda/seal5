@@ -76,7 +76,7 @@ class Seal5InstructionSet(InstructionSet):
         if self._xlen is None:
             for reg_name, reg_def in self.register_banks.items():
                 if reg_name == "X" or RegisterAttribute.IS_MAIN_REG in reg_def.attributes:
-                    self._xlen = reg_def.size
+                    self._xlen = reg_def.ty.element_type.size if hasattr(reg_def.ty, "element_type") else reg_def.ty.size
                     break
         assert self._xlen is not None, "Could not determine XLEN"
         return self._xlen
@@ -86,7 +86,7 @@ class Seal5InstructionSet(InstructionSet):
         if self._flen is None:
             for reg_name, reg_def in self.register_banks.items():
                 if reg_name == "F" or RegisterAttribute.IS_FLOAT_REG in reg_def.attributes:
-                    self._flen = reg_def.size
+                    self._flen = reg_def.ty.element_type.size if hasattr(reg_def.ty, "element_type") else reg_def.ty.size
                     break
         assert self._flen is not None, "Could not determine FLEN"
         return self._flen
