@@ -15,7 +15,7 @@ import pathlib
 
 import pandas as pd
 
-from m2isar.metamodel import arch, behav
+from m2isar.metamodel import arch, behav, type_info, attribute_info
 from seal5.model import Seal5InstrAttribute, Seal5OperandAttribute
 from seal5.model_utils import load_model, dump_model
 
@@ -93,7 +93,7 @@ def run(args):
                 may_store = Seal5InstrAttribute.MAY_STORE in attributes
                 is_rvc = instr_def.size == 16
                 # is_extended = instr_def.size == 48
-                is_branch = arch.InstrAttribute.COND in attributes or arch.InstrAttribute.NO_CONT in attributes
+                is_branch = attribute_info.InstrAttribute.COND in attributes or attribute_info.InstrAttribute.NO_CONT in attributes
                 has_loop = Seal5InstrAttribute.HAS_LOOP in attributes
                 # TODO: has_static_loop
                 has_call = Seal5InstrAttribute.HAS_CALL in attributes
@@ -118,7 +118,9 @@ def run(args):
                     attributes[Seal5InstrAttribute.SKIP_PATTERN_GEN] = []
                 # TODO: move to different/new pass (add_instr_attributes) and
                 # move detections to Seal5Instr class in metamodel
-                attributes[Seal5InstrAttribute.LLVM_INSTR] = behav.StringLiteral(instr_def.name)
+                attributes[Seal5InstrAttribute.LLVM_INSTR] = behav.Literal(
+                    instr_def.name, type_info.PrimitiveType(type_info.TypeKind.STR, len(instr_def.name))
+                )
                 instr_def.attributes = attributes
                 metrics["n_success"] += 1
                 metrics["success_instructions"].append(instr_def.name)
