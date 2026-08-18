@@ -123,64 +123,6 @@ def main():
         with open(out_path, "w", encoding="utf-8") as f:
             f.write(content)
 
-    allowed_attrs = None  # all
-    metrics = {
-        "n_sets": 0,
-        "n_instructions": 0,
-        "n_skipped": 0,
-        "n_failed": 0,
-        "n_success": 0,
-        "skipped_instructions": [],
-        "failed_instructions": [],
-        "success_instructions": [],
-        "skipped_sets": [],
-        "failed_sets": [],
-        "success_sets": [],
-    }
-    writer_cls = Seal5CoreDSL2Writer
-    writer_kwargs = dict(reduced=args.reduced, allowed_attrs=allowed_attrs, version="seal5")
-
-    if args.splitted:
-        for set_name, set_def in model_obj.sets.items():
-            metrics["n_sets"] += 1
-            for instr_def in set_def.instructions.values():
-                metrics["n_instructions"] += 1
-                writer = writer_cls(CDSLWriterVisitor(), **writer_kwargs)
-                try:
-                    set_def_ = copy.deepcopy(set_def)
-                    set_def_.instructions = {
-                        key: instr_def_
-                        for key, instr_def_ in set_def.instructions.items()
-                        if instr_def_.name == instr_def.name
-                    }
-                    writer.write_set(set_def_)
-                    out_path_ = out_path / set_name / f"{instr_def.name}.{args.ext}"
-                    out_path_.parent.mkdir(exist_ok=True, parents=True)
-                    with open(out_path_, "w", encoding="utf-8") as f:
-                        f.write(writer.text)
-                    metrics["n_success"] += 1
-                    metrics["success_instructions"].append(instr_def.name)
-                except Exception as ex:
-                    logger.exception(ex)
-                    metrics["n_failed"] += 1
-                    metrics["failed_instructions"].append(instr_def.name)
-                    metrics["failed_sets"].append(set_name)
-    else:
-        writer = writer_cls(CDSLWriterVisitor(), **writer_kwargs)
-        for set_name, set_def in model_obj.sets.items():
-            metrics["n_sets"] += 1
-            try:
-                writer.write_set(set_def)
-                metrics["n_success"] += 1
-                metrics["success_sets"].append(set_name)
-            except Exception as ex:
-                logger.exception(ex)
-                metrics["n_failed"] += 1
-                metrics["failed_sets"].append(set_name)
-        content = writer.text
-        with open(out_path, "w", encoding="utf-8") as f:
-            f.write(content)
-
     if args.metrics is not None:
         pd.DataFrame({key: [val] for key, val in metrics.items()}).to_csv(args.metrics, index=False)
     if not args.ignore_failing and metrics["n_failed"] > 0:
