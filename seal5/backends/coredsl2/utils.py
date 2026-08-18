@@ -11,8 +11,11 @@
 from typing import Optional, Set
 
 from m2isar.backends.coredsl2.utils import CoreDSL2Writer
+from m2isar.metamodel import arch
+from m2isar.metamodel.type_info import TypeKind
 
 from seal5.logging import Logger
+from seal5.model import DataType
 
 logger = Logger("backends.coredsl2_writer")
 
@@ -32,9 +35,40 @@ class Seal5CoreDSL2Writer(CoreDSL2Writer):
     def is_coredsl2(self):
         return self.version == "coredsl2"
 
+    def write_type(self, ty):
+        if hasattr(ty, "kind"):
+            super().write_type(ty)
+            return
+        if hasattr(ty, "datatype"):
+            kind_map = {
+                DataType.NONE: TypeKind.NONE,
+                DataType.U: TypeKind.UINT,
+                DataType.S: TypeKind.INT,
+                DataType.F: TypeKind.FLOAT,
+                DataType.D: TypeKind.FLOAT,
+                DataType.Q: TypeKind.FLOAT,
+                DataType.B: TypeKind.UINT,
+            }
+            kind = kind_map.get(ty.datatype)
+            if kind is None:
+                raise NotImplementedError(f"Unsupported Seal5 datatype: {ty.datatype}")
+            if kind in (TypeKind.INT, TypeKind.UINT):
+                self.write("unsigned" if kind == TypeKind.UINT else "signed")
+            elif kind == TypeKind.FLOAT:
+                self.write("signed")
+            elif kind == TypeKind.NONE:
+                self.write("void")
+            else:
+                self.write("unsigned")
+            if getattr(ty, "width", None) is not None:
+                self.write("<")
+                self.write(str(arch.get_const_or_val(ty.width)))
+                self.write(">")
+            return
+        raise TypeError(f"Unsupported type object for CoreDSL2 writer: {type(ty)}")
 
     def write_operand(self, operand):
-        self.write_type(operand.ty.datatype, operand.ty.width)
+        self.write_type(operand.ty)
         self.write(" ")
         self.write(operand.name)
         self.write_attributes(operand.attributes)

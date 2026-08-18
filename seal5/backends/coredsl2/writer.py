@@ -15,8 +15,11 @@ import pathlib
 
 import pandas as pd
 
-from m2isar.metamodel import arch, behav, patch_model
-from m2isar.
+from m2isar.backends.coredsl2.utils import CoreDSL2Writer
+from m2isar.backends.coredsl2.visitor import CDSLWriterVisitor
+from m2isar.logging import add_logging_args, handle_logging_args
+from m2isar.metrics import add_metrics_args, init_metrics, handle_metrics
+from m2isar.metamodel import arch, behav
 
 from seal5.model_utils import load_model
 
@@ -36,17 +39,17 @@ def main():
     # read command line args
     parser = argparse.ArgumentParser()
     parser.add_argument("top_level", help="A .m2isarmodel or .seal5model file.")
-    parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument("--output", "-o", type=str, required=True, default=None)
     parser.add_argument("--reduced", action="store_true", help="Generate pattern-gen compatible syntax")
     parser.add_argument("--splitted", action="store_true", help="Split per set and instruction")
     parser.add_argument("--ext", type=str, default="core_desc", help="Default file extension (if using --splitted)")
-    parser.add_argument("--metrics", default=None, help="Output metrics to file")
-    parser.add_argument("--ignore-failing", action="store_true", help="Do not crash in case of errors.")
+    add_logging_args(parser)
+    add_metrics_args(parser)
     parser.add_argument("--compat", action="store_true")
     args = parser.parse_args()
 
     # initialize logging
+    handle_logging_args(args)
     logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
@@ -80,9 +83,8 @@ def main():
             for instr_def in set_def.instructions.values():
                 metrics["n_instructions"] += 1
                 allowed_attrs = ALLOWED_SEAL5_ATTRS
-                writer = Seal5CoreDSL2Writer(reduced=args.reduced, allowed_attrs=allowed_attrs)
+                writer = Seal5CoreDSL2Writer(CDSLWriterVisitor(), reduced=args.reduced, allowed_attrs=allowed_attrs, version="seal5")
                 logger.debug("writing instr %s/%s", set_def.name, instr_def.name)
-                patch_model(visitor)
                 set_def_ = copy.deepcopy(set_def)
                 set_def_.instructions = {
                     key: instr_def
@@ -104,14 +106,10 @@ def main():
                     metrics["n_failed"] += 1
                     metrics["failed_instructions"].append(instr_def.name)
     else:
-        writer = Seal5CoreDSL2Writer(reduced=args.reduced)
+        writer = Seal5CoreDSL2Writer(CDSLWriterVisitor(), reduced=args.reduced, version="seal5")
         for set_name, set_def in model_obj.sets.items():
             metrics["n_sets"] += 1
-            # print("set", set_def)
-            # print("instrs", set_def.instructions)
-            # input("123")
             logger.debug("writing set %s", set_def.name)
-            patch_model(visitor)
             try:
                 writer.write_set(set_def)
                 metrics["n_success"] += 1
@@ -126,15 +124,67 @@ def main():
             f.write(content)
 
     allowed_attrs = None  # all
-    metrics = init_metrics()
+    metrics = {
+        "n_sets": 0,
+        "n_instructions": 0,
+        "n_skipped": 0,
+        "n_failed": 0,
+        "n_success": 0,
+        "skipped_instructions": [],
+        "failed_instructions": [],
+        "success_instructions": [],
+        "skipped_sets": [],
+        "failed_sets": [],
+        "success_sets": [],
+    }
     writer_cls = Seal5CoreDSL2Writer
     writer_kwargs = dict(reduced=args.reduced, allowed_attrs=allowed_attrs, version="seal5")
-    if args.splitted:
-        metrics = write_cdsl_splitted(model_obj, out_path=out_path, ext=args.ext, metrics=metrics, writer_cls=writer_cls, writer_kwargs=writer_kwargs)
-    else:
-        metrics = write_cdsl_default(model_obj, out_path=out_path, metrics=metrics, writer_cls=writer_cls, writer_kwargs=writer_kwargs)
 
-    handle_metrics(metrics, dest=args.metrics, ignore_failing=args.ignore_failing)
+    if args.splitted:
+        for set_name, set_def in model_obj.sets.items():
+            metrics["n_sets"] += 1
+            for instr_def in set_def.instructions.values():
+                metrics["n_instructions"] += 1
+                writer = writer_cls(CDSLWriterVisitor(), **writer_kwargs)
+                try:
+                    set_def_ = copy.deepcopy(set_def)
+                    set_def_.instructions = {
+                        key: instr_def_
+                        for key, instr_def_ in set_def.instructions.items()
+                        if instr_def_.name == instr_def.name
+                    }
+                    writer.write_set(set_def_)
+                    out_path_ = out_path / set_name / f"{instr_def.name}.{args.ext}"
+                    out_path_.parent.mkdir(exist_ok=True, parents=True)
+                    with open(out_path_, "w", encoding="utf-8") as f:
+                        f.write(writer.text)
+                    metrics["n_success"] += 1
+                    metrics["success_instructions"].append(instr_def.name)
+                except Exception as ex:
+                    logger.exception(ex)
+                    metrics["n_failed"] += 1
+                    metrics["failed_instructions"].append(instr_def.name)
+                    metrics["failed_sets"].append(set_name)
+    else:
+        writer = writer_cls(CDSLWriterVisitor(), **writer_kwargs)
+        for set_name, set_def in model_obj.sets.items():
+            metrics["n_sets"] += 1
+            try:
+                writer.write_set(set_def)
+                metrics["n_success"] += 1
+                metrics["success_sets"].append(set_name)
+            except Exception as ex:
+                logger.exception(ex)
+                metrics["n_failed"] += 1
+                metrics["failed_sets"].append(set_name)
+        content = writer.text
+        with open(out_path, "w", encoding="utf-8") as f:
+            f.write(content)
+
+    if args.metrics is not None:
+        pd.DataFrame({key: [val] for key, val in metrics.items()}).to_csv(args.metrics, index=False)
+    if not args.ignore_failing and metrics["n_failed"] > 0:
+        raise RuntimeError(f"Abort due to errors: {metrics['n_failed']} failed set(s)")
 
 
 if __name__ == "__main__":
