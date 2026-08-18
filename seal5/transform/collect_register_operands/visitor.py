@@ -132,10 +132,10 @@ class CollectRegisterOperandsVisitor(ExprVisitor):
         # print("indexed_reference", self)
         # print("expr.reference", expr.reference)
         # print("expr.index", expr.index)
-        if isinstance(expr.reference, arch.Memory):
+        if isinstance(expr.reference, (arch.Memory, arch.RegisterBank)):
             mem_name = expr.reference.name
             mem = expr.reference
-            mem_size = mem.size
+            mem_size = mem.ty.element_type.size if hasattr(mem.ty, "element_type") else mem.ty.size
             mem_lanes = 1
             index = expr.index
             offset = 0
@@ -162,7 +162,7 @@ class CollectRegisterOperandsVisitor(ExprVisitor):
                     op_name = index.reference.name
                     assert op_name in context.operands
                     op = context.operands[op_name]
-                    reg_ty_ = arch.DataType.U
+                    reg_ty_ = model.DataType.U
                     if mem_name == "X":
                         if offset == 0:
                             reg_class = model.Seal5RegisterClass.GPR
@@ -174,7 +174,7 @@ class CollectRegisterOperandsVisitor(ExprVisitor):
                         assert offset == 0
                         reg_class = model.Seal5RegisterClass.FPR
                         assert mem_size in [32, 64]
-                        reg_ty_ = arch.DataType.F if mem_size == 32 else arch.DataType.F
+                        reg_ty_ = model.DataType.F if mem_size == 32 else model.DataType.F
                     elif mem_name == "CSR":
                         assert offset == 0
                         reg_class = model.Seal5RegisterClass.CSR

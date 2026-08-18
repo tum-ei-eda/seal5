@@ -175,7 +175,7 @@ class CollectOperandTypesVisitor(ExprVisitor):
                 #         # Do not update BitFieldDescr for now...
                 #         # expr.expr.reference.data_type = expr.data_type
         elif isinstance(expr.expr, behav.IndexedReference):  # X[reg]?
-            if isinstance(expr.expr.reference, arch.Memory):
+            if isinstance(expr.expr.reference, (arch.Memory, arch.RegisterBank)):
                 if isinstance(expr.expr.index, behav.NamedReference):
                     if isinstance(expr.expr.index.reference, arch.BitFieldDescr):
                         op_name = expr.expr.index.reference.name

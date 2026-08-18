@@ -147,7 +147,7 @@ class TrackUsesVisitor(ExprVisitor):
 
     @generate.register
     def _(self, expr: behav.IndexedReference, context):
-        if isinstance(expr.reference, arch.Memory):
+        if isinstance(expr.reference, (arch.Memory, arch.RegisterBank)):
             context.track(expr.reference.name)
 
         expr.index = self.generate(expr.index, context)
