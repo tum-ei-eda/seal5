@@ -6,196 +6,159 @@
 # Chair of Electrical Design Automation
 # Technical University of Munich
 
-"""TODO"""
+"""Detect memory side effects in instruction behavior."""
+
+from functools import singledispatchmethod
 
 from m2isar.metamodel import arch, behav
+from m2isar.metamodel.utils.ExprVisitor import ExprVisitor
 
 # pylint: disable=unused-argument
 
-# Limitations
-# - Keep the condition stack as small as possible (move raise to highest level of behavior)
-# - If block should only have a call to raise
-# - Standalone if statements (without else/else if) are preferred
-# - Raise calls are replaced by empty blocks, to be removed in the operation visitor
-# - ~~Run optimizer afterwards to eliminate if statement.~~
 
+class DetectSideEffectsVisitor(ExprVisitor):
+    """Set memory side-effect flags in the instruction context."""
 
-def operation(self: behav.Operation, context):
-    # print("operation", self)
-    statements = []
-    for stmt in self.statements:
-        temp = stmt.generate(context)
-        if isinstance(temp, list):
-            for _t in temp:
-                pass
-                # print("t", t, type(t), dir(t))
-            statements.extend(temp)
-        else:
-            # print("temp", temp, type(temp), dir(temp))
-            statements.append(temp)
-    # input("eeeee")
+    @singledispatchmethod
+    def generate(self, expr: behav.BaseNode, context):
+        raise NotImplementedError(
+            f"No visit method implemented for type {type(expr).__name__} in {type(self).__name__}"
+        )
 
-    self.statements = statements
-    return self
+    @generate.register
+    def _(self, expr: behav.Operation, context):
+        statements = []
+        for stmt in expr.statements:
+            temp = self.generate(stmt, context)
+            if isinstance(temp, list):
+                statements.extend(temp)
+            else:
+                statements.append(temp)
+        expr.statements = statements
+        return expr
 
+    @generate.register
+    def _(self, expr: behav.Block, context):
+        stmts = []
+        for stmt in expr.statements:
+            stmt = self.generate(stmt, context)
+            if isinstance(stmt, behav.Conditional):
+                if len(stmt.conds) == 1 and isinstance(stmt.stmts[0], behav.Block) and len(stmt.stmts[0].statements) == 0:
+                    continue
+            stmts.append(stmt)
+        expr.statements = stmts
+        return expr
 
-def block(self: behav.Block, context):
-    # print("block", self)
+    @generate.register
+    def _(self, expr: behav.BinaryOperation, context):
+        expr.left = self.generate(expr.left, context)
+        expr.right = self.generate(expr.right, context)
+        return expr
 
-    stmts = []
+    @generate.register
+    def _(self, expr: behav.SliceOperation, context):
+        expr.expr = self.generate(expr.expr, context)
+        expr.left = self.generate(expr.left, context)
+        expr.right = self.generate(expr.right, context)
+        return expr
 
-    for stmt in self.statements:
-        stmt = stmt.generate(context)
-        if isinstance(stmt, behav.Conditional):
-            if len(stmt.conds) == 1:
-                if isinstance(stmt.stmts[0], behav.Block):
-                    if len(stmt.stmts[0].statements) == 0:
-                        continue
-        stmts.append(stmt)
+    @generate.register
+    def _(self, expr: behav.ConcatOperation, context):
+        expr.left = self.generate(expr.left, context)
+        expr.right = self.generate(expr.right, context)
+        return expr
 
-    self.statements = stmts
+    @generate.register
+    def _(self, expr: behav.Literal, context):
+        return expr
 
-    return self
+    @generate.register
+    def _(self, expr: behav.VarDefinition, context):
+        return expr
 
+    @generate.register
+    def _(self, expr: behav.Break, context):
+        return expr
 
-def binary_operation(self: behav.BinaryOperation, context):
-    self.left = self.left.generate(context)
-    self.right = self.right.generate(context)
-
-    return self
-
-
-def slice_operation(self: behav.SliceOperation, context):
-    self.expr = self.expr.generate(context)
-    self.left = self.left.generate(context)
-    self.right = self.right.generate(context)
-
-    return self
-
-
-def concat_operation(self: behav.ConcatOperation, context):
-    self.left = self.left.generate(context)
-    self.right = self.right.generate(context)
-
-    return self
-
-
-def number_literal(self: behav.IntLiteral, context):
-    return self
-
-
-def int_literal(self: behav.IntLiteral, context):
-    return self
-
-
-def scalar_definition(self: behav.ScalarDefinition, context):
-    return self
-
-
-def break_(self: behav.Break, context):
-    return self
-
-
-def assignment(self: behav.Assignment, context):
-    # print("assignment")
-    context.is_write = True
-    self.target = self.target.generate(context)
-    context.is_write = False
-    context.is_read = True
-    self.expr = self.expr.generate(context)
-    context.is_read = False
-
-    return self
-
-
-def conditional(self: behav.Conditional, context):
-    # print("conditional")
-    for i, cond in enumerate(self.conds):
+    @generate.register
+    def _(self, expr: behav.Assignment, context):
+        context.is_write = True
+        expr.target = self.generate(expr.target, context)
+        context.is_write = False
         context.is_read = True
-        self.conds[i] = cond.generate(context)
+        expr.expr = self.generate(expr.expr, context)
         context.is_read = False
-    for op in self.stmts:
-        # for stmt in flatten(op):
-        #    stmt.generate(context)
-        op.generate(context)
+        return expr
 
-    return self
+    @generate.register
+    def _(self, expr: behav.Conditional, context):
+        for i, cond in enumerate(expr.conds):
+            context.is_read = True
+            expr.conds[i] = self.generate(cond, context)
+            context.is_read = False
+        for op in expr.stmts:
+            self.generate(op, context)
+        return expr
 
+    @generate.register
+    def _(self, expr: behav.Loop, context):
+        context.is_read = True
+        expr.cond = self.generate(expr.cond, context)
+        context.is_read = False
+        expr.stmts = [self.generate(x, context) for x in expr.stmts]
+        return expr
 
-def loop(self: behav.Loop, context):
-    context.is_read = True
-    self.cond = self.cond.generate(context)
-    context.is_read = False
-    self.stmts = [x.generate(context) for x in self.stmts]
+    @generate.register
+    def _(self, expr: behav.Ternary, context):
+        context.is_read = True
+        expr.cond = self.generate(expr.cond, context)
+        expr.then_expr = self.generate(expr.then_expr, context)
+        expr.else_expr = self.generate(expr.else_expr, context)
+        context.is_read = False
+        return expr
 
-    return self
+    @generate.register
+    def _(self, expr: behav.Return, context):
+        if expr.expr is not None:
+            expr.expr = self.generate(expr.expr, context)
+        return expr
 
+    @generate.register
+    def _(self, expr: behav.UnaryOperation, context):
+        expr.right = self.generate(expr.right, context)
+        return expr
 
-def ternary(self: behav.Ternary, context):
-    context.is_read = True
-    self.cond = self.cond.generate(context)
-    context.is_read = False
-    self.then_expr = self.then_expr.generate(context)
-    self.else_expr = self.else_expr.generate(context)
+    @generate.register
+    def _(self, expr: behav.NamedReference, context):
+        return expr
 
-    return self
+    @generate.register
+    def _(self, expr: behav.IndexedReference, context):
+        if isinstance(expr.reference, arch.Memory):
+            if arch.MemoryAttribute.IS_MAIN_MEM in expr.reference.attributes:
+                if context.is_write:
+                    context.may_store = True
+                elif context.is_read:
+                    context.may_load = True
+        expr.index = self.generate(expr.index, context)
+        return expr
 
+    @generate.register
+    def _(self, expr: behav.TypeConv, context):
+        expr.expr = self.generate(expr.expr, context)
+        return expr
 
-def return_(self: behav.Return, context):
-    if self.expr is not None:
-        self.expr = self.expr.generate(context)
+    @generate.register
+    def _(self, expr: behav.Callable, context):
+        expr.args = [self.generate(stmt, context) for stmt in expr.args]
+        return expr
 
-    return self
+    @generate.register
+    def _(self, expr: behav.Group, context):
+        expr.expr = self.generate(expr.expr, context)
+        return expr
 
-
-def unary_operation(self: behav.UnaryOperation, context):
-    self.right = self.right.generate(context)
-
-    return self
-
-
-def named_reference(self: behav.NamedReference, context):
-    return self
-
-
-def indexed_reference(self: behav.IndexedReference, context):
-    # print("indexed_reference")
-    assert isinstance(self.reference, arch.Memory)
-    # name = self.reference.name
-    if arch.MemoryAttribute.IS_MAIN_MEM in self.reference.attributes:
-        if context.is_write:
-            context.may_store = True
-        elif context.is_read:
-            context.may_load = True
-    else:
-        pass  # TODO
-
-    self.index = self.index.generate(context)
-    return self
-
-
-def type_conv(self: behav.TypeConv, context):
-    self.expr = self.expr.generate(context)
-
-    return self
-
-
-def callable_(self: behav.Callable, context):
-    self.args = [stmt.generate(context) for stmt in self.args]
-
-    return self
-
-
-def group(self: behav.Group, context):
-    # print("group", group)
-    self.expr = self.expr.generate(context)
-
-    return self
-
-
-def procedure_call(self: behav.ProcedureCall, context):
-    # print("procedure_call")
-
-    self.fn_args = [arg.generate(context) for arg in self.args]
-
-    return self
+    @generate.register
+    def _(self, expr: behav.ProcedureCall, context):
+        expr.fn_args = [self.generate(arg, context) for arg in expr.args]
+        return expr
