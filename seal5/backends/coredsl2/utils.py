@@ -134,3 +134,18 @@ class Seal5CoreDSL2Writer(CoreDSL2Writer):
                 instruction._llvm_process_operands()
             self.write_instruction(instruction)
         self.leave_block()
+
+    def write_set(self, set_def):
+        # PatternGen's CDSL parser does not support the architectural_state section.
+        if self.reduced:
+            self.write("InstructionSet ")
+            self.write(set_def.name)
+            if set_def.extension:
+                self.write(" extends ")
+                self.write(", ".join(set_def.extension))
+            self.enter_block()
+            self.write_functions(set_def.functions)
+            self.write_instructions(set_def.instructions)
+            self.leave_block()
+            return
+        super().write_set(set_def)
