@@ -6,171 +6,180 @@
 # Chair of Electrical Design Automation
 # Technical University of Munich
 
-"""A transformation module for simplifying M2-ISA-R behavior expressions. The following
-simplifications are done:
+"""A transformation module for making implicit truncations explicit in M2-ISA-R behavior expressions."""
 
-* Resolvable :class:`m2isar.metamodel.arch.Constant` s are replaced by
-  `m2isar.metamodel.arch.IntLiteral` s representing their value
-* Fully resolvable arithmetic operations are carried out and their results
-  represented as a matching :class:`m2isar.metamodel.arch.IntLiteral`
-* Conditions and loops with fully resolvable conditions are either discarded entirely
-  or transformed into code blocks without any conditions
-* Ternaries with fully resolvable conditions are transformed into only the matching part
-* Type conversions of :class:`m2isar.metamodel.arch.IntLiteral` s apply the desired
-  type directly to the :class:`IntLiteral` and discard the type conversion
-"""
+from functools import singledispatchmethod
 
 from m2isar.metamodel import behav
+from m2isar.metamodel.utils.ExprVisitor import ExprVisitor
 
 from seal5.logging import Logger
 
-logger = Logger("transform." + __name__)
-
+logger = Logger("transform.explicit_truncations")
 
 # pylint: disable=unused-argument
 
 
-def operation(self: behav.Operation, context):
-    statements = []
-    for stmt in self.statements:
-        try:
-            temp = stmt.generate(context)
-            if isinstance(temp, list):
-                statements.extend(temp)
+class ExplicitTruncationsVisitor(ExprVisitor):
+    """Make implicit truncations explicit in behavioral expressions."""
+
+    @singledispatchmethod
+    def generate(self, expr: behav.BaseNode, context):
+        raise NotImplementedError(
+            f"No visit method implemented for type " f"{type(expr).__name__} in {type(self).__name__}"
+        )
+
+    @generate.register
+    def _(self, expr: behav.Operation, context):
+        statements = []
+        for stmt in expr.statements:
+            try:
+                temp = self.generate(stmt, context)
+                if isinstance(temp, list):
+                    statements.extend(temp)
+                else:
+                    statements.append(temp)
+            except (NotImplementedError, ValueError):
+                logger.debug(f"cant simplify {stmt}")
+
+        expr.statements = statements
+        return expr
+
+    @generate.register
+    def _(self, expr: behav.BinaryOperation, context):
+        expr.left = self.generate(expr.left, context)
+        expr.right = self.generate(expr.right, context)
+
+        return expr
+
+    @generate.register
+    def _(self, expr: behav.SliceOperation, context):
+        expr.expr = self.generate(expr.expr, context)
+        expr.left = self.generate(expr.left, context)
+        expr.right = self.generate(expr.right, context)
+
+        return expr
+
+    @generate.register
+    def _(self, expr: behav.ConcatOperation, context):
+        expr.left = self.generate(expr.left, context)
+        expr.right = self.generate(expr.right, context)
+
+        return expr
+
+    @generate.register
+    def _(self, expr: behav.Literal, context):
+        return expr
+
+    @generate.register
+    def _(self, expr: behav.Tensor, context):
+        return expr
+
+    @generate.register
+    def _(self, expr: behav.VarDefinition, context):
+        return expr
+
+    @generate.register
+    def _(self, expr: behav.Break, context):
+        return expr
+
+    @generate.register
+    def _(self, expr: behav.Assignment, context):
+        if expr.target.ty and expr.expr.ty:
+            target_width = expr.target.ty.size
+            expr_width = expr.expr.ty.size
+            if target_width < expr_width:  # implicit truncation
+                ty = expr.expr.ty
+                ty_copy = type(ty)(size=target_width, kind=ty.kind if hasattr(ty, "kind") else "U")
+                group_ = behav.Group(expr.expr)
+                group_.ty = ty_copy
+                expr.expr = behav.SliceOperation(group_, behav.Literal(target_width - 1), behav.Literal(0))
+                expr.expr.ty = ty_copy
+
+        expr.target = self.generate(expr.target, context)
+        expr.expr = self.generate(expr.expr, context)
+
+        return expr
+
+    @generate.register
+    def _(self, expr: behav.Conditional, context):
+        expr.conds = [self.generate(x, context) for x in expr.conds]
+
+        # Keep the same legacy handling as InferTypesMutator.
+        stmts = []
+        for stmt in expr.stmts:
+            if isinstance(stmt, list):
+                new = [self.generate(x, context) for x in stmt]
             else:
-                statements.append(temp)
-        except (NotImplementedError, ValueError):
-            print(f"cant simplify {stmt}")
+                new = self.generate(stmt, context)
+            stmts.append(new)
 
-    self.statements = statements
-    return self
+        expr.stmts = stmts
+        return expr
 
+    @generate.register
+    def _(self, expr: behav.Loop, context):
+        expr.cond = self.generate(expr.cond, context)
+        expr.stmts = [self.generate(x, context) for x in expr.stmts]
 
-def binary_operation(self: behav.BinaryOperation, context):
-    self.left = self.left.generate(context)
-    self.right = self.right.generate(context)
+        return expr
 
-    return self
+    @generate.register
+    def _(self, expr: behav.Ternary, context):
+        expr.cond = self.generate(expr.cond, context)
+        expr.then_expr = self.generate(expr.then_expr, context)
+        expr.else_expr = self.generate(expr.else_expr, context)
 
+        return expr
 
-def slice_operation(self: behav.SliceOperation, context):
-    # print("slice_operation")
-    self.expr = self.expr.generate(context)
+    @generate.register
+    def _(self, expr: behav.Return, context):
+        if expr.expr is not None:
+            expr.expr = self.generate(expr.expr, context)
 
-    self.left = self.left.generate(context)
-    self.right = self.right.generate(context)
+        return expr
 
-    return self
+    @generate.register
+    def _(self, expr: behav.UnaryOperation, context):
+        expr.right = self.generate(expr.right, context)
 
+        return expr
 
-def concat_operation(self: behav.ConcatOperation, context):
-    self.left = self.left.generate(context)
-    self.right = self.right.generate(context)
+    @generate.register
+    def _(self, expr: behav.NamedReference, context):
+        return expr
 
-    return self
+    @generate.register
+    def _(self, expr: behav.IndexedReference, context):
+        expr.index = self.generate(expr.index, context)
 
+        # New IndexedReference supports ranged accesses.
+        if expr.right is not None:
+            expr.right = self.generate(expr.right, context)
 
-def number_literal(self: behav.IntLiteral, context):
-    return self
+        return expr
 
+    @generate.register
+    def _(self, expr: behav.TypeConv, context):
+        expr.expr = self.generate(expr.expr, context)
 
-def int_literal(self: behav.IntLiteral, context):
-    return self
+        return expr
 
+    @generate.register
+    def _(self, expr: behav.Callable, context):
+        expr.args = [self.generate(arg, context) for arg in expr.args]
 
-def scalar_definition(self: behav.ScalarDefinition, context):
-    return self
+        return expr
 
+    @generate.register
+    def _(self, expr: behav.Group, context):
+        expr.expr = self.generate(expr.expr, context)
 
-def assignment(self: behav.Assignment, context):
-    if self.target.inferred_type and self.expr.inferred_type:
-        target_width = self.target.inferred_type.width
-        expr_width = self.expr.inferred_type.width
-        # print("tw", target_width)
-        # print("ew", expr_width)
-        # input("123")
-        if target_width < expr_width:  # implicit truncation
-            ty = self.expr.inferred_type
-            ty._width = target_width
-            group_ = behav.Group(self.expr)
-            group_.inferred_type = ty
-            self.expr = behav.SliceOperation(group_, behav.IntLiteral(target_width - 1), behav.IntLiteral(0))
-            self.expr.inferred_type = ty
-    self.target = self.target.generate(context)
-    self.expr = self.expr.generate(context)
+        if isinstance(expr.expr, behav.Literal):
+            return expr.expr
 
-    # if isinstance(self.expr, behav.IntLiteral) and isinstance(self.target, behav.ScalarDefinition):
-    #       self.target.scalar.value = self.expr.value
+        return expr
 
-    return self
-
-
-def conditional(self: behav.Conditional, context):
-    self.conds = [x.generate(context) for x in self.conds]
-    # self.stmts = [[y.generate(context) for y in x] for x in self.stmts]
-    self.stmts = [x.generate(context) for x in self.stmts]
-
-    return self
-
-
-def loop(self: behav.Loop, context):
-    self.cond = self.cond.generate(context)
-    self.stmts = [x.generate(context) for x in self.stmts]
-
-    return self
-
-
-def ternary(self: behav.Ternary, context):
-    self.cond = self.cond.generate(context)
-    self.then_expr = self.then_expr.generate(context)
-    self.else_expr = self.else_expr.generate(context)
-
-    return self
-
-
-def return_(self: behav.Return, context):
-    if self.expr is not None:
-        self.expr = self.expr.generate(context)
-
-    return self
-
-
-def unary_operation(self: behav.UnaryOperation, context):
-    self.right = self.right.generate(context)
-
-    return self
-
-
-def named_reference(self: behav.NamedReference, context):
-    return self
-
-
-def indexed_reference(self: behav.IndexedReference, context):
-    self.index = self.index.generate(context)
-
-    return self
-
-
-def type_conv(self: behav.TypeConv, context):
-    self.expr = self.expr.generate(context)
-
-    return self
-
-
-def callable_(self: behav.Callable, context):
-    self.args = [stmt.generate(context) for stmt in self.args]
-
-    return self
-
-
-def group(self: behav.Group, context):
-    self.expr = self.expr.generate(context)
-
-    if isinstance(self.expr, behav.IntLiteral):
-        return self.expr
-
-    return self
-
-
-def break_(self: behav.Break, context):
-    return self
+    @generate.register
+    def _(self, expr: behav.ProcedureCall, context):
+        return expr

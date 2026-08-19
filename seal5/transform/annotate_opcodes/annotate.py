@@ -19,7 +19,7 @@ import seal5.model as seal5_model
 from seal5.model_utils import load_model, dump_model
 from seal5.riscv_utils import detect_opcode, detect_format, detect_funct3_funct7
 
-from m2isar.metamodel import behav
+from m2isar.metamodel import behav, type_info
 
 logger = logging.getLogger("annotate_opcodes")
 
@@ -36,23 +36,37 @@ def annotate_opcodes(instr_def: seal5_model.Seal5Instruction, enc_mask: int, enc
     # print("enc_format", enc_format)
     # print("enc_pattern", enc_pattern)
     if opcode_val is not None:
-        # TODO: IntLiteral?
-        instr_def.attributes[seal5_model.Seal5InstrAttribute.OPCODE] = behav.IntLiteral(opcode_val, 7)
+        instr_def.attributes[seal5_model.Seal5InstrAttribute.OPCODE] = behav.Literal(
+            opcode_val, type_info.PrimitiveType(type_info.TypeKind.UINT, 7)
+        )
     if opcode_name is not None:
-        instr_def.attributes[seal5_model.Seal5InstrAttribute.OPCODE_NAME] = behav.StringLiteral(opcode_name)
+        instr_def.attributes[seal5_model.Seal5InstrAttribute.OPCODE_NAME] = behav.Literal(
+            opcode_name, type_info.PrimitiveType(type_info.TypeKind.STR, len(opcode_name))
+        )
     if funct3_val is not None:
-        instr_def.attributes[seal5_model.Seal5InstrAttribute.FUNCT3] = behav.IntLiteral(funct3_val, 3)
+        instr_def.attributes[seal5_model.Seal5InstrAttribute.FUNCT3] = behav.Literal(
+            funct3_val, type_info.PrimitiveType(type_info.TypeKind.UINT, 3)
+        )
     if funct7_val is not None:
-        instr_def.attributes[seal5_model.Seal5InstrAttribute.FUNCT7] = behav.IntLiteral(funct7_val, 7)
+        instr_def.attributes[seal5_model.Seal5InstrAttribute.FUNCT7] = behav.Literal(
+            funct7_val, type_info.PrimitiveType(type_info.TypeKind.UINT, 7)
+        )
     if enc_format is not None:
-        instr_def.attributes[seal5_model.Seal5InstrAttribute.ENC_FORMAT] = behav.StringLiteral(enc_format)
+        instr_def.attributes[seal5_model.Seal5InstrAttribute.ENC_FORMAT] = behav.Literal(
+            enc_format, type_info.PrimitiveType(type_info.TypeKind.STR, len(enc_format))
+        )
     if enc_pattern is not None:
-        # TODO: StringRef?
-        instr_def.attributes[seal5_model.Seal5InstrAttribute.ENC_PATTERN] = behav.StringLiteral(enc_pattern)
+        instr_def.attributes[seal5_model.Seal5InstrAttribute.ENC_PATTERN] = behav.Literal(
+            enc_pattern, type_info.PrimitiveType(type_info.TypeKind.STR, len(enc_pattern))
+        )
     if enc_mask is not None:
-        instr_def.attributes[seal5_model.Seal5InstrAttribute.ENC_MASK] = behav.IntLiteral(enc_mask, enc_size)
+        instr_def.attributes[seal5_model.Seal5InstrAttribute.ENC_MASK] = behav.Literal(
+            enc_mask, type_info.PrimitiveType(type_info.TypeKind.UINT, enc_size)
+        )
     if enc_match is not None:
-        instr_def.attributes[seal5_model.Seal5InstrAttribute.ENC_MATCH] = behav.IntLiteral(enc_match, enc_size)
+        instr_def.attributes[seal5_model.Seal5InstrAttribute.ENC_MATCH] = behav.Literal(
+            enc_match, type_info.PrimitiveType(type_info.TypeKind.UINT, enc_size)
+        )
 
 
 def get_parser():

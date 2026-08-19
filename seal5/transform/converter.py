@@ -89,14 +89,17 @@ def run(args):
                 [],
                 {},
             )
-            set_def.instructions[enc].scalars = instr_def.scalars
+            set_def.instructions[enc].vars = instr_def.vars
         for func_name, func_def in set_def.functions.items():
             func_def.attributes = convert_attrs(func_def.attributes, base=seal5_model.Seal5FunctionAttribute)
         sets[set_name] = seal5_model.Seal5InstructionSet(
             set_def.name,
             set_def.extension,
-            set_def.constants,
+            set_def.parameters,
             set_def.memories,
+            set_def.memory_aliases,
+            set_def.register_banks,
+            set_def.register_aliases,
             set_def.functions,
             set_def.instructions,
             {},

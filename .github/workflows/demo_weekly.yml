@@ -56,7 +56,7 @@ jobs:
         ignore_error: ['1']
         build_config: [release_assertions]
         build_cache: ['0']
-        llvm-ref: [llvmorg-19.1.7, llvmorg-20.1.0, llvmorg-21.1.7]
+        llvm-ref: [llvmorg-20.1.0, llvmorg-21.1.7, llvmorg-22.1.8]
         # include:
         #   - os: ubuntu-latest
         #     python-version: '3.10'
