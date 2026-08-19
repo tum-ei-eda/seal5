@@ -30,7 +30,19 @@ from seal5.logging import Logger
 logger = Logger("backends.coredsl2_writer")
 
 
-ALLOWED_SEAL5_ATTRS = {"is_unsigned", "is_signed", "is_imm", "is_reg", "in", "out", "inout", "is_32_bit", "llvm_type", "has_side_effects", "llvm_instr"}
+ALLOWED_SEAL5_ATTRS = {
+    "is_unsigned",
+    "is_signed",
+    "is_imm",
+    "is_reg",
+    "in",
+    "out",
+    "inout",
+    "is_32_bit",
+    "llvm_type",
+    "has_side_effects",
+    "llvm_instr",
+}
 
 
 def main():
@@ -83,7 +95,9 @@ def main():
             for instr_def in set_def.instructions.values():
                 metrics["n_instructions"] += 1
                 allowed_attrs = ALLOWED_SEAL5_ATTRS
-                writer = Seal5CoreDSL2Writer(CDSLWriterVisitor(), reduced=args.reduced, allowed_attrs=allowed_attrs, version="seal5")
+                writer = Seal5CoreDSL2Writer(
+                    CDSLWriterVisitor(), reduced=args.reduced, allowed_attrs=allowed_attrs, version="seal5"
+                )
                 logger.debug("writing instr %s/%s", set_def.name, instr_def.name)
                 set_def_ = copy.deepcopy(set_def)
                 set_def_.instructions = {

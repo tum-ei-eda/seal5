@@ -93,7 +93,10 @@ def run(args):
                 may_store = Seal5InstrAttribute.MAY_STORE in attributes
                 is_rvc = instr_def.size == 16
                 # is_extended = instr_def.size == 48
-                is_branch = attribute_info.InstrAttribute.COND in attributes or attribute_info.InstrAttribute.NO_CONT in attributes
+                is_branch = (
+                    attribute_info.InstrAttribute.COND in attributes
+                    or attribute_info.InstrAttribute.NO_CONT in attributes
+                )
                 has_loop = Seal5InstrAttribute.HAS_LOOP in attributes
                 # TODO: has_static_loop
                 has_call = Seal5InstrAttribute.HAS_CALL in attributes

@@ -29,10 +29,8 @@ class CollectRaisesVisitor(ExprVisitor):
     @singledispatchmethod
     def generate(self, expr: behav.BaseNode, context):
         raise NotImplementedError(
-            f"No visit method implemented for type "
-            f"{type(expr).__name__} in {type(self).__name__}"
+            f"No visit method implemented for type " f"{type(expr).__name__} in {type(self).__name__}"
         )
-
 
     @generate.register
     def _(self, expr: behav.Operation, context):
@@ -51,7 +49,6 @@ class CollectRaisesVisitor(ExprVisitor):
 
         expr.statements = statements
         return expr
-
 
     @generate.register
     def _(self, expr: behav.Block, context):
@@ -72,14 +69,12 @@ class CollectRaisesVisitor(ExprVisitor):
 
         return expr
 
-
     @generate.register
     def _(self, expr: behav.BinaryOperation, context):
         expr.left = self.generate(expr.left, context)
         expr.right = self.generate(expr.right, context)
 
         return expr
-
 
     @generate.register
     def _(self, expr: behav.SliceOperation, context):
@@ -89,14 +84,12 @@ class CollectRaisesVisitor(ExprVisitor):
 
         return expr
 
-
     @generate.register
     def _(self, expr: behav.ConcatOperation, context):
         expr.left = self.generate(expr.left, context)
         expr.right = self.generate(expr.right, context)
 
         return expr
-
 
     @generate.register
     def _(self, expr: behav.Literal, context):
@@ -114,14 +107,12 @@ class CollectRaisesVisitor(ExprVisitor):
     def _(self, expr: behav.Break, context):
         return expr
 
-
     @generate.register
     def _(self, expr: behav.Assignment, context):
         expr.target = self.generate(expr.target, context)
         expr.expr = self.generate(expr.expr, context)
 
         return expr
-
 
     @generate.register
     def _(self, expr: behav.Conditional, context):
@@ -171,14 +162,12 @@ class CollectRaisesVisitor(ExprVisitor):
 
         return expr
 
-
     @generate.register
     def _(self, expr: behav.Loop, context):
         expr.cond = self.generate(expr.cond, context)
         expr.stmts = [self.generate(x, context) for x in expr.stmts]
 
         return expr
-
 
     @generate.register
     def _(self, expr: behav.Ternary, context):
@@ -188,7 +177,6 @@ class CollectRaisesVisitor(ExprVisitor):
 
         return expr
 
-
     @generate.register
     def _(self, expr: behav.Return, context):
         if expr.expr is not None:
@@ -196,18 +184,15 @@ class CollectRaisesVisitor(ExprVisitor):
 
         return expr
 
-
     @generate.register
     def _(self, expr: behav.UnaryOperation, context):
         expr.right = self.generate(expr.right, context)
 
         return expr
 
-
     @generate.register
     def _(self, expr: behav.NamedReference, context):
         return expr
-
 
     @generate.register
     def _(self, expr: behav.IndexedReference, context):
@@ -215,13 +200,11 @@ class CollectRaisesVisitor(ExprVisitor):
 
         return expr
 
-
     @generate.register
     def _(self, expr: behav.TypeConv, context):
         expr.expr = self.generate(expr.expr, context)
 
         return expr
-
 
     @generate.register
     def _(self, expr: behav.Callable, context):
@@ -229,14 +212,12 @@ class CollectRaisesVisitor(ExprVisitor):
 
         return expr
 
-
     @generate.register
     def _(self, expr: behav.Group, context):
         # print("group", group)
         expr.expr = self.generate(expr.expr, context)
 
         return expr
-
 
     @generate.register
     def _(self, expr: behav.ProcedureCall, context):

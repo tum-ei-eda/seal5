@@ -22,8 +22,7 @@ class TrackUsesVisitor(ExprVisitor):
     @singledispatchmethod
     def generate(self, expr: behav.BaseNode, context):
         raise NotImplementedError(
-            f"No visit method implemented for type "
-            f"{type(expr).__name__} in {type(self).__name__}"
+            f"No visit method implemented for type " f"{type(expr).__name__} in {type(self).__name__}"
         )
 
     @generate.register
@@ -140,7 +139,9 @@ class TrackUsesVisitor(ExprVisitor):
         #
         # Registers/RegisterBanks are intentionally not added here unless
         # drop_unused is expected to manage those as well.
-        if isinstance(reference, (arch.Parameter, arch.Memory, arch.Variable, arch.Register, arch.RegisterBank, arch.Alias)):
+        if isinstance(
+            reference, (arch.Parameter, arch.Memory, arch.Variable, arch.Register, arch.RegisterBank, arch.Alias)
+        ):
             context.track(reference.name)
 
         return expr

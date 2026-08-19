@@ -23,8 +23,7 @@ class CollectOperandTypesVisitor(ExprVisitor):
     @singledispatchmethod
     def generate(self, expr: behav.BaseNode, context):
         raise NotImplementedError(
-            f"No visit method implemented for type "
-            f"{type(expr).__name__} in {type(self).__name__}"
+            f"No visit method implemented for type " f"{type(expr).__name__} in {type(self).__name__}"
         )
 
     @generate.register
@@ -147,7 +146,7 @@ class CollectOperandTypesVisitor(ExprVisitor):
                 width = ty.size  # Changed from .width to .size
                 if ty != expr.data_type:
                     # update
-                    if ty.kind == 'U':  # Changed from datatype to kind
+                    if ty.kind == "U":  # Changed from datatype to kind
                         ty.kind = expr.data_type
                         op.ty = ty
 
@@ -187,7 +186,7 @@ class CollectOperandTypesVisitor(ExprVisitor):
                         # print("op", op, op.name, op.reg_class, op.reg_ty, op.ty, op.attributes, op.constraints)
                         if reg_ty != expr.data_type:
                             # update
-                            if reg_ty.kind == 'U':  # Changed from datatype to kind
+                            if reg_ty.kind == "U":  # Changed from datatype to kind
                                 reg_ty.kind = expr.data_type
                                 op.reg_ty = reg_ty
 

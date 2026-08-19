@@ -45,7 +45,11 @@ class DetectInoutsVisitor(ExprVisitor):
         for stmt in expr.statements:
             stmt = self.generate(stmt, context)
             if isinstance(stmt, behav.Conditional):
-                if len(stmt.conds) == 1 and isinstance(stmt.stmts[0], behav.Block) and len(stmt.stmts[0].statements) == 0:
+                if (
+                    len(stmt.conds) == 1
+                    and isinstance(stmt.stmts[0], behav.Block)
+                    and len(stmt.stmts[0].statements) == 0
+                ):
                     continue
             stmts.append(stmt)
         expr.statements = stmts

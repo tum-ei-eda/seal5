@@ -96,9 +96,11 @@ def run(args):
                 logger.debug("tracking use of %s for instr %s", kind, instr_def.name)
                 visitor.generate(instr_def.operation, context)
             if len(context.to_drop) > 0:
-                setattr(set_def, kind, {
-                    mem_name: mem for mem_name, mem in container.items() if mem_name not in context.to_drop
-                })
+                setattr(
+                    set_def,
+                    kind,
+                    {mem_name: mem for mem_name, mem in container.items() if mem_name not in context.to_drop},
+                )
             if kind == "register_banks":
                 for name in keep_names:
                     if name not in getattr(set_def, kind):

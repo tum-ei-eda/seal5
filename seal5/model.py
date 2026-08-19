@@ -29,7 +29,7 @@ from m2isar.metamodel.arch import (
 from m2isar.metamodel.attribute_info import (
     InstrAttribute,
     # MemoryAttribute,
-    RegisterAttribute
+    RegisterAttribute,
 )
 from m2isar.metamodel.type_info import TypeKind
 from m2isar.metamodel.type_info import PrimitiveType, BitFieldType, FloatType, ArrayType, PointerType, FunctionType
@@ -60,7 +60,17 @@ class Seal5InstructionSet(InstructionSet):
         registers: "dict[str, Seal5Register]",
         register_groups: "dict[str, Seal5RegisterGroup]",
     ):
-        super().__init__(name, extension, parameters, memories, memory_aliases, register_banks, register_aliases, functions, instructions)
+        super().__init__(
+            name,
+            extension,
+            parameters,
+            memories,
+            memory_aliases,
+            register_banks,
+            register_aliases,
+            functions,
+            instructions,
+        )
 
         self.intrinsics = intrinsics
         self.constraints = constraints
@@ -76,7 +86,9 @@ class Seal5InstructionSet(InstructionSet):
         if self._xlen is None:
             for reg_name, reg_def in self.register_banks.items():
                 if reg_name == "X" or RegisterAttribute.IS_MAIN_REG in reg_def.attributes:
-                    self._xlen = reg_def.ty.element_type.size if hasattr(reg_def.ty, "element_type") else reg_def.ty.size
+                    self._xlen = (
+                        reg_def.ty.element_type.size if hasattr(reg_def.ty, "element_type") else reg_def.ty.size
+                    )
                     break
         assert self._xlen is not None, "Could not determine XLEN"
         return self._xlen
@@ -86,7 +98,9 @@ class Seal5InstructionSet(InstructionSet):
         if self._flen is None:
             for reg_name, reg_def in self.register_banks.items():
                 if reg_name == "F" or RegisterAttribute.IS_FLOAT_REG in reg_def.attributes:
-                    self._flen = reg_def.ty.element_type.size if hasattr(reg_def.ty, "element_type") else reg_def.ty.size
+                    self._flen = (
+                        reg_def.ty.element_type.size if hasattr(reg_def.ty, "element_type") else reg_def.ty.size
+                    )
                     break
         assert self._flen is not None, "Could not determine FLEN"
         return self._flen
@@ -241,7 +255,6 @@ class Seal5DataType(Enum):
 #     IMM = auto()
 
 
-
 class DataType(Enum):
     NONE = auto()
     U = auto()
@@ -258,6 +271,7 @@ KIND2DATATYPE = {
     TypeKind.INT: DataType.S,
     TypeKind.FLOAT: DataType.F,
 }
+
 
 class Seal5Type:
     datatype: Union[DataType, Seal5DataType] = DataType.NONE
@@ -290,7 +304,6 @@ class Seal5Type:
         elif isinstance(ty, FunctionType):
             raise NotImplementedError(f"ty: {type(ty)}")
         return Seal5Type(datatype, width, lanes)
-
 
     def __init__(self, datatype, width, lanes):
         self.datatype = datatype
@@ -596,9 +609,7 @@ class Seal5Instruction(Instruction):
                 upper = int(upper)
                 sz = upper - lower + 1
                 stmt = BinaryOperation(
-                    SliceOperation(
-                        NamedReference(SizedRefOrConst(field_name, sz)), Literal(upper), Literal(lower)
-                    ),
+                    SliceOperation(NamedReference(SizedRefOrConst(field_name, sz)), Literal(upper), Literal(lower)),
                     Operator("=="),
                     Literal(0),
                 )

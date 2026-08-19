@@ -105,7 +105,9 @@ def run(args):
         may_load = Seal5InstrAttribute.MAY_LOAD in attributes
         may_store = Seal5InstrAttribute.MAY_STORE in attributes
         # is_rvc = instr_def.size != 32
-        is_branch = attribute_info.InstrAttribute.COND in attributes or attribute_info.InstrAttribute.NO_CONT in attributes
+        is_branch = (
+            attribute_info.InstrAttribute.COND in attributes or attribute_info.InstrAttribute.NO_CONT in attributes
+        )
         # has_loop = Seal5InstrAttribute.HAS_LOOP in attributes
         # TODO: has_static_loop
         # has_call = Seal5InstrAttribute.HAS_CALL in attributes

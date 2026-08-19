@@ -50,7 +50,7 @@ def run(args):
     model_obj = load_model(top_level, compat=args.compat)
 
     # Build warnings info from command-line arguments
-    warnings_info = args.warnings if hasattr(args, 'warnings') else None
+    warnings_info = args.warnings if hasattr(args, "warnings") else None
 
     # Process instruction sets (Seal5 specific)
     for _, set_def in model_obj.sets.items():

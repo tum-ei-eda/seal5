@@ -38,8 +38,7 @@ class SimplifyTrivialSlicesVisitor(ExprVisitor):
     @singledispatchmethod
     def generate(self, expr: behav.BaseNode, context):
         raise NotImplementedError(
-            f"No visit method implemented for type "
-            f"{type(expr).__name__} in {type(self).__name__}"
+            f"No visit method implemented for type " f"{type(expr).__name__} in {type(self).__name__}"
         )
 
     @generate.register
@@ -72,22 +71,22 @@ class SimplifyTrivialSlicesVisitor(ExprVisitor):
         if expr.expr.ty is None:
             logger.warning("Slice Operation needs inferred type. Skipping...")
             return expr
-        
+
         # Check if the type is a PrimitiveType (new system)
         if not isinstance(expr.expr.ty, type_info.PrimitiveType):
             logger.warning("Slice Operation needs PrimitiveType. Skipping...")
             return expr
-        
+
         source_width = expr.expr.ty.width
-        
+
         expr.left = self.generate(expr.left, context)
         if not isinstance(expr.left, behav.Literal):
             return expr
-        
+
         expr.right = self.generate(expr.right, context)
         if not isinstance(expr.right, behav.Literal):
             return expr
-        
+
         assert expr.left.value >= expr.right.value
         target_width = expr.left.value - expr.right.value + 1
         assert target_width <= source_width

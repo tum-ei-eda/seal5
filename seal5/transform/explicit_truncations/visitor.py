@@ -26,8 +26,7 @@ class ExplicitTruncationsVisitor(ExprVisitor):
     @singledispatchmethod
     def generate(self, expr: behav.BaseNode, context):
         raise NotImplementedError(
-            f"No visit method implemented for type "
-            f"{type(expr).__name__} in {type(self).__name__}"
+            f"No visit method implemented for type " f"{type(expr).__name__} in {type(self).__name__}"
         )
 
     @generate.register
@@ -91,15 +90,12 @@ class ExplicitTruncationsVisitor(ExprVisitor):
             expr_width = expr.expr.ty.size
             if target_width < expr_width:  # implicit truncation
                 ty = expr.expr.ty
-                ty_copy = type(ty)(
-                    size=target_width,
-                    kind=ty.kind if hasattr(ty, 'kind') else 'U'
-                )
+                ty_copy = type(ty)(size=target_width, kind=ty.kind if hasattr(ty, "kind") else "U")
                 group_ = behav.Group(expr.expr)
                 group_.ty = ty_copy
                 expr.expr = behav.SliceOperation(group_, behav.Literal(target_width - 1), behav.Literal(0))
                 expr.expr.ty = ty_copy
-        
+
         expr.target = self.generate(expr.target, context)
         expr.expr = self.generate(expr.expr, context)
 

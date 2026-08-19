@@ -22,8 +22,18 @@ logger = Logger("backends.coredsl2_writer")
 
 class Seal5CoreDSL2Writer(CoreDSL2Writer):
 
-    def __init__(self, visitor, reduced: bool = True, skip_empty: bool = False, drop_first_op: bool = False, allowed_attrs: Optional[Set[str]] = None, version="coredsl2"):
-        super().__init__(visitor, reduced=reduced, skip_empty=skip_empty, drop_first_op=drop_first_op, allowed_attrs=allowed_attrs)
+    def __init__(
+        self,
+        visitor,
+        reduced: bool = True,
+        skip_empty: bool = False,
+        drop_first_op: bool = False,
+        allowed_attrs: Optional[Set[str]] = None,
+        version="coredsl2",
+    ):
+        super().__init__(
+            visitor, reduced=reduced, skip_empty=skip_empty, drop_first_op=drop_first_op, allowed_attrs=allowed_attrs
+        )
         self.version = version
         self.level = 0
 
