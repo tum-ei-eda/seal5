@@ -16,7 +16,7 @@ import pathlib
 from seal5.model_utils import load_model, dump_model
 from seal5.model import Seal5InstrAttribute, Seal5OperandAttribute
 from seal5.settings import IntrinsicArg, IntrinsicDefn
-from m2isar.metamodel import arch, attribute_info
+from m2isar.metamodel import attribute_info
 
 from seal5.logging import Logger
 

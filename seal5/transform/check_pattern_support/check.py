@@ -15,7 +15,7 @@ import pathlib
 
 import pandas as pd
 
-from m2isar.metamodel import arch, behav, type_info, attribute_info
+from m2isar.metamodel import behav, type_info, attribute_info
 from seal5.model import Seal5InstrAttribute, Seal5OperandAttribute
 from seal5.model_utils import load_model, dump_model
 

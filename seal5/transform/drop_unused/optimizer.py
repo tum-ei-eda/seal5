@@ -13,7 +13,6 @@ import argparse
 import logging
 import pathlib
 
-from m2isar.metamodel import patch_model
 from m2isar.metamodel.attribute_info import RegisterAttribute
 
 from seal5.model_utils import load_model, dump_model

@@ -11,7 +11,7 @@
 from typing import Optional, Set
 
 from m2isar.backends.coredsl2.utils import CoreDSL2Writer
-from m2isar.metamodel import arch, behav
+from m2isar.metamodel import arch
 from m2isar.metamodel.type_info import TypeKind
 
 from seal5.logging import Logger
@@ -88,7 +88,7 @@ class Seal5CoreDSL2Writer(CoreDSL2Writer):
         for constraint in constraints:
             # print("constraint", constraint, type(constraint), dir(constraint))
             for stmt in constraint.stmts:
-                visitor.generate(stmt, self)
+                self.visitor.generate(stmt, self)
                 desc = constraint.description
                 if desc:
                     self.write(f";  // {desc}", nl=True)

@@ -20,7 +20,7 @@ import pathlib
 from seal5.model_utils import load_model, dump_model
 
 from .visitor import InferTypesMutator, WarningsManager
-from m2isar.warnings import WarningsInfo, add_warnings_flags, KNOWN_WARNINGS
+from m2isar.warnings import add_warnings_flags, KNOWN_WARNINGS
 
 from seal5.logging import Logger
 
