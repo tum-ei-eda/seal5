@@ -49,7 +49,7 @@ class Seal5CoreDSL2Writer(CoreDSL2Writer):
         if hasattr(ty, "kind"):
             super().write_type(ty)
             return
-        if hasattr(ty, "datatype"):
+        if hasattr(ty, "datatype"):  # legacy M2-ISA-R/Seal5 type object
             kind_map = {
                 DataType.NONE: TypeKind.NONE,
                 DataType.U: TypeKind.UINT,
@@ -77,73 +77,12 @@ class Seal5CoreDSL2Writer(CoreDSL2Writer):
             return
         raise TypeError(f"Unsupported type object for CoreDSL2 writer: {type(ty)}")
 
-    def write_attribute(self, attr, val=None):
-        # print("attr", attr)
-        if self.needsspace:
-            self.write(" ")
-        if val is not None:
-            if isinstance(val, list) and len(val) == 0:
-                val = None
-        # if self.reduced and val is not None:
-        #     return
-        # TODO: allow atrbitrary attrs in cdsl2llvm parser, not only for operands
-        if self.allowed_attrs is not None:
-            allowed_attrs = [attr.lower() for attr in self.allowed_attrs]
-            if self.reduced and attr.name.lower() not in allowed_attrs:
-                return
-        self.write("[[")
-        self.write(attr.name.lower())
-        if val is not None:
-            self.write("=")
-
-            def helper(val):
-                if isinstance(val, list):  # TODO: replace with string literal
-                    if len(val) == 1:
-                        return helper(val[0])
-                    return "(" + ",".join([helper(x) for x in val]) + ")"
-                if isinstance(val, str):  # TODO: replace with string literal
-                    return val  # TODO: operation
-                if isinstance(val, int):  # TODO: replace with int literal
-                    return str(val)  # TODO: operation
-                if isinstance(val, behav.Literal):
-                    value = val.value
-                    if val.ty.kind == TypeKind.STR:
-                        if '"' not in value:
-                            value = '"' + value + '"'
-                    return str(value)
-                if isinstance(val, behav.NamedReference):
-                    return val.reference.name
-                    # print("val", val)
-                    # print("val.reference", val.reference)
-                    # print("dir(val)", dir(val))
-                    # return helper(arch.get_const_or_val(val))
-                raise NotImplementedError(f"Unhandled case: {type(val)}")
-
-            val = helper(val)
-            self.write(val)
-        self.write("]]")
-
     def write_operand(self, operand):
         self.write_type(operand.ty)
         self.write(" ")
         self.write(operand.name)
         self.write_attributes(operand.attributes)
         self.write_line(";")
-
-    def write_assembly(self, instruction):
-        self.write("assembly: ")
-        mnemonic = instruction.mnemonic
-        assembly = instruction.assembly
-        if assembly is None:
-            assembly = ""
-        if mnemonic:
-            self.write("{")
-            self.write(f'"{mnemonic}"')
-            self.write(", ")
-        self.write(f'"{assembly}"')
-        if mnemonic:
-            self.write("}")
-        self.write(";", nl=True)
 
     def write_constraints(self, constraints):
         for constraint in constraints:
