@@ -131,10 +131,6 @@ class Seal5CoreDSL2Writer(CoreDSL2Writer):
         self.write_line(";")
 
     def write_assembly(self, instruction):
-        # PatternGen's CDSL parser (ParseAssembly) supports the {"mnemonic", "args"}
-        # tuple form regardless of reduced/compat mode; without it, it falls back to
-        # guessing the mnemonic from the instruction name (assuming CORE-V naming),
-        # which does not necessarily match the mnemonic declared in the CDSL source.
         self.write("assembly: ")
         mnemonic = instruction.mnemonic
         assembly = instruction.assembly
