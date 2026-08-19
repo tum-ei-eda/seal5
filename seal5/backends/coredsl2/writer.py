@@ -30,7 +30,7 @@ from seal5.logging import Logger
 logger = Logger("backends.coredsl2_writer")
 
 
-ALLOWED_SEAL5_ATTRS = {"is_unsigned", "is_signed", "is_imm", "is_reg", "in", "out", "inout", "is_32_bit", "llvm_type"}
+ALLOWED_SEAL5_ATTRS = {"is_unsigned", "is_signed", "is_imm", "is_reg", "in", "out", "inout", "is_32_bit", "llvm_type", "has_side_effects", "llvm_instr"}
 
 
 def main():
