@@ -153,7 +153,10 @@ def pick_coredsl2llvm_ref(ref: str, llvm_version: LLVMVersion):
 
     major, minor, patch = llvm_version.triple
 
-    if major == 21:
+    # TODO: auto-lookup ref after clone?
+    if major == 22:
+        ref = "llvm-22.1.8"
+    elif major == 21:
         ref = "llvm-21.1.7"
     elif major == 20:
         ref = "llvm-20.1.0"

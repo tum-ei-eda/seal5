@@ -567,6 +567,7 @@ class Seal5Flow:
             out_dir,
             "--log",
             log_level,
+            "--allow-undefined-const",
         ]
         if extra_includes:
             args += [f"-I{inc}" for inc in extra_includes]
