@@ -15,12 +15,10 @@ import pathlib
 
 import pandas as pd
 
-from m2isar.metamodel import patch_model
-
 import seal5.model
 from seal5.model_utils import load_model, dump_model
 
-from . import visitor
+from .visitor import DetectInoutsVisitor
 from .utils import IOMode
 
 from seal5.logging import Logger
@@ -88,13 +86,12 @@ def run(args):
     for _, set_def in model_obj.sets.items():
         metrics["n_sets"] += 1
         logger.debug("collecting inouts for set %s", set_def.name)
-        patch_model(visitor)
         for _, instr_def in set_def.instructions.items():
             metrics["n_instructions"] += 1
             context = VisitorContext()
             logger.debug("collecting inouts for instr %s", instr_def.name)
             try:
-                instr_def.operation.generate(context)
+                DetectInoutsVisitor().generate(instr_def.operation, context)
                 for op_name, op_def in instr_def.operands.items():
                     if op_name in context.reads and op_name in context.writes:
                         if seal5.model.Seal5OperandAttribute.INOUT not in instr_def.attributes:
@@ -108,41 +105,28 @@ def run(args):
                     if op_name not in context.uses:
                         if seal5.model.Seal5OperandAttribute.UNUSED not in instr_def.attributes:
                             op_def.attributes[seal5.model.Seal5OperandAttribute.UNUSED] = []
-                # print("---")
-                # print("instr_def.scalars.keys()", instr_def.scalars.keys())
                 for reg_name in context.reads:
                     if reg_name == "PC":
                         continue
-                    # print("reg_name1", reg_name)
                     if reg_name in instr_def.operands.keys():
                         continue
                     if reg_name in instr_def.scalars.keys():
                         continue
-                    # TODO: how about register groups
-                    # TODO: handle other architectural state vars here (PC,...)
                     assert reg_name in set_def.registers
                     uses = instr_def.attributes.get(seal5.model.Seal5InstrAttribute.USES, [])
                     uses.append(reg_name)
-                    # TODO: drop duplicates?
                     instr_def.attributes[seal5.model.Seal5InstrAttribute.USES] = uses
                 for reg_name in context.writes:
-                    # print("reg_name2", reg_name)
                     if reg_name == "PC":
                         continue
                     if reg_name in instr_def.operands.keys():
                         continue
                     if reg_name in instr_def.scalars.keys():
                         continue
-                    # TODO: how about register groups
-                    # TODO: handle other architectural state vars here (PC,...)
                     assert reg_name in set_def.registers
                     defs = instr_def.attributes.get(seal5.model.Seal5InstrAttribute.DEFS, [])
                     defs.append(reg_name)
-                    # TODO: drop duplicates?
                     instr_def.attributes[seal5.model.Seal5InstrAttribute.DEFS] = defs
-                # print("instr_def.operands_", instr_def.operands)
-                # print("instr_def.attributes", instr_def.attributes)
-                # input("999")
                 metrics["n_success"] += 1
                 metrics["success_instructions"].append(instr_def.name)
             except Exception as ex:

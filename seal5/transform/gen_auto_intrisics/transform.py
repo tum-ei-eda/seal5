@@ -16,7 +16,7 @@ import pathlib
 from seal5.model_utils import load_model, dump_model
 from seal5.model import Seal5InstrAttribute, Seal5OperandAttribute
 from seal5.settings import IntrinsicArg, IntrinsicDefn
-from m2isar.metamodel import arch
+from m2isar.metamodel import attribute_info
 
 from seal5.logging import Logger
 
@@ -105,7 +105,9 @@ def run(args):
         may_load = Seal5InstrAttribute.MAY_LOAD in attributes
         may_store = Seal5InstrAttribute.MAY_STORE in attributes
         # is_rvc = instr_def.size != 32
-        is_branch = arch.InstrAttribute.COND in attributes or arch.InstrAttribute.NO_CONT in attributes
+        is_branch = (
+            attribute_info.InstrAttribute.COND in attributes or attribute_info.InstrAttribute.NO_CONT in attributes
+        )
         # has_loop = Seal5InstrAttribute.HAS_LOOP in attributes
         # TODO: has_static_loop
         # has_call = Seal5InstrAttribute.HAS_CALL in attributes

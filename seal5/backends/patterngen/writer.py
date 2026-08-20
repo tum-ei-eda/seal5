@@ -148,6 +148,7 @@ def main():
                         mattr=mattr,
                         xlen=xlen,
                         verbose=args.verbose,
+                        mnemonic_override=instr_def.mnemonic,
                     )
                     if output_file.is_file():
                         metrics["n_success"] += 1

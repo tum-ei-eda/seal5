@@ -60,6 +60,10 @@ def main():
     # print("model", model)
     data = {"extensions": {}}
     parents = {}
+    settings = model_obj.settings
+    intrinsics = []
+    if settings is not None and settings.intrinsics is not None and settings.intrinsics.intrinsics is not None:
+        intrinsics = settings.intrinsics.intrinsics
     # TODO: dump intrinsics?
     for set_name, set_def in model_obj.sets.items():
         # print("set", set_def)
@@ -81,6 +85,12 @@ def main():
         for instr in set_def.instructions.values():
             set_data["instructions"].append(instr.name)
             llvm_imm_types.update(instr.llvm_imm_types)
+            has_intrinsic = any(
+                intrinsic.instr_name.casefold() in [instr.mnemonic.casefold(), instr.name.casefold()]
+                for intrinsic in intrinsics
+            )
+            if has_intrinsic:
+                llvm_imm_types.update(instr.llvm_intrin_imm_types)
         enc_sizes = set(instr_def.size for instr_def in set_def.instructions.values())
         set_data["enc_sizes"] = list(enc_sizes)
         set_data["required_imm_types"] = list(llvm_imm_types)

@@ -6,37 +6,25 @@
 # Chair of Electrical Design Automation
 # Technical University of Munich
 
-"""Remove (rd != 0) checks from M2-ISA-R/Seal5 metamodel."""
+"""Type inference for M2-ISA-R/Seal5 metamodel.
+
+This module uses the upstream M2-ISA-R infer_types implementation which
+provides the modern visitor pattern and type system.
+"""
 
 import sys
 import argparse
 import logging
 import pathlib
 
-from m2isar.metamodel import patch_model
-
 from seal5.model_utils import load_model, dump_model
 
-from . import visitor
+from .visitor import InferTypesMutator, WarningsManager
+from m2isar.warnings import add_warnings_flags, KNOWN_WARNINGS
 
 from seal5.logging import Logger
 
 logger = Logger("transform.infer_types")
-
-
-# TODO: implement full API
-# class TransformAPI(IntEnum):
-#     PYTHON = auto()
-#     CMDLINE = auto()
-#
-#
-# class InferTypes(Seal5Transform):
-#
-#
-#     def setup_parser(self):
-#
-#
-#     def run(self, api: TranformAPI = TranformAPI.PYTHON):
 
 
 def get_parser():
@@ -46,6 +34,7 @@ def get_parser():
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--compat", action="store_true")
+    add_warnings_flags(parser, KNOWN_WARNINGS, KNOWN_WARNINGS)
     return parser
 
 
@@ -60,13 +49,17 @@ def run(args):
 
     model_obj = load_model(top_level, compat=args.compat)
 
+    # Build warnings info from command-line arguments
+    warnings_info = args.warnings if hasattr(args, "warnings") else None
+
+    # Process instruction sets (Seal5 specific)
     for _, set_def in model_obj.sets.items():
         logger.debug("inferring types for set %s", set_def.name)
-        patch_model(visitor)
-        # TODO: handle RFS symbolically
+        context = WarningsManager(warnings_info)
+        mutator = InferTypesMutator()
         for _, instr_def in set_def.instructions.items():
             logger.debug("inferring types for instr %s", instr_def.name)
-            instr_def.operation.generate(None)
+            mutator.generate(instr_def.operation, context)
 
     dump_model(model_obj, out_path, compat=args.compat)
 
