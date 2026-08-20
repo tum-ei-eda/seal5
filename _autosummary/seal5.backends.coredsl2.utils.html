@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>seal5.backends.coredsl2.visitor &mdash; Seal5 v0.1.2 documentation</title>
+  <title>seal5.backends.coredsl2.utils &mdash; Seal5 v0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
@@ -46,7 +46,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="seal5.html">seal5</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="seal5.backends.html">seal5.backends</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="seal5.backends.coredsl2.html">seal5.backends.coredsl2</a><ul class="current">
-<li class="toctree-l4 current"><a class="current reference internal" href="#">seal5.backends.coredsl2.visitor</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">seal5.backends.coredsl2.utils</a></li>
 <li class="toctree-l4"><a class="reference internal" href="seal5.backends.coredsl2.writer.html">seal5.backends.coredsl2.writer</a></li>
 </ul>
 </li>
@@ -111,9 +111,9 @@
           <li class="breadcrumb-item"><a href="seal5.html">seal5</a></li>
           <li class="breadcrumb-item"><a href="seal5.backends.html">seal5.backends</a></li>
           <li class="breadcrumb-item"><a href="seal5.backends.coredsl2.html">seal5.backends.coredsl2</a></li>
-      <li class="breadcrumb-item active">seal5.backends.coredsl2.visitor</li>
+      <li class="breadcrumb-item active">seal5.backends.coredsl2.utils</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/_autosummary/seal5.backends.coredsl2.visitor.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/_autosummary/seal5.backends.coredsl2.utils.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -121,70 +121,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-seal5.backends.coredsl2.visitor">
-<span id="seal5-backends-coredsl2-visitor"></span><h1>seal5.backends.coredsl2.visitor<a class="headerlink" href="#module-seal5.backends.coredsl2.visitor" title="Link to this heading"></a></h1>
-<p>TODO</p>
-<p class="rubric">Functions</p>
+  <section id="module-seal5.backends.coredsl2.utils">
+<span id="seal5-backends-coredsl2-utils"></span><h1>seal5.backends.coredsl2.utils<a class="headerlink" href="#module-seal5.backends.coredsl2.utils" title="Link to this heading"></a></h1>
+<p>Clean M2-ISA-R/Seal5 metamodel to .core_desc file.</p>
+<p class="rubric">Classes</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">assignment</span></code>(self, writer)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">binary_operation</span></code>(self, writer)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">break_</span></code>(self, writer)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">callable_</span></code>(self, writer)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">concat_operation</span></code>(self, writer)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">conditional</span></code>(self, writer)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">group</span></code>(self, writer)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">indexed_reference</span></code>(self, writer)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">int_literal</span></code>(self, writer)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">loop</span></code>(self, writer)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">named_reference</span></code>(self, writer)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">number_literal</span></code>(self, writer)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">operation</span></code>(self, writer)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">procedure_call</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">return_</span></code>(self, writer)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">scalar_definition</span></code>(self, writer)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">slice_operation</span></code>(self, writer)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ternary</span></code>(self, writer)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">type_conv</span></code>(self, writer)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">unary_operation</span></code>(self, writer)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Seal5CoreDSL2Writer</span></code>(visitor[, reduced, ...])</p></td>
 <td><p></p></td>
 </tr>
 </tbody>

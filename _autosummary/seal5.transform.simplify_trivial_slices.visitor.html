@@ -138,34 +138,22 @@
 simplifications are done:</p>
 <ul class="simple">
 <li><p>Resolvable <code class="xref py py-class docutils literal notranslate"><span class="pre">m2isar.metamodel.arch.Constant</span></code> s are replaced by
-<cite>m2isar.metamodel.arch.IntLiteral</cite> s representing their value</p></li>
+<cite>m2isar.metamodel.behav.Literal</cite> s representing their value</p></li>
 <li><p>Fully resolvable arithmetic operations are carried out and their results
-represented as a matching <code class="xref py py-class docutils literal notranslate"><span class="pre">m2isar.metamodel.arch.IntLiteral</span></code></p></li>
+represented as a matching <code class="xref py py-class docutils literal notranslate"><span class="pre">m2isar.metamodel.behav.Literal</span></code></p></li>
 <li><p>Conditions and loops with fully resolvable conditions are either discarded entirely
 or transformed into code blocks without any conditions</p></li>
 <li><p>Ternaries with fully resolvable conditions are transformed into only the matching part</p></li>
-<li><p>Type conversions of <code class="xref py py-class docutils literal notranslate"><span class="pre">m2isar.metamodel.arch.IntLiteral</span></code> s apply the desired
-type directly to the <code class="xref py py-class docutils literal notranslate"><span class="pre">IntLiteral</span></code> and discard the type conversion</p></li>
+<li><p>Type conversions of <code class="xref py py-class docutils literal notranslate"><span class="pre">m2isar.metamodel.behav.Literal</span></code> s apply the desired
+type directly to the <code class="xref py py-class docutils literal notranslate"><span class="pre">Literal</span></code> and discard the type conversion</p></li>
 </ul>
 <p class="rubric">Functions</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">assignment</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">binary_operation</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">break_</span></code>(self, context)</p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">callable_</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">concat_operation</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">conditional</span></code>(self, context)</p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">group</span></code>(self, context)</p></td>
@@ -174,38 +162,19 @@ type directly to the <code class="xref py py-class docutils literal notranslate"
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">indexed_reference</span></code>(self, context)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">int_literal</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">loop</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">named_reference</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">number_literal</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">operation</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">return_</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">scalar_definition</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">slice_operation</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ternary</span></code>(self, context)</p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">type_conv</span></code>(self, context)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">unary_operation</span></code>(self, context)</p></td>
-<td><p></p></td>
+</tbody>
+</table>
+<p class="rubric">Classes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimplifyTrivialSlicesVisitor</span></code>()</p></td>
+<td><p>Simplify trivial slice operations in behavioral expressions.</p></td>
 </tr>
 </tbody>
 </table>

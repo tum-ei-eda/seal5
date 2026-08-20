@@ -10,5 +10,6 @@ seal5.backends.coredsl2
    :toctree:
    :recursive:
 
+   utils
    visitor
    writer

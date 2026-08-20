@@ -10,9 +10,3 @@ seal5.backends.coredsl2.writer
    
       main
    
-   .. rubric:: Classes
-
-   .. autosummary::
-   
-      CoreDSL2Writer
-   

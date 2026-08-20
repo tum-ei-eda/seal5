@@ -134,84 +134,9 @@
              
   <section id="module-seal5.transform.infer_types.visitor">
 <span id="seal5-transform-infer-types-visitor"></span><h1>seal5.transform.infer_types.visitor<a class="headerlink" href="#module-seal5.transform.infer_types.visitor" title="Link to this heading"></a></h1>
-<p>A transformation module for simplifying M2-ISA-R behavior expressions. The following
-simplifications are done:</p>
-<ul class="simple">
-<li><p>Resolvable <code class="xref py py-class docutils literal notranslate"><span class="pre">m2isar.metamodel.arch.Constant</span></code> s are replaced by
-<cite>m2isar.metamodel.arch.IntLiteral</cite> s representing their value</p></li>
-<li><p>Fully resolvable arithmetic operations are carried out and their results
-represented as a matching <code class="xref py py-class docutils literal notranslate"><span class="pre">m2isar.metamodel.arch.IntLiteral</span></code></p></li>
-<li><p>Conditions and loops with fully resolvable conditions are either discarded entirely
-or transformed into code blocks without any conditions</p></li>
-<li><p>Ternaries with fully resolvable conditions are transformed into only the matching part</p></li>
-<li><p>Type conversions of <code class="xref py py-class docutils literal notranslate"><span class="pre">m2isar.metamodel.arch.IntLiteral</span></code> s apply the desired
-type directly to the <code class="xref py py-class docutils literal notranslate"><span class="pre">IntLiteral</span></code> and discard the type conversion</p></li>
-</ul>
-<p class="rubric">Functions</p>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">assignment</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">binary_operation</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">break_</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">callable_</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">concat_operation</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">conditional</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">group</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">indexed_reference</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">int_literal</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">loop</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">named_reference</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">number_literal</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">operation</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">procedure_call</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">return_</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">scalar_definition</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">slice_operation</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ternary</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">type_conv</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">unary_operation</span></code>(self, context)</p></td>
-<td><p></p></td>
-</tr>
-</tbody>
-</table>
+<p>Type inference for M2-ISA-R/Seal5 metamodel.</p>
+<p>This module re-exports the upstream M2-ISA-R InferTypesMutator which provides
+the modern visitor pattern and correct type system for type inference.</p>
 </section>
 
 
