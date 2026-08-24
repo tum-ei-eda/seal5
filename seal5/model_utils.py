@@ -12,6 +12,9 @@ from seal5.logging import Logger
 logger = Logger("model_utils")
 
 
+MIN_M2_METAMODEL_VERSION = 3
+
+
 def load_model(
     model_path: Union[str, Path], compat: bool = False, allow_missmatch: bool = False
 ) -> Union[Seal5Model, M2Model]:
@@ -22,6 +25,9 @@ def load_model(
         model_obj: Union[Seal5Model, M2Model] = pickle.load(f)
     if compat:
         assert isinstance(model_obj, M2Model), "Expected M2Model"
+        if model_obj.model_version < MIN_M2_METAMODEL_VERSION:
+            err_handler = logger.warning if allow_missmatch else RuntimeError
+            err_handler("Loaded model version mismatch")
     else:
         assert isinstance(model_obj, Seal5Model), "Expected Seal5Model"
     required_version = M2_METAMODEL_VERSION if compat else SEAL5_METAMODEL_VERSION
