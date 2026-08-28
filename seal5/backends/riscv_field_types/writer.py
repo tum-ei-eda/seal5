@@ -41,7 +41,7 @@ class Seal5RISCVUImmOp<int bitsNum> : RISCVOp {
     int64_t Imm;
     if (!MCOp.evaluateAsConstantImm(Imm))
       return false;
-    return isUInt<bitsNum>(Imm);
+    return isUInt<}] # bitsNum # [{>(Imm);
   }];
 }
 
@@ -58,7 +58,7 @@ class Seal5RISCVSImmOp<int bitsNum> : RISCVOp {
   let MCOperandPredicate = [{
     int64_t Imm;
     if (MCOp.evaluateAsConstantImm(Imm))
-      return isInt<bitsNum>(Imm);
+      return isInt<}] # bitsNum # [{>(Imm);
     return MCOp.isBareSymbolRef();
   }];
 }
