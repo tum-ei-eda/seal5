@@ -30,21 +30,42 @@ class Seal5UImmAsmOperand<int width, string suffix = "">
     : ImmAsmOperand<"Seal5U", width, suffix> {
   let PredicateMethod = "isSeal5UImm" # width;
 }
+
 class Seal5RISCVUImmOp<int bitsNum> : RISCVOp {
   let ParserMatchClass = Seal5UImmAsmOperand<bitsNum>;
+  let EncoderMethod = "getImmOpValue";
   let DecoderMethod = "decodeUImmOperand<" # bitsNum # ">";
   let OperandType = "SEAL5_OPERAND_UIMM" # bitsNum;
+
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (!MCOp.evaluateAsConstantImm(Imm))
+      return false;
+    return isUInt<bitsNum>(Imm);
+  }];
 }
+
 class Seal5RISCVUImmLeafOp<int bitsNum> :
-  Seal5RISCVUImmOp<bitsNum>, ImmLeaf<XLenVT, "return isUInt<" # bitsNum # ">(Imm);">;
+  Seal5RISCVUImmOp<bitsNum>,
+  ImmLeaf<XLenVT, "return isUInt<" # bitsNum # ">(Imm);">;
+
 class Seal5RISCVSImmOp<int bitsNum> : RISCVOp {
   let ParserMatchClass = Seal5SImmAsmOperand<bitsNum>;
   let EncoderMethod = "getImmOpValue";
   let DecoderMethod = "decodeSImmOperand<" # bitsNum # ">";
   let OperandType = "SEAL5_OPERAND_SIMM" # bitsNum;
+
+  let MCOperandPredicate = [{
+    int64_t Imm;
+    if (MCOp.evaluateAsConstantImm(Imm))
+      return isInt<bitsNum>(Imm);
+    return MCOp.isBareSymbolRef();
+  }];
 }
+
 class Seal5RISCVSImmLeafOp<int bitsNum> :
-  Seal5RISCVSImmOp<bitsNum>, ImmLeaf<XLenVT, "return isInt<" # bitsNum # ">(Imm);">;
+  Seal5RISCVSImmOp<bitsNum>,
+  ImmLeaf<XLenVT, "return isInt<" # bitsNum # ">(Imm);">;
 """
 
 
@@ -91,20 +112,11 @@ def gen_riscv_field_types_str(field_types, llvm_settings):
         is_leaf = True
         if sign_letter == "u":
             cls = "Seal5RISCVUImmLeafOp" if is_leaf else "Seal5RISCVUImmOp"
-            temp = f"def {field_type} : {cls}<{imm_size}>;"
         elif sign_letter == "s":
             cls = "Seal5RISCVSImmLeafOp" if is_leaf else "Seal5RISCVSImmOp"
-            # Warning: RISCVSImmOp not tested yet
-            temp = f"""def {field_type} : {cls}<{imm_size}> {{
-  let MCOperandPredicate = [{{
-    int64_t Imm;
-    if (MCOp.evaluateAsConstantImm(Imm))
-      return isInt<{imm_size}>(Imm);
-    return MCOp.isBareSymbolRef();
-  }}];
-}}"""
         else:
             assert False  # Should not be reached
+        temp = f"def {field_type} : {cls}<{imm_size}>;"
         riscv_field_types_contents.append(temp)
         sign_letter_upper = sign_letter.upper()
         if llvm_major_version >= 21:
