@@ -187,9 +187,9 @@ class InlineFunctionsVisitor(ExprVisitor):
             return expr
 
         statement = function_def.operation.statements[0]
-        ret_dtype = function_def.data_type
-        ret_size = None  # TODO: add sized return types to m2isar functions
-        statement = behav.TypeConv(ret_dtype, ret_size, statement)
+        ret_kind = function_def.ty.kind
+        ret_size = function_def.ty.size
+        statement = behav.TypeConv(ret_kind, ret_size, statement)
         # print("statement", statement)
         while isinstance(statement, behav.Block):
             # print("BLOCK", statement, dir(statement))
