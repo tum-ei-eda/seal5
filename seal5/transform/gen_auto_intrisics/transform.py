@@ -63,7 +63,7 @@ def run(args):
     assert model_obj.settings is not None
     settings = model_obj.settings
     instrinsics_settings = settings.intrinsics
-    print("instrinsics_settings", instrinsics_settings)
+    # print("instrinsics_settings", instrinsics_settings)
 
     def handle(instr_def, intrinsics_settings, set_name):
         has_auto_intrin = Seal5InstrAttribute.AUTO_INTRIN in instr_def.attributes
