@@ -4,10 +4,17 @@ seal5.transform.detect\_imm\_leafs.visitor
 .. automodule:: seal5.transform.detect_imm_leafs.visitor
 
    
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      combine
+   
    .. rubric:: Classes
 
    .. autosummary::
    
       DetectImmLeafsVisitor
       Mode
+      Result
    
