@@ -20,6 +20,18 @@ from seal5 import model
 class CollectOperandTypesVisitor(ExprVisitor):
     """Collect operand types from behavioral expressions."""
 
+    @staticmethod
+    def _update_seal5_type(ty, data_type):
+        """Apply an M2-ISA-R type kind to a Seal5 operand type."""
+        datatype = model.KIND2DATATYPE.get(data_type)
+        if datatype is None:
+            raise NotImplementedError(f"Unsupported operand type kind: {data_type}")
+        if ty.datatype != datatype:
+            if ty.datatype == model.DataType.U:
+                ty.datatype = datatype
+            else:
+                raise ValueError(f"Conflicting operand types: {ty.datatype} and {datatype}")
+
     @singledispatchmethod
     def generate(self, expr: behav.BaseNode, context):
         raise NotImplementedError(
@@ -143,15 +155,9 @@ class CollectOperandTypesVisitor(ExprVisitor):
                 op = context.operands[name]
                 assert isinstance(op, model.Seal5ImmOperand)
                 ty = op.ty
-                width = ty.size  # Changed from .width to .size
-                if ty != expr.data_type:
-                    # update
-                    if ty.kind == "U":  # Changed from datatype to kind
-                        ty.kind = expr.data_type
-                        op.ty = ty
-
-                    else:
-                        assert False, "Conflicting types"
+                width = ty.width
+                self._update_seal5_type(ty, expr.data_type)
+                op.ty = ty
                 if expr.size is not None:
                     if width != expr.size:
                         if expr.size < width:  # trunc!
@@ -182,16 +188,10 @@ class CollectOperandTypesVisitor(ExprVisitor):
                         op = context.operands[op_name]
                         assert isinstance(op, model.Seal5RegOperand)
                         reg_ty = op.reg_ty
-                        width = reg_ty.size  # Changed from .width to .size
+                        width = reg_ty.width
                         # print("op", op, op.name, op.reg_class, op.reg_ty, op.ty, op.attributes, op.constraints)
-                        if reg_ty != expr.data_type:
-                            # update
-                            if reg_ty.kind == "U":  # Changed from datatype to kind
-                                reg_ty.kind = expr.data_type
-                                op.reg_ty = reg_ty
-
-                            else:
-                                assert False, "Conflicting types"
+                        self._update_seal5_type(reg_ty, expr.data_type)
+                        op.reg_ty = reg_ty
                         if expr.size is not None:
                             if width != expr.size:
                                 if expr.size < width:  # trunc!

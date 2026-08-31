@@ -77,7 +77,7 @@ class SimplifyTrivialSlicesVisitor(ExprVisitor):
             logger.warning("Slice Operation needs PrimitiveType. Skipping...")
             return expr
 
-        source_width = expr.expr.ty.width
+        source_width = expr.expr.ty.size
 
         expr.left = self.generate(expr.left, context)
         if not isinstance(expr.left, behav.Literal):
