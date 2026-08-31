@@ -11,7 +11,7 @@ diff --git a/clang/include/clang/Basic/BuiltinsRISCV.td b/clang/include/clang/Ba
 diff --git a/clang/lib/CodeGen/CGBuiltin.cpp b/clang/lib/CodeGen/CGBuiltin.cpp
 --- a/clang/lib/CodeGen/CGBuiltin.cpp
 +++ b/clang/lib/CodeGen/CGBuiltin.cpp
-@@ -23337,6 +23337,9 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
+@@ -23330,6 +23330,9 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
      ID = Intrinsic::riscv_sha256sum1;
      break;
 
@@ -79,6 +79,45 @@ diff --git a/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp b/llvm/lib/Targe
 
    bool isUImm5NonZero() const {
      if (!isImm())
+@@ -1645,6 +1647,8 @@ bool RISCVAsmParser::matchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
+         "operand must be a symbol with a "
+         "%pcrel_hi/%got_pcrel_hi/%tls_ie_pcrel_hi/%tls_gd_pcrel_hi modifier or "
+         "an integer in the range");
++// RISCVAsmParser.cpp - riscv_match_invalid_operands - INSERTION_START
++// RISCVAsmParser.cpp - riscv_match_invalid_operands - INSERTION_END
+   case Match_InvalidSImm21Lsb0JAL:
+     return generateImmOutOfRangeError(
+         Operands, ErrorInfo, -(1 << 20), (1 << 20) - 2,
+diff --git a/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp b/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp
+--- a/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp
++++ b/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp
+@@ -701,6 +701,8 @@ DecodeStatus RISCVDisassembler::getInstruction32(MCInst &MI, uint64_t &Size,
+                         "CORE-V SIMD extensions custom opcode table");
+   TRY_TO_DECODE_FEATURE(RISCV::FeatureVendorXCVbi, DecoderTableXCVbi32,
+                         "CORE-V Immediate Branching custom opcode table");
++// RISCVDisassembler.cpp - riscv_disass_decode_feature_32 - INSERTION_START
++// RISCVDisassembler.cpp - riscv_disass_decode_feature_32 - INSERTION_END
+   TRY_TO_DECODE_FEATURE(RISCV::FeatureVendorXqcicsr, DecoderTableXqcicsr32,
+                         "Qualcomm uC CSR custom opcode table");
+   TRY_TO_DECODE_FEATURE(RISCV::FeatureVendorXqcisls, DecoderTableXqcisls32,
+@@ -721,6 +723,8 @@ DecodeStatus RISCVDisassembler::getInstruction32(MCInst &MI, uint64_t &Size,
+                         "Qualcomm uC Conditional Move custom opcode table");
+   TRY_TO_DECODE_FEATURE(RISCV::FeatureVendorXqciint, DecoderTableXqciint32,
+                         "Qualcomm uC Interrupts custom opcode table");
++// RISCVDisassembler.cpp - riscv_disass_decode_feature_48 - INSERTION_START
++// RISCVDisassembler.cpp - riscv_disass_decode_feature_48 - INSERTION_END
+   TRY_TO_DECODE(true, DecoderTable32, "RISCV32 table");
+
+   return MCDisassembler::Fail;
+@@ -758,6 +762,8 @@ DecodeStatus RISCVDisassembler::getInstruction16(MCInst &MI, uint64_t &Size,
+   TRY_TO_DECODE_AND_ADD_SP(STI.hasFeature(RISCV::FeatureVendorXwchc),
+                            DecoderTableXwchc16,
+                            "WCH QingKe XW custom opcode table");
++// RISCVDisassembler.cpp - riscv_disass_decode_feature_16 - INSERTION_START
++// RISCVDisassembler.cpp - riscv_disass_decode_feature_16 - INSERTION_END
+   TRY_TO_DECODE_AND_ADD_SP(true, DecoderTable16,
+                            "RISCV_C table (16-bit Instruction)");
+
 diff --git a/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp b/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
 --- a/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
 +++ b/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
@@ -139,6 +178,18 @@ diff --git a/llvm/lib/Target/RISCV/RISCVISelLowering.cpp b/llvm/lib/Target/RISCV
 
    if (getTargetMachine().getTargetTriple().isOSLinux()) {
      // Custom lowering of llvm.clear_cache.
+diff --git a/llvm/lib/Target/RISCV/RISCVInstrInfo.cpp b/llvm/lib/Target/RISCV/RISCVInstrInfo.cpp
+--- a/llvm/lib/Target/RISCV/RISCVInstrInfo.cpp
++++ b/llvm/lib/Target/RISCV/RISCVInstrInfo.cpp
+@@ -2481,6 +2481,8 @@ bool RISCVInstrInfo::verifyInstruction(const MachineInstr &MI,
+         CASE_OPERAND_UIMM(10)
+         CASE_OPERAND_UIMM(12)
+         CASE_OPERAND_UIMM(20)
++// RISCVInstrInfo.cpp - riscv_verify_operands - INSERTION_START
++// RISCVInstrInfo.cpp - riscv_verify_operands - INSERTION_END
+           // clang-format on
+         case RISCVOp::OPERAND_UIMM2_LSB0:
+           Ok = isShiftedUInt<1, 1>(Imm);
 diff --git a/llvm/lib/Target/RISCV/RISCVInstrInfo.td b/llvm/lib/Target/RISCV/RISCVInstrInfo.td
 --- a/llvm/lib/Target/RISCV/RISCVInstrInfo.td
 +++ b/llvm/lib/Target/RISCV/RISCVInstrInfo.td
@@ -181,33 +232,3 @@ diff --git a/llvm/lib/Target/RISCV/RISCVRegisterInfo.td b/llvm/lib/Target/RISCV/
 +
 +// RISCVRegisterInfo.td - riscv_register_info - INSERTION_START
 +// RISCVRegisterInfo.td - riscv_register_info - INSERTION_END
-diff --git a/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp b/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp
---- a/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp
-+++ b/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp
-@@ -701,6 +701,8 @@ DecodeStatus RISCVDisassembler::getInstruction32(MCInst &MI, uint64_t &Size,
-                         "CORE-V SIMD extensions custom opcode table");
-   TRY_TO_DECODE_FEATURE(RISCV::FeatureVendorXCVbi, DecoderTableXCVbi32,
-                         "CORE-V Immediate Branching custom opcode table");
-+// RISCVDisassembler.cpp - riscv_disass_decode_feature_32 - INSERTION_START
-+// RISCVDisassembler.cpp - riscv_disass_decode_feature_32 - INSERTION_END
-   TRY_TO_DECODE_FEATURE(RISCV::FeatureVendorXqcicsr, DecoderTableXqcicsr32,
-                         "Qualcomm uC CSR custom opcode table");
-   TRY_TO_DECODE_FEATURE(RISCV::FeatureVendorXqcisls, DecoderTableXqcisls32,
-@@ -721,6 +723,8 @@ DecodeStatus RISCVDisassembler::getInstruction32(MCInst &MI, uint64_t &Size,
-                         "Qualcomm uC Conditional Move custom opcode table");
-   TRY_TO_DECODE_FEATURE(RISCV::FeatureVendorXqciint, DecoderTableXqciint32,
-                         "Qualcomm uC Interrupts custom opcode table");
-+// RISCVDisassembler.cpp - riscv_disass_decode_feature_48 - INSERTION_START
-+// RISCVDisassembler.cpp - riscv_disass_decode_feature_48 - INSERTION_END
-   TRY_TO_DECODE(true, DecoderTable32, "RISCV32 table");
-
-   return MCDisassembler::Fail;
-@@ -758,6 +762,8 @@ DecodeStatus RISCVDisassembler::getInstruction16(MCInst &MI, uint64_t &Size,
-   TRY_TO_DECODE_AND_ADD_SP(STI.hasFeature(RISCV::FeatureVendorXwchc),
-                            DecoderTableXwchc16,
-                            "WCH QingKe XW custom opcode table");
-+// RISCVDisassembler.cpp - riscv_disass_decode_feature_16 - INSERTION_START
-+// RISCVDisassembler.cpp - riscv_disass_decode_feature_16 - INSERTION_END
-   TRY_TO_DECODE_AND_ADD_SP(true, DecoderTable16,
-                            "RISCV_C table (16-bit Instruction)");
-
