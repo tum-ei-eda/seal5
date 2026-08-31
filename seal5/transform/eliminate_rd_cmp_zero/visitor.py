@@ -50,7 +50,7 @@ class EliminateRdCmpZeroVisitor(ExprVisitor):
                     if isinstance(expr.right, behav.Literal):
                         if expr.right.value == 0:
                             # Replace (rd != 0) with 1 (true)
-                            lit = behav.Literal(1, 1, False)
+                            lit = behav.Literal(1)
                             return lit
 
         expr.left = self.generate(expr.left, context)
