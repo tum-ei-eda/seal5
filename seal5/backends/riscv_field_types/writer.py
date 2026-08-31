@@ -74,6 +74,8 @@ def gen_riscv_field_types_str(field_types, llvm_settings):
     riscv_field_types_contents = [SEAL5_RISCV_FIELDS_SUPPORT] if len(field_types) > 0 else []
     riscv_operands_asm_contents = []
     riscv_operands_enum_contents = []
+    riscv_match_invalid_operands_contents = []
+    riscv_verify_operands_contents = []
 
     llvm_major_version = None
     if llvm_settings:
@@ -152,10 +154,36 @@ def gen_riscv_field_types_str(field_types, llvm_settings):
         temp = f"  SEAL5_OPERAND_{field_type_upper},"
         riscv_operands_enum_contents.append(temp)
 
+        match_invalid_name = f"Match_Invalid{prefix2}{sign_letter_upper}Imm{imm_size}"
+        if sign_letter == "u":
+            lower_bound = "0"
+            upper_bound = f"(1 << {imm_size}) - 1"
+            verify_predicate = f"isUInt<{imm_size}>(Imm)"
+        else:
+            lower_bound = f"-(1 << ({imm_size} - 1))"
+            upper_bound = f"(1 << ({imm_size} - 1)) - 1"
+            verify_predicate = f"isInt<{imm_size}>(Imm)"
+        temp = f"""  case {match_invalid_name}:
+    return generateImmOutOfRangeError(Operands, ErrorInfo, {lower_bound}, {upper_bound});"""
+        riscv_match_invalid_operands_contents.append(temp)
+
+        temp = f"""        case RISCVOp::SEAL5_OPERAND_{field_type_upper}:
+          Ok = {verify_predicate};
+          break;"""
+        riscv_verify_operands_contents.append(temp)
+
     riscv_field_types_content = "\n".join(riscv_field_types_contents)
     riscv_operands_asm_content = "\n".join(riscv_operands_asm_contents)
     riscv_operands_enum_content = "\n".join(riscv_operands_enum_contents)
-    return riscv_field_types_content, riscv_operands_asm_content, riscv_operands_enum_content
+    riscv_match_invalid_operands_content = "\n".join(riscv_match_invalid_operands_contents)
+    riscv_verify_operands_content = "\n".join(riscv_verify_operands_contents)
+    return (
+        riscv_field_types_content,
+        riscv_operands_asm_content,
+        riscv_operands_enum_content,
+        riscv_match_invalid_operands_content,
+        riscv_verify_operands_content,
+    )
 
 
 def main():
@@ -224,11 +252,21 @@ def main():
     artifacts[None] = []  # used for global artifacts
     # TODO: error handling?
     if len(missing_imm_types) > 0:
-        field_types_content, riscv_operands_asm_content, riscv_operands_enum_content = gen_riscv_field_types_str(
-            missing_imm_types, llvm_settings
-        )
+        (
+            field_types_content,
+            riscv_operands_asm_content,
+            riscv_operands_enum_content,
+            riscv_match_invalid_operands_content,
+            riscv_verify_operands_content,
+        ) = gen_riscv_field_types_str(missing_imm_types, llvm_settings)
     else:
-        field_types_content, riscv_operands_asm_content, riscv_operands_enum_content = "", "", ""
+        (
+            field_types_content,
+            riscv_operands_asm_content,
+            riscv_operands_enum_content,
+            riscv_match_invalid_operands_content,
+            riscv_verify_operands_content,
+        ) = "", "", "", "", ""
     metrics["n_imm"] = len(missing_imm_types)
     metrics["n_success"] = len(missing_imm_types)
     # print("field_types_content", field_types_content)
@@ -255,6 +293,20 @@ def main():
             content=riscv_operands_enum_content,
         )
         artifacts[None].append(riscv_operands_enum_patch)
+    if len(riscv_match_invalid_operands_content) > 0:
+        riscv_match_invalid_operands_patch = NamedPatch(
+            "llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp",
+            key="riscv_match_invalid_operands",
+            content=riscv_match_invalid_operands_content,
+        )
+        artifacts[None].append(riscv_match_invalid_operands_patch)
+    if len(riscv_verify_operands_content) > 0:
+        riscv_verify_operands_patch = NamedPatch(
+            "llvm/lib/Target/RISCV/RISCVInstrInfo.cpp",
+            key="riscv_verify_operands",
+            content=riscv_verify_operands_content,
+        )
+        artifacts[None].append(riscv_verify_operands_patch)
     # input("!!!")
     if args.metrics:
         metrics_file = args.metrics
