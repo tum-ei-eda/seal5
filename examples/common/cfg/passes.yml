@@ -26,3 +26,5 @@ passes:
     detect_inouts: *a
     detect_registers: *a
     write_cdsl_full: *a
+    detect_calls: *a
+    detect_loops: *a
