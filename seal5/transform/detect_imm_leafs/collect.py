@@ -30,7 +30,6 @@ class VisitorContext:
     def __init__(self, imm_op_names):
         self.imm_op_names = imm_op_names
         self.imm_leaf_names = set()
-        self.last_imm_name = None
 
 
 def get_parser():
