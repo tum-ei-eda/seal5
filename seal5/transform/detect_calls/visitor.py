@@ -93,8 +93,11 @@ class DetectCallsVisitor(ExprVisitor):
     @generate.register
     def _(self, expr: behav.Conditional, context):
         expr.conds = [self.generate(cond, context) for cond in expr.conds]
-        for op in expr.stmts:
-            op.generate(context)
+        stmts = []
+        for stmt in expr.stmts:
+            stmt = self.generate(stmt, context)
+            stmts.append(stmt)
+        expr.stmts = stmts
         return expr
 
     @generate.register
