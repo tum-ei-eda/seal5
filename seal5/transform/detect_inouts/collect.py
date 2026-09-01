@@ -106,7 +106,7 @@ def run(args):
                         if seal5.model.Seal5OperandAttribute.UNUSED not in instr_def.attributes:
                             op_def.attributes[seal5.model.Seal5OperandAttribute.UNUSED] = []
                 reg_names = [
-                    reg
+                    reg_name
                     for reg_name in list(set_def.registers.keys())
                     + list(set_def.register_banks.keys())
                     + list(set_def.register_aliases.keys())
