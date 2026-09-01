@@ -77,6 +77,10 @@ class DetectSideEffectsVisitor(ExprVisitor):
         return expr
 
     @generate.register
+    def _(self, expr: behav.Tensor, context):
+        return expr
+
+    @generate.register
     def _(self, expr: behav.VarDefinition, context):
         return expr
 

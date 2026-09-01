@@ -145,6 +145,10 @@ class DetectImmLeafsVisitor(ExprVisitor):
         return Result(mode=Mode.CONST)
 
     @generate.register
+    def _(self, expr: behav.Tensor, context):
+        return Result(mode=Mode.CONST)
+
+    @generate.register
     def _(self, expr: behav.VarDefinition, context):
         return Result()
 
