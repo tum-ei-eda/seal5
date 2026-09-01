@@ -14,6 +14,7 @@ passes:
     drop_unused2: *a
     optimize_model: *a
     infer_types: *a
+    infer_types2: *a
     simplify_trivial_slices: *a
     explicit_truncations: *a
     process_settings: *a
@@ -28,3 +29,4 @@ passes:
     write_cdsl_full: *a
     detect_calls: *a
     detect_loops: *a
+    inline_functions: *a
