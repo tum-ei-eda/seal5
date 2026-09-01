@@ -10,7 +10,7 @@
 
 from functools import singledispatchmethod
 
-from m2isar.metamodel import behav
+from m2isar.metamodel import behav, type_info
 from m2isar.metamodel.utils.ExprVisitor import ExprVisitor
 
 from seal5.logging import Logger
@@ -86,6 +86,8 @@ class ExplicitTruncationsVisitor(ExprVisitor):
     @generate.register
     def _(self, expr: behav.Assignment, context):
         if expr.target.ty and expr.expr.ty:
+            if isinstance(expr.target.ty, type_info.ArrayType):
+                raise NotImplementedError("ArrayType")
             target_width = expr.target.ty.size
             expr_width = expr.expr.ty.size
             if target_width < expr_width:  # implicit truncation
