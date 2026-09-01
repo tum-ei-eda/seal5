@@ -70,10 +70,7 @@ class DetectImmLeafsVisitor(ExprVisitor):
 
     @generate.register
     def _(self, expr: behav.Operation, context):
-        return combine(
-            self.generate(stmt, context)
-            for stmt in expr.statements
-        )
+        return combine(self.generate(stmt, context) for stmt in expr.statements)
 
     @generate.register
     def _(self, expr: behav.Block, context):
@@ -109,19 +106,11 @@ class DetectImmLeafsVisitor(ExprVisitor):
         # as leaves.
         #
 
-        if (
-            left.mode == Mode.IMM
-            and len(left.imm_names) == 1
-            and right.mode == Mode.CONST
-        ):
+        if left.mode == Mode.IMM and len(left.imm_names) == 1 and right.mode == Mode.CONST:
             context.imm_leaf_names.update(left.imm_names)
             return Result()
 
-        if (
-            right.mode == Mode.IMM
-            and len(right.imm_names) == 1
-            and left.mode == Mode.CONST
-        ):
+        if right.mode == Mode.IMM and len(right.imm_names) == 1 and left.mode == Mode.CONST:
             context.imm_leaf_names.update(right.imm_names)
             return Result()
 
@@ -164,15 +153,9 @@ class DetectImmLeafsVisitor(ExprVisitor):
 
     @generate.register
     def _(self, expr: behav.Conditional, context):
-        conds = [
-            self.generate(cond, context)
-            for cond in expr.conds
-        ]
+        conds = [self.generate(cond, context) for cond in expr.conds]
 
-        stmts = [
-            self.generate(stmt, context)
-            for stmt in expr.stmts
-        ]
+        stmts = [self.generate(stmt, context) for stmt in expr.stmts]
 
         return combine(conds + stmts)
 
@@ -180,10 +163,7 @@ class DetectImmLeafsVisitor(ExprVisitor):
     def _(self, expr: behav.Loop, context):
         cond = self.generate(expr.cond, context)
 
-        stmts = [
-            self.generate(stmt, context)
-            for stmt in expr.stmts
-        ]
+        stmts = [self.generate(stmt, context) for stmt in expr.stmts]
 
         return combine([cond] + stmts)
 
@@ -218,10 +198,7 @@ class DetectImmLeafsVisitor(ExprVisitor):
         # so this mainly handles cases where IMM_CONST survives from another
         # node type.
         #
-        if (
-            right.mode == Mode.IMM_CONST
-            and len(right.imm_names) == 1
-        ):
+        if right.mode == Mode.IMM_CONST and len(right.imm_names) == 1:
             context.imm_leaf_names.update(right.imm_names)
             return Result()
 
@@ -253,10 +230,7 @@ class DetectImmLeafsVisitor(ExprVisitor):
 
     @generate.register
     def _(self, expr: behav.Callable, context):
-        return combine(
-            self.generate(arg, context)
-            for arg in expr.args
-        )
+        return combine(self.generate(arg, context) for arg in expr.args)
 
     @generate.register
     def _(self, expr: behav.Group, context):
@@ -264,7 +238,4 @@ class DetectImmLeafsVisitor(ExprVisitor):
 
     @generate.register
     def _(self, expr: behav.ProcedureCall, context):
-        return combine(
-            self.generate(arg, context)
-            for arg in expr.args
-        )
+        return combine(self.generate(arg, context) for arg in expr.args)
