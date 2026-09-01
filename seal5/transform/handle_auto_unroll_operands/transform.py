@@ -63,7 +63,7 @@ def run(args):
             is_small_imm = imm_width <= max_imm_width
             if not is_small_imm:
                 continue
-            # TODO: check if immleaf?
+            # is_imm_leaf = Seal5OperandAttribute.IS_IMM_LEAF in op_def.attributes
             op_def.attributes[Seal5OperandAttribute.IS_UNROLL_IMM] = []
         pass
 
