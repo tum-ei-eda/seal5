@@ -61,11 +61,12 @@ def run(args):
         for instr_name, instr_def in set_def.instructions.items():
             logger.debug("inline_functions for instr %s", instr_def.name)
             visitor.generate(instr_def.operation, context)
-        set_def.functions = {
-            func_name: func_def
-            for func_name, func_def in set_def.functions.items()
-            if Seal5FunctionAttribute.INLINE not in func_def.attributes
-        }
+        # only drop if inline was successful and not used elsewhere -> run drop_unused after this
+        # set_def.functions = {
+        #     func_name: func_def
+        #     for func_name, func_def in set_def.functions.items()
+        #     if Seal5FunctionAttribute.INLINE not in func_def.attributes
+        # }
 
     dump_model(model_obj, out_path, compat=args.compat)
 
