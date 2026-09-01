@@ -69,6 +69,7 @@ def run(args):
         has_auto_intrin = Seal5InstrAttribute.AUTO_INTRIN in instr_def.attributes
         if not has_auto_intrin:
             return
+        instr_def.attributes.pop(Seal5InstrAttribute.AUTO_INTRIN)
         intrinsics = intrinsics_settings.intrinsics
         if intrinsics is None:
             intrinsics = []

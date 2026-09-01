@@ -49,6 +49,7 @@ def run(args):
         has_auto_unroll_imm = Seal5InstrAttribute.AUTO_UNROLL_IMM in instr_def.attributes
         if not has_auto_unroll_imm:
             return
+        instr_def.attributes.pop(Seal5InstrAttribute.AUTO_UNROLL_IMM)
         for op_name, op_def in instr_def.operands.items():
             is_imm = Seal5OperandAttribute.IS_IMM in op_def.attributes
             if not is_imm:
