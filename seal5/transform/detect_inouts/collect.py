@@ -105,14 +105,20 @@ def run(args):
                     if op_name not in context.uses:
                         if seal5.model.Seal5OperandAttribute.UNUSED not in instr_def.attributes:
                             op_def.attributes[seal5.model.Seal5OperandAttribute.UNUSED] = []
+                reg_names = [
+                    reg
+                    for reg_name in list(set_def.registers.keys())
+                    + list(set_def.register_banks.keys())
+                    + list(set_def.register_aliases.keys())
+                ]
                 for reg_name in context.reads:
                     if reg_name == "PC":
                         continue
                     if reg_name in instr_def.operands.keys():
                         continue
-                    if reg_name in instr_def.scalars.keys():
+                    if reg_name in instr_def.vars.keys():
                         continue
-                    assert reg_name in set_def.registers
+                    assert reg_name in reg_names
                     uses = instr_def.attributes.get(seal5.model.Seal5InstrAttribute.USES, [])
                     uses.append(reg_name)
                     instr_def.attributes[seal5.model.Seal5InstrAttribute.USES] = uses
@@ -121,9 +127,9 @@ def run(args):
                         continue
                     if reg_name in instr_def.operands.keys():
                         continue
-                    if reg_name in instr_def.scalars.keys():
+                    if reg_name in instr_def.vars.keys():
                         continue
-                    assert reg_name in set_def.registers
+                    assert reg_name in reg_names
                     defs = instr_def.attributes.get(seal5.model.Seal5InstrAttribute.DEFS, [])
                     defs.append(reg_name)
                     instr_def.attributes[seal5.model.Seal5InstrAttribute.DEFS] = defs
