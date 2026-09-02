@@ -51,6 +51,26 @@ class Patch(Artifact):
         super().__init__(dest_path, src_path=src_path, content=content, append=append)
 
 
+class AppendPatch(Patch):
+    """Patch that appends content to an existing file."""
+
+    def __init__(
+        self,
+        dest_path: Path,
+        src_path: Optional[Path] = None,
+        content: Optional[str] = None,
+    ):
+        if src_path is None and content is None:
+            raise ValueError("AppendPatch requires either src_path or content")
+
+        super().__init__(
+            dest_path,
+            src_path=src_path,
+            content=content,
+            append=True,
+        )
+
+
 class NamedPatch(Patch):
     """NamedPatch artifact class."""
 

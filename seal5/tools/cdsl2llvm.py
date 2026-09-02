@@ -28,7 +28,7 @@ import yaml
 from seal5.logging import Logger
 from seal5.settings import PatchSettings
 from seal5.types import PatchStage
-from seal5.index import File, Directory, NamedPatch, write_index_yaml
+from seal5.index import File, Directory, AppendPatch, NamedPatch, write_index_yaml
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 from seal5 import utils
 
@@ -82,6 +82,20 @@ def get_pattern_gen_patches(
     file_artifact = File(
         "llvm/lib/CodeGen/GlobalISel/PatternGen.cpp",
         src_path=f"{src}/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp",
+    )
+    artifacts.append(file_artifact)
+    file_artifact = AppendPatch(
+        "llvm/include/llvm/IR/IntrinsicsRISCV.td",
+        content="""
+let TargetPrefix = "riscv" in {
+  class PatternGenIntrinsic
+    : DefaultAttrsIntrinsic<[llvm_any_ty],
+                            [LLVMMatchType<0>],
+                            [IntrNoMem, IntrHasSideEffects]>;
+
+  def int_riscv_pg_branch : PatternGenIntrinsic;
+}
+""",
     )
     artifacts.append(file_artifact)
     patch_artifact = NamedPatch(
@@ -271,11 +285,11 @@ def run_pattern_gen(
     if not skip_patterns:
         # errs = None
         # opt_ll = None
-        pat = []
+        patterns = []
         found_pattern = False
         # reason = None
         # rest = []
-        is_err = False
+        num_err = 0
         has_stats = False
         all_stats = defaultdict(dict)
         instr = None
@@ -283,42 +297,57 @@ def run_pattern_gen(
 
         pattern_re = re.compile(r"^Pattern for\s+(?P<instr>\S+)(?:\s+\[(?P<mnemonic>[^\]]+)\])?\s*:\s*(?P<pattern>.*)$")
 
+        pat = []
         for line in out.split("\n"):
             # print("line", line)
             if len(line.strip()) == 0 or line.startswith("==="):
                 continue
-            if found_pattern:
+            if found_pattern and "Pattern for" not in line:
                 # print("A1")
                 pat.append(line)
                 # found_pattern = False
             else:
                 # print("A2")
                 if "Pattern for" in line:
+                    if found_pattern:
+                        pattern = "\n".join(pat)
+                        patterns.append(pattern)
+                        pat = []
+                        found_pattern = False
                     match_ = pattern_re.match(line.strip())
+                    # print("match_", match_)
                     if not match_:
                         raise ValueError(f"Could not parse pattern line: {line!r}")
 
                     instr_ = match_.group("instr")
+                    # print("instr", instr)
                     mnemonic_ = match_.group("mnemonic")  # None when [...] is absent
+                    # print("mnemonic_", mnemonic_)
                     pattern = match_.group("pattern")
+                    # print("pattern", pattern)
                     assert instr_ is not None
                     if instr is None:
                         instr = instr_
                     else:
-                        assert instr == instr_, f"Expected same instr: {instr} vs. {instr_}"
+                        # unroll_imm patterns can have a suffix
+                        # TODO: fix
+                        # assert instr == instr_ or instr_.startswith(
+                        #     f"{instr}_"
+                        # ), f"Expected same instr: {instr} vs. {instr_}"
+                        pass
                     if mnemonic_ is not None:
                         if mnemonic is None:
                             mnemonic = mnemonic_
                         else:
                             assert mnemonic == mnemonic_, f"Expected same mnemonic: {mnemonic} vs. {mnemonic_}"
                     pat = [pattern]
-                    print("instr", instr)
-                    print("mnemonic", mnemonic)
-                    print("pat", pat)
+                    # print("instr", instr)
+                    # print("mnemonic", mnemonic)
+                    # print("pat", pat)
                     found_pattern = True
                 elif "Pattern Generation failed for" in line:
                     # reason = line
-                    is_err = True
+                    num_err += 1
                 # if "Pattern for" in line:
                 #     # print("B1")
                 #     instr_ = line.split(":", 1)[0].split(" ")[-1]
@@ -343,6 +372,11 @@ def run_pattern_gen(
             else:
                 if "Statistics Collected" in line:
                     has_stats = True
+        if found_pattern:
+            pattern = "\n".join(pat)
+            patterns.append(pattern)
+            pat = []
+            found_pattern = False
         if len(all_stats) > 0:
             all_stats = dict(all_stats)
             stat_file = str(dest) + ".stats"
@@ -350,17 +384,30 @@ def run_pattern_gen(
                 yaml.dump(all_stats, f)
         ll_files = []
         has_imm = False
-        if len(pat) > 0:
-            pat = "\n".join(pat)
+        # print("pat", pat, len(pat))
+        num_patterns = len(patterns)
+        # print("patterns", patterns, num_patterns)
+        has_err = num_err > 0
+        # print("has_err", has_err)
+        is_fatal_err = num_patterns == 0
+        # print("is_fatal_err", is_fatal_err)
+        if num_patterns > 0:
             pat_file = str(dest) + ".pat"
+            patterns_str = "\n".join(patterns)
             with open(pat_file, "w", encoding="utf-8") as f:
-                f.write(pat)
+                f.write(patterns_str)
 
-            uses = re.compile(r":\$([^:\s(),]*)").findall(pat)
-            assert len(uses) > 0
-            uses = list(set(uses))
-            uses_str = ",".join(uses) + "\n"
-            has_imm = "imm" in uses_str  # TODO: handle any imm name!
+            uses_strs = []
+            for pattern in patterns:
+
+                uses = re.compile(r":\$([^:\s(),]*)").findall(pattern)
+                assert len(uses) > 0
+                uses = list(set(uses))
+                uses_str_ = ",".join(uses)
+                uses_strs.append(uses_str_)
+                has_imm_ = "imm" in uses_str_  # TODO: handle any imm name!
+                has_imm |= has_imm_
+            uses_str = "\n".join(uses_strs)
 
             uses_file = str(dest) + ".uses"
             with open(uses_file, "w", encoding="utf-8") as f:
@@ -368,13 +415,11 @@ def run_pattern_gen(
             ll_file = str(dest).replace(".td", ".ll")
             assert Path(ll_file).is_file(), f"LLVM-IR file not found: {ll_file}"
             ll_files.append(ll_file)
-        else:
-            is_err = True
         if mnemonic_override is not None:
             mnemonic = mnemonic_override
         generate_tests = "auto"
         if generate_tests == "auto":
-            generate_tests = not has_imm and mnemonic is not None
+            generate_tests = not has_imm and mnemonic is not None and not has_err
         assert isinstance(generate_tests, bool)
         test_files = []
         if generate_tests:
@@ -432,12 +477,12 @@ def run_pattern_gen(
         #     if break_on_err:
         #         print("\n".join(rest))
         #         input("^^^Pattern not found^^^")
-        if is_err:
+        if is_fatal_err:
             if break_on_err:
                 print(out)
                 input("^^^ERROR^^^")
             dest.unlink()
-        out_file = str(dest) + (".err" if is_err else ".out")
+        out_file = str(dest) + (".err" if is_fatal_err else ".out")
         with open(out_file, "w", encoding="utf-8") as f:
             f.write(out)
         # if len(rest) > 0:

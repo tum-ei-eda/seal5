@@ -36,6 +36,7 @@ ALLOWED_SEAL5_ATTRS = {
     "llvm_type",
     "has_side_effects",
     "llvm_instr",
+    "is_unroll_imm",
 }
 
 
