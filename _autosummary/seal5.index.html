@@ -113,31 +113,34 @@
 <p class="rubric">Classes</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Artifact</span></code>(dest_path[, src_path, content, append])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">AppendPatch</span></code>(dest_path[, src_path, content])</p></td>
+<td><p>Patch that appends content to an existing file.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Artifact</span></code>(dest_path[, src_path, content, append])</p></td>
 <td><p>Abstract class for artifacts used in patching procedures.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Directory</span></code>(dest_path[, src_path, content, append])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Directory</span></code>(dest_path[, src_path, content, append])</p></td>
 <td><p>Directory artifact class.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">File</span></code>(dest_path[, src_path, content, append])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">File</span></code>(dest_path[, src_path, content, append])</p></td>
 <td><p>File artifact class.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">GitPatch</span></code>(dest_path[, src_path, content, ...])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">GitPatch</span></code>(dest_path[, src_path, content, ...])</p></td>
 <td><p>GitPatch Artifact class.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">IndexedPatch</span></code>(dest_path, line[, src_path, ...])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">IndexedPatch</span></code>(dest_path, line[, src_path, ...])</p></td>
 <td><p>IndexedPatch artifact class.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">NamedPatch</span></code>(dest_path, key[, src_path, ...])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">NamedPatch</span></code>(dest_path, key[, src_path, ...])</p></td>
 <td><p>NamedPatch artifact class.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Patch</span></code>(dest_path[, src_path, content, append])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Patch</span></code>(dest_path[, src_path, content, append])</p></td>
 <td><p>Generic Patch artifact class.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">RangedPatch</span></code>(dest_path, start, end[, ...])</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">RangedPatch</span></code>(dest_path, start, end[, ...])</p></td>
 <td><p>RangedPatch artifact class.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">TestFile</span></code>(dest_path[, src_path, content, append])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">TestFile</span></code>(dest_path[, src_path, content, append])</p></td>
 <td><p>File artifact class.</p></td>
 </tr>
 </tbody>
