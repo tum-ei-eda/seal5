@@ -2070,6 +2070,46 @@ def detect_loops(
     return PassResult(metrics=metrics)
 
 
+def unroll_loops(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    use_subprocess: bool = False,
+    log_level: str = "warning",
+    max_trip_count: int = 32,
+    **_kwargs,
+):
+    assert inplace
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    metrics_file = settings.temp_dir / (input_file.name + "_unroll_loops_metrics.csv")
+    args = [
+        input_file,
+        "--log",
+        log_level if not verbose else "debug",
+        "--max-trip-count",
+        str(max_trip_count),
+        "--metrics",
+        metrics_file,
+    ]
+    if not use_subprocess:
+        from seal5.transform.unroll_loops import UnrollLoops
+
+        UnrollLoops(sanitize_args(args))
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.unroll_loops.transform",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=verbose,
+        )
+    return PassResult(metrics=read_metrics(metrics_file))
+
+
 def annotate_opcodes(
     input_model: str,
     settings: Optional[Seal5Settings] = None,

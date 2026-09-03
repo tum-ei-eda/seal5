@@ -66,6 +66,8 @@ TRANSFORM_PASS_MAP = [
     ("infer_types", passes.infer_types, {}),
     ("simplify_trivial_slices", passes.simplify_trivial_slices, {}),
     ("explicit_truncations", passes.explicit_truncations, {}),
+    ("unroll_loops", passes.unroll_loops, {"max_trip_count": 32}),
+    ("infer_types1", passes.infer_types, {}),
     # ("process_settings", passes.process_settings, {}),
     # ("write_yaml", passes.write_yaml, {}),
     # ("process_settings2", passes.process_settings, {}),
@@ -87,6 +89,7 @@ TRANSFORM_PASS_MAP = [
     ("gen_auto_intrinsics", passes.gen_auto_intrinsics, {}),
     ("write_yaml3", passes.write_yaml, {}),
     ("check_pattern_support", passes.check_pattern_support, {}),
+    ("infer_types2", passes.infer_types, {}),
     ("write_cdsl_full", passes.write_cdsl, {"split": False, "compat": False}),
     # TODO: determine static constraints (xlen,...) -> subtargetvmap
     # detect memory adressing modes
