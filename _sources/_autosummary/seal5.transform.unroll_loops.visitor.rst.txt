@@ -1,0 +1,18 @@
+seal5.transform.unroll\_loops.visitor
+=====================================
+
+.. automodule:: seal5.transform.unroll_loops.visitor
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      evaluate
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      FullLoopUnroller
+   

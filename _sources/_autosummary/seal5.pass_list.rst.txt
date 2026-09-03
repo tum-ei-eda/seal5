@@ -49,6 +49,7 @@ seal5.pass\_list
       process_settings
       sanitize_args
       simplify_trivial_slices
+      unroll_loops
       write_cdsl
       write_yaml
    

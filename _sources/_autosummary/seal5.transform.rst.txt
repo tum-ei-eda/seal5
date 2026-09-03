@@ -35,3 +35,4 @@ seal5.transform
    optimize_instructions
    process_settings
    simplify_trivial_slices
+   unroll_loops
