@@ -163,8 +163,12 @@ def gen_riscv_field_types_str(field_types, llvm_settings):
             lower_bound = f"-(1 << ({imm_size} - 1))"
             upper_bound = f"(1 << ({imm_size} - 1)) - 1"
             verify_predicate = f"isInt<{imm_size}>(Imm)"
+        if llvm_major_version >= 23:
+            range_error = f"Range({lower_bound}, {upper_bound})"
+        else:
+            range_error = f"generateImmOutOfRangeError(Operands, ErrorInfo, {lower_bound}, {upper_bound})"
         temp = f"""  case {match_invalid_name}:
-    return generateImmOutOfRangeError(Operands, ErrorInfo, {lower_bound}, {upper_bound});"""
+    return {range_error};"""
         riscv_match_invalid_operands_contents.append(temp)
 
         temp = f"""        case RISCVOp::SEAL5_OPERAND_{field_type_upper}:

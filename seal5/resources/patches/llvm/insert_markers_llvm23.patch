@@ -1,0 +1,239 @@
+diff --git a/clang/include/clang/Basic/BuiltinsRISCV.td b/clang/include/clang/Basic/BuiltinsRISCV.td
+--- a/clang/include/clang/Basic/BuiltinsRISCV.td
++++ b/clang/include/clang/Basic/BuiltinsRISCV.td
+@@ -281,3 +281,6 @@ include "clang/Basic/BuiltinsRISCVXAndes.td"
+ // MIPS extensions.
+ //===----------------------------------------------------------------------===//
+ include "clang/Basic/BuiltinsRISCVXMIPS.td"
++
++// BuiltinsRISCV.td - builtins_riscv - INSERTION_START
++// BuiltinsRISCV.td - builtins_riscv - INSERTION_END
+diff --git a/clang/lib/CodeGen/TargetBuiltins/RISCV.cpp b/clang/lib/CodeGen/TargetBuiltins/RISCV.cpp
+--- a/clang/lib/CodeGen/TargetBuiltins/RISCV.cpp
++++ b/clang/lib/CodeGen/TargetBuiltins/RISCV.cpp
+@@ -1447,6 +1447,9 @@ Value *CodeGenFunction::EmitRISCVBuiltinExpr(unsigned BuiltinID,
+     ID = Intrinsic::riscv_sha256sum1;
+     break;
+ 
++// RISCV.cpp - cg_builtin - INSERTION_START
++// RISCV.cpp - cg_builtin - INSERTION_END
++
+   // Zksed
+   case RISCV::BI__builtin_riscv_sm4ks:
+     ID = Intrinsic::riscv_sm4ks;
+diff --git a/llvm/include/llvm/IR/IntrinsicsRISCV.td b/llvm/include/llvm/IR/IntrinsicsRISCV.td
+--- a/llvm/include/llvm/IR/IntrinsicsRISCV.td
++++ b/llvm/include/llvm/IR/IntrinsicsRISCV.td
+@@ -1928,6 +1928,9 @@ let TargetPrefix = "riscv" in {
+   // Zvksh
+   def int_riscv_vsm3c    : RISCVBinaryAAXUnMaskedZvk<IsVI=1>;
+   def int_riscv_vsm3me   : RISCVBinaryAAXUnMasked;
++// IntrinsicsRISCV.td - intrinsics_riscv - INSERTION_START
++// IntrinsicsRISCV.td - intrinsics_riscv - INSERTION_END
++
+ } // TargetPrefix = "riscv"
+ 
+ // Zvabd - Vector Absolute Difference
+diff --git a/llvm/include/llvm/InitializePasses.h b/llvm/include/llvm/InitializePasses.h
+--- a/llvm/include/llvm/InitializePasses.h
++++ b/llvm/include/llvm/InitializePasses.h
+@@ -347,6 +347,8 @@ LLVM_ABI void initializeWindowsSecureHotPatchingPass(PassRegistry &);
+ LLVM_ABI void initializeWinEHPreparePass(PassRegistry &);
+ LLVM_ABI void initializeWriteBitcodePassPass(PassRegistry &);
+ LLVM_ABI void initializeXRayInstrumentationLegacyPass(PassRegistry &);
++// InitializePasses.h - initialize_passes_decl - INSERTION_START
++// InitializePasses.h - initialize_passes_decl - INSERTION_END
+ 
+ } // end namespace llvm
+ 
+diff --git a/llvm/lib/CodeGen/GlobalISel/CMakeLists.txt b/llvm/lib/CodeGen/GlobalISel/CMakeLists.txt
+--- a/llvm/lib/CodeGen/GlobalISel/CMakeLists.txt
++++ b/llvm/lib/CodeGen/GlobalISel/CMakeLists.txt
+@@ -28,6 +28,8 @@ add_llvm_component_library(LLVMGlobalISel
+   MachineIRBuilder.cpp
+   RegBankSelect.cpp
+   Utils.cpp
++  # CMakeLists.txt - gisel_cmake_srcs - INSERTION_START
++  # CMakeLists.txt - gisel_cmake_srcs - INSERTION_END
+ 
+   ADDITIONAL_HEADER_DIRS
+   ${LLVM_MAIN_INCLUDE_DIR}/llvm/CodeGen/GlobalISel
+diff --git a/llvm/lib/CodeGen/GlobalISel/GlobalISel.cpp b/llvm/lib/CodeGen/GlobalISel/GlobalISel.cpp
+--- a/llvm/lib/CodeGen/GlobalISel/GlobalISel.cpp
++++ b/llvm/lib/CodeGen/GlobalISel/GlobalISel.cpp
+@@ -23,4 +23,7 @@ void llvm::initializeGlobalISel(PassRegistry &Registry) {
+   initializeInstructionSelectPass(Registry);
+   initializeGISelValueTrackingAnalysisLegacyPass(Registry);
+   initializeGISelCSEAnalysisWrapperPassPass(Registry);
++// GlobalISel.cpp - gisel_init - INSERTION_START
++// GlobalISel.cpp - gisel_init - INSERTION_END
++
+ }
+diff --git a/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp b/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
+--- a/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
++++ b/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
+@@ -798,6 +798,8 @@ public:
+   bool isUImm32() const { return isUImm<32>(); }
+   bool isUImm48() const { return isUImm<48>(); }
+   bool isUImm64() const { return isUImm<64>(); }
++  // RISCVAsmParser.cpp - riscv_operands - INSERTION_START
++  // RISCVAsmParser.cpp - riscv_operands - INSERTION_END
+ 
+   bool isUImm5NonZero() const {
+     return isUImmPred([](int64_t Imm) { return Imm != 0 && isUInt<5>(Imm); });
+@@ -1655,6 +1657,8 @@ std::string RISCVAsmParser::getCustomOperandDiag(unsigned MatchError) {
+     return Range(-(1 << 11), (1 << 11) - 1,
+                  "operand must be a symbol with %lo/%pcrel_lo/%tprel_lo "
+                  "specifier or an integer in the range");
++// RISCVAsmParser.cpp - riscv_match_invalid_operands - INSERTION_START
++// RISCVAsmParser.cpp - riscv_match_invalid_operands - INSERTION_END
+   case Match_InvalidBareSImm12Lsb0:
+     return Range(-(1 << 11), (1 << 11) - 2,
+                  "immediate must be a multiple of 2 bytes in the range");
+diff --git a/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp b/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp
+--- a/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp
++++ b/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp
+@@ -480,6 +480,8 @@ struct DecoderListEntry {
+ 
+ } // end anonymous namespace
+ 
++// RISCVDisassembler.cpp - riscv_disass_feature_groups - INSERTION_START
++// RISCVDisassembler.cpp - riscv_disass_feature_groups - INSERTION_END
+ static constexpr FeatureBitset XCVFeatureGroup = {
+     RISCV::FeatureVendorXCVbitmanip, RISCV::FeatureVendorXCVelw,
+     RISCV::FeatureVendorXCVmac,      RISCV::FeatureVendorXCVmem,
+@@ -537,6 +539,9 @@ static constexpr FeatureBitset XSMTGroup = {RISCV::FeatureVendorXSMTVDot,
+ static constexpr FeatureBitset XAIFGroup = {RISCV::FeatureVendorXAIFET};
+ 
+ static constexpr DecoderListEntry DecoderList32[]{
++// RISCVDisassembler.cpp - riscv_disass_decoder_list_32 - INSERTION_START
++// RISCVDisassembler.cpp - riscv_disass_decoder_list_32 - INSERTION_END
++
+     // Vendor Extensions
+     {DecoderTableXCV32, XCVFeatureGroup, "CORE-V extensions"},
+     {DecoderTableXqci32, XqciFeatureGroup, "Qualcomm uC Extensions"},
+@@ -595,6 +600,9 @@ DecodeStatus RISCVDisassembler::getInstruction32(MCInst &MI, uint64_t &Size,
+ }
+ 
+ static constexpr DecoderListEntry DecoderList16[]{
++// RISCVDisassembler.cpp - riscv_disass_decoder_list_16 - INSERTION_START
++// RISCVDisassembler.cpp - riscv_disass_decoder_list_16 - INSERTION_END
++
+     // Vendor Extensions
+     {DecoderTableXqci16, XqciFeatureGroup, "Qualcomm uC 16-bit"},
+     {DecoderTableXqccmp16,
+@@ -643,6 +651,8 @@ DecodeStatus RISCVDisassembler::getInstruction16(MCInst &MI, uint64_t &Size,
+ 
+ static constexpr DecoderListEntry DecoderList48[]{
+     {DecoderTableXqci48, XqciFeatureGroup, "Qualcomm uC 48bit"},
++// RISCVDisassembler.cpp - riscv_disass_decoder_list_48 - INSERTION_START
++// RISCVDisassembler.cpp - riscv_disass_decoder_list_48 - INSERTION_END
+ };
+ 
+ DecodeStatus RISCVDisassembler::getInstruction48(MCInst &MI, uint64_t &Size,
+diff --git a/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp b/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
+--- a/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
++++ b/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
+@@ -124,6 +124,9 @@ RISCVLegalizerInfo::RISCVLegalizerInfo(const RISCVSubtarget &ST)
+   const LLT nxv8p0 = LLT::scalable_vector(8, p0);
+   const LLT nxv16p0 = LLT::scalable_vector(16, p0);
+ 
++// RISCVLegalizerInfo.cpp - riscv_legalizer_info - INSERTION_START
++// RISCVLegalizerInfo.cpp - riscv_legalizer_info - INSERTION_END
++
+   using namespace TargetOpcode;
+ 
+   auto BoolVecTys = {nxv1s1, nxv2s1, nxv4s1, nxv8s1, nxv16s1, nxv32s1, nxv64s1};
+diff --git a/llvm/lib/Target/RISCV/MCTargetDesc/RISCVBaseInfo.h b/llvm/lib/Target/RISCV/MCTargetDesc/RISCVBaseInfo.h
+--- a/llvm/lib/Target/RISCV/MCTargetDesc/RISCVBaseInfo.h
++++ b/llvm/lib/Target/RISCV/MCTargetDesc/RISCVBaseInfo.h
+@@ -93,6 +93,8 @@ enum OperandType : unsigned {
+   OPERAND_CLUI_IMM,
+   OPERAND_VTYPEI10,
+   OPERAND_VTYPEI11,
++  // RISCVBaseInfo.h - riscv_operands - INSERTION_START
++  // RISCVBaseInfo.h - riscv_operands - INSERTION_END
+   OPERAND_RVKRNUM,
+   OPERAND_RVKRNUM_0_7,
+   OPERAND_RVKRNUM_1_10,
+diff --git a/llvm/lib/Target/RISCV/RISCV.td b/llvm/lib/Target/RISCV/RISCV.td
+--- a/llvm/lib/Target/RISCV/RISCV.td
++++ b/llvm/lib/Target/RISCV/RISCV.td
+@@ -106,3 +106,6 @@ def RISCV : Target {
+   let AssemblyWriters = [RISCVAsmWriter];
+   let AllowRegisterRenaming = true;
+ }
++
++// RISCV.td - riscv_td_includes - INSERTION_START
++// RISCV.td - riscv_td_includes - INSERTION_END
+diff --git a/llvm/lib/Target/RISCV/RISCVFeatures.td b/llvm/lib/Target/RISCV/RISCVFeatures.td
+--- a/llvm/lib/Target/RISCV/RISCVFeatures.td
++++ b/llvm/lib/Target/RISCV/RISCVFeatures.td
+@@ -1155,6 +1155,9 @@ def HasStdExtSvinval : Predicate<"Subtarget->hasStdExtSvinval()">,
+                        AssemblerPredicate<(all_of FeatureStdExtSvinval),
+                            "'Svinval' (Fine-Grained Address-Translation Cache Invalidation)">;
+ 
++// RISCVFeatures.td - riscv_features - INSERTION_START
++// RISCVFeatures.td - riscv_features - INSERTION_END
++
+ def FeatureStdExtSvnapot
+     : RISCVExtension<1, 0, "NAPOT Translation Contiguity">;
+ 
+diff --git a/llvm/lib/Target/RISCV/RISCVISelLowering.cpp b/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
+--- a/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
++++ b/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
+@@ -957,6 +957,8 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
+   setOperationAction(ISD::ATOMIC_FENCE, MVT::Other, Custom);
+ 
+   setBooleanContents(ZeroOrOneBooleanContent);
++// RISCVISelLowering.cpp - legal_ops - INSERTION_START
++// RISCVISelLowering.cpp - legal_ops - INSERTION_END
+ 
+   if (getTargetMachine().getTargetTriple().isOSLinux()) {
+     // Custom lowering of llvm.clear_cache.
+diff --git a/llvm/lib/Target/RISCV/RISCVInstrInfo.cpp b/llvm/lib/Target/RISCV/RISCVInstrInfo.cpp
+--- a/llvm/lib/Target/RISCV/RISCVInstrInfo.cpp
++++ b/llvm/lib/Target/RISCV/RISCVInstrInfo.cpp
+@@ -3083,6 +3083,9 @@ bool RISCVInstrInfo::verifyInstruction(const MachineInstr &MI,
+         CASE_OPERAND_SIMM(11)
+         CASE_OPERAND_SIMM(12)
+         CASE_OPERAND_SIMM(26)
++// RISCVInstrInfo.cpp - riscv_verify_operands - INSERTION_START
++// RISCVInstrInfo.cpp - riscv_verify_operands - INSERTION_END
++
+         // clang-format on
+         case RISCVOp::OPERAND_SIMM5_PLUS1:
+           Ok = Imm >= -15 && Imm <= 16;
+diff --git a/llvm/lib/Target/RISCV/RISCVInstrInfo.td b/llvm/lib/Target/RISCV/RISCVInstrInfo.td
+--- a/llvm/lib/Target/RISCV/RISCVInstrInfo.td
++++ b/llvm/lib/Target/RISCV/RISCVInstrInfo.td
+@@ -389,6 +389,9 @@ def bare_simm13_lsb0 : BareSImm13Lsb0MaybeSym,
+   let OperandType = "OPERAND_PCREL";
+ }
+ 
++// RISCVInstrInfo.td - field_types - INSERTION_START
++// RISCVInstrInfo.td - field_types - INSERTION_END
++
+ // We need this (sort of) duplicate definition since adding ImmLeaf to
+ // bare_simm13_lsb0 above makes it not sit well with codegen patterns where it
+ // is used to match with a basic block (eg. BccPat<>).
+@@ -533,6 +536,9 @@ class AddrRegZextRegScale<int N>
+     : ComplexPattern<i64, 3, "SelectAddrRegZextRegScale<"#N#", 32>",
+                      [], [], 10>;
+ 
++// RISCVInstrInfo.td - riscv_instr_info_includes - INSERTION_START
++// RISCVInstrInfo.td - riscv_instr_info_includes - INSERTION_END
++
+ // Return the negation of an immediate value.
+ def NegImm : SDNodeXForm<imm, [{
+   return CurDAG->getSignedTargetConstant(-N->getSExtValue(), SDLoc(N),
+diff --git a/llvm/lib/Target/RISCV/RISCVRegisterInfo.td b/llvm/lib/Target/RISCV/RISCVRegisterInfo.td
+--- a/llvm/lib/Target/RISCV/RISCVRegisterInfo.td
++++ b/llvm/lib/Target/RISCV/RISCVRegisterInfo.td
+@@ -1029,3 +1029,6 @@ def MR0 : RISCVRegisterClass<[i8, v8i1], 8, (add M0)>;
+ def GeneralPurposeRegisters : RegisterCategory<[GPR, GPRF16, GPRF32]>;
+ 
+ def FixedRegisters : RegisterCategory<[GPRX0, GPRF16X0, GPRF32X0]>;
++
++// RISCVRegisterInfo.td - riscv_register_info - INSERTION_START
++// RISCVRegisterInfo.td - riscv_register_info - INSERTION_END
