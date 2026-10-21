@@ -15,7 +15,7 @@ import pathlib
 
 from m2isar.metamodel import arch
 
-from seal5.model import Seal5FunctionAttribute
+# from seal5.model import Seal5FunctionAttribute
 from seal5.model_utils import load_model, dump_model
 
 from .visitor import InlineFunctionsVisitor
