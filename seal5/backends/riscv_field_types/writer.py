@@ -270,7 +270,13 @@ def main():
             riscv_operands_enum_content,
             riscv_match_invalid_operands_content,
             riscv_verify_operands_content,
-        ) = "", "", "", "", ""
+        ) = (
+            "",
+            "",
+            "",
+            "",
+            "",
+        )
     metrics["n_imm"] = len(missing_imm_types)
     metrics["n_success"] = len(missing_imm_types)
     # print("field_types_content", field_types_content)
