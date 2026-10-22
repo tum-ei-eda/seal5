@@ -120,8 +120,7 @@ def clone_llvm_repo(
     with repo.config_writer() as writer:
         writer.set_value("user", "name", author.name)
         writer.set_value("user", "email", author.email)
-    # repo.create_tag(f"seal5-{label}-base", "-f", author=author)
-    repo.create_tag(f"seal5-{label}-base", "-f")
+    repo.create_tag(f"seal5-{label}-base", force=True)
     # git describe --tags --match "llvmorg-[0-9]*.[0-9]*.[0-9]*"
     try:
         describe = repo.git.describe("--tags", "--match", "llvmorg-[0-9]*.[0-9]*.[0-9]*")
