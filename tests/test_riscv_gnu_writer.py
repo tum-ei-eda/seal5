@@ -94,10 +94,13 @@ class WriterTests(unittest.TestCase):
             "opcodes/riscv-opc.c": "const struct riscv_opcode riscv_opcodes[] =\n{\n};\n",
             "opcodes/riscv-dis.c": '#include "opcode/riscv.h"\n' "print_insn_args () {\n switch (*oparg) {}\n}\n",
             "gas/config/tc-riscv.c": '#include "opcode/riscv.h"\n'
+            "riscv_ip (char *);\n"
             "validate_riscv_insn () { switch (*oparg) {} }\n"
             "riscv_ip () { switch (*oparg) {} }\n",
             "bfd/elfxx-riscv.c": "static struct riscv_supported_ext riscv_supported_std_ext[] =\n{\n};\n"
-            "riscv_multi_subset_supports () {\n    case INSN_CLASS_I:\n}\n",
+            "riscv_multi_subset_supports_ext ();\n"
+            "riscv_multi_subset_supports () {\n    case INSN_CLASS_I:\n}\n"
+            "riscv_multi_subset_supports_ext () {\n    case INSN_CLASS_I:\n}\n",
         }
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -107,9 +110,24 @@ class WriterTests(unittest.TestCase):
                 dest.write_text(content)
             patch, _ = generate_patch([model()], root)
             self.assertIn("--- /dev/null\n+++ b/include/opcode/riscv-seal5.h", patch)
+            self.assertIn('riscv_ip () { if (strncmp (oparg, "Xseal5", 6) == 0)', patch)
+            self.assertIn(
+                'riscv_multi_subset_supports () {\n+    case INSN_CLASS_SEAL5_XUNIT:\n'
+                '+      return riscv_subset_supports (rps, "xunit");',
+                patch,
+            )
+            self.assertIn(
+                'riscv_multi_subset_supports_ext () {\n+    case INSN_CLASS_SEAL5_XUNIT:\n'
+                '+      return "xunit";',
+                patch,
+            )
             for path, content in sources.items():
                 self.assertIn("+++ b/" + path, patch)
                 self.assertEqual((root / path).read_text(), content)
+            gas_path = root / "gas/config/tc-riscv.c"
+            gas_path.write_text(sources["gas/config/tc-riscv.c"] + "riscv_ip () { switch (*oparg) {} }\n")
+            with self.assertRaisesRegex(ValueError, "one definition of riscv_ip"):
+                generate_patch([model()], root)
             (root / "opcodes/riscv-opc.c").write_text("unsupported source layout\n")
             with self.assertRaisesRegex(ValueError, "source anchor"):
                 generate_patch([model()], root)

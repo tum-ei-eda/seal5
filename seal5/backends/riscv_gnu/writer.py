@@ -74,9 +74,70 @@ def replace_once(text, anchor, replacement):
     return text.replace(anchor, replacement, 1)
 
 
+def matching_delimiter(text, start, opening, closing):
+    depth = 0
+    quote = None
+    line_comment = False
+    block_comment = False
+    index = start
+    while index < len(text):
+        char = text[index]
+        next_char = text[index + 1] if index + 1 < len(text) else ""
+        if line_comment:
+            if char == "\n":
+                line_comment = False
+        elif block_comment:
+            if char == "*" and next_char == "/":
+                block_comment = False
+                index += 1
+        elif quote:
+            if char == "\\":
+                index += 1
+            elif char == quote:
+                quote = None
+        elif char == "/" and next_char == "/":
+            line_comment = True
+            index += 1
+        elif char == "/" and next_char == "*":
+            block_comment = True
+            index += 1
+        elif char in ("'", '"'):
+            quote = char
+        elif char == opening:
+            depth += 1
+        elif char == closing:
+            depth -= 1
+            if depth == 0:
+                return index
+        index += 1
+    raise ValueError(f"Unmatched {opening!r} in source")
+
+
+def function_body(text, function):
+    name = function.split("(", 1)[0].strip()
+    if not re.fullmatch(r"[A-Za-z_]\w*", name):
+        raise ValueError(f"Unsupported function name: {function!r}")
+    definitions = []
+    for match in re.finditer(r"\b" + re.escape(name) + r"\s*\(", text):
+        opening = text.index("(", match.start(), match.end())
+        closing = matching_delimiter(text, opening, "(", ")")
+        brace = closing + 1
+        while brace < len(text) and text[brace].isspace():
+            brace += 1
+        if brace < len(text) and text[brace] == "{":
+            end = matching_delimiter(text, brace, "{", "}") + 1
+            definitions.append((brace, end))
+    if len(definitions) != 1:
+        raise ValueError(f"Expected one definition of {name}, found {len(definitions)}")
+    return definitions[0]
+
+
 def insert_switch(text, function, content):
-    start = text.index(function)
-    pos = text.index("switch (*oparg)", start)
+    start, end = function_body(text, function)
+    body = text[start:end]
+    if body.count("switch (*oparg)") != 1:
+        raise ValueError(f"Expected one switch in {function.strip()}")
+    pos = start + body.index("switch (*oparg)")
     content = re.sub(r"^(?: {8})+", lambda match: "\t" * (len(match.group()) // 8), content, flags=re.MULTILINE)
     return text[:pos] + content + "\n      " + text[pos:]
 
@@ -314,12 +375,16 @@ def generate_patch(models, source):
     changed[paths[3]] = (original[paths[3]], gas)
     bfd = original[paths[4]]
     for function, returned in [("riscv_multi_subset_supports (", False), ("riscv_multi_subset_supports_ext (", True)]:
-        if function not in bfd:
+        name = function.split("(", 1)[0].strip()
+        if not re.search(r"\b" + re.escape(name) + r"\s*\(", bfd):
             if not returned:
                 raise ValueError(f"Expected one source anchor: {function!r}")
             continue
-        start = bfd.index(function)
-        pos = bfd.index("    case INSN_CLASS_I:", start)
+        start, end = function_body(bfd, function)
+        body = bfd[start:end]
+        if body.count("    case INSN_CLASS_I:") != 1:
+            raise ValueError(f"Expected one INSN_CLASS_I case in {name}")
+        pos = start + body.index("    case INSN_CLASS_I:")
         cases = ""
         for arch in sorted(extensions):
             result = f'"{arch}"' if returned else f'riscv_subset_supports (rps, "{arch}")'
