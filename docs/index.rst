@@ -17,6 +17,7 @@ Welcome to Seal5's documentation!
    :caption: Contents:
 
    readme
+   gnu-toolchain
 
 
 Indices and tables

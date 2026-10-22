@@ -102,6 +102,7 @@ TRANSFORM_PASS_MAP = [
 ]
 
 GENERATE_PASS_MAP = [
+    ("riscv_gnu", passes.gen_riscv_gnu_patch, {}),
     ("seal5_td", passes.gen_seal5_td, {}),
     # ("model_td", passes.gen_model_td, {}),
     ("set_td", passes.gen_set_td, {}),
@@ -316,7 +317,7 @@ class Seal5Flow:
 
         # Generates
         for pass_name, pass_handler, pass_options in GENERATE_PASS_MAP:
-            if pass_name in ["seal5_td", "riscv_gisel_legalizer", "riscv_field_types"]:  # TODO: refactor
+            if pass_name in ["seal5_td", "riscv_gisel_legalizer", "riscv_field_types", "riscv_gnu"]:  # TODO: refactor
                 pass_scope = PassScope.GLOBAL
             else:
                 pass_scope = PassScope.MODEL
