@@ -315,6 +315,8 @@ def generate_patch(models, source):
     bfd = original[paths[4]]
     for function, returned in [("riscv_multi_subset_supports (", False), ("riscv_multi_subset_supports_ext (", True)]:
         if function not in bfd:
+            if not returned:
+                raise ValueError(f"Expected one source anchor: {function!r}")
             continue
         start = bfd.index(function)
         pos = bfd.index("    case INSN_CLASS_I:", start)
