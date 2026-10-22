@@ -2332,3 +2332,27 @@ def gen_riscv_disass_patch(
     if gen_metrics_file:
         metrics = read_metrics(metrics_file)
     return PassResult(metrics=metrics)
+
+
+def gen_riscv_gnu_patch(_input_model, settings=None, env=None, **_kwargs):
+    """Generate one GNU patch covering all transformed models when configured."""
+    import json
+    import os
+
+    from seal5.backends.riscv_gnu.writer import generate_patch
+    from seal5.model_utils import load_model
+
+    options = settings.passes.overrides.get("riscv_gnu", {})
+    source = options.get("source") or (env or os.environ).get("SEAL5_GNU_SOURCE")
+    if not source:
+        logger.debug("GNU patch generation disabled; set SEAL5_GNU_SOURCE to enable")
+        return PassResult(metrics={"enabled": False})
+    models = [load_model(settings.models_dir / f"{name}.seal5model") for name in sorted(settings.model_names)]
+    patch, manifest = generate_patch(models, source)
+    output = settings.patches_dir / "binutils-gdb" / "seal5.patch"
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(patch)
+    manifest_file = output.with_suffix(".json")
+    manifest_file.write_text(json.dumps(manifest, indent=2) + "\n")
+    logger.info("Generated GNU binutils/GDB patch: %s", output)
+    return PassResult(metrics={"enabled": True, "instructions": len(manifest)}, outputs=[output, manifest_file])
