@@ -35,6 +35,7 @@ seal5.pass\_list
       gen_riscv_features_patch
       gen_riscv_field_types_patch
       gen_riscv_gisel_legalizer_patch
+      gen_riscv_gnu_patch
       gen_riscv_instr_info_patch
       gen_riscv_intrinsics
       gen_riscv_isa_info_patch

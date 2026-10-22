@@ -1,0 +1,19 @@
+seal5.backends.riscv\_gnu.writer
+================================
+
+.. automodule:: seal5.backends.riscv_gnu.writer
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      collect
+      function_body
+      generate_patch
+      insert_switch
+      main
+      matching_delimiter
+      replace_once
+      substitute_assembly_operand
+   

@@ -18,6 +18,7 @@ seal5.backends
    riscv_features
    riscv_field_types
    riscv_gisel_legalizer
+   riscv_gnu
    riscv_instr_info
    riscv_intrinsics
    riscv_isa_info

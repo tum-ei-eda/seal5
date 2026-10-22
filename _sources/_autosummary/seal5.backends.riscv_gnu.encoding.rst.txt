@@ -1,0 +1,19 @@
+seal5.backends.riscv\_gnu.encoding
+==================================
+
+.. automodule:: seal5.backends.riscv_gnu.encoding
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      compile_encoding
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Encoding
+      Slice
+   
