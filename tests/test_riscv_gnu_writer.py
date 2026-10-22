@@ -8,13 +8,15 @@ from types import SimpleNamespace
 
 from m2isar.metamodel.arch import BitVal
 
+from test_riscv_gnu_encoding import field
+
 from seal5.backends.riscv_gnu.writer import collect, generate_patch
 from seal5.model import Seal5RegOperand, Seal5RegisterClass, Seal5Type, DataType
 from seal5.settings import ExtensionsSettings
-from test_riscv_gnu_encoding import field
 
 
 def model():
+    """Create the minimal model used by the writer tests."""
     operands = {
         name: Seal5RegOperand(name, Seal5Type(DataType.U, 5, 1), {}, [], Seal5RegisterClass.GPR)
         for name in ("rd", "rs1", "rs2")
@@ -42,7 +44,10 @@ def model():
 
 
 class WriterTests(unittest.TestCase):
+    """Exercise model collection and GNU patch generation."""
+
     def test_table_preserves_operand_order_and_extension(self):
+        """Keep operand ordering and extension details deterministic."""
         header, opcodes, extensions, manifest = collect([model()])
         self.assertIn("Xseal50_,Xseal51_,Xseal52_", opcodes[0])
         self.assertIn("INSN_CLASS_SEAL5_XUNIT", opcodes[0])
@@ -53,6 +58,7 @@ class WriterTests(unittest.TestCase):
         self.assertEqual(collect([model()]), collect([model()]))
 
     def test_compressed_registers(self):
+        """Normalize compressed-register operands and reject invalid widths."""
         obj = model()
         instruction = obj.sets["Unit"].instructions["NAND"]
         instruction.operands["rd"].reg_class = Seal5RegisterClass.GPRC
@@ -67,28 +73,33 @@ class WriterTests(unittest.TestCase):
             collect([obj])
 
     def test_unknown_register_class_rejected(self):
+        """Reject register operands with unsupported classes."""
         obj = model()
         obj.sets["Unit"].instructions["NAND"].operands["rd"].reg_class = Seal5RegisterClass.UNKNOWN
         with self.assertRaisesRegex(ValueError, "Unsupported register class"):
             collect([obj])
 
     def test_duplicate_mnemonics_rejected(self):
+        """Reject duplicate instruction mnemonics."""
         with self.assertRaisesRegex(ValueError, "duplicate mnemonic"):
             collect([model(), model()])
 
     def test_ambiguous_instruction_length_rejected(self):
+        """Reject encodings whose instruction length cannot be determined."""
         obj = model()
         obj.sets["Unit"].instructions["NAND"].encoding[-1] = BitVal(7, 0x3F)
         with self.assertRaisesRegex(ValueError, "instruction length"):
             collect([obj])
 
     def test_unknown_assembly_expression_rejected(self):
+        """Reject unsupported assembly operand expressions."""
         obj = model()
         obj.sets["Unit"].instructions["NAND"].get_asm_str = lambda: "{rd+1}, {rs1}, {rs2}"
         with self.assertRaisesRegex(ValueError, "assembly syntax"):
             collect([obj])
 
     def test_patch_has_all_components_and_does_not_mutate_source(self):
+        """Generate all expected changes without modifying source files."""
         sources = {
             "include/opcode/riscv.h": "enum riscv_insn_class {\n  INSN_CLASS_I,\n};\n",
             "opcodes/riscv-opc.c": "const struct riscv_opcode riscv_opcodes[] =\n{\n};\n",

@@ -5,6 +5,7 @@ import argparse
 import difflib
 import json
 import re
+from functools import partial
 from pathlib import Path
 
 from seal5.model import Seal5RegOperand, Seal5RegisterClass
@@ -75,6 +76,7 @@ def replace_once(text, anchor, replacement):
 
 
 def matching_delimiter(text, start, opening, closing):
+    """Return the matching closing delimiter, ignoring comments and quoted text."""
     depth = 0
     quote = None
     line_comment = False
@@ -114,6 +116,7 @@ def matching_delimiter(text, start, opening, closing):
 
 
 def function_body(text, function):
+    """Locate the unique definition body for a function name."""
     name = function.split("(", 1)[0].strip()
     if not re.fullmatch(r"[A-Za-z_]\w*", name):
         raise ValueError(f"Unsupported function name: {function!r}")
@@ -133,6 +136,7 @@ def function_body(text, function):
 
 
 def insert_switch(text, function, content):
+    """Insert content immediately before a function's unique operand switch."""
     start, end = function_body(text, function)
     body = text[start:end]
     if body.count("switch (*oparg)") != 1:
@@ -140,6 +144,14 @@ def insert_switch(text, function, content):
     pos = start + body.index("switch (*oparg)")
     content = re.sub(r"^(?: {8})+", lambda match: "\t" * (len(match.group()) // 8), content, flags=re.MULTILINE)
     return text[:pos] + content + "\n      " + text[pos:]
+
+
+def substitute_assembly_operand(match, replacements, name):
+    """Replace one assembly operand placeholder or reject an unknown name."""
+    key = match.group(1)
+    if key not in replacements:
+        raise ValueError(f"Unsupported assembly operand {key} in {name}")
+    return replacements[key]
 
 
 def collect(models):
@@ -223,13 +235,11 @@ def collect(models):
                         assembly = assembly.replace("{8+" + op_name + "}", "{" + op_name + "}")
                         assembly = assembly.replace("{" + op_name + "+8}", "{" + op_name + "}")
 
-                def substitute(match):
-                    key = match.group(1)
-                    if key not in replacements:
-                        raise ValueError(f"Unsupported assembly operand {key} in {name}")
-                    return replacements[key]
-
-                assembly = re.sub(r"\{(\w+)\}", substitute, assembly)
+                assembly = re.sub(
+                    r"\{(\w+)\}",
+                    partial(substitute_assembly_operand, replacements=replacements, name=name),
+                    assembly,
+                )
                 assembly = re.sub(r"\s+", "", assembly)
                 if not re.fullmatch(r"(?:Xseal5\d+_|[,()]|\s)*", assembly):
                     raise ValueError(f"Unsupported assembly syntax for {name}: {assembly}")
