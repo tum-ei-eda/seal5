@@ -66,6 +66,8 @@ def run(args):
 
     # preprocess model
     for set_name, set_def in sets.items():
+        if getattr(set_def, "unencoded_instructions", {}):
+            raise ValueError(f"Set {set_name} contains unencoded instructions; allocate encodings before Seal5 conversion")
         logger.info("preprocessing set %s", set_name)
         process_functions(set_def)
         process_instructions(set_def)
@@ -88,6 +90,7 @@ def run(args):
                 instr_def.function_info,
                 [],
                 {},
+                m2_operands=getattr(instr_def, "operands", {}),
             )
             set_def.instructions[enc].vars = instr_def.vars
         for func_name, func_def in set_def.functions.items():
