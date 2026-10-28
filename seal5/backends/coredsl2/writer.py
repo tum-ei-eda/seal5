@@ -25,6 +25,7 @@ logger = Logger("backends.coredsl2_writer")
 
 
 ALLOWED_SEAL5_ATTRS = {
+    "is_branch_offs",
     "is_unsigned",
     "is_signed",
     "is_imm",

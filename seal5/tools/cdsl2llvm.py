@@ -193,6 +193,7 @@ def run_pattern_gen(
     no_extend=True,
     debug=False,
     mnemonic_override=None,
+    immediate_operands=None,
 ):
     """Excute pattern-gen executable."""
     if not isinstance(build_dir, Path):
@@ -405,7 +406,11 @@ def run_pattern_gen(
                 uses = list(set(uses))
                 uses_str_ = ",".join(uses)
                 uses_strs.append(uses_str_)
-                has_imm_ = "imm" in uses_str_  # TODO: handle any imm name!
+                has_imm_ = (
+                    bool(set(uses) & set(immediate_operands))
+                    if immediate_operands is not None
+                    else "imm" in uses_str_
+                )
                 has_imm |= has_imm_
             uses_str = "\n".join(uses_strs)
 
@@ -442,6 +447,8 @@ def run_pattern_gen(
             test_mir_checks = ""
             test_asm_checks = ""
             for xlen in xlens:
+                store_mir = "SD" if xlen == 64 else "SW"
+                store_asm = store_mir.lower()
                 test_header += (
                     f"; RUN: llc -mtriple=riscv{xlen} -stop-after=instruction-select "
                     f"-mattr={mattr} %s -global-isel=1 -o - \\\n"
@@ -453,12 +460,12 @@ def run_pattern_gen(
                 test_mir_checks += f"  ; RV{xlen}-MIR-LABEL: name: impl{instr}\n"
                 # test_mir_checks += f"  ; RV{xlen}-MIR: LW\n"  # TODO: once per reg input operand
                 test_mir_checks += f"  ; RV{xlen}-MIR: {llvm_instr}\n"
-                test_mir_checks += f"  ; RV{xlen}-MIR-NEXT: SW\n"  # TODO: once per dest?
+                test_mir_checks += f"  ; RV{xlen}-MIR-NEXT: {store_mir}\n"  # TODO: once per dest?
                 test_mir_checks += f"  ; RV{xlen}-MIR-NEXT: PseudoRET\n"
                 test_asm_checks += f"  ; RV{xlen}-ASM-LABEL: impl{instr}:\n"
                 # test_asm_checks += f"  ; RV{xlen}-ASM: lw\n"  # TODO: once per reg input operand
                 test_asm_checks += f"  ; RV{xlen}-ASM: {mnemonic}\n"
-                test_asm_checks += f"  ; RV{xlen}-ASM-NEXT: sw\n"  # TODO: once per dest?
+                test_asm_checks += f"  ; RV{xlen}-ASM-NEXT: {store_asm}\n"  # TODO: once per dest?
                 test_asm_checks += f"  ; RV{xlen}-ASM-NEXT: ret\n"
             # print("test_header", test_header)
             # print("test_mir_checks", test_mir_checks)

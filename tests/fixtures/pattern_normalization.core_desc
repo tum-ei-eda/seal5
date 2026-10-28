@@ -1,0 +1,33 @@
+InstructionSet Normalization {
+    architectural_state {
+        unsigned int XLEN = 64;
+        register unsigned<XLEN> X[32] [[is_main_reg]];
+        register unsigned<XLEN> PC [[is_pc]];
+        extern unsigned<8> MEM[65536] [[is_main_mem]];
+    }
+    instructions {
+        LOAD {
+            encoding: rs1[4:0] :: rd[4:0] :: 22'b0;
+            assembly: "{name(rd)}, {name(rs1)}";
+            behavior: {
+                unsigned<XLEN> addr = X[rs1];
+                X[rd] = MEM[addr+3:addr];
+            }
+        }
+        WORD {
+            encoding: rs1[4:0] :: rd[4:0] :: 22'b1;
+            assembly: "{name(rd)}, {name(rs1)}";
+            behavior: X[rd] = X[rs1][31:0];
+        }
+        SLICE {
+            encoding: rs1[4:0] :: rd[4:0] :: base[4:0] :: 17'b10;
+            assembly: "{name(rd)}, {name(rs1)}, {base}";
+            behavior: X[rd] = X[rs1][base+4:base];
+        }
+        BRANCH [[no_cont]] [[cond]] {
+            encoding: rs1[4:0] :: rs2[4:0] :: imm[12:0] :: 9'b11;
+            assembly: "{name(rs1)}, {name(rs2)}, {imm}";
+            behavior: if (X[rs1] == X[rs2]) PC = PC + (signed)imm;
+        }
+    }
+}

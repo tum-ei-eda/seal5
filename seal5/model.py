@@ -244,6 +244,7 @@ class Seal5OperandAttribute(Enum):
     LLVM_TYPE = auto()
     IS_IMM_LEAF = auto()
     IS_UNROLL_IMM = auto()
+    IS_BRANCH_OFFS = auto()
 
 
 class Seal5DataType(Enum):

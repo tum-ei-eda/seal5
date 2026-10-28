@@ -18,7 +18,7 @@ import pandas as pd
 
 from seal5.tools import cdsl2llvm
 from seal5.index import write_index_yaml, File, NamedPatch, TestFile
-from seal5.model import Seal5InstrAttribute
+from seal5.model import Seal5InstrAttribute, Seal5ImmOperand
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 from seal5.model_utils import load_model
 
@@ -149,6 +149,9 @@ def main():
                         xlen=xlen,
                         verbose=args.verbose,
                         mnemonic_override=instr_def.mnemonic,
+                        immediate_operands=[
+                            name for name, operand in instr_def.operands.items() if isinstance(operand, Seal5ImmOperand)
+                        ],
                     )
                     if output_file.is_file():
                         metrics["n_success"] += 1

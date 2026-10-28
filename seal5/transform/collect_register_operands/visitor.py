@@ -162,7 +162,7 @@ class CollectRegisterOperandsVisitor(ExprVisitor):
                     assert op_name in context.operands
                     op = context.operands[op_name]
                     reg_ty_ = model.DataType.U
-                    if mem_name == "X":
+                    if mem_name in ("X", "XW"):
                         if offset == 0:
                             reg_class = model.Seal5RegisterClass.GPR
                         elif offset == 8:

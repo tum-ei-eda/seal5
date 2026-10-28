@@ -90,6 +90,10 @@ TRANSFORM_PASS_MAP = [
     ("write_yaml3", passes.write_yaml, {}),
     ("check_pattern_support", passes.check_pattern_support, {}),
     ("infer_types2", passes.infer_types, {}),
+    ("explicit_memory_names", passes.explicit_memory_names, {}),
+    ("explicit_register_names", passes.explicit_register_names, {}),
+    ("normalize_subscripts", passes.normalize_subscripts, {}),
+    ("detect_branches", passes.detect_branches, {}),
     ("write_cdsl_full", passes.write_cdsl, {"split": False, "compat": False}),
     # TODO: determine static constraints (xlen,...) -> subtargetvmap
     # detect memory adressing modes
@@ -580,7 +584,7 @@ class Seal5Flow:
         # input(">")
         utils.python(
             "-m",
-            "m2isar.frontends.coredsl2_set.parser",
+            "seal5.frontends.coredsl",
             *args,
             env=self.prepare_environment(),
             print_func=self.logger.info if verbose else self.logger.debug,
