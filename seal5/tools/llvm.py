@@ -21,6 +21,7 @@
 import re
 import os
 import shutil
+import shlex
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -136,7 +137,7 @@ def clone_llvm_repo(
         writer.set_value("user", "name", author.name)
         writer.set_value("user", "email", author.email)
     # repo.create_tag(f"seal5-{label}-base", "-f", author=author)
-    repo.create_tag(f"seal5-{label}-base", "-f")
+    repo.create_tag(f"seal5-{label}-base", force=True)
     # git describe --tags --match "llvmorg-[0-9]*.[0-9]*.[0-9]*"
     try:
         describe = repo.git.describe("--tags", "--match", "llvmorg-[0-9]*.[0-9]*.[0-9]*")
@@ -175,9 +176,12 @@ def build_llvm(
     install_dir: Optional[Union[str, Path]] = None,
     ccache_settings: Optional[CcacheSettings] = None,
     skip_configure: bool = False,
+    cmake_extra_args: Optional[Union[str, List[str]]] = None,
+    reduced: bool = False,
 ):
     if cmake_options is None:
         cmake_options = {}
+    cmake_options = dict(cmake_options)
     if install:
         assert install_dir is not None
         assert Path(install_dir).parent.is_dir()
@@ -198,6 +202,14 @@ def build_llvm(
             if ccache_directory is not None:
                 env["CCACHE_DIR"] = ccache_directory
     cmake_args = utils.get_cmake_args(cmake_options)
+    if isinstance(cmake_extra_args, str):
+        # Accept the demo's comma-separated options and shell-style quoted values.
+        lexer = shlex.shlex(cmake_extra_args, posix=True)
+        lexer.whitespace += ","
+        lexer.whitespace_split = True
+        lexer.commenters = ""
+        cmake_extra_args = list(lexer)
+    cmake_args.extend(cmake_extra_args or [])
     dest.mkdir(exist_ok=True)
     if not skip_configure:
         utils.cmake(
@@ -210,9 +222,22 @@ def build_llvm(
             print_func=logger.info if verbose else logger.debug,
             live=True,
         )
+    reduced_tools = [
+        "clang", "llvm-config", "llc", "lld", "pattern-gen", "FileCheck",
+        "llvm-objdump", "llvm-as", "llvm-ar", "llvm-mc", "llvm-mca", "opt",
+    ]
     if install:
         assert target is None
-        target = "install"
+        do_strip = str(cmake_options.get("CMAKE_INSTALL_DO_STRIP", False)).upper() in (
+            "1", "ON", "TRUE", "YES", "Y",
+        )
+        if reduced:
+            suffix = "-stripped" if do_strip else ""
+            target = [f"install-{tool}{suffix}" for tool in reduced_tools]
+        else:
+            target = "install/strip" if do_strip else "install"
+    elif reduced and target in (None, "all"):
+        target = reduced_tools
     utils.make(
         target=target, cwd=dest, print_func=logger.info if verbose else logger.debug, live=True, use_ninja=use_ninja
     )

@@ -633,7 +633,10 @@ class Seal5Flow:
         # TODO: only allow single instr set for now and track inputs in settings
         self.logger.info("Completed load of Seal5 inputs")
 
-    def build(self, config=None, target="all", verbose: bool = False, skip_configure: bool = False, **kwargs):
+    def build(
+        self, config=None, target="all", verbose: bool = False, skip_configure: bool = False,
+        cmake_extra_args=None, reduced: bool = False, **kwargs,
+    ):
         """Build Seal5 LLVM."""
         self.logger.info("Building Seal5 LLVM (%s)", target)
         start = time.time()
@@ -670,6 +673,8 @@ class Seal5Flow:
                 use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
                 ccache_settings=ccache_settings,
                 skip_configure=skip_configure,
+                cmake_extra_args=cmake_extra_args,
+                reduced=reduced,
                 verbose=verbose,
             )
         end = time.time()
@@ -681,7 +686,10 @@ class Seal5Flow:
         self.settings.save()
         self.logger.info("Completed build of Seal5 LLVM (%s)", target)
 
-    def install(self, dest: Optional[Union[str, Path]] = None, config=None, verbose: bool = False, **kwargs):
+    def install(
+        self, dest: Optional[Union[str, Path]] = None, config=None, verbose: bool = False,
+        cmake_extra_args=None, reduced: bool = False, **kwargs,
+    ):
         """Install Seal5 LLVM."""
         start = time.time()
         metrics = {}
@@ -709,6 +717,8 @@ class Seal5Flow:
             target=None,
             install=True,
             install_dir=dest,
+            cmake_extra_args=cmake_extra_args,
+            reduced=reduced,
             verbose=verbose,
         )
         end = time.time()
@@ -1234,6 +1244,7 @@ class Seal5Flow:
         #     to_clean.append(self.settings.gen_dir)
         for path in to_clean:
             utils.clean_path(path, interactive=interactive)
+            path.mkdir(parents=True, exist_ok=True)
         # self.reset(verbose=verbose, interactive=interactive)
         end = time.time()
         diff = end - start
