@@ -8,6 +8,7 @@
 """TODO"""
 
 import re
+import inspect
 from enum import IntEnum, Enum, auto
 from typing import Dict, List, Optional, Union
 
@@ -60,6 +61,9 @@ class Seal5InstructionSet(InstructionSet):
         registers: "dict[str, Seal5Register]",
         register_groups: "dict[str, Seal5RegisterGroup]",
     ):
+        extra = {}
+        if "unencoded_instructions" in inspect.signature(InstructionSet).parameters:
+            extra["unencoded_instructions"] = {}
         super().__init__(
             name,
             extension,
@@ -70,6 +74,7 @@ class Seal5InstructionSet(InstructionSet):
             register_aliases,
             functions,
             instructions,
+            **extra,
         )
 
         self.intrinsics = intrinsics
@@ -451,9 +456,16 @@ class Seal5Instruction(Instruction):
         function_info: "FunctionInfo",
         constraints: "list[Seal5Constraint]",
         operands: "dict[str, Seal5Operand]",
+        m2_operands=None,
     ):
         del operands  # TODO: use
-        super().__init__(name, attributes, encoding, mnemonic, assembly, operation, function_info)
+        extra = {}
+        if "operands" in inspect.signature(Instruction).parameters:
+            extra["operands"] = m2_operands or {}
+        super().__init__(
+            name=name, attributes=attributes, encoding=encoding, mnemonic=mnemonic,
+            assembly=assembly, operation=operation, function_info=function_info, **extra,
+        )
         self.constraints = constraints
         self.operands = {}
         self._llvm_asm_str = None
