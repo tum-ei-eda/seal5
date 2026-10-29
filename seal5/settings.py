@@ -752,28 +752,22 @@ class Seal5Settings(YAMLSettings):
         self.to_yaml_file(dest)
 
     def add_patch(self, patch_settings: PatchSettings, force: bool = False):
-        """Add patch to Seal5 seetings."""
-        patches = []
-        added = False
-        for ps in self.patches:
-            if ps.name == patch_settings.name:
-                if ps.weak:
-                    self.patches.append(patch_settings)
-                    added = True
-                    logger = get_logger()
-                    logger.info("Overriding weak patch '%s'", ps.name)
-                elif patch_settings.weak:
-                    logger = get_logger()
-                    logger.info("Skipping weak patch '%s'", ps.name)
-                else:
-                    raise RuntimeError(
-                        f"Duplicate patch '{ps.name}'. Either use force=True, clean patches or rename patch."
-                    )
-            else:
-                patches.append(ps)
-        if not added:
-            patches.append(patch_settings)
-        self.patches = patches
+        """Add a patch, retaining explicit settings over weak defaults."""
+        for index, existing in enumerate(self.patches):
+            if existing.name != patch_settings.name:
+                continue
+            logger = get_logger()
+            if not existing.weak and patch_settings.weak and not force:
+                logger.info("Skipping weak patch '%s'", existing.name)
+                return
+            if existing.weak or force:
+                self.patches[index] = patch_settings
+                logger.info("Overriding patch '%s'", existing.name)
+                return
+            raise RuntimeError(
+                f"Duplicate patch '{existing.name}'. Either use force=True, clean patches or rename patch."
+            )
+        self.patches.append(patch_settings)
 
     @property
     def model_names(self):

@@ -186,7 +186,7 @@ def make(*args, target=None, threads=multiprocessing.cpu_count(), use_ninja=Fals
     # TODO: make sure that ninja is installed?
     extra_args = []
     if target:
-        extra_args.append(target)
+        extra_args.extend(target.split(",") if isinstance(target, str) else target)
     tool = "ninja" if use_ninja else "make"
     extra_args.append("-j" + str(threads))
     cmd = [tool] + extra_args + list(args)

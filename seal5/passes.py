@@ -172,7 +172,7 @@ class Seal5Pass:
                         )
                         for key, val in passes_settings_.overrides.items():
                             passes_settings_.overrides[key] = {**val}
-                            model_settings = settings.models.get(input_model)
+                        model_settings = settings.models.get(input_model)
                         model_passes_settings = model_settings.passes if model_settings is not None else None
                         kwargs__ = kwargs_.copy()
                         if model_passes_settings is not None:

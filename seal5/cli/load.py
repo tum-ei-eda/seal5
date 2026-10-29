@@ -51,5 +51,5 @@ def handle(args):
     seal5_flow = Seal5Flow(args.dir, name=args.name)
     logger.warning(args.files)
     seal5_flow.load(
-        files=list(args.files), overwrite=args.overwrite, verbose=args.verbose, extra_includes=args.extra_includes
+        files=list(args.files), overwrite=args.overwrite, verbose=args.verbose, lookup_paths=args.includes
     )

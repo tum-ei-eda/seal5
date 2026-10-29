@@ -138,6 +138,10 @@ GENERATE_PASS_MAP = [
 
 def lookup_manual_patch(patch: PatchSettings, allow_missing=False):
     """Lookup manual Seal5 patch."""
+    if patch.file is not None and Path(patch.file).is_file():
+        if patch.target is None:
+            raise ValueError("An explicit patch file requires a target")
+        return Path(patch.file).resolve()
     patches = get_patches(patch_name=patch.name, target=patch.target, allow_empty=allow_missing)
     if len(patches) == 0:
         # fallback (undefined target)
@@ -529,6 +533,12 @@ class Seal5Flow:
         """Load YAML cfg."""
         assert file.is_file(), f"File does not exist: {file}"
         new_settings: Seal5Settings = Seal5Settings.from_yaml_file(file)
+        # Custom files travel with their YAML configuration, including in Docker.
+        for patch in new_settings.patches or []:
+            if patch.file is not None and not patch.generated:
+                candidate = file.parent / Path(patch.file)
+                if candidate.is_file():
+                    patch.file = str(candidate.resolve())
         self.settings.merge(new_settings, overwrite=overwrite, inplace=True)
         self.settings.save()
 
@@ -637,7 +647,10 @@ class Seal5Flow:
         # TODO: only allow single instr set for now and track inputs in settings
         self.logger.info("Completed load of Seal5 inputs")
 
-    def build(self, config=None, target="all", verbose: bool = False, skip_configure: bool = False, **kwargs):
+    def build(
+        self, config=None, target="all", verbose: bool = False, skip_configure: bool = False,
+        cmake_extra_args=None, reduced: bool = False, **kwargs,
+    ):
         """Build Seal5 LLVM."""
         self.logger.info("Building Seal5 LLVM (%s)", target)
         start = time.time()
@@ -674,6 +687,8 @@ class Seal5Flow:
                 use_ninja=self.settings.llvm.ninja or kwargs.get("use_ninja", False),
                 ccache_settings=ccache_settings,
                 skip_configure=skip_configure,
+                cmake_extra_args=cmake_extra_args,
+                reduced=reduced,
                 verbose=verbose,
             )
         end = time.time()
@@ -685,7 +700,10 @@ class Seal5Flow:
         self.settings.save()
         self.logger.info("Completed build of Seal5 LLVM (%s)", target)
 
-    def install(self, dest: Optional[Union[str, Path]] = None, config=None, verbose: bool = False, **kwargs):
+    def install(
+        self, dest: Optional[Union[str, Path]] = None, config=None, verbose: bool = False,
+        cmake_extra_args=None, reduced: bool = False, **kwargs,
+    ):
         """Install Seal5 LLVM."""
         start = time.time()
         metrics = {}
@@ -713,6 +731,8 @@ class Seal5Flow:
             target=None,
             install=True,
             install_dir=dest,
+            cmake_extra_args=cmake_extra_args,
+            reduced=reduced,
             verbose=verbose,
         )
         end = time.time()
@@ -794,6 +814,8 @@ class Seal5Flow:
         # user-defined patches
         patches_settings = self.settings.patches
         for patch_settings in patches_settings:
+            if patch_settings.enable is False or not patch_settings.check_enabled(self.settings):
+                continue
             if patch_settings.stage is None:
                 patch_settings.stage = int(PatchStage.PHASE_0)
                 self.logger.warning("Undefined patch stage for patch %s. Defaulting to PHASE_0", patch_settings.name)
@@ -1238,6 +1260,7 @@ class Seal5Flow:
         #     to_clean.append(self.settings.gen_dir)
         for path in to_clean:
             utils.clean_path(path, interactive=interactive)
+            path.mkdir(parents=True, exist_ok=True)
         # self.reset(verbose=verbose, interactive=interactive)
         end = time.time()
         diff = end - start
