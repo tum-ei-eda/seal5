@@ -800,6 +800,8 @@ class Seal5Flow:
         # user-defined patches
         patches_settings = self.settings.patches
         for patch_settings in patches_settings:
+            if patch_settings.enable is False or not patch_settings.check_enabled(self.settings):
+                continue
             if patch_settings.stage is None:
                 patch_settings.stage = int(PatchStage.PHASE_0)
                 self.logger.warning("Undefined patch stage for patch %s. Defaulting to PHASE_0", patch_settings.name)
