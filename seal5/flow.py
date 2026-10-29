@@ -134,6 +134,10 @@ GENERATE_PASS_MAP = [
 
 def lookup_manual_patch(patch: PatchSettings, allow_missing=False):
     """Lookup manual Seal5 patch."""
+    if patch.file is not None and Path(patch.file).is_file():
+        if patch.target is None:
+            raise ValueError("An explicit patch file requires a target")
+        return Path(patch.file).resolve()
     patches = get_patches(patch_name=patch.name, target=patch.target, allow_empty=allow_missing)
     if len(patches) == 0:
         # fallback (undefined target)
@@ -525,6 +529,12 @@ class Seal5Flow:
         """Load YAML cfg."""
         assert file.is_file(), f"File does not exist: {file}"
         new_settings: Seal5Settings = Seal5Settings.from_yaml_file(file)
+        # Custom files travel with their YAML configuration, including in Docker.
+        for patch in new_settings.patches or []:
+            if patch.file is not None and not patch.generated:
+                candidate = file.parent / Path(patch.file)
+                if candidate.is_file():
+                    patch.file = str(candidate.resolve())
         self.settings.merge(new_settings, overwrite=overwrite, inplace=True)
         self.settings.save()
 
