@@ -8,7 +8,7 @@
 
 """Type inference for M2-ISA-R/Seal5 metamodel.
 
-Extend upstream inference for fixed-width ranges in either direction.
+Extend upstream inference for fixed-width ranges and preserve explicit cast kinds.
 """
 
 from functools import singledispatchmethod
@@ -24,6 +24,15 @@ class InferTypesMutator(UpstreamInferTypesMutator):
     @singledispatchmethod
     def generate(self, expr, context):
         return super().generate(expr, context)
+
+    @generate.register
+    def _(self, expr: behav.TypeConv, context):
+        result = super().generate(expr, context)
+        if result.ty is not None:
+            # Modern PrimitiveType uses kind; assigning the legacy `signed`
+            # member leaves the cast's actual type (and emitted CDSL) unchanged.
+            result.ty.kind = expr.data_type
+        return result
 
     @generate.register
     def _(self, expr: behav.IndexedReference, context):
