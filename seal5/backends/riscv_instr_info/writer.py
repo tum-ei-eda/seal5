@@ -70,7 +70,7 @@ class EncodingField:
         return f"EncodingField({self.name}, {self.start}, {self.length}, {self.value}, {self.const})"
 
 
-def process_encoding(enc):
+def process_encoding(enc, full_width_operands=()):
     # print("get_encoding", enc)
     operands = {}
     for e in reversed(enc):
@@ -83,6 +83,8 @@ def process_encoding(enc):
             else:
                 op = Operand(name, e.range.lower, e.range.upper)
                 operands[name] = op
+    for name in full_width_operands:
+        operands[name].lower = 0
     fields = []
     start = 0
     for e in reversed(enc):
@@ -125,6 +127,8 @@ def write_riscv_instruction_info(
     formats=False,
     compressed_pat=None,
     decoder_namespace: Optional[str] = None,
+    full_width_operands=(),
+    format_str=None,
 ):
     if attrs is None:
         attrs = {}
@@ -136,7 +140,7 @@ def write_riscv_instruction_info(
     else:
         instr_template = Template(filename=str(template_dir / "instr_tablegen.mako"))
 
-    operands, fields = process_encoding(enc)
+    operands, fields = process_encoding(enc, full_width_operands=full_width_operands)
 
     def attr_helper(value):
         return int(value) if isinstance(value, bool) else value
@@ -160,6 +164,7 @@ def write_riscv_instruction_info(
         attrs=attrs,
         constraints_str=constraints_str,
         decoder_namespace=decoder_namespace,
+        format_str=format_str,
     )
     if compressed_pat:
         out_str += f"\n{compressed_pat}"
@@ -232,6 +237,8 @@ def gen_riscv_instr_info_str(instr, set_def):
         formats=formats,
         compressed_pat=compressed_pat,
         decoder_namespace=decoder_namespace,
+        full_width_operands=[name for name in instr.operands if instr.is_bformat_branch_offset(name)],
+        format_str="InstFormatB" if any(instr.is_bformat_branch_offset(name) for name in instr.operands) else None,
     )
     return tablegen_str
 
