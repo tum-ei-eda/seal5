@@ -127,6 +127,7 @@ def gen_riscv_features_str(
         expected = arch_ + "{{.*}}" + f"{major}.{minor} '{feature}' ({description})"
         expected_rows.append(expected)
         test_content2 = test_template2.render(
+            xlen=xlen,
             attrs_str=attrs_str,
             expected_rows=expected_rows,
         )
