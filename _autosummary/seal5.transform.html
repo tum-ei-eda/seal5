@@ -49,6 +49,7 @@
 <li class="toctree-l2"><a class="reference internal" href="seal5.cli.html">seal5.cli</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.dependencies.html">seal5.dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.flow.html">seal5.flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="seal5.frontends.html">seal5.frontends</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.index.html">seal5.index</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.logging.html">seal5.logging</a></li>
 <li class="toctree-l2"><a class="reference internal" href="seal5.metrics.html">seal5.metrics</a></li>
@@ -69,6 +70,7 @@
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.collect_raises.html">seal5.transform.collect_raises</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.collect_register_operands.html">seal5.transform.collect_register_operands</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.converter.html">seal5.transform.converter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.transform.detect_branches.html">seal5.transform.detect_branches</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.detect_calls.html">seal5.transform.detect_calls</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.detect_imm_leafs.html">seal5.transform.detect_imm_leafs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.detect_inouts.html">seal5.transform.detect_inouts</a></li>
@@ -78,13 +80,16 @@
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.drop_unused.html">seal5.transform.drop_unused</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.eliminate_mod_rfs.html">seal5.transform.eliminate_mod_rfs</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.eliminate_rd_cmp_zero.html">seal5.transform.eliminate_rd_cmp_zero</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.transform.explicit_names.html">seal5.transform.explicit_names</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.explicit_truncations.html">seal5.transform.explicit_truncations</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.filter_model.html">seal5.transform.filter_model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.gen_auto_intrisics.html">seal5.transform.gen_auto_intrisics</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.handle_auto_unroll_operands.html">seal5.transform.handle_auto_unroll_operands</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.infer_types.html">seal5.transform.infer_types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.inline_functions.html">seal5.transform.inline_functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.transform.normalize_subscripts.html">seal5.transform.normalize_subscripts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.optimize_instructions.html">seal5.transform.optimize_instructions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seal5.transform.pattern_normalization.html">seal5.transform.pattern_normalization</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.process_settings.html">seal5.transform.process_settings</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.simplify_trivial_slices.html">seal5.transform.simplify_trivial_slices</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seal5.transform.unroll_loops.html">seal5.transform.unroll_loops</a></li>
@@ -154,32 +159,38 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="seal5.transform.converter.html#module-seal5.transform.converter" title="seal5.transform.converter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">converter</span></code></a></p></td>
 <td><p>Tranform M2-ISA-R metamodel to Seal5 metamodel.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="seal5.transform.detect_calls.html#module-seal5.transform.detect_calls" title="seal5.transform.detect_calls"><code class="xref py py-obj docutils literal notranslate"><span class="pre">detect_calls</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="seal5.transform.detect_branches.html#module-seal5.transform.detect_branches" title="seal5.transform.detect_branches"><code class="xref py py-obj docutils literal notranslate"><span class="pre">detect_branches</span></code></a></p></td>
+<td><p>Recognize conditional PC-relative RISC-V branch behaviors.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="seal5.transform.detect_calls.html#module-seal5.transform.detect_calls" title="seal5.transform.detect_calls"><code class="xref py py-obj docutils literal notranslate"><span class="pre">detect_calls</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="seal5.transform.detect_imm_leafs.html#module-seal5.transform.detect_imm_leafs" title="seal5.transform.detect_imm_leafs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">detect_imm_leafs</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="seal5.transform.detect_imm_leafs.html#module-seal5.transform.detect_imm_leafs" title="seal5.transform.detect_imm_leafs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">detect_imm_leafs</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="seal5.transform.detect_inouts.html#module-seal5.transform.detect_inouts" title="seal5.transform.detect_inouts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">detect_inouts</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="seal5.transform.detect_inouts.html#module-seal5.transform.detect_inouts" title="seal5.transform.detect_inouts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">detect_inouts</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="seal5.transform.detect_loops.html#module-seal5.transform.detect_loops" title="seal5.transform.detect_loops"><code class="xref py py-obj docutils literal notranslate"><span class="pre">detect_loops</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="seal5.transform.detect_loops.html#module-seal5.transform.detect_loops" title="seal5.transform.detect_loops"><code class="xref py py-obj docutils literal notranslate"><span class="pre">detect_loops</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="seal5.transform.detect_registers.html#module-seal5.transform.detect_registers" title="seal5.transform.detect_registers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">detect_registers</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="seal5.transform.detect_registers.html#module-seal5.transform.detect_registers" title="seal5.transform.detect_registers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">detect_registers</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="seal5.transform.detect_side_effects.html#module-seal5.transform.detect_side_effects" title="seal5.transform.detect_side_effects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">detect_side_effects</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="seal5.transform.detect_side_effects.html#module-seal5.transform.detect_side_effects" title="seal5.transform.detect_side_effects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">detect_side_effects</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="seal5.transform.drop_unused.html#module-seal5.transform.drop_unused" title="seal5.transform.drop_unused"><code class="xref py py-obj docutils literal notranslate"><span class="pre">drop_unused</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="seal5.transform.drop_unused.html#module-seal5.transform.drop_unused" title="seal5.transform.drop_unused"><code class="xref py py-obj docutils literal notranslate"><span class="pre">drop_unused</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="seal5.transform.eliminate_mod_rfs.html#module-seal5.transform.eliminate_mod_rfs" title="seal5.transform.eliminate_mod_rfs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eliminate_mod_rfs</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="seal5.transform.eliminate_mod_rfs.html#module-seal5.transform.eliminate_mod_rfs" title="seal5.transform.eliminate_mod_rfs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eliminate_mod_rfs</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="seal5.transform.eliminate_rd_cmp_zero.html#module-seal5.transform.eliminate_rd_cmp_zero" title="seal5.transform.eliminate_rd_cmp_zero"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eliminate_rd_cmp_zero</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="seal5.transform.eliminate_rd_cmp_zero.html#module-seal5.transform.eliminate_rd_cmp_zero" title="seal5.transform.eliminate_rd_cmp_zero"><code class="xref py py-obj docutils literal notranslate"><span class="pre">eliminate_rd_cmp_zero</span></code></a></p></td>
 <td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="seal5.transform.explicit_names.html#module-seal5.transform.explicit_names" title="seal5.transform.explicit_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explicit_names</span></code></a></p></td>
+<td><p>Explicit pattern-gen memory and register accesses.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="seal5.transform.explicit_truncations.html#module-seal5.transform.explicit_truncations" title="seal5.transform.explicit_truncations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explicit_truncations</span></code></a></p></td>
 <td><p></p></td>
@@ -199,8 +210,14 @@
 <tr class="row-even"><td><p><a class="reference internal" href="seal5.transform.inline_functions.html#module-seal5.transform.inline_functions" title="seal5.transform.inline_functions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inline_functions</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="seal5.transform.optimize_instructions.html#module-seal5.transform.optimize_instructions" title="seal5.transform.optimize_instructions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">optimize_instructions</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="seal5.transform.normalize_subscripts.html#module-seal5.transform.normalize_subscripts" title="seal5.transform.normalize_subscripts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_subscripts</span></code></a></p></td>
+<td><p>Normalize scalar bit ranges and direction-sensitive address-space ranges.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="seal5.transform.optimize_instructions.html#module-seal5.transform.optimize_instructions" title="seal5.transform.optimize_instructions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">optimize_instructions</span></code></a></p></td>
 <td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="seal5.transform.pattern_normalization.html#module-seal5.transform.pattern_normalization" title="seal5.transform.pattern_normalization"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pattern_normalization</span></code></a></p></td>
+<td><p>Run optional pattern-gen normalizations on a saved Seal5 model.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="seal5.transform.process_settings.html#module-seal5.transform.process_settings" title="seal5.transform.process_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_settings</span></code></a></p></td>
 <td><p></p></td>

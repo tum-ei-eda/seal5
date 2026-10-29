@@ -1,0 +1,13 @@
+seal5.transform.pattern\_normalization
+======================================
+
+.. automodule:: seal5.transform.pattern_normalization
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      main
+      transform_model
+   

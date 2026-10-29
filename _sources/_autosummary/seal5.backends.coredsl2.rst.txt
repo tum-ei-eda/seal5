@@ -11,4 +11,5 @@ seal5.backends.coredsl2
    :recursive:
 
    utils
+   visitor
    writer

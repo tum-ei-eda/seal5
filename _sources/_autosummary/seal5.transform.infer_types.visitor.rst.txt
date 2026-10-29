@@ -4,3 +4,9 @@ seal5.transform.infer\_types.visitor
 .. automodule:: seal5.transform.infer_types.visitor
 
    
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      InferTypesMutator
+   

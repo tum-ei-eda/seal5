@@ -1,0 +1,18 @@
+seal5.frontends.coredsl
+=======================
+
+.. automodule:: seal5.frontends.coredsl
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      main
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Seal5BehaviorModelBuilder
+   

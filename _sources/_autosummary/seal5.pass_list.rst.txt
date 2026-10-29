@@ -18,6 +18,7 @@ seal5.pass\_list
       convert_llvmir_to_gmir
       convert_models
       detect_behavior_constraints
+      detect_branches
       detect_calls
       detect_imm_leafs
       detect_inouts
@@ -27,6 +28,8 @@ seal5.pass\_list
       drop_unused
       eliminate_mod_rfs
       eliminate_rd_cmp_zero
+      explicit_memory_names
+      explicit_register_names
       explicit_truncations
       filter_model
       gen_auto_intrinsics
@@ -45,6 +48,7 @@ seal5.pass\_list
       handle_auto_unroll_operands
       infer_types
       inline_functions
+      normalize_subscripts
       optimize_model
       pattern_gen_pass
       process_settings

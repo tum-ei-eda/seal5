@@ -1,0 +1,22 @@
+seal5.transform.detect\_branches
+================================
+
+.. automodule:: seal5.transform.detect_branches
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      detect_branch
+      pc_relative_offset
+      pure_condition
+      statements
+      strip_casts
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      BranchIntrinsic
+   

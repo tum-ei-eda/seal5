@@ -1,0 +1,13 @@
+seal5.transform.normalize\_subscripts
+=====================================
+
+.. automodule:: seal5.transform.normalize_subscripts
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      IndexedPartSelect
+      NormalizeSubscripts
+   
