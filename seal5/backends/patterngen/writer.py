@@ -18,7 +18,7 @@ import pandas as pd
 
 from seal5.tools import cdsl2llvm
 from seal5.index import write_index_yaml, File, NamedPatch, TestFile
-from seal5.model import Seal5InstrAttribute, Seal5ImmOperand
+from seal5.model import Seal5InstrAttribute, Seal5ImmOperand, Seal5OperandAttribute
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 from seal5.model_utils import load_model
 
@@ -38,6 +38,9 @@ def main():
     parser.add_argument("--splitted", action="store_true", help="Split per set and instruction")
     parser.add_argument("--formats", action="store_true", help="Also generate instruction formats")
     parser.add_argument("--patterns", action="store_true", help="Also generate instruction patterns")
+    parser.add_argument(
+        "--added-complexity", type=int, default=0, help="Extra selection priority for generated patterns"
+    )
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
     parser.add_argument("--index", default=None, help="Output index to file")
     parser.add_argument("--ext", type=str, default="td", help="Default file extension (if using --splitted)")
@@ -152,8 +155,21 @@ def main():
                         immediate_operands=[
                             name for name, operand in instr_def.operands.items() if isinstance(operand, Seal5ImmOperand)
                         ],
+                        has_register_output=any(
+                            Seal5OperandAttribute.OUT in operand.attributes
+                            or Seal5OperandAttribute.INOUT in operand.attributes
+                            for operand in instr_def.operands.values()
+                        ),
+                        may_load=Seal5InstrAttribute.MAY_LOAD in attrs,
                     )
                     if output_file.is_file():
+                        if args.patterns and args.added_complexity:
+                            contents = output_file.read_text()
+                            output_file.write_text(
+                                contents.replace(
+                                    "def : Pat<", f"let AddedComplexity = {args.added_complexity} in def : Pat<"
+                                )
+                            )
                         metrics["n_success"] += 1
                         metrics["success_instructions"].append(instr_def.name)
                         if args.formats:
