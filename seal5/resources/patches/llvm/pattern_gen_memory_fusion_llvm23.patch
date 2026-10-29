@@ -1,0 +1,87 @@
+--- a/llvm/lib/Target/RISCV/GISel/RISCVInstructionSelector.cpp
++++ b/llvm/lib/Target/RISCV/GISel/RISCVInstructionSelector.cpp
+@@ -49,6 +49,31 @@
+                BlockFrequencyInfo *BFI) override {
+     InstructionSelector::setupMF(MF, VT, CoverageInfo, PSI, BFI);
+     MRI = &MF.getRegInfo();
++    // Expose integer address arithmetic before selecting its memory users.
++    // Preserve pointer-typed uses through copies so native fallback stays valid.
++    for (MachineBasicBlock &MBB : MF) {
++      for (MachineInstr &MI : make_early_inc_range(MBB)) {
++        if (MI.getOpcode() == TargetOpcode::G_INTTOPTR ||
++            MI.getOpcode() == TargetOpcode::G_PTRTOINT) {
++          selectCopy(MI);
++          continue;
++        }
++        if (MI.getOpcode() != TargetOpcode::G_PTR_ADD)
++          continue;
++        // Keep immediate offsets available to native base+offset folding.
++        if (getIConstantVRegValWithLookThrough(MI.getOperand(2).getReg(),
++                                              *MRI))
++          continue;
++
++        Register Ptr = MI.getOperand(0).getReg();
++        Register Int = MRI->createGenericVirtualRegister(LLT::scalar(STI.getXLen()));
++        MRI->setRegBank(Int, RBI.getRegBank(RISCV::GPRBRegBankID));
++        MI.getOperand(0).setReg(Int);
++        preISelLower(MI);
++        BuildMI(MBB, std::next(MI.getIterator()), MI.getDebugLoc(),
++                TII.get(TargetOpcode::COPY), Ptr).addReg(Int);
++      }
++    }
+   }
+ 
+   static const char *getName() { return DEBUG_TYPE; }
+--- a/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp
++++ b/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp
+@@ -1709,6 +1709,35 @@
+   }
+ 
+   std::string PatternStr = Node->patternString();
++  // Folding a shared load would introduce another memory access. In
++  // particular, duplicating a volatile read changes observable behavior.
++  if (MayLoad && !isa<LoadNode>(Node.get())) {
++    for (const char *Op : {"load", "sextloadi8", "sextloadi16", "sextloadi32",
++                           "zextloadi8", "zextloadi16", "zextloadi32"}) {
++      std::string Needle = "(" + std::string(Op) + " ";
++      if (PatternStr.find(Needle) == std::string::npos)
++        continue;
++      std::string Fragment = InstNameO + "_singleuse_" + Op;
++      if (EmittedInstructionDefs.insert(Fragment).second) {
++        // PatFrags have no Predicates field: declare the helper outside the
++        // instruction feature guard, then resume that guard for the rule.
++        const std::string &Predicates = PatternGenArgs::Args.Predicates;
++        if (!Predicates.empty())
++          OutStream << "}\n";
++        OutStream << "def " << Fragment
++                  << " : PatFrag<(ops node:$ptr), (" << Op
++                  << " node:$ptr)> { let HasOneUse = 1; }\n";
++        if (!Predicates.empty())
++          OutStream << "let Predicates = [" << Predicates << "] in {\n";
++      }
++      std::string Replacement = "(" + Fragment + " ";
++      size_t Pos = 0;
++      while ((Pos = PatternStr.find(Needle, Pos)) != std::string::npos) {
++        PatternStr.replace(Pos, Needle.size(), Replacement);
++        Pos += Replacement.size();
++      }
++    }
++  }
+   std::string Code = "def : Pat<\n\t";
+ 
+   if (OutType.isValid())
+@@ -1718,7 +1747,13 @@
+     Code += PatternStr + ",\n\t(" + TargetDefName + " ";
+ 
+   Code += PatternDstOps;
+-  Code += ")>;";
++  Code += ")>";
++  // Address casts and pointer arithmetic lower to copies before selection.
++  // Match the underlying arithmetic while retaining GlobalISel folding checks.
++  if (MayLoad || MayStore)
++    Code += ", GISelFlags { let GIIgnoreCopies = 1; }";
++  else
++    Code += ";";
+   OutStream << "\n" << Code << "\n\n";
+ 
+   Generated = true;

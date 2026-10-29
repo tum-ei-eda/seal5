@@ -1,0 +1,231 @@
+diff --git a/llvm/lib/Target/RISCV/GISel/RISCVInstructionSelector.cpp b/llvm/lib/Target/RISCV/GISel/RISCVInstructionSelector.cpp
+index 10d5c1541..4efb5a7a5 100644
+--- a/llvm/lib/Target/RISCV/GISel/RISCVInstructionSelector.cpp
++++ b/llvm/lib/Target/RISCV/GISel/RISCVInstructionSelector.cpp
+@@ -1501,6 +1501,39 @@ bool RISCVInstructionSelector::replacePtrWithInt(MachineOperand &Op) {
+ 
+ void RISCVInstructionSelector::preISelLower(MachineInstr &MI) {
+   switch (MI.getOpcode()) {
++  case TargetOpcode::G_STORE: {
++    Register Value = MI.getOperand(0).getReg();
++    LLT ValueTy = MRI->getType(Value);
++    LLT XLenTy = LLT::scalar(STI.getXLen());
++    if (!ValueTy.isScalar() || ValueTy.getSizeInBits() >= STI.getXLen() ||
++        !isRegInGprb(Value))
++      break;
++
++    // Ordinary truncstore patterns consume an XLEN register. Only the low
++    // memory-width bits are observable, so reusing a truncation's input or
++    // extending an otherwise narrow value preserves the stored value.
++    MachineInstr *Def = MRI->getVRegDef(Value);
++    if (Def && Def->getOpcode() == TargetOpcode::G_TRUNC &&
++        MRI->getType(Def->getOperand(1).getReg()) == XLenTy) {
++      Register Source = Def->getOperand(1).getReg();
++      MRI->clearKillFlags(Source);
++      MI.getOperand(0).setReg(Source);
++      MI.getOperand(0).setIsKill(false);
++      break;
++    }
++
++    Register Wide = MRI->createGenericVirtualRegister(XLenTy);
++    MRI->setRegBank(Wide, RBI.getRegBank(RISCV::GPRBRegBankID));
++    MachineInstr *Ext = BuildMI(*MI.getParent(), MI, MI.getDebugLoc(),
++                                TII.get(TargetOpcode::G_ANYEXT), Wide)
++                            .addReg(Value);
++    MI.getOperand(0).setReg(Wide);
++    bool Selected = select(*Ext);
++    assert(Selected && "failed to select scalar store extension");
++    (void)Selected;
++    break;
++  }
++
+   case TargetOpcode::G_PTR_ADD: {
+     Register DstReg = MI.getOperand(0).getReg();
+     const LLT sXLen = LLT::scalar(STI.getXLen());
+diff --git a/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp b/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
+index 2a3c21200..238a33a22 100644
+--- a/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
++++ b/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
+@@ -865,6 +865,7 @@ bool RISCVLegalizerInfo::legalizeIntrinsic(LegalizerHelper &Helper,
+     MI.eraseFromParent();
+     return true;
+   }
++  case Intrinsic::riscv_pg_branch:
+   case Intrinsic::riscv_vsetvli:
+   case Intrinsic::riscv_vsetvlimax:
+   case Intrinsic::riscv_masked_atomicrmw_add:
+diff --git a/llvm/lib/Target/RISCV/RISCVInstrInfo.cpp b/llvm/lib/Target/RISCV/RISCVInstrInfo.cpp
+index 49d8fa0fc..ef90213c2 100644
+--- a/llvm/lib/Target/RISCV/RISCVInstrInfo.cpp
++++ b/llvm/lib/Target/RISCV/RISCVInstrInfo.cpp
+@@ -1137,10 +1137,11 @@ static void parseCondBranch(MachineInstr &LastInst, MachineBasicBlock *&Target,
+   // Block ends with fall-through condbranch.
+   assert(LastInst.getDesc().isConditionalBranch() &&
+          "Unknown conditional branch");
+-  Target = LastInst.getOperand(2).getMBB();
++  unsigned TargetIdx = LastInst.getNumExplicitOperands() - 1;
++  Target = LastInst.getOperand(TargetIdx).getMBB();
+   Cond.push_back(MachineOperand::CreateImm(LastInst.getOpcode()));
+-  Cond.push_back(LastInst.getOperand(0));
+-  Cond.push_back(LastInst.getOperand(1));
++  for (unsigned I = 0; I < TargetIdx; ++I)
++    Cond.push_back(LastInst.getOperand(I));
+ }
+ 
+ static unsigned getInverseXqcicmOpcode(unsigned Opcode) {
+@@ -1478,8 +1479,8 @@ unsigned RISCVInstrInfo::insertBranch(
+ 
+   // Shouldn't be a fall through.
+   assert(TBB && "insertBranch must not be told to insert a fallthrough");
+-  assert((Cond.size() == 3 || Cond.size() == 0) &&
+-         "RISC-V branch conditions have two components!");
++  assert((Cond.empty() || Cond.size() >= 2) &&
++         "RISC-V branch conditions need an opcode and operands");
+ 
+   // Unconditional branch.
+   if (Cond.empty()) {
+@@ -1490,10 +1491,10 @@ unsigned RISCVInstrInfo::insertBranch(
+   }
+ 
+   // Either a one or two-way conditional branch.
+-  MachineInstr &CondMI = *BuildMI(&MBB, DL, get(Cond[0].getImm()))
+-                              .add(Cond[1])
+-                              .add(Cond[2])
+-                              .addMBB(TBB);
++  auto CondBuilder = BuildMI(&MBB, DL, get(Cond[0].getImm()));
++  for (const auto &Operand : Cond.drop_front())
++    CondBuilder.add(Operand);
++  MachineInstr &CondMI = *CondBuilder.addMBB(TBB);
+   if (BytesAdded)
+     *BytesAdded += getInstSizeInBytes(CondMI);
+ 
+@@ -1585,7 +1586,11 @@ void RISCVInstrInfo::insertIndirectBranch(MachineBasicBlock &MBB,
+ 
+ bool RISCVInstrInfo::reverseBranchCondition(
+     SmallVectorImpl<MachineOperand> &Cond) const {
+-  assert((Cond.size() == 3) && "Invalid branch condition!");
++  assert(Cond.size() >= 2 && "Invalid branch condition!");
++  // Generated conditional branches may have no inverse instruction. Branch
++  // relaxation can preserve them by inserting a nearby trampoline instead.
++  if (getCondFromBranchOpc(Cond[0].getImm()) == RISCVCC::COND_INVALID)
++    return true;
+ 
+   Cond[0].setImm(RISCVCC::getInverseBranchOpcode(Cond[0].getImm()));
+ 
+@@ -1771,6 +1776,10 @@ bool RISCVInstrInfo::isBranchOffsetInRange(unsigned BranchOp,
+   // PseudoBR.
+   switch (BranchOp) {
+   default:
++    // PatternGen emits signed 13-bit branch targets with the B format.
++    if (get(BranchOp).isConditionalBranch() &&
++        RISCVII::getFormat(get(BranchOp).TSFlags) == RISCVII::InstFormatB)
++      return isInt<13>(BrOffset);
+     llvm_unreachable("Unexpected opcode!");
+   case RISCV::NDS_BBC:
+   case RISCV::NDS_BBS:
+@@ -5391,7 +5400,9 @@ std::unique_ptr<TargetInstrInfo::PipelinerLoopInfo>
+ RISCVInstrInfo::analyzeLoopForPipelining(MachineBasicBlock *LoopBB) const {
+   MachineBasicBlock *TBB = nullptr, *FBB = nullptr;
+   SmallVector<MachineOperand, 4> Cond;
+-  if (analyzeBranch(*LoopBB, TBB, FBB, Cond, /*AllowModify=*/false))
++  if (analyzeBranch(*LoopBB, TBB, FBB, Cond, /*AllowModify=*/false) ||
++      Cond.size() != 3 ||
++      getCondFromBranchOpc(Cond[0].getImm()) == RISCVCC::COND_INVALID)
+     return nullptr;
+ 
+   // Infinite loops are not supported
+@@ -5406,8 +5417,8 @@ RISCVInstrInfo::analyzeLoopForPipelining(MachineBasicBlock *LoopBB) const {
+          "The Loop must be a single-basic-block loop");
+ 
+   // Normalization for createTripCountGreaterCondition()
+-  if (TBB == LoopBB)
+-    reverseBranchCondition(Cond);
++  if (TBB == LoopBB && reverseBranchCondition(Cond))
++    return nullptr;
+ 
+   const MachineRegisterInfo &MRI = LoopBB->getParent()->getRegInfo();
+   auto FindRegDef = [&MRI](MachineOperand &Op) -> const MachineInstr * {
+diff --git a/llvm/lib/Target/RISCV/RISCVLateBranchOpt.cpp b/llvm/lib/Target/RISCV/RISCVLateBranchOpt.cpp
+index 28fb0b2da..a9787acb9 100644
+--- a/llvm/lib/Target/RISCV/RISCVLateBranchOpt.cpp
++++ b/llvm/lib/Target/RISCV/RISCVLateBranchOpt.cpp
+@@ -55,7 +55,10 @@ bool RISCVLateBranchOpt::runOnBasicBlock(MachineBasicBlock &MBB) const {
+     return false;
+ 
+   RISCVCC::CondCode CC = RISCVInstrInfo::getCondFromBranchOpc(Cond[0].getImm());
+-  assert(CC != RISCVCC::COND_INVALID);
++  // Generated branches may implement predicates beyond the native condition
++  // codes. Preserve them when their condition cannot be evaluated here.
++  if (CC == RISCVCC::COND_INVALID)
++    return false;
+ 
+   MachineRegisterInfo &MRI = MBB.getParent()->getRegInfo();
+ 
+diff --git a/llvm/lib/Target/RISCV/RISCVRedundantCopyElimination.cpp b/llvm/lib/Target/RISCV/RISCVRedundantCopyElimination.cpp
+index ccdeb22b2..51b980c53 100644
+--- a/llvm/lib/Target/RISCV/RISCVRedundantCopyElimination.cpp
++++ b/llvm/lib/Target/RISCV/RISCVRedundantCopyElimination.cpp
+@@ -116,7 +116,7 @@ bool RISCVRedundantCopyElimination::optimizeBlock(MachineBasicBlock &MBB) {
+   MachineBasicBlock *TBB = nullptr, *FBB = nullptr;
+   SmallVector<MachineOperand, 3> Cond;
+   if (TII->analyzeBranch(*PredMBB, TBB, FBB, Cond, /*AllowModify*/ false) ||
+-      Cond.empty())
++      Cond.size() != 3 || !Cond[1].isReg())
+     return false;
+ 
+   Register TargetReg = Cond[1].getReg();
+diff --git a/llvm/test/CodeGen/RISCV/GlobalISel/instruction-select/patterngen-narrow-store.mir b/llvm/test/CodeGen/RISCV/GlobalISel/instruction-select/patterngen-narrow-store.mir
+new file mode 100644
+index 000000000..f50a785c5
+--- /dev/null
++++ b/llvm/test/CodeGen/RISCV/GlobalISel/instruction-select/patterngen-narrow-store.mir
+@@ -0,0 +1,27 @@
++# RUN: llc -mtriple=riscv32 -run-pass=instruction-select -verify-machineinstrs \
++# RUN:   -disable-gisel-legality-check %s -o - | FileCheck %s
++#
++# The store can reuse the full-width input of a truncation.
++# The narrow value remains live after the store. Extending the source's lifetime
++# must not leave the truncation's old kill flag on that source.
++---
++name: store_truncated_live_value
++legalized: true
++regBankSelected: true
++tracksRegLiveness: true
++body: |
++  bb.0:
++    liveins: $x10, $x11
++
++    ; CHECK-LABEL: name: store_truncated_live_value
++    ; CHECK: SB
++    ; CHECK: $x12 = COPY
++    ; CHECK: PseudoRET
++    %0:gprb(s32) = COPY $x10
++    %1:gprb(p0) = COPY $x11
++    %2:gprb(s8) = G_TRUNC killed %0
++    G_STORE %2(s8), %1(p0) :: (store (s8))
++    %3:gprb(s32) = G_ZEXT %2(s8)
++    $x12 = COPY %3
++    PseudoRET implicit $x12
++...
+diff --git a/llvm/lib/Target/RISCV/RISCVInstrInfo.td b/llvm/lib/Target/RISCV/RISCVInstrInfo.td
+index e10ee7389..07d92ce8b 100644
+--- a/llvm/lib/Target/RISCV/RISCVInstrInfo.td
++++ b/llvm/lib/Target/RISCV/RISCVInstrInfo.td
+@@ -394,6 +394,17 @@ def bare_simm13_lsb0 : BareSImm13Lsb0MaybeSym,
+ // is used to match with a basic block (eg. BccPat<>).
+ def bare_simm13_lsb0_bb : BareSImm13Lsb0MaybeSym;
+ 
++// PatternGen fields retain displacement bit zero, unlike RVInstB's shifted
++// imm12 field. Keep the full displacement when encoding their B-format layouts.
++def patterngen_btarget : BareSImm13Lsb0MaybeSym {
++  let ParserMatchClass = BareSImmNLsb0AsmOperand<13>;
++  let PrintMethod = "printBranchOperand";
++  let EncoderMethod = "getImmOpValue";
++  let DecoderMethod = "decodeSImmOperand<13>";
++  let OperandType = "OPERAND_PCREL";
++}
++
++
+ class UImm20OperandMaybeSym : RISCVUImmOp<20> {
+   let MCOperandPredicate = [{
+     int64_t Imm;
