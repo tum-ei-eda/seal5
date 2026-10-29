@@ -1,5 +1,29 @@
 ---
 patches:
+  - name: pattern_gen_memory_fusion_llvm23
+    target: llvm
+    stage: 0
+    priority: 65
+    onlyif: "settings.llvm.state.version.major == 23"
+    file: llvm/pattern_gen_memory_fusion_llvm23.patch
+  - name: pattern_gen_compare_immediates_llvm23
+    target: llvm
+    stage: 0
+    priority: 70
+    onlyif: "settings.llvm.state.version.major == 23"
+    file: llvm/pattern_gen_compare_immediates_llvm23.patch
+  - name: pattern_gen_narrow_store_llvm23
+    target: llvm
+    stage: 0
+    priority: 70
+    onlyif: "settings.llvm.state.version.major == 23"
+    file: llvm/pattern_gen_narrow_store_llvm23.patch
+  - name: pattern_gen_codegen_llvm23
+    target: llvm
+    stage: 0
+    priority: 75
+    onlyif: "settings.llvm.state.version.major == 23"
+    file: llvm/pattern_gen_codegen_llvm23.patch
   - name: pattern_gen_dynamic_slices_llvm23
     target: llvm
     stage: 0
@@ -17,6 +41,13 @@ models:
           enabled: true
         normalize_subscripts:
           enabled: true
+        detect_branches:
+          enabled: true
+        check_pattern_support:
+          allow_memory: true
+          allow_branches: true
+        behav_to_pat:
+          added_complexity: 1000  # Exercise generated rules even when native rules match.
     extensions:
       XNormalize32:
         riscv:

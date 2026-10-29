@@ -2,6 +2,86 @@ import "RVI.core_desc"
 
 InstructionSet XNormalize32 extends RV32I {
   instructions {
+    NORM_LDX_REG_32 {
+      encoding: 10'd0 :: rd[4:0] :: rs1[4:0] :: rs2[4:0] :: 7'b1111011;
+      assembly: {"xnormalize32.ldx.reg", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: if (rd != 0) X[rd] = MEMX[X[rs1] + X[rs2] ];
+    }
+    NORM_STX_REG_32 {
+      encoding: 10'd1 :: rs1[4:0] :: rs2[4:0] :: rs3[4:0] :: 7'b1111011;
+      assembly: {"xnormalize32.stx.reg", "{name(rs3)}, {name(rs1)}, {name(rs2)}"};
+      behavior: MEMX[X[rs1] + X[rs2] ] = X[rs3];
+    }
+    NORM_LDX_SCALE_32 {
+      encoding: 10'd2 :: rd[4:0] :: rs1[4:0] :: rs2[4:0] :: 7'b1111011;
+      assembly: {"xnormalize32.ldx.scale", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: if (rd != 0) X[rd] = MEMX[X[rs1] + (X[rs2] << 2)];
+    }
+    NORM_STX_SCALE_32 {
+      encoding: 10'd3 :: rs1[4:0] :: rs2[4:0] :: rs3[4:0] :: 7'b1111011;
+      assembly: {"xnormalize32.stx.scale", "{name(rs3)}, {name(rs1)}, {name(rs2)}"};
+      behavior: MEMX[X[rs1] + (X[rs2] << 2)] = X[rs3];
+    }
+    NORM_LD_ADD_32 {
+      encoding: 10'd4 :: rd[4:0] :: rs1[4:0] :: rs2[4:0] :: 7'b1111011;
+      assembly: {"xnormalize32.ld.add", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: if (rd != 0) X[rd] = MEMX[X[rs1] ] + X[rs2];
+    }
+    NORM_ST_XOR_32 {
+      encoding: 10'd5 :: rs1[4:0] :: rs2[4:0] :: rs3[4:0] :: 7'b1111011;
+      assembly: {"xnormalize32.st.xor", "{name(rs3)}, {name(rs1)}, {name(rs2)}"};
+      behavior: MEMX[X[rs1] ] = X[rs2] ^ X[rs3];
+    }
+    NORM_LD_BOTH_32 {
+      encoding: 5'd6 :: rd[4:0] :: rs1[4:0] :: rs2[4:0] :: rs3[4:0] :: 7'b1111011;
+      assembly: {"xnormalize32.ld.both", "{name(rd)}, {name(rs1)}, {name(rs2)}, {name(rs3)}"};
+      behavior: if (rd != 0) X[rd] = MEMX[X[rs1] + X[rs2] ] ^ X[rs3];
+    }
+    NORM_ST_BOTH_32 {
+      encoding: 5'd7 :: rs1[4:0] :: rs2[4:0] :: rs3[4:0] :: rs4[4:0] :: 7'b1111011;
+      assembly: {"xnormalize32.st.both", "{name(rs4)}, {name(rs1)}, {name(rs2)}, {name(rs3)}"};
+      behavior: MEMX[X[rs1] + (X[rs2] << 2)] = X[rs3] + X[rs4];
+    }
+    NORM_BAND_32 [[no_cont]] [[cond]] {
+      encoding: offset[12:12] :: offset[10:5] :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: offset[4:1] :: offset[11:11] :: 7'b0101011;
+      assembly: {"xnormalize32.band", "{name(rs1)}, {name(rs2)}, {offset}"};
+      behavior: if (X[rs1] & X[rs2]) PC = PC + (signed)offset;
+    }
+    NORM_BOR_32 [[no_cont]] [[cond]] {
+      encoding: offset[12:12] :: offset[10:5] :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: offset[4:1] :: offset[11:11] :: 7'b0101011;
+      assembly: {"xnormalize32.bor", "{name(rs1)}, {name(rs2)}, {offset}"};
+      behavior: if (X[rs1] | X[rs2]) PC = PC + (signed)offset;
+    }
+    NORM_BXOR_32 [[no_cont]] [[cond]] {
+      encoding: offset[12:12] :: offset[10:5] :: rs2[4:0] :: rs1[4:0] :: 3'b101 :: offset[4:1] :: offset[11:11] :: 7'b0101011;
+      assembly: {"xnormalize32.bxor", "{name(rs1)}, {name(rs2)}, {offset}"};
+      behavior: if (X[rs1] ^ X[rs2]) PC = PC + (signed)offset;
+    }
+    NORM_BNZ_32 [[no_cont]] [[cond]] {
+      encoding: offset[12:12] :: offset[10:5] :: 5'b00000 :: rs1[4:0] :: 3'b110 :: offset[4:1] :: offset[11:11] :: 7'b0101011;
+      assembly: {"xnormalize32.bnz", "{name(rs1)}, {offset}"};
+      behavior: if (X[rs1]) PC = PC + (signed)offset;
+    }
+    NORM_BEQI5 [[no_cont]] [[cond]] {
+      encoding: displacement[12:12] :: displacement[10:5] :: constant[4:0] :: rs1[4:0] :: 3'b011 :: displacement[4:1] :: displacement[11:11] :: 7'b0101011;
+      assembly: {"xnormalize32.beqi5", "{name(rs1)}, {constant}, {displacement}"};
+      behavior: if (X[rs1] == (signed)constant) PC = PC + (signed)displacement;
+    }
+    NORM_BLTUI3 [[no_cont]] [[cond]] {
+      encoding: destination[12:12] :: destination[10:5] :: 2'b11 :: limit[2:0] :: rs1[4:0] :: 3'b100 :: destination[4:1] :: destination[11:11] :: 7'b0101011;
+      assembly: {"xnormalize32.bltui3", "{name(rs1)}, {limit}, {destination}"};
+      behavior: if (X[rs1] < limit) PC = PC + (signed)destination;
+    }
+    NORM_BNEI8 [[no_cont]] [[cond]] {
+      encoding: target[12:12] :: target[10:5] :: threshold[7:3] :: rs1[4:0] :: threshold[2:0] :: target[4:1] :: target[11:11] :: 7'b1011011;
+      assembly: {"xnormalize32.bnei8", "{name(rs1)}, {threshold}, {target}"};
+      behavior: if ((signed)threshold != X[rs1]) PC = PC + (signed)target;
+    }
+    NORM_BRANCH [[no_cont]] [[cond]] {
+      encoding: imm[12:12] :: imm[10:5] :: rs2[4:0] :: rs1[4:0] :: 3'b010 :: imm[4:1] :: imm[11:11] :: 7'b0101011;
+      assembly: {"xnormalize32.branch", "{name(rs1)}, {name(rs2)}, {imm}"};
+      behavior: if (X[rs1] == X[rs2]) PC = PC + (signed)imm;
+    }
     NORM_EXTRACT {
       encoding: 7'b0100000 :: base[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b0001011;
       assembly: {"xnormalize32.extract", "{name(rd)}, {name(rs1)}, {base}"};
@@ -46,6 +126,71 @@ InstructionSet XNormalize32 extends RV32I {
 
 InstructionSet XNormalize64 extends RV64I {
   instructions {
+    NORM_LDX_REG_64 {
+      encoding: 10'd0 :: rd[4:0] :: rs1[4:0] :: rs2[4:0] :: 7'b1111011;
+      assembly: {"xnormalize64.ldx.reg", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: if (rd != 0) X[rd] = MEMX[X[rs1] + X[rs2] ];
+    }
+    NORM_STX_REG_64 {
+      encoding: 10'd1 :: rs1[4:0] :: rs2[4:0] :: rs3[4:0] :: 7'b1111011;
+      assembly: {"xnormalize64.stx.reg", "{name(rs3)}, {name(rs1)}, {name(rs2)}"};
+      behavior: MEMX[X[rs1] + X[rs2] ] = X[rs3];
+    }
+    NORM_LDX_SCALE_64 {
+      encoding: 10'd2 :: rd[4:0] :: rs1[4:0] :: rs2[4:0] :: 7'b1111011;
+      assembly: {"xnormalize64.ldx.scale", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: if (rd != 0) X[rd] = MEMX[X[rs1] + (X[rs2] << 2)];
+    }
+    NORM_STX_SCALE_64 {
+      encoding: 10'd3 :: rs1[4:0] :: rs2[4:0] :: rs3[4:0] :: 7'b1111011;
+      assembly: {"xnormalize64.stx.scale", "{name(rs3)}, {name(rs1)}, {name(rs2)}"};
+      behavior: MEMX[X[rs1] + (X[rs2] << 2)] = X[rs3];
+    }
+    NORM_LD_ADD_64 {
+      encoding: 10'd4 :: rd[4:0] :: rs1[4:0] :: rs2[4:0] :: 7'b1111011;
+      assembly: {"xnormalize64.ld.add", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: if (rd != 0) X[rd] = MEMX[X[rs1] ] + X[rs2];
+    }
+    NORM_ST_XOR_64 {
+      encoding: 10'd5 :: rs1[4:0] :: rs2[4:0] :: rs3[4:0] :: 7'b1111011;
+      assembly: {"xnormalize64.st.xor", "{name(rs3)}, {name(rs1)}, {name(rs2)}"};
+      behavior: MEMX[X[rs1] ] = X[rs2] ^ X[rs3];
+    }
+    NORM_LD_BOTH_64 {
+      encoding: 5'd6 :: rd[4:0] :: rs1[4:0] :: rs2[4:0] :: rs3[4:0] :: 7'b1111011;
+      assembly: {"xnormalize64.ld.both", "{name(rd)}, {name(rs1)}, {name(rs2)}, {name(rs3)}"};
+      behavior: if (rd != 0) X[rd] = MEMX[X[rs1] + X[rs2] ] ^ X[rs3];
+    }
+    NORM_ST_BOTH_64 {
+      encoding: 5'd7 :: rs1[4:0] :: rs2[4:0] :: rs3[4:0] :: rs4[4:0] :: 7'b1111011;
+      assembly: {"xnormalize64.st.both", "{name(rs4)}, {name(rs1)}, {name(rs2)}, {name(rs3)}"};
+      behavior: MEMX[X[rs1] + (X[rs2] << 2)] = X[rs3] + X[rs4];
+    }
+    NORM_BAND_64 [[no_cont]] [[cond]] {
+      encoding: offset[12:12] :: offset[10:5] :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: offset[4:1] :: offset[11:11] :: 7'b0101011;
+      assembly: {"xnormalize64.band", "{name(rs1)}, {name(rs2)}, {offset}"};
+      behavior: if (X[rs1] & X[rs2]) PC = PC + (signed)offset;
+    }
+    NORM_BOR_64 [[no_cont]] [[cond]] {
+      encoding: offset[12:12] :: offset[10:5] :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: offset[4:1] :: offset[11:11] :: 7'b0101011;
+      assembly: {"xnormalize64.bor", "{name(rs1)}, {name(rs2)}, {offset}"};
+      behavior: if (X[rs1] | X[rs2]) PC = PC + (signed)offset;
+    }
+    NORM_BXOR_64 [[no_cont]] [[cond]] {
+      encoding: offset[12:12] :: offset[10:5] :: rs2[4:0] :: rs1[4:0] :: 3'b101 :: offset[4:1] :: offset[11:11] :: 7'b0101011;
+      assembly: {"xnormalize64.bxor", "{name(rs1)}, {name(rs2)}, {offset}"};
+      behavior: if (X[rs1] ^ X[rs2]) PC = PC + (signed)offset;
+    }
+    NORM_BNZ_64 [[no_cont]] [[cond]] {
+      encoding: offset[12:12] :: offset[10:5] :: 5'b00000 :: rs1[4:0] :: 3'b110 :: offset[4:1] :: offset[11:11] :: 7'b0101011;
+      assembly: {"xnormalize64.bnz", "{name(rs1)}, {offset}"};
+      behavior: if (X[rs1]) PC = PC + (signed)offset;
+    }
+    NORM_BLTI5_64 [[no_cont]] [[cond]] {
+      encoding: destination[12:12] :: destination[10:5] :: bound[4:0] :: rs1[4:0] :: 3'b011 :: destination[4:1] :: destination[11:11] :: 7'b0101011;
+      assembly: {"xnormalize64.blti5", "{name(rs1)}, {bound}, {destination}"};
+      behavior: if ((signed)bound > (signed<XLEN>)X[rs1]) PC = PC + (signed)destination;
+    }
     NORM_WORDNAND {
       encoding: 7'b0100000 :: rs2[4:0] :: rs1[4:0] :: 3'b010 :: rd[4:0] :: 7'b0001011;
       assembly: {"xnormalize64.wordnand", "{name(rd)}, {name(rs1)}, {name(rs2)}"};

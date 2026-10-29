@@ -1,5 +1,20 @@
 ; RUN: llc -O3 -mtriple=riscv64 -mattr=+xnormalize64 -verify-machineinstrs -global-isel=1 < %s | FileCheck %s
 
+define i64 @load64(ptr %p) {
+; CHECK-LABEL: load64:
+; CHECK: xnormalize64.load64 a0, a0
+  %v = load i64, ptr %p, align 8
+  ret i64 %v
+}
+
+define i64 @load32(ptr %p) {
+; CHECK-LABEL: load32:
+; CHECK: xnormalize64.load32 a0, a0
+  %v = load i32, ptr %p, align 4
+  %r = zext i32 %v to i64
+  ret i64 %r
+}
+
 define i64 @wordnand(i64 %a, i64 %b) {
 ; CHECK-LABEL: wordnand:
 ; CHECK: xnormalize64.wordnand a0, {{(a0, a1|a1, a0)}}

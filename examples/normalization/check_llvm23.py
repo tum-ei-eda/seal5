@@ -5,9 +5,8 @@
 Run after examples/demo.py, with the same DEST:
     python examples/normalization/check_llvm23.py /tmp/seal5_llvm_demo_llvm23
 
-Memory selection patterns are currently skipped by Seal5. These extra checks
-still feed each memory instruction through the real pattern-gen parser and
-verify the resulting LLVM load/store widths.
+In addition to the lit selection tests, check that each memory instruction
+has a generated pattern and verify its LLVM load/store width.
 """
 
 import argparse
@@ -38,12 +37,24 @@ def check(directory, config="release_assertions"):
         ("XNormalize64", "NORM_LOAD64", "MEMX[", "load", 64, 64),
         ("XNormalize64", "NORM_MANUAL_LOAD32", "MEM32[", "load", 32, 64),
     ]
+    for xlen in (32, 64):
+        for name, operation in [
+            ("LDX_REG", "load"), ("STX_REG", "store"),
+            ("LDX_SCALE", "load"), ("STX_SCALE", "store"),
+            ("LD_ADD", "load"), ("ST_XOR", "store"),
+            ("LD_BOTH", "load"), ("ST_BOTH", "store"),
+        ]:
+            cases.append((f"XNormalize{xlen}", f"NORM_{name}_{xlen}",
+                          "MEMX[", operation, xlen, xlen))
     results = []
     for extension, instruction, spelling, operation, width, xlen in cases:
         source = inputs / extension / f"{instruction}.core_desc"
         text = source.read_text()
         if spelling not in text:
             raise AssertionError(f"{source}: missing {spelling}")
+        pattern = source.with_suffix(".td")
+        if not pattern.is_file() or "def : Pat<" not in pattern.read_text():
+            raise AssertionError(f"{pattern}: missing memory selection pattern")
         target = outputs / f"{instruction}.ll"
         command = [
             str(executable),
@@ -72,6 +83,44 @@ def check(directory, config="release_assertions"):
         ):
             raise AssertionError(f"{target}: expected {operation} i{width} through the instruction's memory address")
         results.append({"instruction": instruction, "xlen": xlen, "operation": operation, "width": width})
+    branch = inputs / "XNormalize32" / "NORM_BRANCH"
+    source = branch.with_suffix(".core_desc").read_text()
+    pattern = branch.with_suffix(".td").read_text()
+    if "branch(" not in source or "[[is_branch_offs]]" not in source:
+        raise AssertionError(f"{branch}: missing normalized branch or displacement attribute")
+    if "isBranch = 1" not in pattern or "brcond" not in pattern:
+        raise AssertionError(f"{branch}: missing conditional branch selection pattern")
+    results.append({"instruction": "NORM_BRANCH", "branch": True})
+    for xlen in (32, 64):
+        for name in ("BAND", "BOR", "BXOR", "BNZ"):
+            instruction = f"NORM_{name}_{xlen}"
+            branch = inputs / f"XNormalize{xlen}" / instruction
+            source = branch.with_suffix(".core_desc").read_text()
+            pattern = branch.with_suffix(".td").read_text()
+            if "branch(" not in source or "[[is_branch_offs]]" not in source:
+                raise AssertionError(f"{branch}: missing normalized branch")
+            if "isBranch = 1" not in pattern or "brcond" not in pattern:
+                raise AssertionError(f"{branch}: missing branch selection pattern")
+            results.append({"instruction": instruction, "xlen": xlen, "branch": True})
+    for extension, instruction, operand, width, signed, destination, predicate in [
+        ("XNormalize32", "NORM_BEQI5", "constant", 5, True, "displacement", "SETEQ"),
+        ("XNormalize32", "NORM_BLTUI3", "limit", 3, False, "destination", "SETULT"),
+        ("XNormalize32", "NORM_BNEI8", "threshold", 8, True, "target", "SETNE"),
+        ("XNormalize64", "NORM_BLTI5_64", "bound", 5, True, "destination", "SETLT"),
+    ]:
+        branch = inputs / extension / instruction
+        source = branch.with_suffix(".core_desc").read_text()
+        pattern = branch.with_suffix(".td").read_text()
+        sign = "s" if signed else "u"
+        if f"seal5_{sign}imm{width}:${operand}" not in pattern or predicate not in pattern:
+            raise AssertionError(f"{branch}: missing typed condition immediate or comparison predicate")
+        if f"bb:${destination}" not in pattern:
+            raise AssertionError(f"{branch}: condition immediate was confused with the destination")
+        behavior = source.split("behavior:", 1)[1]
+        if signed and f"(signed<{width}>)({operand})" not in behavior:
+            raise AssertionError(f"{branch}: condition immediate lost its signed cast")
+        results.append({"instruction": instruction, "condition_immediate": operand,
+                        "width": width, "signed": signed, "destination": destination})
     for extension, instruction, spelling in [
         ("XNormalize32", "NORM_EXTRACT", " +: 8]"),
         ("XNormalize32", "NORM_EXTRACT_ASCENDING", " +: 4]"),
