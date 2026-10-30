@@ -1106,6 +1106,7 @@ def convert_behav_to_tablegen(
     parallel: bool = False,
     gen_tests: bool = True,
     log_level: str = "warning",
+    added_complexity: int = 0,
     **_kwargs,
 ):
     assert split, "TODO"
@@ -1134,6 +1135,8 @@ def convert_behav_to_tablegen(
         args.append("--formats")
     if patterns:
         args.append("--patterns")
+    if added_complexity:
+        args.extend(["--added-complexity", str(added_complexity)])
     if gen_metrics_file:
         metrics_file = settings.temp_dir / (new_name + "_tblgen_patterns_metrics.csv")
         args.extend(["--metrics", metrics_file])
@@ -2241,6 +2244,8 @@ def check_pattern_support(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "warning",
+    allow_memory: bool = False,
+    allow_branches: bool = False,
     **_kwargs,
 ):
     assert inplace
@@ -2254,6 +2259,10 @@ def check_pattern_support(
         "--log",
         log_level if not verbose else "debug",
     ]
+    if allow_memory:
+        args.append("--allow-memory")
+    if allow_branches:
+        args.append("--allow-branches")
     if gen_metrics_file:
         # TODO: move to .seal5/metrics
         metrics_file = settings.temp_dir / (name + "_check_pattern_support_metrics.csv")

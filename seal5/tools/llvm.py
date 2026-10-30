@@ -223,13 +223,27 @@ def build_llvm(
             live=True,
         )
     reduced_tools = [
-        "clang", "llvm-config", "llc", "lld", "pattern-gen", "FileCheck",
-        "llvm-objdump", "llvm-as", "llvm-ar", "llvm-mc", "llvm-mca", "opt",
+        "clang",
+        "llvm-config",
+        "llc",
+        "lld",
+        "pattern-gen",
+        "FileCheck",
+        "llvm-objdump",
+        "llvm-as",
+        "llvm-ar",
+        "llvm-mc",
+        "llvm-mca",
+        "opt",
     ]
     if install:
         assert target is None
         do_strip = str(cmake_options.get("CMAKE_INSTALL_DO_STRIP", False)).upper() in (
-            "1", "ON", "TRUE", "YES", "Y",
+            "1",
+            "ON",
+            "TRUE",
+            "YES",
+            "Y",
         )
         if reduced:
             suffix = "-stripped" if do_strip else ""

@@ -157,10 +157,24 @@ def build_llc(
 
 
 def combine_test_fragments(
-    ll_file: Union[str, Path], instr: str, test_header: str, test_mir_checks: str, test_asm_checks: str
+    ll_file: Union[str, Path],
+    instr: str,
+    test_header: str,
+    test_mir_checks: str,
+    test_asm_checks: str,
+    return_output=False,
 ):
     with open(ll_file, "r") as f:
-        lines = f.read().splitlines()
+        contents = f.read()
+    if return_output:
+        # Return the synthetic register result so a competing store-data rule
+        # cannot absorb the arithmetic we intend to test as part of a load.
+        result = re.search(r"(?m)^  store (i\d+) ([^,\n]+), ptr [^\n]+\n  ret void$", contents)
+        assert result is not None, "Missing final register-result store in pattern-gen IR"
+        ty, value = result.groups()
+        contents = contents[: result.start()] + f"  ret {ty} {value}" + contents[result.end() :]
+        contents = contents.replace("define void @impl", f"define {ty} @impl", 1)
+    lines = contents.splitlines()
     ret_lines = []
     ret_lines += test_header.splitlines()
     insert_checks = False
@@ -171,7 +185,7 @@ def combine_test_fragments(
             # instr_name = None
             ret_lines += test_mir_checks.splitlines()
             ret_lines += test_asm_checks.splitlines()
-        if line.startswith("define void @impl"):
+        if line.startswith("define ") and " @impl" in line:
             insert_checks = True
             # instr_name = line.split("(", 1)[0].split("impl", 1)[-1]
         ret_lines.append(line)
@@ -194,6 +208,8 @@ def run_pattern_gen(
     debug=False,
     mnemonic_override=None,
     immediate_operands=None,
+    has_register_output=True,
+    may_load=False,
 ):
     """Excute pattern-gen executable."""
     if not isinstance(build_dir, Path):
@@ -407,9 +423,7 @@ def run_pattern_gen(
                 uses_str_ = ",".join(uses)
                 uses_strs.append(uses_str_)
                 has_imm_ = (
-                    bool(set(uses) & set(immediate_operands))
-                    if immediate_operands is not None
-                    else "imm" in uses_str_
+                    bool(set(uses) & set(immediate_operands)) if immediate_operands is not None else "imm" in uses_str_
                 )
                 has_imm |= has_imm_
             uses_str = "\n".join(uses_strs)
@@ -460,19 +474,30 @@ def run_pattern_gen(
                 test_mir_checks += f"  ; RV{xlen}-MIR-LABEL: name: impl{instr}\n"
                 # test_mir_checks += f"  ; RV{xlen}-MIR: LW\n"  # TODO: once per reg input operand
                 test_mir_checks += f"  ; RV{xlen}-MIR: {llvm_instr}\n"
-                test_mir_checks += f"  ; RV{xlen}-MIR-NEXT: {store_mir}\n"  # TODO: once per dest?
-                test_mir_checks += f"  ; RV{xlen}-MIR-NEXT: PseudoRET\n"
+                if has_register_output and not may_load:
+                    test_mir_checks += f"  ; RV{xlen}-MIR-NEXT: {store_mir}\n"
+                ret_check = "MIR" if may_load and has_register_output else "MIR-NEXT"
+                test_mir_checks += f"  ; RV{xlen}-{ret_check}: PseudoRET\n"
                 test_asm_checks += f"  ; RV{xlen}-ASM-LABEL: impl{instr}:\n"
                 # test_asm_checks += f"  ; RV{xlen}-ASM: lw\n"  # TODO: once per reg input operand
                 test_asm_checks += f"  ; RV{xlen}-ASM: {mnemonic}\n"
-                test_asm_checks += f"  ; RV{xlen}-ASM-NEXT: {store_asm}\n"  # TODO: once per dest?
-                test_asm_checks += f"  ; RV{xlen}-ASM-NEXT: ret\n"
+                if has_register_output and not may_load:
+                    test_asm_checks += f"  ; RV{xlen}-ASM-NEXT: {store_asm}\n"
+                ret_check = "ASM" if may_load and has_register_output else "ASM-NEXT"
+                test_asm_checks += f"  ; RV{xlen}-{ret_check}: ret\n"
             # print("test_header", test_header)
             # print("test_mir_checks", test_mir_checks)
             # print("test_asm_checks", test_asm_checks)
             assert len(ll_files) == 1
             ll_file = ll_files[0]
-            test_content = combine_test_fragments(ll_file, instr, test_header, test_mir_checks, test_asm_checks)
+            test_content = combine_test_fragments(
+                ll_file,
+                instr,
+                test_header,
+                test_mir_checks,
+                test_asm_checks,
+                return_output=may_load and has_register_output,
+            )
             # print("test_content", test_content)
             test_file = ll_file.replace(".ll", ".test-cg.ll")
             with open(test_file, "w") as f:

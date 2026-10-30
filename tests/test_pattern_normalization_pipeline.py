@@ -9,6 +9,56 @@ import unittest
 
 
 class PipelineTests(unittest.TestCase):
+    def test_bformat_displacement_keeps_byte_offsets(self):
+        from seal5.model_utils import load_model
+        from seal5.backends.riscv_instr_info.writer import gen_riscv_instr_info_str
+        from types import SimpleNamespace
+
+        fixture = Path(__file__).parent / "fixtures" / "pattern_normalization.core_desc"
+        source = fixture.read_text().replace(
+            "rs1[4:0] :: rs2[4:0] :: imm[12:0] :: 9'b11",
+            "imm[12:12] :: imm[10:5] :: rs2[4:0] :: rs1[4:0] :: 3'b010 :: imm[4:1] :: imm[11:11] :: 7'b0101011",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            path = output / "branch.core_desc"
+            path.write_text(source)
+
+            def run(module, *args):
+                result = subprocess.run([sys.executable, "-m", module, *map(str, args)], text=True, capture_output=True)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+            run("m2isar.frontends.coredsl2_set.parser", path, "-o", output, "--log", "warning")
+            run("seal5.transform.converter", output / "branch.m2isarmodel", "--log", "warning")
+            model = output / "branch.seal5model"
+            for module in (
+                "collect_register_operands.collect",
+                "collect_immediate_operands.collect",
+                "collect_operand_types.collect",
+                "detect_inouts.collect",
+            ):
+                run("seal5.transform." + module, model, "--log", "warning")
+            loaded = load_model(model)
+            set_def = next(iter(loaded.sets.values()))
+            instr = next(i for i in set_def.instructions.values() if i.name == "BRANCH")
+            self.assertTrue(instr.is_bformat_branch_offset("imm"))
+            self.assertFalse(instr.is_bformat_branch_offset("rs1"))
+            self.assertIn("patterngen_btarget:$imm", instr.llvm_ins_str)
+            set_def.settings = SimpleNamespace(get_decoder_namespace=lambda **_: "Test")
+            generated = gen_riscv_instr_info_str(instr, set_def)
+            self.assertIn("bits<13> imm;", generated)
+            self.assertIn("Inst{31} = imm{12};", generated)
+            self.assertIn("Inst{11-8} = imm{4-1};", generated)
+            self.assertIn("InstFormat Format = InstFormatB;", generated)
+            from m2isar.metamodel import behav
+            from seal5.transform.detect_branches import detect_branch, statements
+
+            assignment = statements(statements(instr.operation).stmts[0])
+            assignment.expr = behav.SliceOperation(assignment.expr, behav.Literal(63), behav.Literal(0))
+            self.assertEqual(detect_branch(instr.operation, instr.operands)[1], "imm")
+            assignment.expr.left = behav.Literal(62)
+            self.assertIsNone(detect_branch(instr.operation, instr.operands)[1])
+
     def test_array_source_to_cdsl(self):
         fixture = Path(__file__).parent / "fixtures" / "array_normalization.core_desc"
         with tempfile.TemporaryDirectory() as directory:
@@ -29,8 +79,11 @@ class PipelineTests(unittest.TestCase):
             settings = SimpleNamespace(
                 models_dir=output,
                 passes=SimpleNamespace(overrides={"explicit_memory_names": {"enabled": False}}),
-                models={"array_normalization": SimpleNamespace(passes=SimpleNamespace(
-                    overrides={"explicit_memory_names": {"enabled": True}}))},
+                models={
+                    "array_normalization": SimpleNamespace(
+                        passes=SimpleNamespace(overrides={"explicit_memory_names": {"enabled": True}})
+                    )
+                },
             )
             pass_list.normalize_subscripts("array_normalization", settings=settings, enabled=True)
             run("seal5.transform.collect_register_operands.collect", model, "--log", "warning")

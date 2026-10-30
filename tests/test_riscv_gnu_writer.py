@@ -123,13 +123,12 @@ class WriterTests(unittest.TestCase):
             self.assertIn("--- /dev/null\n+++ b/include/opcode/riscv-seal5.h", patch)
             self.assertIn('riscv_ip () { if (strncmp (oparg, "Xseal5", 6) == 0)', patch)
             self.assertIn(
-                'riscv_multi_subset_supports () {\n+    case INSN_CLASS_SEAL5_XUNIT:\n'
+                "riscv_multi_subset_supports () {\n+    case INSN_CLASS_SEAL5_XUNIT:\n"
                 '+      return riscv_subset_supports (rps, "xunit");',
                 patch,
             )
             self.assertIn(
-                'riscv_multi_subset_supports_ext () {\n+    case INSN_CLASS_SEAL5_XUNIT:\n'
-                '+      return "xunit";',
+                "riscv_multi_subset_supports_ext () {\n+    case INSN_CLASS_SEAL5_XUNIT:\n" '+      return "xunit";',
                 patch,
             )
             for path, content in sources.items():

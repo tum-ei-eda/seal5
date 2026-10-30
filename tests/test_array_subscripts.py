@@ -5,7 +5,6 @@ from copy import deepcopy
 import unittest
 
 from m2isar.metamodel import behav
-from m2isar.metamodel.type_info import ArrayType
 
 from test_explicit_names import plus, symbol
 from test_normalize_subscripts import render
@@ -86,7 +85,7 @@ class ArraySubscriptTests(unittest.TestCase):
                     original_vm = Interpreter(storage, contents, {"addr": 4})
                     lowered_vm = Interpreter(storage, contents, {"addr": 4})
                     self.assertEqual(original_vm.evaluate(access), lowered_vm.evaluate(lowered))
-                    assignment = behav.Assignment(access, behav.Literal(0x123456789abcdef))
+                    assignment = behav.Assignment(access, behav.Literal(0x123456789ABCDEF))
                     normalized = NormalizeSubscripts(32).generate(deepcopy(assignment))
                     original_vm.execute(assignment)
                     lowered_vm.execute(normalized)

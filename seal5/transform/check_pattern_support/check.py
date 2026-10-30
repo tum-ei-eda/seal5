@@ -33,6 +33,8 @@ def get_parser():
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
     parser.add_argument("--compat", action="store_true")
+    parser.add_argument("--allow-memory", action="store_true", help="Try experimental load/store patterns")
+    parser.add_argument("--allow-branches", action="store_true", help="Try recognized branch intrinsic patterns")
     return parser
 
 
@@ -97,6 +99,10 @@ def run(args):
                     attribute_info.InstrAttribute.COND in attributes
                     or attribute_info.InstrAttribute.NO_CONT in attributes
                 )
+                lowered_branch = Seal5InstrAttribute.IS_BRANCH in attributes
+                allowed_branch = args.allow_branches and lowered_branch
+                allowed_store = args.allow_memory and may_store and not may_load
+                expected_outs = 0 if allowed_store or allowed_branch else 1
                 has_loop = Seal5InstrAttribute.HAS_LOOP in attributes
                 # TODO: has_static_loop
                 has_call = Seal5InstrAttribute.HAS_CALL in attributes
@@ -108,10 +114,11 @@ def run(args):
                     is_noop
                     or is_rvc
                     or (num_ins == 0)
-                    or (num_outs != 1)
-                    or may_load
-                    or may_store
-                    or is_branch
+                    or (num_outs != expected_outs)
+                    or (may_load and may_store)
+                    or (may_load and not args.allow_memory)
+                    or (may_store and not args.allow_memory)
+                    or ((is_branch or lowered_branch) and not allowed_branch)
                     or has_loop
                     or has_call
                     or uses_custom_reg

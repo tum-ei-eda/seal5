@@ -80,9 +80,9 @@ def detect_opcode(instr_def):  # TODO: move to transform and store as attr
     if size == 16:
         return "COMPRESSED", None
     assert size in [32, 48], f"Unsupported encoding size: {size}"
-    assert instr_def.code is not None and instr_def.mask & 0x7f == 0x7f, "Opcode must be fixed"
+    assert instr_def.code is not None and instr_def.mask & 0x7F == 0x7F, "Opcode must be fixed"
     # The generator can emit each fixed bit as a separate BitVal.
-    opcode = (instr_def.code & 0x7f) >> 2
+    opcode = (instr_def.code & 0x7F) >> 2
     found = OPCODE_LOOKUP_REV.get(opcode, None)
     assert found is not None, f"Opcode not found: {bin(opcode)}"
     return found, opcode
@@ -92,7 +92,7 @@ def detect_funct3_funct7(instr_def):
     if instr_def.size != 32:
         return None, None
     funct3 = (instr_def.code >> 12) & 0x7 if instr_def.mask & 0x7000 == 0x7000 else None
-    funct7 = (instr_def.code >> 25) & 0x7f if instr_def.mask & 0xfe000000 == 0xfe000000 else None
+    funct7 = (instr_def.code >> 25) & 0x7F if instr_def.mask & 0xFE000000 == 0xFE000000 else None
     return funct3, funct7
 
 

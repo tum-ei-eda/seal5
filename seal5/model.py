@@ -464,8 +464,14 @@ class Seal5Instruction(Instruction):
         if "operands" in inspect.signature(Instruction).parameters:
             extra["operands"] = m2_operands or {}
         super().__init__(
-            name=name, attributes=attributes, encoding=encoding, mnemonic=mnemonic,
-            assembly=assembly, operation=operation, function_info=function_info, **extra,
+            name=name,
+            attributes=attributes,
+            encoding=encoding,
+            mnemonic=mnemonic,
+            assembly=assembly,
+            operation=operation,
+            function_info=function_info,
+            **extra,
         )
         self.constraints = constraints
         self.operands = {}
@@ -659,6 +665,35 @@ class Seal5Instruction(Instruction):
                     # TODO: alternatively we could silently drop it or default to zeros?
                     raise RuntimeError(f"Found unused operand: {op_name}")
 
+    def is_bformat_branch_offset(self, name):
+        """Recognize the full, byte-based displacement in a conditional B encoding."""
+        if InstrAttribute.COND not in self.attributes:
+            return False
+        bits = {}
+        destination = 0
+        for fragment in reversed(self.encoding):
+            if isinstance(fragment, BitField):
+                if fragment.name == name:
+                    for index in range(fragment.range.length):
+                        bits[fragment.range.lower + index] = destination + index
+                destination += fragment.range.length
+            else:
+                destination += fragment.length
+        return destination == 32 and bits == {
+            1: 8,
+            2: 9,
+            3: 10,
+            4: 11,
+            5: 25,
+            6: 26,
+            7: 27,
+            8: 28,
+            9: 29,
+            10: 30,
+            11: 7,
+            12: 31,
+        }
+
     def _llvm_process_operands(self, intrin=False):
         operands = self.operands
         reads = []
@@ -672,7 +707,8 @@ class Seal5Instruction(Instruction):
         imm_prefix = "seal5_"
         for op_name, op in operands.items():
             intrin_pre = None
-            if len(op.constraints) > 0:
+            branch_offset = self.is_bformat_branch_offset(op_name)
+            if len(op.constraints) > 0 and not branch_offset:
                 raise NotImplementedError
             if Seal5OperandAttribute.IS_REG in op.attributes:
                 assert Seal5OperandAttribute.REG_CLASS in op.attributes
@@ -686,6 +722,11 @@ class Seal5Instruction(Instruction):
                     cls = f"FPR{flen}"
                 pre = cls
             elif Seal5OperandAttribute.IS_IMM in op.attributes:
+                if branch_offset:
+                    pre = "patterngen_btarget"
+                    op.attributes[Seal5OperandAttribute.LLVM_TYPE] = pre
+                    reads.append(f"{pre}:${op_name}")
+                    continue
                 assert Seal5OperandAttribute.TYPE in op.attributes
                 ty = op.attributes[Seal5OperandAttribute.TYPE]
                 assert ty[0] in ["u", "s"]

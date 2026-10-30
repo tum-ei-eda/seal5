@@ -88,12 +88,12 @@ TRANSFORM_PASS_MAP = [
     ("handle_auto_unroll_operands", passes.handle_auto_unroll_operands, {}),
     ("gen_auto_intrinsics", passes.gen_auto_intrinsics, {}),
     ("write_yaml3", passes.write_yaml, {}),
-    ("check_pattern_support", passes.check_pattern_support, {}),
     ("infer_types2", passes.infer_types, {}),
     ("explicit_memory_names", passes.explicit_memory_names, {}),
     ("explicit_register_names", passes.explicit_register_names, {}),
     ("normalize_subscripts", passes.normalize_subscripts, {}),
     ("detect_branches", passes.detect_branches, {}),
+    ("check_pattern_support", passes.check_pattern_support, {}),
     ("write_cdsl_full", passes.write_cdsl, {"split": False, "compat": False}),
     # TODO: determine static constraints (xlen,...) -> subtargetvmap
     # detect memory adressing modes
@@ -648,8 +648,14 @@ class Seal5Flow:
         self.logger.info("Completed load of Seal5 inputs")
 
     def build(
-        self, config=None, target="all", verbose: bool = False, skip_configure: bool = False,
-        cmake_extra_args=None, reduced: bool = False, **kwargs,
+        self,
+        config=None,
+        target="all",
+        verbose: bool = False,
+        skip_configure: bool = False,
+        cmake_extra_args=None,
+        reduced: bool = False,
+        **kwargs,
     ):
         """Build Seal5 LLVM."""
         self.logger.info("Building Seal5 LLVM (%s)", target)
@@ -701,8 +707,13 @@ class Seal5Flow:
         self.logger.info("Completed build of Seal5 LLVM (%s)", target)
 
     def install(
-        self, dest: Optional[Union[str, Path]] = None, config=None, verbose: bool = False,
-        cmake_extra_args=None, reduced: bool = False, **kwargs,
+        self,
+        dest: Optional[Union[str, Path]] = None,
+        config=None,
+        verbose: bool = False,
+        cmake_extra_args=None,
+        reduced: bool = False,
+        **kwargs,
     ):
         """Install Seal5 LLVM."""
         start = time.time()
