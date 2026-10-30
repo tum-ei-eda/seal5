@@ -464,8 +464,14 @@ class Seal5Instruction(Instruction):
         if "operands" in inspect.signature(Instruction).parameters:
             extra["operands"] = m2_operands or {}
         super().__init__(
-            name=name, attributes=attributes, encoding=encoding, mnemonic=mnemonic,
-            assembly=assembly, operation=operation, function_info=function_info, **extra,
+            name=name,
+            attributes=attributes,
+            encoding=encoding,
+            mnemonic=mnemonic,
+            assembly=assembly,
+            operation=operation,
+            function_info=function_info,
+            **extra,
         )
         self.constraints = constraints
         self.operands = {}

@@ -20,9 +20,11 @@ class PatternGenTestGenerationTests(unittest.TestCase):
         destination.touch()
         ir = "define void @implTEST() {\n  ret void\n}\n"
         if may_load:
-            ir = (f"define void @implTEST(ptr %base, ptr %rd) {{\n"
-                  f"  %v = load i{xlen}, ptr %base\n"
-                  f"  store i{xlen} %v, ptr %rd, align {xlen // 8}\n  ret void\n}}\n")
+            ir = (
+                f"define void @implTEST(ptr %base, ptr %rd) {{\n"
+                f"  %v = load i{xlen}, ptr %base\n"
+                f"  store i{xlen} %v, ptr %rd, align {xlen // 8}\n  ret void\n}}\n"
+            )
         (root / "test.ll").write_text(ir)
         with patch("seal5.tools.cdsl2llvm.utils.exec_getout", return_value=f"Pattern for TEST [xtest]: {pattern}\n"):
             return run_pattern_gen(
@@ -53,7 +55,11 @@ class PatternGenTestGenerationTests(unittest.TestCase):
     def test_load_returns_value_without_competing_store_pattern(self):
         with tempfile.TemporaryDirectory() as directory:
             files = self.generate(
-                directory, xlen=64, pattern="(load GPR:$address)", immediates=[], may_load=True,
+                directory,
+                xlen=64,
+                pattern="(load GPR:$address)",
+                immediates=[],
+                may_load=True,
             )
             contents = Path(files[0]).read_text()
             self.assertIn("define i64 @implTEST", contents)

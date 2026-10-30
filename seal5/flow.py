@@ -648,8 +648,14 @@ class Seal5Flow:
         self.logger.info("Completed load of Seal5 inputs")
 
     def build(
-        self, config=None, target="all", verbose: bool = False, skip_configure: bool = False,
-        cmake_extra_args=None, reduced: bool = False, **kwargs,
+        self,
+        config=None,
+        target="all",
+        verbose: bool = False,
+        skip_configure: bool = False,
+        cmake_extra_args=None,
+        reduced: bool = False,
+        **kwargs,
     ):
         """Build Seal5 LLVM."""
         self.logger.info("Building Seal5 LLVM (%s)", target)
@@ -701,8 +707,13 @@ class Seal5Flow:
         self.logger.info("Completed build of Seal5 LLVM (%s)", target)
 
     def install(
-        self, dest: Optional[Union[str, Path]] = None, config=None, verbose: bool = False,
-        cmake_extra_args=None, reduced: bool = False, **kwargs,
+        self,
+        dest: Optional[Union[str, Path]] = None,
+        config=None,
+        verbose: bool = False,
+        cmake_extra_args=None,
+        reduced: bool = False,
+        **kwargs,
     ):
         """Install Seal5 LLVM."""
         start = time.time()

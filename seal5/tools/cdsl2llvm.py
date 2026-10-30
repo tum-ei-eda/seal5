@@ -157,7 +157,12 @@ def build_llc(
 
 
 def combine_test_fragments(
-    ll_file: Union[str, Path], instr: str, test_header: str, test_mir_checks: str, test_asm_checks: str, return_output=False
+    ll_file: Union[str, Path],
+    instr: str,
+    test_header: str,
+    test_mir_checks: str,
+    test_asm_checks: str,
+    return_output=False,
 ):
     with open(ll_file, "r") as f:
         contents = f.read()
@@ -167,7 +172,7 @@ def combine_test_fragments(
         result = re.search(r"(?m)^  store (i\d+) ([^,\n]+), ptr [^\n]+\n  ret void$", contents)
         assert result is not None, "Missing final register-result store in pattern-gen IR"
         ty, value = result.groups()
-        contents = contents[:result.start()] + f"  ret {ty} {value}" + contents[result.end():]
+        contents = contents[: result.start()] + f"  ret {ty} {value}" + contents[result.end() :]
         contents = contents.replace("define void @impl", f"define {ty} @impl", 1)
     lines = contents.splitlines()
     ret_lines = []
@@ -418,9 +423,7 @@ def run_pattern_gen(
                 uses_str_ = ",".join(uses)
                 uses_strs.append(uses_str_)
                 has_imm_ = (
-                    bool(set(uses) & set(immediate_operands))
-                    if immediate_operands is not None
-                    else "imm" in uses_str_
+                    bool(set(uses) & set(immediate_operands)) if immediate_operands is not None else "imm" in uses_str_
                 )
                 has_imm |= has_imm_
             uses_str = "\n".join(uses_strs)
@@ -488,7 +491,11 @@ def run_pattern_gen(
             assert len(ll_files) == 1
             ll_file = ll_files[0]
             test_content = combine_test_fragments(
-                ll_file, instr, test_header, test_mir_checks, test_asm_checks,
+                ll_file,
+                instr,
+                test_header,
+                test_mir_checks,
+                test_asm_checks,
                 return_output=may_load and has_register_output,
             )
             # print("test_content", test_content)

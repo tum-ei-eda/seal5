@@ -50,6 +50,4 @@ def handle(args):
     """Callback function which will be called to process the load subcommand"""
     seal5_flow = Seal5Flow(args.dir, name=args.name)
     logger.warning(args.files)
-    seal5_flow.load(
-        files=list(args.files), overwrite=args.overwrite, verbose=args.verbose, lookup_paths=args.includes
-    )
+    seal5_flow.load(files=list(args.files), overwrite=args.overwrite, verbose=args.verbose, lookup_paths=args.includes)

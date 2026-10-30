@@ -47,4 +47,5 @@ class InferTypesMutator(UpstreamInferTypesMutator):
         expr.ty = type_info.PrimitiveType(element.kind, (abs(delta) + 1) * arch.get_const_or_val(element.size))
         return expr
 
+
 __all__ = ["InferTypesMutator", "WarningsManager"]

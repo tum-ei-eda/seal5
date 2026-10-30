@@ -39,13 +39,16 @@ def check(directory, config="release_assertions"):
     ]
     for xlen in (32, 64):
         for name, operation in [
-            ("LDX_REG", "load"), ("STX_REG", "store"),
-            ("LDX_SCALE", "load"), ("STX_SCALE", "store"),
-            ("LD_ADD", "load"), ("ST_XOR", "store"),
-            ("LD_BOTH", "load"), ("ST_BOTH", "store"),
+            ("LDX_REG", "load"),
+            ("STX_REG", "store"),
+            ("LDX_SCALE", "load"),
+            ("STX_SCALE", "store"),
+            ("LD_ADD", "load"),
+            ("ST_XOR", "store"),
+            ("LD_BOTH", "load"),
+            ("ST_BOTH", "store"),
         ]:
-            cases.append((f"XNormalize{xlen}", f"NORM_{name}_{xlen}",
-                          "MEMX[", operation, xlen, xlen))
+            cases.append((f"XNormalize{xlen}", f"NORM_{name}_{xlen}", "MEMX[", operation, xlen, xlen))
     results = []
     for extension, instruction, spelling, operation, width, xlen in cases:
         source = inputs / extension / f"{instruction}.core_desc"
@@ -119,8 +122,15 @@ def check(directory, config="release_assertions"):
         behavior = source.split("behavior:", 1)[1]
         if signed and f"(signed<{width}>)({operand})" not in behavior:
             raise AssertionError(f"{branch}: condition immediate lost its signed cast")
-        results.append({"instruction": instruction, "condition_immediate": operand,
-                        "width": width, "signed": signed, "destination": destination})
+        results.append(
+            {
+                "instruction": instruction,
+                "condition_immediate": operand,
+                "width": width,
+                "signed": signed,
+                "destination": destination,
+            }
+        )
     for extension, instruction, spelling in [
         ("XNormalize32", "NORM_EXTRACT", " +: 8]"),
         ("XNormalize32", "NORM_EXTRACT_ASCENDING", " +: 4]"),
