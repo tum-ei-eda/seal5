@@ -1,35 +1,4 @@
 ---
-patches:
-  - name: pattern_gen_memory_fusion_llvm23
-    target: llvm
-    stage: 0
-    priority: 65
-    onlyif: "settings.llvm.state.version.major == 23"
-    file: llvm/pattern_gen_memory_fusion_llvm23.patch
-  - name: pattern_gen_compare_immediates_llvm23
-    target: llvm
-    stage: 0
-    priority: 70
-    onlyif: "settings.llvm.state.version.major == 23"
-    file: llvm/pattern_gen_compare_immediates_llvm23.patch
-  - name: pattern_gen_narrow_store_llvm23
-    target: llvm
-    stage: 0
-    priority: 70
-    onlyif: "settings.llvm.state.version.major == 23"
-    file: llvm/pattern_gen_narrow_store_llvm23.patch
-  - name: pattern_gen_codegen_llvm23
-    target: llvm
-    stage: 0
-    priority: 75
-    onlyif: "settings.llvm.state.version.major == 23"
-    file: llvm/pattern_gen_codegen_llvm23.patch
-  - name: pattern_gen_dynamic_slices_llvm23
-    target: llvm
-    stage: 0
-    priority: 70  # After pattern_gen_support (80).
-    onlyif: "settings.llvm.state.version.major == 23"
-    file: llvm/pattern_gen_dynamic_slices_llvm23.patch
 # Only this example opts in; the passes remain disabled by default.
 models:
   Normalization:
