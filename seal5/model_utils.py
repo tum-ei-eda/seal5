@@ -45,8 +45,9 @@ def dump_model(
         suffix = out_path.suffix
         required_suffix = ".m2isarmodel" if compat else ".seal5model"
         if suffix not in [".m2isarmodel", ".seal5model"]:
-            assert len(suffix) == 0, f"Invalid suffix: {suffix}"
-            out_path = out_path.parent / f"{out_path.stem}{required_suffix}"
+            # Transform passes pass extensionless model names, which may
+            # contain dots (for example XIsaac.splitted). Preserve the name.
+            out_path = out_path.with_name(out_path.name + required_suffix)
         else:
             assert suffix == required_suffix, f"Invalid suffix: {suffix}, Expected: {required_suffix}"
     logger.debug("dumping model: %s", out_path)
