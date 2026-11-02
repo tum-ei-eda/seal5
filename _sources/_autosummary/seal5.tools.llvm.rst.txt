@@ -13,6 +13,7 @@ seal5.tools.llvm
       clone_llvm_repo
       detect_llvm_imm_types
       lookup_ccache
+      open_llvm_repo
       test_llvm
       update_excludes
    
