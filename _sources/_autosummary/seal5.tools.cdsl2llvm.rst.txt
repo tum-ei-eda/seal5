@@ -12,6 +12,7 @@ seal5.tools.cdsl2llvm
       build_pattern_gen
       combine_test_fragments
       convert_ll_to_gmir
+      get_pattern_gen_backend_patch
       get_pattern_gen_patches
       run_pattern_gen
    
