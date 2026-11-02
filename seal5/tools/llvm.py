@@ -22,6 +22,7 @@ import re
 import os
 import shutil
 import shlex
+import tempfile
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -87,6 +88,19 @@ def check_llvm_repo(path: Path):
     return True
 
 
+def open_llvm_repo(dest: Path, meta_dir: Optional[Path] = None):
+    """Open an existing repository, allowing Seal5 metadata before the first clone."""
+    if not dest.is_dir() or not utils.is_populated(dest):
+        return None
+    try:
+        return git.Repo(dest)
+    except git.InvalidGitRepositoryError:
+        metadata = (meta_dir if meta_dir is not None else dest / ".seal5").resolve()
+        if all(entry.resolve() == metadata and entry.is_dir() for entry in dest.iterdir()):
+            return None
+        raise
+
+
 def clone_llvm_repo(
     dest: Path,
     clone_url: str,
@@ -97,15 +111,16 @@ def clone_llvm_repo(
     depth: Optional[int] = None,
     default_major_version: int = 18,
     progress: bool = True,  # TODO: default to False and expose to flow.py
+    meta_dir: Optional[Path] = None,
 ):
     sha = None
     version_info = {}
     repo = None
     clone_url = apply_repository_override(clone_url)
-    if dest.is_dir() and utils.is_populated(dest):
+    repo = open_llvm_repo(dest, meta_dir)
+    if repo is not None:
         if refresh:
             logger.debug("Refreshing LLVM repository: %s", dest)
-            repo = git.Repo(dest)
             clone_url = apply_repository_override(clone_url)
             repo.remotes.origin.set_url(clone_url)
             repo.remotes.origin.fetch()
@@ -125,9 +140,21 @@ def clone_llvm_repo(
         if depth is not None and ref is not None:
             # assert "llvmorg" in ref  # Needs to be a valid branch name, not a tag
             branch = ref
-        repo = git.Repo.clone_from(
-            clone_url, dest, no_checkout=no_checkout, branch=branch, depth=depth, progress=clone_progress
-        )
+        # Git cannot clone directly into a directory containing pre-clone metadata.
+        # Finish the clone separately so failures leave that metadata intact.
+        with tempfile.TemporaryDirectory(prefix="seal5-llvm-clone-") as temporary:
+            clone_dest = Path(temporary) / "llvm" if utils.is_populated(dest) else dest
+            repo = git.Repo.clone_from(
+                clone_url, clone_dest, no_checkout=no_checkout, branch=branch, depth=depth, progress=clone_progress
+            )
+            if clone_dest != dest:
+                repo.close()
+                for entry in clone_dest.iterdir():
+                    if (dest / entry.name).exists():
+                        raise FileExistsError(f"LLVM clone conflicts with existing metadata: {dest / entry.name}")
+                for entry in clone_dest.iterdir():
+                    shutil.move(str(entry), dest / entry.name)
+                repo = git.Repo(dest)
         if ref:
             logger.debug("Checking out branch: %s", ref)
             repo.git.checkout(ref)
