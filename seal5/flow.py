@@ -492,6 +492,13 @@ class Seal5Flow:
                         self.settings.temp_dir,
                     )
                     self.settings.add_patch(patch_settings)
+                    backend_patch = cdsl2llvm.get_pattern_gen_backend_patch(
+                        self.settings.deps_dir / "cdsl2llvm",
+                        self.directory,
+                        self.settings.temp_dir,
+                    )
+                    if backend_patch is not None:
+                        self.settings.add_patch(backend_patch)
             else:
                 self.logger.info("Building PatternGen")
                 llvm_config = LLVMConfig(

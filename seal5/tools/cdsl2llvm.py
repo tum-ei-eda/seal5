@@ -18,6 +18,7 @@
 #
 """PatternGen utils for seal5."""
 
+import difflib
 import re
 from pathlib import Path
 from typing import Optional, Union
@@ -130,6 +131,62 @@ let TargetPrefix = "riscv" in {
     )
 
     return patch_settings
+
+
+def get_pattern_gen_backend_patch(src: Path, llvm_dir: Path, temp_dir: Path):
+    """Import backend support from the matching CoreDSL2LLVM release branch.
+
+    Apply before insertion markers so the imported backend retains Seal5's
+    extension sites. Older PatternGen branches without ordinary branch support
+    continue to use the existing integration.
+    """
+    target = Path("llvm/lib/Target/RISCV")
+    definitions = (src / target / "RISCVInstrInfo.td").read_text()
+    operand = re.search(r"def patterngen_btarget\s*:.*?^}\s*$", definitions, re.MULTILINE | re.DOTALL)
+    if operand is None:
+        return None
+    changes = []
+    for name in (
+        "GISel/RISCVInstructionSelector.cpp",
+        "RISCVInstrInfo.cpp",
+        "RISCVLateBranchOpt.cpp",
+        "RISCVRedundantCopyElimination.cpp",
+        "GISel/RISCVLegalizerInfo.cpp",
+        "RISCVInstrInfo.td",
+    ):
+        path = target / name
+        original = (llvm_dir / path).read_text()
+        if name == "GISel/RISCVLegalizerInfo.cpp":
+            # Retain the native legalizer; only the extraction marker is needed.
+            updated = original.replace(
+                "  case Intrinsic::riscv_vsetvli:",
+                "  case Intrinsic::riscv_pg_branch:\n  case Intrinsic::riscv_vsetvli:",
+                1,
+            )
+        elif name == "RISCVInstrInfo.td":
+            # Seal5 installs its own generated instruction includes.
+            updated = original + "\n" + operand.group().rstrip() + "\n"
+        else:
+            updated = (src / path).read_text()
+        changes.extend(
+            difflib.unified_diff(
+                original.splitlines(keepends=True),
+                updated.splitlines(keepends=True),
+                fromfile=f"a/{path}",
+                tofile=f"b/{path}",
+            )
+        )
+    patch_file = temp_dir / "pattern_gen_backend_support.patch"
+    patch_file.write_text("".join(changes))
+    return PatchSettings(
+        name="pattern_gen_backend_support",
+        stage=int(PatchStage.PHASE_0),
+        comment="Import PatternGen memory and branch backend support",
+        file=str(patch_file),
+        generated=False,  # The diff is already materialized; no index is needed.
+        target="llvm",
+        priority=95,  # Before insertion markers (90).
+    )
 
 
 def build_llc(
