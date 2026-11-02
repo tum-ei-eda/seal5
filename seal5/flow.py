@@ -244,9 +244,7 @@ class Seal5Flow:
         self.name: str = name
         self.state: Seal5State = Seal5State.UNKNOWN
         self.passes: List[Seal5Pass] = []
-        self.repo: Optional[git.Repo] = (
-            git.Repo(self.directory) if self.directory.is_dir() and utils.is_populated(self.directory) else None
-        )
+        self.repo: Optional[git.Repo] = llvm.open_llvm_repo(self.directory, self.meta_dir)
         self.check()
         self.settings: Seal5Settings = Seal5Settings.from_dict(
             {"meta_dir": str(self.meta_dir), "build_dir": str(self.build_dir), **DEFAULT_SETTINGS}
@@ -363,6 +361,7 @@ class Seal5Flow:
             self.repo, sha, version_info = llvm.clone_llvm_repo(
                 self.directory,
                 clone_url,
+                meta_dir=self.meta_dir,
                 ref=clone_ref,
                 label=self.name,
                 git_settings=self.settings.git,
@@ -375,6 +374,7 @@ class Seal5Flow:
                 self.repo, sha, version_info = llvm.clone_llvm_repo(
                     self.directory,
                     clone_url,
+                    meta_dir=self.meta_dir,
                     ref=clone_ref,
                     refresh=True,
                     label=self.name,
