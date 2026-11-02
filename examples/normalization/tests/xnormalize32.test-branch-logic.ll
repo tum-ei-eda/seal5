@@ -4,6 +4,9 @@
 
 ; XOR-nonzero is equivalent to register inequality (its optimized IR form).
 
+@branch_fall = external global i8
+@branch_taken = external global i8
+
 define void @band(i32 %a, i32 %b) {
 ; CHECK-LABEL: band:
 ; CHECK-NOT: and a
@@ -15,10 +18,10 @@ define void @band(i32 %a, i32 %b) {
   %c = icmp ne i32 %v, 0
   br i1 %c, label %taken, label %fall
 fall:
-  call void asm sideeffect "addi zero, zero, 1", ""()
+  store volatile i8 1, ptr @branch_fall
   ret void
 taken:
-  call void asm sideeffect "nop", ""()
+  store volatile i8 2, ptr @branch_taken
   ret void
 }
 
@@ -33,10 +36,10 @@ define void @bor(i32 %a, i32 %b) {
   %c = icmp ne i32 %v, 0
   br i1 %c, label %taken, label %fall
 fall:
-  call void asm sideeffect "addi zero, zero, 1", ""()
+  store volatile i8 1, ptr @branch_fall
   ret void
 taken:
-  call void asm sideeffect "nop", ""()
+  store volatile i8 2, ptr @branch_taken
   ret void
 }
 
@@ -49,10 +52,10 @@ define void @bxor(i32 %a, i32 %b) {
   %c = icmp ne i32 %a, %b
   br i1 %c, label %taken, label %fall
 fall:
-  call void asm sideeffect "addi zero, zero, 1", ""()
+  store volatile i8 1, ptr @branch_fall
   ret void
 taken:
-  call void asm sideeffect "nop", ""()
+  store volatile i8 2, ptr @branch_taken
   ret void
 }
 
@@ -65,9 +68,9 @@ define void @bnz(i32 %a) {
   %c = icmp ne i32 %a, 0
   br i1 %c, label %taken, label %fall
 fall:
-  call void asm sideeffect "addi zero, zero, 1", ""()
+  store volatile i8 1, ptr @branch_fall
   ret void
 taken:
-  call void asm sideeffect "nop", ""()
+  store volatile i8 2, ptr @branch_taken
   ret void
 }

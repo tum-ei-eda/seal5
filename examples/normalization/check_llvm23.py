@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Verify normalized CDSL and its memory lowering with a built LLVM23 demo.
+"""Verify normalized CDSL and its memory lowering with a built LLVM 22 or LLVM 23 demo.
 
 Run after examples/demo.py, with the same DEST:
     python examples/normalization/check_llvm23.py /tmp/seal5_llvm_demo_llvm23
@@ -150,7 +150,7 @@ def check(directory, config="release_assertions"):
         results.append({"instruction": instruction, "normalized": spelling})
     report = outputs / "results.json"
     report.write_text(json.dumps(results, indent=2) + "\n")
-    print(f"Verified {len(results)} LLVM23 normalization cases; report: {report}")
+    print(f"Verified {len(results)} normalization cases; report: {report}")
 
 
 def main():

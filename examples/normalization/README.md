@@ -1,7 +1,7 @@
-# LLVM 23 normalization example
+# LLVM 22 and LLVM 23 normalization example
 
 `examples/demo.py` includes this example and its configuration when
-`LLVM_REF=llvmorg-23.*`. Only the
+`LLVM_REF=llvmorg-22.*` or `LLVM_REF=llvmorg-23.*`. Only the
 `Normalization` model enables the optional memory, register, subscript, and
 branch passes. It also opts in to experimental memory and recognized branch
 patterns through `check_pattern_support.allow_memory` and `allow_branches`.
@@ -25,19 +25,20 @@ The example covers:
   widths are independent of the signed 13-bit destination operand.
 - GlobalISel instruction selection and assembler/disassembler round trips.
 
-Run the full demo using the repository's Python environment:
+Run the full demo using the repository's Python environment (use
+`LLVM_REF=llvmorg-23.1.3` for LLVM 23):
 
 ```sh
 export PATH=/nfs/TUEIEDAscratch/ga87puy/work/cpython_v3.10_nodbgopt/install/bin/:$PATH
 source venv310/bin/activate
 SEAL5_LOG_LEVEL=info SEAL5_NUM_THREADS=1 VERBOSE=0 PREPATCHED=0 PROGRESS=1 \
-LLVM_REF=llvmorg-23.1.3 CCACHE=1 CLONE_DEPTH=1 BUILD_CONFIG=release_assertions \
+LLVM_REF=llvmorg-22.1.8 CCACHE=1 CLONE_DEPTH=1 BUILD_CONFIG=release_assertions \
 IGNORE_ERROR=1 TEST=1 INSTALL=0 DEPLOY=0 EXPORT=0 BUILD_CACHE=0 \
-DEST=/tmp/seal5_llvm_demo_llvm23 python3 examples/demo.py
-python3 examples/normalization/check_llvm23.py /tmp/seal5_llvm_demo_llvm23
+DEST=/tmp/seal5_llvm_demo_llvm22 python3 examples/demo.py
+python3 examples/normalization/check_llvm23.py /tmp/seal5_llvm_demo_llvm22
 ```
 
-The extra checker also runs automatically after the LLVM 23 demo tests. It
+The extra checker also runs automatically after the LLVM 22/23 demo tests. It
 verifies the normalized split CDSL, generated memory and branch patterns, and
 invokes the built pattern-gen on the memory instructions. It checks LLVM load/store widths and
 writes a JSON report to `.seal5/temp/normalization_checks/results.json`.
@@ -46,17 +47,21 @@ indexed and fused memory operations, and conditional branches, in addition to
 object emission/disassembly. The memory fixtures use ordinary pointers and GEPs;
 shared volatile loads and intervening aliasing stores check the limits of load folding.
 XOR-nonzero is tested through its equivalent register-inequality IR form.
+Branch tests use volatile memory effects so they also work with LLVM 22, whose
+RISC-V GlobalISel does not translate inline assembly.
 Postincrement/writeback and read-modify-write operations remain excluded.
 The branch-immediate tests cover negative and positive bounds, out-of-range
 fallback/rejection, immediate operand ordering, and object emission/disassembly.
 Type inference preserves explicit signed casts so negative condition immediates
 are not accidentally reinterpreted as unsigned values.
 
-These tests require the updated CoreDSL2LLVM `llvm-23.1.3` branch, including
-commit `140e1a7966f2`. Seal5 selects that branch automatically for LLVM 23.
+These tests require the updated CoreDSL2LLVM `llvm-22.1.8` or `llvm-23.1.3`
+branch. Seal5 selects the matching branch automatically. For LLVM 23, use
+commit `140e1a7966f2` or newer.
 It provides dynamic slice handling, comparison-immediate canonicalization,
 branch backend support, narrow register-slice stores, and fused memory patterns;
-no additional LLVM patches are applied by this example.
+Seal5 imports the backend support from that checkout automatically, before
+installing its extension markers. The example needs no separate LLVM patches.
 
 The backend exposes pointer arithmetic before selecting its memory users,
 retaining pointer-typed copies for native fallback. Generated memory patterns

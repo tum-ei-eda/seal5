@@ -2,6 +2,9 @@
 ; RUN: llc -O2 -mtriple=riscv32 -mattr=+xnormalize32 -verify-machineinstrs -global-isel=1 -global-isel-abort=1 -filetype=obj < %s -o %t.o
 ; RUN: llvm-objdump -d --mattr=+xnormalize32 %t.o | FileCheck %s --check-prefix=OBJ
 
+@branch_fall = external global i8
+@branch_taken = external global i8
+
 define void @signed5_min(i32 %value) {
 ; CHECK-LABEL: signed5_min:
 ; CHECK: xnormalize32.beqi5 a0, -16,
@@ -10,10 +13,10 @@ define void @signed5_min(i32 %value) {
   %condition = icmp eq i32 %value, -16
   br i1 %condition, label %taken, label %fall
 fall:
-  call void asm sideeffect "addi zero, zero, 1", ""()
+  store volatile i8 1, ptr @branch_fall
   ret void
 taken:
-  call void asm sideeffect "nop", ""()
+  store volatile i8 2, ptr @branch_taken
   ret void
 }
 
@@ -23,10 +26,10 @@ define void @signed5_max(i32 %value) {
   %condition = icmp eq i32 %value, 15
   br i1 %condition, label %taken, label %fall
 fall:
-  call void asm sideeffect "addi zero, zero, 1", ""()
+  store volatile i8 1, ptr @branch_fall
   ret void
 taken:
-  call void asm sideeffect "nop", ""()
+  store volatile i8 2, ptr @branch_taken
   ret void
 }
 
@@ -37,10 +40,10 @@ define void @signed5_too_large(i32 %value) {
   %condition = icmp eq i32 %value, 16
   br i1 %condition, label %taken, label %fall
 fall:
-  call void asm sideeffect "addi zero, zero, 1", ""()
+  store volatile i8 1, ptr @branch_fall
   ret void
 taken:
-  call void asm sideeffect "nop", ""()
+  store volatile i8 2, ptr @branch_taken
   ret void
 }
 
@@ -50,10 +53,10 @@ define void @unsigned3_max(i32 %value) {
   %condition = icmp ult i32 %value, 7
   br i1 %condition, label %taken, label %fall
 fall:
-  call void asm sideeffect "addi zero, zero, 1", ""()
+  store volatile i8 1, ptr @branch_fall
   ret void
 taken:
-  call void asm sideeffect "nop", ""()
+  store volatile i8 2, ptr @branch_taken
   ret void
 }
 
@@ -63,10 +66,10 @@ define void @signed8_min(i32 %value) {
   %condition = icmp ne i32 %value, -128
   br i1 %condition, label %taken, label %fall
 fall:
-  call void asm sideeffect "addi zero, zero, 1", ""()
+  store volatile i8 1, ptr @branch_fall
   ret void
 taken:
-  call void asm sideeffect "nop", ""()
+  store volatile i8 2, ptr @branch_taken
   ret void
 }
 
@@ -76,9 +79,9 @@ define void @signed8_max(i32 %value) {
   %condition = icmp ne i32 %value, 127
   br i1 %condition, label %taken, label %fall
 fall:
-  call void asm sideeffect "addi zero, zero, 1", ""()
+  store volatile i8 1, ptr @branch_fall
   ret void
 taken:
-  call void asm sideeffect "nop", ""()
+  store volatile i8 2, ptr @branch_taken
   ret void
 }

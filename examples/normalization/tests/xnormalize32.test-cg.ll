@@ -2,6 +2,9 @@
 ; RUN: llc -O3 -mtriple=riscv32 -mattr=+xnormalize32 -verify-machineinstrs -global-isel=1 -filetype=obj < %s -o %t.o
 ; RUN: llvm-objdump -d --mattr=+xnormalize32 %t.o | FileCheck %s --check-prefix=OBJ
 
+@branch_fall = external global i8
+@branch_taken = external global i8
+
 define i32 @load16(ptr %p) {
 ; CHECK-LABEL: load16:
 ; CHECK: xnormalize32.load16 a0, a0
@@ -41,10 +44,10 @@ define void @branch_equal(i32 %a, i32 %b) {
   %eq = icmp eq i32 %a, %b
   br i1 %eq, label %yes, label %no
 no:
-  call void asm sideeffect "addi zero, zero, 1", ""()
+  store volatile i8 1, ptr @branch_fall
   ret void
 yes:
-  call void asm sideeffect "nop", ""()
+  store volatile i8 2, ptr @branch_taken
   ret void
 }
 

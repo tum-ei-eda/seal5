@@ -51,7 +51,7 @@ FILES = [
     EXAMPLES_DIR / "tumeda" / "cfg" / "intrinsics.yml",
 ]
 
-NORMALIZATION_EXAMPLE = LLVM_REF.startswith("llvmorg-23.")
+NORMALIZATION_EXAMPLE = LLVM_REF.startswith(("llvmorg-22.", "llvmorg-23."))
 if NORMALIZATION_EXAMPLE:
     FILES.extend(
         [

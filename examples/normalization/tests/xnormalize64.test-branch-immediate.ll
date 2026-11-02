@@ -2,6 +2,9 @@
 ; RUN: llc -O2 -mtriple=riscv64 -mattr=+xnormalize64 -verify-machineinstrs -global-isel=1 -global-isel-abort=1 -filetype=obj < %s -o %t.o
 ; RUN: llvm-objdump -d --mattr=+xnormalize64 %t.o | FileCheck %s --check-prefix=OBJ
 
+@branch_fall = external global i8
+@branch_taken = external global i8
+
 define void @signed64_bound(i64 %value) {
 ; CHECK-LABEL: signed64_bound:
 ; CHECK: xnormalize64.blti5 a0, -16,
@@ -10,9 +13,9 @@ define void @signed64_bound(i64 %value) {
   %condition = icmp slt i64 %value, -16
   br i1 %condition, label %taken, label %fall
 fall:
-  call void asm sideeffect "addi zero, zero, 1", ""()
+  store volatile i8 1, ptr @branch_fall
   ret void
 taken:
-  call void asm sideeffect "nop", ""()
+  store volatile i8 2, ptr @branch_taken
   ret void
 }
