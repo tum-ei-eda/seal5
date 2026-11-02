@@ -49,6 +49,17 @@ def pc_relative_offset(expr):
     if not isinstance(target, behav.NamedReference) or target.reference.name != "PC":
         return None
     value = strip_casts(expr.expr)
+    if isinstance(value, behav.SliceOperation):
+        # explicit_truncations represents assignment back to PC this way.
+        upper, lower = ungroup(value.left), ungroup(value.right)
+        if not (
+            isinstance(upper, behav.Literal)
+            and isinstance(lower, behav.Literal)
+            and lower.value == 0
+            and upper.value == target.reference.ty.size - 1
+        ):
+            return None
+        value = strip_casts(value.expr)
     if not isinstance(value, behav.BinaryOperation) or value.op.value != "+":
         return None
     for pc, offset in ((value.left, value.right), (value.right, value.left)):

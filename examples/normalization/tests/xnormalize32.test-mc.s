@@ -26,3 +26,7 @@ xnormalize32.load8 a0, a1
 # CHECK: xnormalize32.load8 a0, a1
 # CHECK-SAME: encoding: [0x0b,0x95,0x25,0x40]
 # DIS: xnormalize32.load8 a0, a1
+xnormalize32.branch a0, a1, 8
+# CHECK: xnormalize32.branch a0, a1, 8
+# CHECK-SAME: encoding: [0x2b,0x24,0xb5,0x00]
+# DIS: xnormalize32.branch a0, a1, 0x20
