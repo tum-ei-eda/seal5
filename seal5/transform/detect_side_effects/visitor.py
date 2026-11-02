@@ -10,7 +10,7 @@
 
 from functools import singledispatchmethod
 
-from m2isar.metamodel import arch, behav
+from m2isar.metamodel import arch, behav, attribute_info
 from m2isar.metamodel.utils.ExprVisitor import ExprVisitor
 
 # pylint: disable=unused-argument
@@ -143,7 +143,7 @@ class DetectSideEffectsVisitor(ExprVisitor):
     @generate.register
     def _(self, expr: behav.IndexedReference, context):
         if isinstance(expr.reference, arch.Memory):
-            if arch.MemoryAttribute.IS_MAIN_MEM in expr.reference.attributes:
+            if attribute_info.MemoryAttribute.IS_MAIN_MEM in expr.reference.attributes:
                 if context.is_write:
                     context.may_store = True
                 elif context.is_read:

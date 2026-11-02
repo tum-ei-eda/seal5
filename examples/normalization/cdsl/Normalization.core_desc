@@ -1,0 +1,75 @@
+import "RVI.core_desc"
+
+InstructionSet XNormalize32 extends RV32I {
+  instructions {
+    NORM_EXTRACT {
+      encoding: 7'b0100000 :: base[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b0001011;
+      assembly: {"xnormalize32.extract", "{name(rd)}, {name(rs1)}, {base}"};
+      behavior: if (rd != 0) X[rd] = X[rs1][base+7:base];
+    }
+    NORM_EXTRACT_ASCENDING {
+      encoding: 7'b0100001 :: base[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b0001011;
+      assembly: {"xnormalize32.extract4", "{name(rd)}, {name(rs1)}, {base}"};
+      behavior: if (rd != 0) X[rd] = X[rs1][base:base+3];
+    }
+    NORM_LOAD16 {
+      encoding: 12'b010000000000 :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b0001011;
+      assembly: {"xnormalize32.load16", "{name(rd)}, {name(rs1)}"};
+      behavior: {
+        unsigned<XLEN> addr = X[rs1];
+        if (rd != 0) X[rd] = MEM[addr+1:addr];
+      }
+    }
+    NORM_LOADX {
+      encoding: 12'b010000000001 :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b0001011;
+      assembly: {"xnormalize32.loadx", "{name(rd)}, {name(rs1)}"};
+      behavior: {
+        unsigned<XLEN> addr = X[rs1];
+        if (rd != 0) X[rd] = MEM[addr+3:addr];
+      }
+    }
+    NORM_STORE16 {
+      encoding: 7'b0100010 :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: 5'b00000 :: 7'b0001011;
+      assembly: {"xnormalize32.store16", "{name(rs2)}, {name(rs1)}"};
+      behavior: {
+        unsigned<XLEN> addr = X[rs1];
+        MEM[addr+1:addr] = X[rs2][15:0];
+      }
+    }
+    NORM_MANUAL_LOAD8 {
+      encoding: 12'b010000000010 :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b0001011;
+      assembly: {"xnormalize32.load8", "{name(rd)}, {name(rs1)}"};
+      behavior: if (rd != 0) X[rd] = MEM8[X[rs1] ];
+    }
+  }
+}
+
+InstructionSet XNormalize64 extends RV64I {
+  instructions {
+    NORM_WORDNAND {
+      encoding: 7'b0100000 :: rs2[4:0] :: rs1[4:0] :: 3'b010 :: rd[4:0] :: 7'b0001011;
+      assembly: {"xnormalize64.wordnand", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: if (rd != 0)
+        X[rd] = (signed<XLEN>)(signed<32>)(~(X[rs1][31:0] & X[rs2][31:0]));
+    }
+    NORM_MANUAL_WORDNOR {
+      encoding: 7'b0100001 :: rs2[4:0] :: rs1[4:0] :: 3'b010 :: rd[4:0] :: 7'b0001011;
+      assembly: {"xnormalize64.wordnor", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: if (rd != 0)
+        X[rd] = (signed<XLEN>)(signed<32>)(~(XW[rs1] | XW[rs2]));
+    }
+    NORM_LOAD64 {
+      encoding: 12'b010000000011 :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b0001011;
+      assembly: {"xnormalize64.load64", "{name(rd)}, {name(rs1)}"};
+      behavior: {
+        unsigned<XLEN> addr = X[rs1];
+        if (rd != 0) X[rd] = MEM[addr+7:addr];
+      }
+    }
+    NORM_MANUAL_LOAD32 {
+      encoding: 12'b010000000100 :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b0001011;
+      assembly: {"xnormalize64.load32", "{name(rd)}, {name(rs1)}"};
+      behavior: if (rd != 0) X[rd] = MEM32[X[rs1] ];
+    }
+  }
+}

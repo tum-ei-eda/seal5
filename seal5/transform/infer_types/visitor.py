@@ -8,12 +8,34 @@
 
 """Type inference for M2-ISA-R/Seal5 metamodel.
 
-This module re-exports the upstream M2-ISA-R InferTypesMutator which provides
-the modern visitor pattern and correct type system for type inference.
+Extend upstream inference for fixed-width ranges in either direction.
 """
 
-# Re-export the InferTypesMutator from m2isar.transforms.infer_types
-from m2isar.transforms.infer_types.visitor import InferTypesMutator
+from functools import singledispatchmethod
+
+from m2isar.metamodel import arch, behav, type_info
+from m2isar.transforms.infer_types.visitor import InferTypesMutator as UpstreamInferTypesMutator
 from m2isar.warnings import WarningsManager
+
+from seal5.transform.explicit_names import distance
+
+
+class InferTypesMutator(UpstreamInferTypesMutator):
+    @singledispatchmethod
+    def generate(self, expr, context):
+        return super().generate(expr, context)
+
+    @generate.register
+    def _(self, expr: behav.IndexedReference, context):
+        if expr.right is None or not isinstance(expr.reference.ty, type_info.ArrayType):
+            return super().generate(expr, context)
+        expr.index = self.generate(expr.index, context)
+        expr.right = self.generate(expr.right, context)
+        delta = distance(expr.index, expr.right)
+        if delta is None:
+            return super().generate(expr, context)
+        element = expr.reference.ty.element_type
+        expr.ty = type_info.PrimitiveType(element.kind, (abs(delta) + 1) * arch.get_const_or_val(element.size))
+        return expr
 
 __all__ = ["InferTypesMutator", "WarningsManager"]

@@ -1,0 +1,33 @@
+InstructionSet ArrayNormalization {
+    architectural_state {
+        unsigned int XLEN = 32;
+        register unsigned<XLEN> X[32] [[is_main_reg]];
+        extern unsigned<8> MEM[65536] [[is_main_mem]];
+    }
+    instructions {
+        LOAD_BE {
+            encoding: rs1[4:0] :: rd[4:0] :: 22'b0;
+            assembly: "{name(rd)}, {name(rs1)}";
+            behavior: {
+                unsigned<XLEN> addr = X[rs1];
+                X[rd] = MEM[addr:addr+3];
+            }
+        }
+        STORE_BE {
+            encoding: rs1[4:0] :: rs2[4:0] :: 22'b1;
+            assembly: "{name(rs1)}, {name(rs2)}";
+            behavior: {
+                unsigned<XLEN> addr = X[rs1];
+                MEM[addr:addr+3] = X[rs2];
+            }
+        }
+        LOAD24_LE {
+            encoding: rs1[4:0] :: rd[4:0] :: 22'b10;
+            assembly: "{name(rd)}, {name(rs1)}";
+            behavior: {
+                unsigned<XLEN> addr = X[rs1];
+                X[rd] = MEM[addr+2:addr];
+            }
+        }
+    }
+}

@@ -16,6 +16,7 @@ from m2isar.metamodel.type_info import TypeKind
 
 from seal5.logging import Logger
 from seal5.model import DataType
+from .visitor import Seal5CDSLWriterVisitor
 
 logger = Logger("backends.coredsl2_writer")
 
@@ -35,6 +36,7 @@ class Seal5CoreDSL2Writer(CoreDSL2Writer):
             visitor, reduced=reduced, skip_empty=skip_empty, drop_first_op=drop_first_op, allowed_attrs=allowed_attrs
         )
         self.version = version
+        self.visitor = Seal5CDSLWriterVisitor()
         self.level = 0
 
     @property

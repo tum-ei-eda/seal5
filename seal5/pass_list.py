@@ -221,6 +221,84 @@ def simplify_trivial_slices(
     return PassResult(metrics=metrics)
 
 
+def _explicit_names(input_model, settings, enabled, *, memory=False, registers=False):
+    """Apply an opt-in pattern-gen access normalization pass."""
+    if not enabled:
+        return PassResult(metrics={"enabled": False})
+    from seal5.model_utils import load_model, dump_model
+    from seal5.transform.explicit_names import ExplicitNames
+
+    path = settings.models_dir / f"{input_model}.seal5model"
+    model = load_model(path)
+    changed = 0
+    for set_def in model.sets.values():
+        visitor = ExplicitNames(set_def.xlen, memory=memory, registers=registers)
+        for instr in set_def.instructions.values():
+            instr.operation = visitor.generate(instr.operation)
+        changed += visitor.changed
+    dump_model(model, path)
+    return PassResult(metrics={"enabled": True, "rewritten": changed})
+
+
+def explicit_memory_names(input_model, settings=None, enabled=False, **_kwargs):
+    """Use MEM8/16/32/64/X for byte-addressed native memory accesses."""
+    return _explicit_names(input_model, settings, enabled, memory=True)
+
+
+def explicit_register_names(input_model, settings=None, enabled=False, **_kwargs):
+    """Use XW for the low word of an RV64 integer register."""
+    return _explicit_names(input_model, settings, enabled, registers=True)
+
+
+def normalize_subscripts(input_model, settings=None, enabled=False, **_kwargs):
+    """Normalize scalar slices and direction-sensitive array accesses."""
+    if not enabled:
+        return PassResult(metrics={"enabled": False})
+    from seal5.model_utils import load_model, dump_model
+    from seal5.transform.normalize_subscripts import NormalizeSubscripts
+
+    path = settings.models_dir / f"{input_model}.seal5model"
+    model = load_model(path)
+    # Honor the same global/model override precedence as the pass manager.
+    memory_options = (settings.passes.overrides or {}).get("explicit_memory_names", {})
+    model_settings = settings.models.get(input_model)
+    if model_settings is not None and model_settings.passes is not None:
+        overrides = model_settings.passes.overrides or {}
+        memory_options = {**memory_options, **overrides.get("explicit_memory_names", {})}
+    memory = memory_options.get("enabled", False)
+    changed = 0
+    for set_def in model.sets.values():
+        visitor = NormalizeSubscripts(set_def.xlen, memory=memory)
+        for instr in set_def.instructions.values():
+            instr.operation = visitor.generate(instr.operation)
+        changed += visitor.changed
+    dump_model(model, path)
+    return PassResult(metrics={"enabled": True, "rewritten": changed})
+
+
+def detect_branches(input_model, settings=None, enabled=False, **_kwargs):
+    """Lower recognized PC-relative conditional branches to a branch intrinsic."""
+    if not enabled:
+        return PassResult(metrics={"enabled": False})
+    from seal5.model_utils import load_model, dump_model
+    from seal5.model import Seal5InstrAttribute, Seal5OperandAttribute
+    from seal5.transform.detect_branches import detect_branch
+
+    path = settings.models_dir / f"{input_model}.seal5model"
+    model = load_model(path)
+    changed = 0
+    for set_def in model.sets.values():
+        for instr in set_def.instructions.values():
+            operation, offset_name = detect_branch(instr.operation, instr.operands)
+            if offset_name is not None:
+                instr.operation = operation
+                instr.operands[offset_name].attributes[Seal5OperandAttribute.IS_BRANCH_OFFS] = []
+                instr.attributes[Seal5InstrAttribute.IS_BRANCH] = []
+                changed += 1
+    dump_model(model, path)
+    return PassResult(metrics={"enabled": True, "rewritten": changed})
+
+
 def explicit_truncations(
     input_model: str,
     settings: Optional[Seal5Settings] = None,
