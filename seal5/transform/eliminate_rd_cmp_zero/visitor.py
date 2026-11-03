@@ -19,6 +19,9 @@ from m2isar.metamodel.utils.ExprVisitor import ExprVisitor
 class EliminateRdCmpZeroVisitor(ExprVisitor):
     """Eliminate (rd != 0) checks from behavioral expressions."""
 
+    def __init__(self, destination_names=("rd",)):
+        self.destination_names = frozenset(destination_names)
+
     @singledispatchmethod
     def generate(self, expr: behav.BaseNode, context):
         raise NotImplementedError(
@@ -46,7 +49,7 @@ class EliminateRdCmpZeroVisitor(ExprVisitor):
                 lhs = lhs.expr
             expr.left = lhs
             if isinstance(expr.left, behav.NamedReference):
-                if expr.left.reference.name == "rd":
+                if expr.left.reference.name in self.destination_names:
                     if isinstance(expr.right, behav.Literal):
                         if expr.right.value == 0:
                             # Replace (rd != 0) with 1 (true)

@@ -790,6 +790,7 @@ def eliminate_rd_cmp_zero(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "warning",
+    destination_names=None,
     **_kwargs,
 ):
     assert inplace
@@ -802,6 +803,8 @@ def eliminate_rd_cmp_zero(
         "--log",
         log_level if not verbose else "debug",
     ]
+    if destination_names is not None:
+        args.extend(["--destination-names", *destination_names])
     if not use_subprocess:
         from seal5.transform.eliminate_rd_cmp_zero import EliminateRdCmpZero
 
