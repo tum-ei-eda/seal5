@@ -247,9 +247,30 @@ def combine_test_fragments(
     test_mir_checks: str,
     test_asm_checks: str,
     return_output=False,
+    register_writebacks=0,
 ):
     with open(ll_file, "r") as f:
         contents = f.read()
+    if register_writebacks > 1:
+        # PatternGen models register outputs as stores through synthetic noalias
+        # pointers. Group their writebacks after the computations, as register
+        # results are simultaneous and an early store otherwise blocks fusion.
+        stores = list(re.finditer(r"(?m)^  store i\d+ [^,\n]+, ptr (%[\w.]+)[^\n]*\n", contents))
+        assert len(stores) == register_writebacks, "Unexpected register-result stores"
+        destinations = [store.group(1) for store in stores]
+        assert len(set(destinations)) == register_writebacks, "Repeated output pointer"
+        header = next(line for line in contents.splitlines() if line.startswith("define "))
+        for store, destination in zip(stores, destinations):
+            pointer = re.escape(destination)
+            assert re.search(r"ptr noalias (?:(?!ptr |%).)*" + pointer + r"(?=[,)])", header), "Output must be noalias"
+            assert not re.search(
+                r"load [^\n]*ptr " + pointer + r"(?=[,\s])", contents[store.end() :]
+            ), "Output read after its writeback"
+        writebacks = "".join(store.group() for store in stores)
+        for store in reversed(stores):
+            contents = contents[: store.start()] + contents[store.end() :]
+        assert contents.count("  ret void") == 1, "Expected a single register wrapper"
+        contents = contents.replace("  ret void", writebacks + "  ret void", 1)
     if return_output:
         # Return the synthetic register result so a competing store-data rule
         # cannot absorb the arithmetic we intend to test as part of a load.
@@ -587,6 +608,7 @@ def run_pattern_gen(
                 test_mir_checks,
                 test_asm_checks,
                 return_output=may_load and has_register_output,
+                register_writebacks=num_register_outputs if gisel_table else 0,
             )
             # print("test_content", test_content)
             test_file = ll_file.replace(".ll", ".test-cg.ll")

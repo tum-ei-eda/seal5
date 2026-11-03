@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from seal5.tools.cdsl2llvm import run_pattern_gen
+from seal5.tools.cdsl2llvm import combine_test_fragments, run_pattern_gen
 
 
 class PatternGenTestGenerationTests(unittest.TestCase):
@@ -78,6 +78,25 @@ class PatternGenTestGenerationTests(unittest.TestCase):
             self.assertNotIn("store i64", contents)
             self.assertNotIn("RV64-MIR: SD", contents)
             self.assertNotIn("RV64-ASM: sd", contents)
+
+    def test_register_wrapper_defers_both_writebacks(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "wrapper.ll"
+            source.write_text(
+                "define void @implTEST(ptr noalias writeonly initializes((0, 4)) %rd1, "
+                "ptr noalias %rd2, i32 %a, i32 %b) {\n"
+                "  %sum = add i32 %a, %b\n"
+                "  store i32 %sum, ptr %rd1\n"
+                "  %diff = sub i32 %a, %b\n"
+                "  store i32 %diff, ptr %rd2\n"
+                "  ret void\n}\n"
+            )
+            result = combine_test_fragments(source, "TEST", "", "", "", register_writebacks=2)
+            self.assertLess(result.index("%diff = sub"), result.index("store i32 %sum"))
+            self.assertEqual(result.count("store i32"), 2)
+            source.write_text(source.read_text().replace("ptr noalias %rd2", "ptr %rd2"))
+            with self.assertRaisesRegex(AssertionError, "noalias"):
+                combine_test_fragments(source, "TEST", "", "", "", register_writebacks=2)
 
     def test_two_result_writebacks(self):
         for width, opcode in ((32, "SW"), (64, "SD")):
