@@ -79,6 +79,15 @@ diff --git a/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp b/llvm/lib/Targe
 
    bool isUImm8GE32() const {
      int64_t Imm;
+@@ -1588,6 +1590,8 @@ bool RISCVAsmParser::matchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
+         "operand must be a symbol with a "
+         "%pcrel_hi/%got_pcrel_hi/%tls_ie_pcrel_hi/%tls_gd_pcrel_hi modifier or "
+         "an integer in the range");
++// RISCVAsmParser.cpp - riscv_match_invalid_operands - INSERTION_START
++// RISCVAsmParser.cpp - riscv_match_invalid_operands - INSERTION_END
+   case Match_InvalidSImm21Lsb0JAL:
+     return generateImmOutOfRangeError(
+         Operands, ErrorInfo, -(1 << 20), (1 << 20) - 2,
 diff --git a/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp b/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
 --- a/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
 +++ b/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
@@ -202,3 +211,15 @@ diff --git a/llvm/lib/Target/RISCV/Disassembler/RISCVDisassembler.cpp b/llvm/lib
    TRY_TO_DECODE_AND_ADD_SP(true, DecoderTable16,
                             "RISCV_C table (16-bit Instruction)");
 
+diff --git a/llvm/lib/Target/RISCV/RISCVInstrInfo.cpp b/llvm/lib/Target/RISCV/RISCVInstrInfo.cpp
+--- a/llvm/lib/Target/RISCV/RISCVInstrInfo.cpp
++++ b/llvm/lib/Target/RISCV/RISCVInstrInfo.cpp
+@@ -2380,6 +2380,8 @@ bool RISCVInstrInfo::verifyInstruction(const MachineInstr &MI,
+         CASE_OPERAND_UIMM(8)
+         CASE_OPERAND_UIMM(12)
+         CASE_OPERAND_UIMM(20)
++// RISCVInstrInfo.cpp - riscv_verify_operands - INSERTION_START
++// RISCVInstrInfo.cpp - riscv_verify_operands - INSERTION_END
+           // clang-format on
+         case RISCVOp::OPERAND_UIMM2_LSB0:
+           Ok = isShiftedUInt<1, 1>(Imm);
