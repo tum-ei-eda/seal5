@@ -97,6 +97,17 @@ class BranchTests(unittest.TestCase):
             self.assertEqual(render(call), f"branch((X[1]) {operator} (X[2]))")
             self.assertIs(detect_branch(result, operands)[0], result)
 
+    def test_condition_immediate_is_distinct_from_destination(self):
+        for name, width in (("constant", 5), ("limit", 3), ("threshold", 8)):
+            original, operands, condition, offset = branch_tree()
+            immediate = behav.NamedReference(symbol(name, width))
+            condition.right = immediate
+            operands[name] = Seal5ImmOperand(name, Seal5Type(DataType.S, width, 1), {}, [])
+            lowered, destination = detect_branch(original, operands)
+            self.assertEqual(destination, "imm")
+            self.assertIs(lowered.statements[0].args[0].right, immediate)
+            self.assertIs(lowered.statements[0].offset, offset)
+
     def test_other_effects_are_not_discarded(self):
         original, operands, _, _ = branch_tree()
         original.statements.append(behav.ProcedureCall("raise", []))

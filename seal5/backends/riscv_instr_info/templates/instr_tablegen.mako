@@ -7,6 +7,10 @@ class RVInst_${name}<dag outs, dag ins> : Instruction, Sched<${sched_str}> {
     let Size = ${size // 8};
     bits<${size}> SoftFail = 0;
     bits<${size}> Inst;
+    % if format_str is not None:
+    InstFormat Format = ${format_str};
+    let TSFlags{4-0} = Format.Value;
+    % endif
 
     // Operands
     % for operand in operands:

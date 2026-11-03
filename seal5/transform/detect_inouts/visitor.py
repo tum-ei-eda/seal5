@@ -10,7 +10,7 @@
 
 from functools import singledispatchmethod
 
-from m2isar.metamodel import behav
+from m2isar.metamodel import arch, behav
 from m2isar.metamodel.utils.ExprVisitor import ExprVisitor
 
 from .utils import IOMode
@@ -148,7 +148,14 @@ class DetectInoutsVisitor(ExprVisitor):
 
     @generate.register
     def _(self, expr: behav.IndexedReference, context):
-        expr.index = self.generate(expr.index, context)
+        # A memory destination writes memory, but reads its address registers.
+        # Register-bank indices retain the enclosing mode to identify rd/rs.
+        if isinstance(expr.reference, arch.Memory):
+            context.push(IOMode.READ)
+            expr.index = self.generate(expr.index, context)
+            context.pop()
+        else:
+            expr.index = self.generate(expr.index, context)
         return expr
 
     @generate.register
