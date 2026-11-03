@@ -2262,6 +2262,13 @@ def check_pattern_support(
         "--log",
         log_level if not verbose else "debug",
     ]
+    pattern_options = (settings.passes.overrides or {}).get("behav_to_pat", {})
+    model_settings = settings.models.get(input_model)
+    if model_settings is not None and model_settings.passes is not None:
+        overrides = model_settings.passes.overrides or {}
+        pattern_options = {**pattern_options, **overrides.get("behav_to_pat", {})}
+    if pattern_options.get("gisel_table", False):
+        args.append("--gisel-table")
     if allow_memory:
         args.append("--allow-memory")
     if allow_branches:

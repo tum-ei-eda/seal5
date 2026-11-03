@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Experimental patterns must remain opt-in and exclude multiple results."""
+"""Experimental patterns must remain opt-in and limit multiple results to direct arithmetic patterns."""
 
 from types import SimpleNamespace
 import unittest
@@ -33,6 +33,7 @@ class ExperimentalPatternSupportTests(unittest.TestCase):
                 instruction("branch", 0, Instr.IS_BRANCH, attribute_info.InstrAttribute.COND),
                 instruction("raw_branch", 0, attribute_info.InstrAttribute.COND),
                 instruction("multi", 2),
+                instruction("three_results", 3),
                 instruction("load_multi", 2, Instr.MAY_LOAD),
                 instruction("store_and_register", 1, Instr.MAY_STORE),
                 instruction("read_modify_write", 1, Instr.MAY_LOAD, Instr.MAY_STORE),
@@ -47,6 +48,15 @@ class ExperimentalPatternSupportTests(unittest.TestCase):
 
     def test_default(self):
         self.assertEqual(self.check_instructions(), {"arithmetic"})
+
+    def test_gisel_two_result_arithmetic(self):
+        self.assertEqual(self.check_instructions("--gisel-table"), {"arithmetic", "multi"})
+
+    def test_gisel_memory_and_branch_opt_in(self):
+        self.assertEqual(
+            self.check_instructions("--gisel-table", "--allow-memory", "--allow-branches"),
+            {"arithmetic", "multi", "load", "store", "branch"},
+        )
 
     def test_memory_opt_in(self):
         self.assertEqual(self.check_instructions("--allow-memory"), {"arithmetic", "load", "store"})

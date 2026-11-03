@@ -35,6 +35,9 @@ def get_parser():
     parser.add_argument("--compat", action="store_true")
     parser.add_argument("--allow-memory", action="store_true", help="Try experimental load/store patterns")
     parser.add_argument("--allow-branches", action="store_true", help="Try recognized branch intrinsic patterns")
+    parser.add_argument(
+        "--gisel-table", action="store_true", help="Try direct GlobalISel two-result arithmetic patterns"
+    )
     return parser
 
 
@@ -103,6 +106,9 @@ def run(args):
                 allowed_branch = args.allow_branches and lowered_branch
                 allowed_store = args.allow_memory and may_store and not may_load
                 expected_outs = 0 if allowed_store or allowed_branch else 1
+                allowed_multi = (
+                    args.gisel_table and num_outs == 2 and not (may_load or may_store or is_branch or lowered_branch)
+                )
                 has_loop = Seal5InstrAttribute.HAS_LOOP in attributes
                 # TODO: has_static_loop
                 has_call = Seal5InstrAttribute.HAS_CALL in attributes
@@ -114,7 +120,7 @@ def run(args):
                     is_noop
                     or is_rvc
                     or (num_ins == 0)
-                    or (num_outs != expected_outs)
+                    or (num_outs != expected_outs and not allowed_multi)
                     or (may_load and may_store)
                     or (may_load and not args.allow_memory)
                     or (may_store and not args.allow_memory)

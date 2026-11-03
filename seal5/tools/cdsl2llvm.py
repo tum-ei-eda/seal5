@@ -295,10 +295,13 @@ def run_pattern_gen(
     has_register_output=True,
     may_load=False,
     gisel_table=False,
+    num_register_outputs=None,
 ):
     """Excute pattern-gen executable."""
     if not isinstance(build_dir, Path):
         build_dir = Path(build_dir)
+    if num_register_outputs is None:
+        num_register_outputs = int(has_register_output)
     pattern_gen_args = [src]
     if gisel_table:
         pattern_gen_args.append("--gisel-table")
@@ -562,14 +565,14 @@ def run_pattern_gen(
                 # test_mir_checks += f"  ; RV{xlen}-MIR: LW\n"  # TODO: once per reg input operand
                 test_mir_checks += f"  ; RV{xlen}-MIR: {llvm_instr}\n"
                 if has_register_output and not may_load:
-                    test_mir_checks += f"  ; RV{xlen}-MIR-NEXT: {store_mir}\n"
+                    test_mir_checks += f"  ; RV{xlen}-MIR-NEXT: {store_mir}\n" * num_register_outputs
                 ret_check = "MIR" if may_load and has_register_output else "MIR-NEXT"
                 test_mir_checks += f"  ; RV{xlen}-{ret_check}: PseudoRET\n"
                 test_asm_checks += f"  ; RV{xlen}-ASM-LABEL: impl{instr}:\n"
                 # test_asm_checks += f"  ; RV{xlen}-ASM: lw\n"  # TODO: once per reg input operand
                 test_asm_checks += f"  ; RV{xlen}-ASM: {mnemonic}\n"
                 if has_register_output and not may_load:
-                    test_asm_checks += f"  ; RV{xlen}-ASM-NEXT: {store_asm}\n"
+                    test_asm_checks += f"  ; RV{xlen}-ASM-NEXT: {store_asm}\n" * num_register_outputs
                 ret_check = "ASM" if may_load and has_register_output else "ASM-NEXT"
                 test_asm_checks += f"  ; RV{xlen}-{ret_check}: ret\n"
             # print("test_header", test_header)

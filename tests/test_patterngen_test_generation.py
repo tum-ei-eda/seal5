@@ -10,7 +10,17 @@ from seal5.tools.cdsl2llvm import run_pattern_gen
 
 
 class PatternGenTestGenerationTests(unittest.TestCase):
-    def generate(self, directory, *, xlen, pattern, immediates, has_register_output=True, may_load=False):
+    def generate(
+        self,
+        directory,
+        *,
+        xlen,
+        pattern,
+        immediates,
+        has_register_output=True,
+        may_load=False,
+        num_register_outputs=None,
+    ):
         root = Path(directory)
         (root / "bin").mkdir()
         (root / "bin" / "pattern-gen").touch()
@@ -36,6 +46,7 @@ class PatternGenTestGenerationTests(unittest.TestCase):
                 immediate_operands=immediates,
                 has_register_output=has_register_output,
                 may_load=may_load,
+                num_register_outputs=num_register_outputs,
             )
 
     def test_store_has_no_register_result_writeback(self):
@@ -67,6 +78,20 @@ class PatternGenTestGenerationTests(unittest.TestCase):
             self.assertNotIn("store i64", contents)
             self.assertNotIn("RV64-MIR: SD", contents)
             self.assertNotIn("RV64-ASM: sd", contents)
+
+    def test_two_result_writebacks(self):
+        for width, opcode in ((32, "SW"), (64, "SD")):
+            with self.subTest(width=width), tempfile.TemporaryDirectory() as directory:
+                files = self.generate(
+                    directory,
+                    xlen=width,
+                    pattern="(add GPR:$lhs, GPR:$rhs)",
+                    immediates=[],
+                    num_register_outputs=2,
+                )
+                contents = Path(files[0]).read_text()
+                self.assertEqual(contents.count(f"RV{width}-MIR-NEXT: {opcode}"), 2)
+                self.assertEqual(contents.count(f"RV{width}-ASM-NEXT: {opcode.lower()}"), 2)
 
     def test_rv64_result_store(self):
         with tempfile.TemporaryDirectory() as directory:

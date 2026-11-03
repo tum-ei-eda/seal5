@@ -162,6 +162,11 @@ def main():
                             or Seal5OperandAttribute.INOUT in operand.attributes
                             for operand in instr_def.operands.values()
                         ),
+                        num_register_outputs=sum(
+                            Seal5OperandAttribute.OUT in operand.attributes
+                            or Seal5OperandAttribute.INOUT in operand.attributes
+                            for operand in instr_def.operands.values()
+                        ),
                         may_load=Seal5InstrAttribute.MAY_LOAD in attrs,
                         gisel_table=args.gisel_table,
                     )
