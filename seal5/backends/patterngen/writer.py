@@ -38,6 +38,7 @@ def main():
     parser.add_argument("--splitted", action="store_true", help="Split per set and instruction")
     parser.add_argument("--formats", action="store_true", help="Also generate instruction formats")
     parser.add_argument("--patterns", action="store_true", help="Also generate instruction patterns")
+    parser.add_argument("--gisel-table", action="store_true", help="Use the experimental direct GISel matcher backend")
     parser.add_argument(
         "--added-complexity", type=int, default=0, help="Extra selection priority for generated patterns"
     )
@@ -75,6 +76,7 @@ def main():
     # print("model", model)
     artifacts = {}
     artifacts[None] = []  # used for global artifacts
+    table_includes = []
     settings = model_obj.settings
     if args.splitted:
         # errs = []
@@ -161,6 +163,7 @@ def main():
                             for operand in instr_def.operands.values()
                         ),
                         may_load=Seal5InstrAttribute.MAY_LOAD in attrs,
+                        gisel_table=args.gisel_table,
                     )
                     if output_file.is_file():
                         if args.patterns and args.added_complexity:
@@ -170,6 +173,19 @@ def main():
                                     "def : Pat<", f"let AddedComplexity = {args.added_complexity} in def : Pat<"
                                 )
                             )
+                        if args.patterns and args.gisel_table:
+                            table = output_file.with_suffix(".inc")
+                            assert table.is_file() and table.read_text().strip(), f"Missing GISel matchers: {table}"
+                            if args.added_complexity:
+                                table.write_text(
+                                    table.read_text().replace(
+                                        "RuleMatcherScores[RM.getRuleID()] = 16;",
+                                        f"RuleMatcherScores[RM.getRuleID()] = {16 + args.added_complexity};",
+                                    )
+                                )
+                            table_path = f"seal5/{set_name}/{table.name}"
+                            artifacts[set_name].append(File(f"llvm/utils/TableGen/{table_path}", src_path=table))
+                            table_includes.append(f'#include "{table_path}"')
                         metrics["n_success"] += 1
                         metrics["success_instructions"].append(instr_def.name)
                         if args.formats:
@@ -239,6 +255,14 @@ def main():
         #         out_path_.parent.mkdir(exist_ok=True)
     else:
         raise NotImplementedError
+    if table_includes:
+        artifacts[None].append(
+            NamedPatch(
+                "llvm/utils/TableGen/GlobalISelEmitter.cpp",
+                key="gisel_table",
+                content="\n".join(sorted(table_includes)),
+            )
+        )
     if args.metrics:
         metrics_file = args.metrics
         metrics_df = pd.DataFrame({key: [val] for key, val in metrics.items()})

@@ -139,6 +139,7 @@ DEFAULT_CDSL2LLVM_DIRS = [
     "llvm/lib/CodeGen",
     "llvm/include/llvm/CodeGen",
     "llvm/lib/Target/RISCV",
+    "llvm/utils/TableGen",
 ]
 
 

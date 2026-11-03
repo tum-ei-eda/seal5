@@ -1107,6 +1107,7 @@ def convert_behav_to_tablegen(
     gen_tests: bool = True,
     log_level: str = "warning",
     added_complexity: int = 0,
+    gisel_table: bool = False,
     **_kwargs,
 ):
     assert split, "TODO"
@@ -1135,6 +1136,8 @@ def convert_behav_to_tablegen(
         args.append("--formats")
     if patterns:
         args.append("--patterns")
+    if gisel_table and patterns:
+        args.append("--gisel-table")
     if added_complexity:
         args.extend(["--added-complexity", str(added_complexity)])
     if gen_metrics_file:

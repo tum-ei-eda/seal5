@@ -85,6 +85,13 @@ def get_pattern_gen_patches(
         src_path=f"{src}/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp",
     )
     artifacts.append(file_artifact)
+    graph_extractor = src / "llvm/lib/CodeGen/GlobalISel/PatternGenGISelTable.cpp"
+    has_gisel_table = graph_extractor.is_file()
+    if has_gisel_table:
+        path = "llvm/lib/CodeGen/GlobalISel/PatternGenGISelTable.cpp"
+        artifacts.append(File(path, src_path=str(src / path)))
+        tables = "llvm/utils/TableGen/PatternGenTables.inc"
+        artifacts.append(File(tables, src_path=str(src / tables)))
     file_artifact = AppendPatch(
         "llvm/include/llvm/IR/IntrinsicsRISCV.td",
         content="""
@@ -108,7 +115,7 @@ let TargetPrefix = "riscv" in {
     patch_artifact = NamedPatch(
         "llvm/lib/CodeGen/GlobalISel/CMakeLists.txt",
         key="gisel_cmake_srcs",
-        content="  PatternGen.cpp",
+        content="  PatternGen.cpp" + ("\n  PatternGenGISelTable.cpp" if has_gisel_table else ""),
     )
     artifacts.append(patch_artifact)
     patch_artifact = NamedPatch(
@@ -146,15 +153,35 @@ def get_pattern_gen_backend_patch(src: Path, llvm_dir: Path, temp_dir: Path):
     if operand is None:
         return None
     changes = []
-    for name in (
-        "GISel/RISCVInstructionSelector.cpp",
-        "RISCVInstrInfo.cpp",
-        "RISCVLateBranchOpt.cpp",
-        "RISCVRedundantCopyElimination.cpp",
-        "GISel/RISCVLegalizerInfo.cpp",
-        "RISCVInstrInfo.td",
-    ):
-        path = target / name
+    paths = [
+        (target / name, name)
+        for name in (
+            "GISel/RISCVInstructionSelector.cpp",
+            "RISCVInstrInfo.cpp",
+            "RISCVLateBranchOpt.cpp",
+            "RISCVRedundantCopyElimination.cpp",
+            "GISel/RISCVLegalizerInfo.cpp",
+            "RISCVInstrInfo.td",
+        )
+    ]
+    if (src / "llvm/lib/CodeGen/GlobalISel/PatternGenGISelTable.cpp").is_file():
+        paths.extend(
+            (Path(path), None)
+            for path in (
+                "llvm/include/llvm/CodeGen/GlobalISel/GIMatchTableExecutor.h",
+                "llvm/include/llvm/CodeGen/GlobalISel/GIMatchTableExecutorImpl.h",
+                "llvm/lib/CodeGen/GlobalISel/GIMatchTableExecutor.cpp",
+                "llvm/lib/CodeGen/GlobalISel/InstructionSelect.cpp",
+                "llvm/utils/TableGen/GlobalISelEmitter.cpp",
+            )
+        )
+        # LLVM 23 split the matcher implementation out of GlobalISelMatchTable.
+        for suffix in ("h", "cpp"):
+            matcher = Path(f"llvm/utils/TableGen/Common/GlobalISel/GlobalISelMatchTable.{suffix}")
+            if not (src / matcher).is_file():
+                matcher = Path(f"llvm/utils/TableGen/Common/GlobalISel/MatchTable/Matchers.{suffix}")
+            paths.append((matcher, None))
+    for path, name in paths:
         original = (llvm_dir / path).read_text()
         if name == "GISel/RISCVLegalizerInfo.cpp":
             # Retain the native legalizer; only the extraction marker is needed.
@@ -267,11 +294,14 @@ def run_pattern_gen(
     immediate_operands=None,
     has_register_output=True,
     may_load=False,
+    gisel_table=False,
 ):
     """Excute pattern-gen executable."""
     if not isinstance(build_dir, Path):
         build_dir = Path(build_dir)
     pattern_gen_args = [src]
+    if gisel_table:
+        pattern_gen_args.append("--gisel-table")
     # pattern_gen_args.extend(["-custom-legalizer-settings=foo", "-disable-gisel-legality-check"])
 
     if dest:
