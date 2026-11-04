@@ -39,3 +39,30 @@ passed. Reproduce that collection with `--llvm22-bin`, `--llvm23-bin`, and
 RV64 and the broader LLVM20 SIMD experiments (shifts, multiplication, min/max,
 comparisons, unpacking, reductions and dot products) remain outside this verified
 subset. See [the investigation and port report](../../docs/packed-simd.rst).
+
+## Embench vectorization experiment
+
+`embench.py` compiles unmodified scalar C from an external Embench tree. It
+compares scalar, native O3, and packed O3 optimization, then tests both selectors.
+It records vectorizer remarks separately from actual packed object instructions.
+
+```sh
+python examples/packed_simd/embench.py \
+  --source /path/to/embench-iot \
+  --headers /path/to/riscv-newlib/include \
+  --llvm22-bin /path/to/packed-llvm22/build/bin \
+  --llvm23-bin /path/to/packed-llvm23/build/bin \
+  --output /tmp/seal5-packed-embench
+```
+
+Each bin directory needs `opt`, `llc`, and `llvm-objdump` built with this demo
+model. Clang defaults to the same directory; use `--llvm22-clang` and/or
+`--llvm23-clang` to supply another matching-version frontend. The patched
+optimizer is essential because it supplies the packed vectorization cost model.
+Optional `--benchmarks edn md5sum picojpeg` restricts the source set; `--variants`
+restricts configurations. A zero exit means collection completed, not that all
+compilations passed. No benchmark is linked or executed by this script.
+
+[Measured results and remaining blockers](results/embench-llvm22-23.md): the
+optimizer forms packed operations, but none of the successfully compiled full
+Embench translation units currently selects the demo packed instructions.

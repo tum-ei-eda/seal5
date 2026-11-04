@@ -237,3 +237,23 @@ Run ``examples/packed_simd_demo.py`` using the matching local branch; commands
 and the standalone verifier are documented in ``examples/packed_simd/README.md``.
 The baseline and gaps above describe the pre-port investigation. RV64 and the
 remaining SIMD operations are still unverified and are not enabled by this demo.
+
+Real-source vectorization: Embench
+---------------------------------
+
+The compile-only Embench experiment in
+``examples/packed_simd/results/embench-llvm22-23.md`` tests 22 programs / 26 C
+translation units with default O3 vectorization. It compares disabled
+vectorizers, the native target, and the packed target on both LLVM versions.
+
+It exposed and fixed two RVV-only cost-query paths reached by GPR32V vectors.
+All translation units now optimize successfully. Packed codegen succeeds for
+19/26 units with SelectionDAG and 18/26 with GlobalISel, but none of those objects
+contains a demo packed instruction. The optimizer does form packed arithmetic
+in other units, whose surrounding vector operations prevent code generation.
+The synthetic add/sub selection result therefore does not yet extend to
+successful complete vectorized Embench programs. No runtime speedup was measured.
+
+The report records the first blockers and a source hash manifest; the runner
+``examples/packed_simd/embench.py`` retains IR, optimization remarks, commands,
+object disassembly and diagnostics for subsequent work.
