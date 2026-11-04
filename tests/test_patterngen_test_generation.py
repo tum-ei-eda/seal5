@@ -20,6 +20,7 @@ class PatternGenTestGenerationTests(unittest.TestCase):
         has_register_output=True,
         may_load=False,
         num_register_outputs=None,
+        packed_output=False,
     ):
         root = Path(directory)
         (root / "bin").mkdir()
@@ -27,7 +28,7 @@ class PatternGenTestGenerationTests(unittest.TestCase):
         source = root / "test.core_desc"
         source.touch()
         destination = root / "test.td"
-        destination.touch()
+        destination.write_text("(outs GPR32V4:$rd)" if packed_output else "")
         ir = "define void @implTEST() {\n  ret void\n}\n"
         if may_load:
             ir = (
@@ -48,6 +49,16 @@ class PatternGenTestGenerationTests(unittest.TestCase):
                 may_load=may_load,
                 num_register_outputs=num_register_outputs,
             )
+
+    def test_packed_result_allows_register_class_copy(self):
+        with tempfile.TemporaryDirectory() as directory:
+            files = self.generate(
+                directory, xlen=32, pattern="(add GPR32V4:$a, GPR32V4:$b)", immediates=[], packed_output=True
+            )
+            contents = Path(files[0]).read_text()
+            self.assertIn("RV32-MIR: SW", contents)
+            self.assertNotIn("RV32-MIR-NEXT: SW", contents)
+            self.assertIn("RV32-ASM-NEXT: sw", contents)
 
     def test_store_has_no_register_result_writeback(self):
         with tempfile.TemporaryDirectory() as directory:

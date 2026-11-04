@@ -152,6 +152,10 @@ def get_pattern_gen_backend_patch(src: Path, llvm_dir: Path, temp_dir: Path):
     operand = re.search(r"def patterngen_btarget\s*:.*?^}\s*$", definitions, re.MULTILINE | re.DOTALL)
     if operand is None:
         return None
+    registers = src / target / "RISCVRegisterInfo.td"
+    register_text = registers.read_text() if registers.is_file() else ""
+    packed_classes = re.findall(r"^def GPR32V[24]\b.*?^}", register_text, re.MULTILINE | re.DOTALL)
+    has_packed_simd = len(packed_classes) == 2
     changes = []
     paths = [
         (target / name, name)
@@ -164,6 +168,22 @@ def get_pattern_gen_backend_patch(src: Path, llvm_dir: Path, temp_dir: Path):
             "RISCVInstrInfo.td",
         )
     ]
+    if has_packed_simd:
+        paths.extend(
+            (target / name, None)
+            for name in (
+                "RISCVISelLowering.cpp",
+                "RISCVTargetTransformInfo.cpp",
+                "RISCVTargetTransformInfo.h",
+                "RISCVRegisterInfo.cpp",
+                "GISel/RISCVRegisterBankInfo.cpp",
+                "GISel/RISCVRegisterBanks.td",
+                "Disassembler/RISCVDisassembler.cpp",
+            )
+        )
+        paths.extend(
+            [(target / "RISCVRegisterInfo.td", "packed_registers"), (target / "RISCVFeatures.td", "packed_features")]
+        )
     if (src / "llvm/lib/CodeGen/GlobalISel/PatternGenGISelTable.cpp").is_file():
         paths.extend(
             (Path(path), None)
@@ -183,7 +203,7 @@ def get_pattern_gen_backend_patch(src: Path, llvm_dir: Path, temp_dir: Path):
             paths.append((matcher, None))
     for path, name in paths:
         original = (llvm_dir / path).read_text()
-        if name == "GISel/RISCVLegalizerInfo.cpp":
+        if name == "GISel/RISCVLegalizerInfo.cpp" and not has_packed_simd:
             # Retain the native legalizer; only the extraction marker is needed.
             updated = original.replace(
                 "  case Intrinsic::riscv_vsetvli:",
@@ -193,6 +213,21 @@ def get_pattern_gen_backend_patch(src: Path, llvm_dir: Path, temp_dir: Path):
         elif name == "RISCVInstrInfo.td":
             # Seal5 installs its own generated instruction includes.
             updated = original + "\n" + operand.group().rstrip() + "\n"
+            if has_packed_simd:
+                bridges = re.search(
+                    r"// PATTERNGEN_GPR32V_BRIDGES_BEGIN.*?// PATTERNGEN_GPR32V_BRIDGES_END",
+                    definitions,
+                    re.DOTALL,
+                )
+                assert bridges is not None, "Missing packed SIMD register-copy patterns"
+                updated += bridges.group() + "\n"
+        elif name == "packed_registers":
+            updated = original + "\n" + "\n\n".join(packed_classes) + "\n"
+        elif name == "packed_features":
+            feature = re.search(r"^def FeatureGPR32V\b.*?\n\s*\n", (src / path).read_text(), re.MULTILINE | re.DOTALL)
+            assert feature is not None, "Missing packed SIMD feature and predicate"
+            assert "hasGPR32V()" in feature.group(), "Malformed packed SIMD predicate"
+            updated = original + "\n" + feature.group()
         else:
             updated = (src / path).read_text()
         changes.extend(
@@ -208,7 +243,7 @@ def get_pattern_gen_backend_patch(src: Path, llvm_dir: Path, temp_dir: Path):
     return PatchSettings(
         name="pattern_gen_backend_support",
         stage=int(PatchStage.PHASE_0),
-        comment="Import PatternGen memory and branch backend support",
+        comment="Import PatternGen backend support",
         file=str(patch_file),
         generated=False,  # The diff is already materialized; no index is needed.
         target="llvm",
@@ -423,7 +458,9 @@ def run_pattern_gen(
         instr = None
         mnemonic = None
 
-        pattern_re = re.compile(r"^Pattern for\s+(?P<instr>\S+)(?:\s+\[(?P<mnemonic>[^\]]+)\])?\s*:\s*(?P<pattern>.*)$")
+        pattern_re = re.compile(
+            r"^Pattern for\s+(?P<instr>\S+)(?:\s+\[(?P<mnemonic>[^\]]+)\])?\s*:\s*(?P<pattern>.*)$"
+        )
 
         pat = []
         for line in out.split("\n"):
@@ -568,6 +605,7 @@ def run_pattern_gen(
                 xlens = [32, 64]
             else:
                 xlens = [xlen]
+            packed_register_output = bool(re.search(r"\(outs\s+GPR32V[24]:", dest.read_text()))
             test_header = ""
             test_mir_checks = ""
             test_asm_checks = ""
@@ -586,7 +624,9 @@ def run_pattern_gen(
                 # test_mir_checks += f"  ; RV{xlen}-MIR: LW\n"  # TODO: once per reg input operand
                 test_mir_checks += f"  ; RV{xlen}-MIR: {llvm_instr}\n"
                 if has_register_output and not may_load:
-                    test_mir_checks += f"  ; RV{xlen}-MIR-NEXT: {store_mir}\n" * num_register_outputs
+                    # Packed results may cross a register-class COPY before the scalar writeback.
+                    store_check = "MIR" if packed_register_output else "MIR-NEXT"
+                    test_mir_checks += f"  ; RV{xlen}-{store_check}: {store_mir}\n" * num_register_outputs
                 ret_check = "MIR" if may_load and has_register_output else "MIR-NEXT"
                 test_mir_checks += f"  ; RV{xlen}-{ret_check}: PseudoRET\n"
                 test_asm_checks += f"  ; RV{xlen}-ASM-LABEL: impl{instr}:\n"

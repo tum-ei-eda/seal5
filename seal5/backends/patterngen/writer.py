@@ -9,6 +9,7 @@
 """Clean M2-ISA-R/Seal5 metamodel to .core_desc file."""
 
 import os
+import re
 import argparse
 import logging
 import pathlib
@@ -25,6 +26,19 @@ from seal5.model_utils import load_model
 from seal5.logging import Logger
 
 logger = Logger("backends.patterngen_tablegen_writer")
+
+
+def require_packed_simd_feature(contents):
+    """Gate typed packed-register rules independently of the ISA extension."""
+    if not re.search(r"\bGPR32V[24]\b", contents):
+        return contents
+    predicates = re.search(r"let Predicates = \[(.*?)\] in \{", contents)
+    if predicates is None:
+        return "let Predicates = [HasGPR32V] in {\n" + contents + "\n}\n"
+    names = [name.strip() for name in predicates.group(1).split(",") if name.strip()]
+    if "HasGPR32V" not in names:
+        names.append("HasGPR32V")
+    return contents[: predicates.start(1)] + ", ".join(names) + contents[predicates.end(1) :]
 
 
 def main():
@@ -45,7 +59,9 @@ def main():
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
     parser.add_argument("--index", default=None, help="Output index to file")
     parser.add_argument("--ext", type=str, default="td", help="Default file extension (if using --splitted)")
-    parser.add_argument("--parallel", type=int, default=1, help="How many instructions should be processed in parallel")
+    parser.add_argument(
+        "--parallel", type=int, default=1, help="How many instructions should be processed in parallel"
+    )
     parser.add_argument("--compat", action="store_true")
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--generate-tests", action="store_true")
@@ -155,7 +171,9 @@ def main():
                         verbose=args.verbose,
                         mnemonic_override=instr_def.mnemonic,
                         immediate_operands=[
-                            name for name, operand in instr_def.operands.items() if isinstance(operand, Seal5ImmOperand)
+                            name
+                            for name, operand in instr_def.operands.items()
+                            if isinstance(operand, Seal5ImmOperand)
                         ],
                         has_register_output=any(
                             Seal5OperandAttribute.OUT in operand.attributes
@@ -171,6 +189,8 @@ def main():
                         gisel_table=args.gisel_table,
                     )
                     if output_file.is_file():
+                        if args.patterns:
+                            output_file.write_text(require_packed_simd_feature(output_file.read_text()))
                         if args.patterns and args.added_complexity:
                             contents = output_file.read_text()
                             output_file.write_text(
@@ -227,7 +247,9 @@ def main():
             with ThreadPoolExecutor(args.parallel) as executor:
                 futures = []
                 for instr_def in set_def.instructions.values():
-                    future = executor.submit(process_instrunction, instr_def, set_name, set_dir, mattr, predicate, xlen)
+                    future = executor.submit(
+                        process_instrunction, instr_def, set_name, set_dir, mattr, predicate, xlen
+                    )
                     futures.append(future)
                 results = []
                 for future in as_completed(futures):
