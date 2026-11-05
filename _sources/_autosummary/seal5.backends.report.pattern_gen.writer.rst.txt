@@ -8,5 +8,7 @@ seal5.backends.report.pattern\_gen.writer
 
    .. autosummary::
    
+      apply_validation
+      collect_measurements
       main
    

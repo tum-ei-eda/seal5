@@ -1,0 +1,292 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GNU binutils and GDB backend &mdash; Seal5 v0.1.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=69c7a37b"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Packed SIMD: TableGen-first investigation" href="packed-simd.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Seal5
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="_autosummary/seal5.html">seal5</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Seal5</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seal5-diagrams.html">Seal5 architecture diagrams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="packed-simd.html">Packed SIMD: TableGen-first investigation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">GNU binutils and GDB backend</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#generate-the-patch">Generate the patch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-riscv-gnu-toolchain">Using riscv-gnu-toolchain</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fast-build-assembler-linker-and-objdump">Fast build: assembler, linker and objdump</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#optional-gdb">Optional GDB</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#smoke-test-with-the-seal5-demo">Smoke test with the Seal5 demo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scope-and-source-compatibility">Scope and source compatibility</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Seal5</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">GNU binutils and GDB backend</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/gnu-toolchain.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="gnu-binutils-and-gdb-backend">
+<h1>GNU binutils and GDB backend<a class="headerlink" href="#gnu-binutils-and-gdb-backend" title="Link to this heading"></a></h1>
+<p>Seal5 can generate a unified patch for GNU GAS, ld, objdump and GDB’s shared
+RISC-V disassembler. This lets the GNU tools assemble custom mnemonics, retain
+custom ISA attributes when linking LLVM-produced objects, and display the same
+mnemonics in objdump and GDB. No GCC or C library rebuild is needed.</p>
+<section id="generate-the-patch">
+<h2>Generate the patch<a class="headerlink" href="#generate-the-patch" title="Link to this heading"></a></h2>
+<p>First run the normal Seal5 transform pipeline. The backend consumes its
+<code class="docutils literal notranslate"><span class="pre">.seal5/models/*.seal5model</span></code> files, after register and immediate operand
+collection. Generate against the <strong>unpatched source checkout you will build</strong>;
+source files are read but never modified by the generator:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">venv310</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">seal5</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">riscv_gnu</span><span class="o">.</span><span class="n">writer</span> \
+  <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">seal5_llvm_demo_llvm23</span><span class="o">/.</span><span class="n">seal5</span><span class="o">/</span><span class="n">models</span><span class="o">/</span><span class="n">Example</span><span class="o">.</span><span class="n">seal5model</span> \
+  <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">seal5_llvm_demo_llvm23</span><span class="o">/.</span><span class="n">seal5</span><span class="o">/</span><span class="n">models</span><span class="o">/</span><span class="n">XCoreVNand</span><span class="o">.</span><span class="n">seal5model</span> \
+  <span class="o">--</span><span class="n">source</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">binutils</span><span class="o">-</span><span class="n">gdb</span> \
+  <span class="o">--</span><span class="n">output</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">seal5</span><span class="o">-</span><span class="n">gnu</span><span class="o">.</span><span class="n">patch</span>
+</pre></div>
+</div>
+<p>Pass all the models together to produce one patch. A sibling
+<code class="docutils literal notranslate"><span class="pre">/tmp/seal5-gnu.json</span></code> lists the generated instructions and extension names.
+The patch is relative to the binutils/GDB source root, not the Seal5 root.
+Already-patched checkouts and unfamiliar source layouts are rejected.</p>
+<p>To enable the backend during <code class="docutils literal notranslate"><span class="pre">seal5</span> <span class="pre">generate</span></code>, set
+<code class="docutils literal notranslate"><span class="pre">SEAL5_GNU_SOURCE=/path/to/binutils-gdb</span></code>. Alternatively add a configuration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">passes</span><span class="p">:</span>
+  <span class="n">overrides</span><span class="p">:</span>
+    <span class="n">riscv_gnu</span><span class="p">:</span>
+      <span class="n">source</span><span class="p">:</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">binutils</span><span class="o">-</span><span class="n">gdb</span>
+</pre></div>
+</div>
+<p>The flow writes <code class="docutils literal notranslate"><span class="pre">.seal5/patches/binutils-gdb/seal5.patch</span></code> and <code class="docutils literal notranslate"><span class="pre">seal5.json</span></code>.
+Generation is disabled when no source is configured. GNU patches are applied
+separately from Seal5’s LLVM patch stages.</p>
+</section>
+<section id="using-riscv-gnu-toolchain">
+<h2>Using riscv-gnu-toolchain<a class="headerlink" href="#using-riscv-gnu-toolchain" title="Link to this heading"></a></h2>
+<p>If using a riscv-gnu-toolchain checkout, initialize its <code class="docutils literal notranslate"><span class="pre">binutils</span></code> submodule
+and use that directory as <code class="docutils literal notranslate"><span class="pre">--source</span></code>. Generate and apply a separate patch
+against its <code class="docutils literal notranslate"><span class="pre">gdb</span></code> submodule if GDB comes from a different checkout/revision.
+Each contains the shared binutils/GDB source tree; a patch generated for one
+revision should not be assumed to apply to the other:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">riscv</span><span class="o">-</span><span class="n">gnu</span><span class="o">-</span><span class="n">toolchain</span>
+<span class="n">git</span> <span class="n">submodule</span> <span class="n">update</span> <span class="o">--</span><span class="n">init</span> <span class="o">--</span><span class="n">depth</span> <span class="mi">1</span> <span class="n">binutils</span>
+<span class="c1"># Optional, for the debugger:</span>
+<span class="n">git</span> <span class="n">submodule</span> <span class="n">update</span> <span class="o">--</span><span class="n">init</span> <span class="o">--</span><span class="n">depth</span> <span class="mi">1</span> <span class="n">gdb</span>
+</pre></div>
+</div>
+<p>Apply the generated patch from the source root:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">binutils</span><span class="o">-</span><span class="n">gdb</span>
+<span class="n">git</span> <span class="n">apply</span> <span class="o">--</span><span class="n">check</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">seal5</span><span class="o">-</span><span class="n">gnu</span><span class="o">.</span><span class="n">patch</span>
+<span class="n">git</span> <span class="n">apply</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">seal5</span><span class="o">-</span><span class="n">gnu</span><span class="o">.</span><span class="n">patch</span>
+</pre></div>
+</div>
+<p>To regenerate, first reverse the old patch with
+<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">apply</span> <span class="pre">-R</span> <span class="pre">/tmp/seal5-gnu.patch</span></code> or use a fresh checkout. Save the old
+patch until it has been reversed.</p>
+</section>
+<section id="fast-build-assembler-linker-and-objdump">
+<h2>Fast build: assembler, linker and objdump<a class="headerlink" href="#fast-build-assembler-linker-and-objdump" title="Link to this heading"></a></h2>
+<p>Use a separate build directory. A native C/C++ compiler, make, flex, bison,
+texinfo and the normal binutils development dependencies are needed. On Debian
+or Ubuntu, <code class="docutils literal notranslate"><span class="pre">build-essential</span> <span class="pre">flex</span> <span class="pre">bison</span> <span class="pre">texinfo</span> <span class="pre">libgmp-dev</span> <span class="pre">libmpfr-dev</span></code> cover
+the core prerequisites. The following builds just the required cross tools,
+without GCC, newlib, Linux, or a target sysroot:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mkdir</span> <span class="o">-</span><span class="n">p</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">seal5</span><span class="o">-</span><span class="n">gnu</span><span class="o">-</span><span class="n">build</span>
+<span class="n">cd</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">seal5</span><span class="o">-</span><span class="n">gnu</span><span class="o">-</span><span class="n">build</span>
+<span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">binutils</span><span class="o">-</span><span class="n">gdb</span><span class="o">/</span><span class="n">configure</span> \
+  <span class="o">--</span><span class="n">target</span><span class="o">=</span><span class="n">riscv64</span><span class="o">-</span><span class="n">unknown</span><span class="o">-</span><span class="n">elf</span> \
+  <span class="o">--</span><span class="n">prefix</span><span class="o">=</span><span class="s2">"$HOME/.local/seal5-gnu"</span> \
+  <span class="o">--</span><span class="n">disable</span><span class="o">-</span><span class="n">werror</span> <span class="o">--</span><span class="n">disable</span><span class="o">-</span><span class="n">nls</span> <span class="o">--</span><span class="n">disable</span><span class="o">-</span><span class="n">sim</span> <span class="o">--</span><span class="n">disable</span><span class="o">-</span><span class="n">gprofng</span> \
+  <span class="o">--</span><span class="n">without</span><span class="o">-</span><span class="n">debuginfod</span> <span class="o">--</span><span class="n">without</span><span class="o">-</span><span class="n">python</span> <span class="o">--</span><span class="n">without</span><span class="o">-</span><span class="n">guile</span>
+<span class="n">make</span> <span class="o">-</span><span class="n">j8</span> <span class="nb">all</span><span class="o">-</span><span class="n">gas</span> <span class="nb">all</span><span class="o">-</span><span class="n">binutils</span> <span class="nb">all</span><span class="o">-</span><span class="n">ld</span>
+</pre></div>
+</div>
+<p>These tools support both RV32 and RV64 ELF. Select RV32 at assembly/link time,
+not by rebuilding. Reduce <code class="docutils literal notranslate"><span class="pre">-j8</span></code> if memory is limited. Named make targets avoid
+the much larger top-level riscv-gnu-toolchain build. The tools can be used
+directly from the build tree:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gas</span><span class="o">/</span><span class="k">as</span><span class="o">-</span><span class="n">new</span> <span class="o">--</span><span class="n">version</span>
+<span class="n">ld</span><span class="o">/</span><span class="n">ld</span><span class="o">-</span><span class="n">new</span> <span class="o">--</span><span class="n">version</span>
+<span class="n">binutils</span><span class="o">/</span><span class="n">objdump</span> <span class="o">--</span><span class="n">version</span>
+</pre></div>
+</div>
+<p>Optionally install just these components:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">install</span><span class="o">-</span><span class="n">gas</span> <span class="n">install</span><span class="o">-</span><span class="n">binutils</span> <span class="n">install</span><span class="o">-</span><span class="n">ld</span>
+</pre></div>
+</div>
+<p>Installed names have the <code class="docutils literal notranslate"><span class="pre">riscv64-unknown-elf-</span></code> prefix, even when processing
+RV32 code.</p>
+</section>
+<section id="optional-gdb">
+<h2>Optional GDB<a class="headerlink" href="#optional-gdb" title="Link to this heading"></a></h2>
+<p>With a patched combined source tree and the configuration above:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="o">-</span><span class="n">j8</span> <span class="nb">all</span><span class="o">-</span><span class="n">gdb</span>
+<span class="n">gdb</span><span class="o">/</span><span class="n">gdb</span> <span class="o">--</span><span class="n">version</span>
+<span class="c1"># Optional:</span>
+<span class="n">make</span> <span class="n">install</span><span class="o">-</span><span class="n">gdb</span>
+</pre></div>
+</div>
+<p>GDB is a host program and needs a C++17-capable compiler. GNU GMP and MPFR
+headers/libraries are also required. Python, Guile, debuginfod and the simulator
+are disabled above to reduce build dependencies. GDB is optional for the fast
+binutils build; its disassembler uses the same generated opcode support.</p>
+<p>If the toolchain’s GDB submodule differs from its binutils submodule, use a
+second build directory configured against the separately patched GDB checkout,
+then run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">-j8</span> <span class="pre">all-gdb</span></code> there.</p>
+</section>
+<section id="smoke-test-with-the-seal5-demo">
+<h2>Smoke test with the Seal5 demo<a class="headerlink" href="#smoke-test-with-the-seal5-demo" title="Link to this heading"></a></h2>
+<p>After generating the patch from both demo models, create <code class="docutils literal notranslate"><span class="pre">/tmp/custom.s</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">.</span><span class="n">attribute</span> <span class="n">arch</span><span class="p">,</span> <span class="s2">"rv32i2p1_xcorevnand1p0_xexample1p0"</span>
+<span class="o">.</span><span class="n">text</span>
+<span class="o">.</span><span class="k">global</span> <span class="n">_start</span>
+<span class="n">_start</span><span class="p">:</span>
+  <span class="n">cv</span><span class="o">.</span><span class="n">nand</span><span class="o">.</span><span class="n">bitwise</span> <span class="n">a0</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span>
+  <span class="n">xexample</span><span class="o">.</span><span class="n">subincacc</span> <span class="n">a0</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span>
+  <span class="n">xexample</span><span class="o">.</span><span class="n">slli_add_addi</span> <span class="n">a0</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">31</span>
+</pre></div>
+</div>
+<p>Run from the GNU build directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gas</span><span class="o">/</span><span class="k">as</span><span class="o">-</span><span class="n">new</span> <span class="o">-</span><span class="n">march</span><span class="o">=</span><span class="n">rv32i_xcorevnand_xexample</span> <span class="o">-</span><span class="n">o</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">custom</span><span class="o">.</span><span class="n">o</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">custom</span><span class="o">.</span><span class="n">s</span>
+<span class="n">ld</span><span class="o">/</span><span class="n">ld</span><span class="o">-</span><span class="n">new</span> <span class="o">-</span><span class="n">m</span> <span class="n">elf32lriscv</span> <span class="o">-</span><span class="n">e</span> <span class="n">_start</span> <span class="o">-</span><span class="n">Ttext</span><span class="o">=</span><span class="mh">0x1000</span> \
+  <span class="o">-</span><span class="n">o</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">custom</span><span class="o">.</span><span class="n">elf</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">custom</span><span class="o">.</span><span class="n">o</span>
+<span class="n">binutils</span><span class="o">/</span><span class="n">objdump</span> <span class="o">-</span><span class="n">d</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">custom</span><span class="o">.</span><span class="n">elf</span>
+<span class="n">gdb</span><span class="o">/</span><span class="n">gdb</span> <span class="o">-</span><span class="n">nx</span> <span class="o">-</span><span class="n">batch</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">custom</span><span class="o">.</span><span class="n">elf</span> \
+  <span class="o">-</span><span class="n">ex</span> <span class="s1">'disassemble /r _start,_start+12'</span>
+</pre></div>
+</div>
+<p>Both decoders should display all three custom mnemonics. The last instruction
+uses nonstandard register positions, two immediate fields and a negative
+immediate; its encoding is <code class="docutils literal notranslate"><span class="pre">9f62d457</span></code>.</p>
+<p>LLVM-generated objects work directly with these tools. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">demo</span><span class="o">=/</span><span class="n">tmp</span><span class="o">/</span><span class="n">seal5_llvm_demo_llvm23</span><span class="o">/.</span><span class="n">seal5</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">Output</span>
+<span class="n">ld</span><span class="o">/</span><span class="n">ld</span><span class="o">-</span><span class="n">new</span> <span class="o">-</span><span class="n">m</span> <span class="n">elf32lriscv</span> <span class="o">-</span><span class="n">r</span> <span class="o">-</span><span class="n">o</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">custom</span><span class="o">-</span><span class="n">linked</span><span class="o">.</span><span class="n">o</span> \
+  <span class="s2">"$demo/cv-nand-bitwise.test-inline-asm.c.tmp.o"</span> \
+  <span class="s2">"$demo/xexample-subincacc.test-inline-asm.c.tmp.o"</span>
+<span class="n">binutils</span><span class="o">/</span><span class="n">readelf</span> <span class="o">-</span><span class="n">A</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">custom</span><span class="o">-</span><span class="n">linked</span><span class="o">.</span><span class="n">o</span>
+<span class="n">binutils</span><span class="o">/</span><span class="n">objdump</span> <span class="o">-</span><span class="n">d</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">custom</span><span class="o">-</span><span class="n">linked</span><span class="o">.</span><span class="n">o</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">readelf</span></code> should show both <code class="docutils literal notranslate"><span class="pre">xcorevnand1p0</span></code> and <code class="docutils literal notranslate"><span class="pre">xexample1p0</span></code> in the merged
+architecture attribute. This verifies that the linker accepts and merges the
+custom extensions, rather than just preserving unknown instruction bytes.</p>
+<p>The same demo checks can be repeated automatically from the Seal5 repository:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">venv310</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>
+<span class="n">python</span> <span class="n">scripts</span><span class="o">/</span><span class="n">test_riscv_gnu</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">build</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">seal5</span><span class="o">-</span><span class="n">gnu</span><span class="o">-</span><span class="n">build</span> \
+  <span class="o">--</span><span class="n">gdb</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">seal5</span><span class="o">-</span><span class="n">gnu</span><span class="o">-</span><span class="n">build</span><span class="o">/</span><span class="n">gdb</span><span class="o">/</span><span class="n">gdb</span> \
+  <span class="o">--</span><span class="n">llvm</span><span class="o">-</span><span class="n">demo</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">seal5_llvm_demo_llvm23</span>
+</pre></div>
+</div>
+<p>Omit <code class="docutils literal notranslate"><span class="pre">--gdb</span></code> or <code class="docutils literal notranslate"><span class="pre">--llvm-demo</span></code> when those optional checks are unavailable.
+The script also checks instruction words, immediate range errors and rejection
+of custom mnemonics when the required extension is disabled.</p>
+</section>
+<section id="scope-and-source-compatibility">
+<h2>Scope and source compatibility<a class="headerlink" href="#scope-and-source-compatibility" title="Link to this heading"></a></h2>
+<p>The backend emits fixed-bit opcode matches, arbitrary split operand fields,
+GPR/FPR operands, compressed GPR indices, numeric or named CSR operands,
+signed/unsigned constant immediates, and vendor extension
+version registrations. It uses existing RISC-V ELF relocations and does not
+add relocation types for custom symbolic immediate operands. Custom immediate
+arguments to GAS must currently be assembly-time constants. Hardware execution
+and GDB simulation of instruction semantics are outside opcode/disassembler
+support.</p>
+<p>The generator checks the expected upstream source anchors and adapts to old
+and current libopcodes printing and GAS expression interfaces. An upstream
+source-layout change may require a generator update; generation fails instead
+of silently leaving out a component. Current upstream binutils/GDB commit
+<code class="docutils literal notranslate"><span class="pre">17d606a601f4957f9591b2bfb3f39b57716e531d</span></code> was used for the initial complete
+GAS/ld/objdump/GDB build and demo smoke test.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="packed-simd.html" class="btn btn-neutral float-left" title="Packed SIMD: TableGen-first investigation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, TUM Department of Electrical and Computer Engineering - Chair of Electronic Design Automation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

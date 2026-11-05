@@ -1,0 +1,55 @@
+id,name,handler,scope,pipeline,patch_phases,conditional,options,source,line
+T01,convert_models,convert_models,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,22
+T02,filter_models,filter_model,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,386
+T03,drop_unused,drop_unused,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,450
+T04,eliminate_mod_rfs,eliminate_mod_rfs,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,825
+T05,eliminate_rd_cmp_zero,eliminate_rd_cmp_zero,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,785
+T06,drop_unused2,drop_unused,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,450
+T07,inline_functions,inline_functions,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,104
+T08,drop_unused3,drop_unused,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,450
+T09,optimize_model,optimize_model,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,68
+T10,infer_types,infer_types,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,142
+T11,simplify_trivial_slices,simplify_trivial_slices,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,179
+T12,explicit_truncations,explicit_truncations,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,302
+T13,unroll_loops,unroll_loops,MODEL,TRANSFORM_PASS_MAP,,False,{'max_trip_count': 32},seal5/pass_list.py,2160
+T14,infer_types1,infer_types,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,142
+T15,detect_behavior_constraints,detect_behavior_constraints,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,523
+T16,detect_registers,detect_registers,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,486
+T17,collect_register_operands,collect_register_operands,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,695
+T18,collect_immediate_operands,collect_immediate_operands,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,740
+T19,collect_operand_types,collect_operand_types,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,658
+T20,process_settings,process_settings,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,346
+T21,write_yaml2,write_yaml,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,861
+T22,process_settings3,process_settings,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,346
+T23,detect_side_effects,detect_side_effects,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,568
+T24,detect_inouts,detect_inouts,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,613
+T25,detect_imm_leafs,detect_imm_leafs,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,2025
+T26,detect_calls,detect_calls,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,2070
+T27,detect_loops,detect_loops,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,2115
+T28,annotate_opcodes,annotate_opcodes,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,2200
+T29,handle_auto_unroll_operands,handle_auto_unroll_operands,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,1335
+T30,gen_auto_intrinsics,gen_auto_intrinsics,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,1379
+T31,write_yaml3,write_yaml,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,861
+T32,infer_types2,infer_types,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,142
+T33,explicit_memory_names,explicit_memory_names,MODEL,TRANSFORM_PASS_MAP,,True,{},seal5/pass_list.py,243
+T34,explicit_register_names,explicit_register_names,MODEL,TRANSFORM_PASS_MAP,,True,{},seal5/pass_list.py,248
+T35,normalize_subscripts,normalize_subscripts,MODEL,TRANSFORM_PASS_MAP,,True,{},seal5/pass_list.py,253
+T36,detect_branches,detect_branches,MODEL,TRANSFORM_PASS_MAP,,True,{},seal5/pass_list.py,279
+T37,check_pattern_support,check_pattern_support,MODEL,TRANSFORM_PASS_MAP,,False,{},seal5/pass_list.py,2245
+T38,write_cdsl_full,write_cdsl,MODEL,TRANSFORM_PASS_MAP,,False,"{'split': False, 'compat': False}",seal5/pass_list.py,901
+G01,riscv_gnu,gen_riscv_gnu_patch,GLOBAL,GENERATE_PASS_MAP,,True,{},seal5/pass_list.py,2437
+G02,seal5_td,gen_seal5_td,GLOBAL,GENERATE_PASS_MAP,PHASE_1,False,{},seal5/pass_list.py,1849
+G03,set_td,gen_set_td,MODEL,GENERATE_PASS_MAP,PHASE_1,False,{},seal5/pass_list.py,1943
+G04,riscv_features,gen_riscv_features_patch,MODEL,GENERATE_PASS_MAP,PHASE_2,False,{},seal5/pass_list.py,1191
+G05,riscv_isa_infos,gen_riscv_isa_info_patch,MODEL,GENERATE_PASS_MAP,PHASE_1,False,{},seal5/pass_list.py,1262
+G06,riscv_register_info,gen_riscv_register_info_patch,MODEL,GENERATE_PASS_MAP,PHASE_2,False,{},seal5/pass_list.py,1562
+G07,riscv_field_types,gen_riscv_field_types_patch,GLOBAL,GENERATE_PASS_MAP,PHASE_2,False,{},seal5/pass_list.py,2303
+G08,riscv_instr_info,gen_riscv_instr_info_patch,MODEL,GENERATE_PASS_MAP,PHASE_2,False,{},seal5/pass_list.py,1491
+G09,riscv_intrinsics,gen_riscv_intrinsics,MODEL,GENERATE_PASS_MAP,PHASE_1,False,{},seal5/pass_list.py,1423
+G10,riscv_disass,gen_riscv_disass_patch,MODEL,GENERATE_PASS_MAP,PHASE_2,False,{},seal5/pass_list.py,2366
+G11,riscv_gisel_legalizer,gen_riscv_gisel_legalizer_patch,GLOBAL,GENERATE_PASS_MAP,PHASE_1,False,{},seal5/pass_list.py,1631
+G12,pattern_gen,pattern_gen_pass,MODEL,GENERATE_PASS_MAP,,False,{},seal5/pass_list.py,1994
+P01,write_cdsl_compat,write_cdsl,MODEL,pattern_gen_passes,,False,"{'split': split, 'compat': True}",seal5/pass_list.py,901
+P02,behav_to_llvmir,convert_behav_to_llvmir,MODEL,pattern_gen_passes,,False,{'split': split},seal5/pass_list.py,1054
+P03,llvmir_to_gmir,convert_llvmir_to_gmir,MODEL,pattern_gen_passes,,False,{'split': split},seal5/pass_list.py,1745
+P04,behav_to_pat,convert_behav_to_tablegen,MODEL,pattern_gen_passes,PHASE_4,False,"{'split': split, 'formats': False, 'patterns': True}",seal5/pass_list.py,1101

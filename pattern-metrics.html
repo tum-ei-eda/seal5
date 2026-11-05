@@ -1,0 +1,227 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pattern generation metrics &mdash; Seal5 v0.1.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=69c7a37b"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Seal5
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="_autosummary/seal5.html">seal5</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Seal5</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seal5-diagrams.html">Seal5 architecture diagrams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="packed-simd.html">Packed SIMD: TableGen-first investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnu-toolchain.html">GNU binutils and GDB backend</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Seal5</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Pattern generation metrics</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/pattern-metrics.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pattern-generation-metrics">
+<h1>Pattern generation metrics<a class="headerlink" href="#pattern-generation-metrics" title="Link to this heading"></a></h1>
+<p>Seal5 records measurements for each PatternGen invocation in
+<code class="docutils literal notranslate"><span class="pre">&lt;instruction&gt;.td.stats</span></code>. The existing LLVM statistics groups are preserved;
+additional measurements live under <code class="docutils literal notranslate"><span class="pre">seal5</span></code>. This works without LLVM statistics
+support, including for failed invocations and format-only generation.</p>
+<p>The PatternGen writer automatically emits <code class="docutils literal notranslate"><span class="pre">pattern_gen_manifest.json</span></code>,
+<code class="docutils literal notranslate"><span class="pre">pattern_gen_report.json</span></code> and <code class="docutils literal notranslate"><span class="pre">pattern_gen_report.csv</span></code> in each model’s
+temporary output directory. The manifest records current-run instructions,
+including skipped and failed instructions. The reports contain instruction,
+set and model-global rows. Numeric totals also enter the existing pass metrics.</p>
+<p>For a report across all models in an existing workspace:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">seal5</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">pattern_gen</span><span class="o">.</span><span class="n">writer</span> \
+  <span class="o">--</span><span class="n">yaml</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/.</span><span class="n">seal5</span><span class="o">/</span><span class="n">settings</span><span class="o">.</span><span class="n">yml</span> \
+  <span class="o">--</span><span class="n">scope</span> <span class="nb">all</span> <span class="o">--</span><span class="n">output</span> <span class="n">pattern</span><span class="o">-</span><span class="n">metrics</span><span class="o">.</span><span class="n">json</span>
+</pre></div>
+</div>
+<p>Use <code class="docutils literal notranslate"><span class="pre">--scope</span> <span class="pre">instruction</span></code>, <code class="docutils literal notranslate"><span class="pre">set</span></code> or <code class="docutils literal notranslate"><span class="pre">global</span></code> to restrict the report.
+<code class="docutils literal notranslate"><span class="pre">--agg</span></code> is an alias for <code class="docutils literal notranslate"><span class="pre">--scope</span> <span class="pre">global</span></code>. CSV, Markdown and pickle output
+remain supported. Aggregated output now contains one row per aggregation scope,
+rather than the old two-column raw LLVM statistic sums.</p>
+<section id="metric-definitions">
+<h2>Metric definitions<a class="headerlink" href="#metric-definitions" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">n_sets</span></code> counts distinct (model, set) identities, including sets containing
+only skipped instructions. <code class="docutils literal notranslate"><span class="pre">n_processed_sets</span></code> counts sets with at least one
+attempted invocation. Parsed-set counters from separate subprocesses are not
+added to estimate the number of sets.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">n_instructions</span></code> counts instructions considered by the writer;
+<code class="docutils literal notranslate"><span class="pre">n_processed_instructions</span></code> excludes skipped instructions. <code class="docutils literal notranslate"><span class="pre">n_success</span></code>,
+<code class="docutils literal notranslate"><span class="pre">n_failed</span></code> and <code class="docutils literal notranslate"><span class="pre">n_skipped</span></code> describe instruction outcomes, not pattern counts.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">n_extracted_patterns</span></code> is the number of generated rules/entries, using the
+PatternGen counter when present, otherwise its <code class="docutils literal notranslate"><span class="pre">Pattern</span> <span class="pre">for</span></code> output records.
+One instruction can produce multiple patterns. Extraction does not establish
+importability, test coverage or semantic correctness.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">n_tablegen_patterns</span></code> counts ordinary TableGen patterns;
+<code class="docutils literal notranslate"><span class="pre">n_gisel_table_patterns</span></code> counts extracted roots for direct GISel generation.
+<code class="docutils literal notranslate"><span class="pre">n_gisel_table_entries</span></code> counts the expanded RuleMatcher entries, including
+permutations of commutative operands. For example, the scalar NAND example
+extracts one pattern but emits four entries. Entry counting recognizes the
+current emitter’s literal permutation-loop syntax; unfamiliar control flow
+yields an unavailable count. Direct entries bypass the
+SelectionDAG-to-GlobalISel importer.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pattern_gen_time_s</span></code> sums subprocess elapsed times, measured with a monotonic
+clock. <code class="docutils literal notranslate"><span class="pre">tablegen_time_s</span></code> and <code class="docutils literal notranslate"><span class="pre">gisel_table_time_s</span></code> separate the two generation
+modes. They include parsing, optimization, extraction and output in that
+invocation, including format generation when requested. They exclude LLVM
+builds and Seal5 postprocessing. They are not internal phase timings.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">generation_wall_time_s</span></code> in the writer’s global report/pass metrics measures
+the generation phase including Seal5 postprocessing, excluding model loading
+and report serialization. Parallel subprocess time sums can exceed this
+wall time; do not interpret them as CPU time.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tablegen_bytes</span></code> counts UTF-8 file bytes in the final per-instruction <code class="docutils literal notranslate"><span class="pre">.td</span></code>
+output plus its instruction-format <code class="docutils literal notranslate"><span class="pre">.td</span></code> when requested. This includes final
+feature predicates and pattern-priority adjustments, but excludes shared
+include scaffolding. Direct GISel mode can also generate TableGen definitions;
+these bytes are kept separate from its matcher table.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gisel_table_bytes</span></code> counts the final generated <code class="docutils literal notranslate"><span class="pre">.inc</span></code> files.
+<code class="docutils literal notranslate"><span class="pre">gisel_table_patch_bytes</span></code> counts corresponding <code class="docutils literal notranslate"><span class="pre">.inc.patch</span></code> sidecars:
+reproducible unified addition patches targeting
+<code class="docutils literal notranslate"><span class="pre">llvm/utils/TableGen/seal5/&lt;set&gt;/&lt;instruction&gt;.inc</span></code>. These include diff headers
+and line prefixes. They measure matcher-table payload patches, not the entire
+backend support patch or shared GlobalISelEmitter include changes. Seal5 still
+installs the table through its existing File artifact; the sidecar is for
+measurement/reproduction, not an additional patch to apply in the flow.</p></li>
+</ul>
+<p>Sizes count generated artifacts even if an invocation subsequently fails;
+absent files have size zero. Skipped instructions contribute zero. Failed
+subprocesses retain their timing and return code. A new invocation removes old
+output artifacts before measuring. Current-run manifests prevent stale statistics
+from skipped instructions from re-entering the report.</p>
+</section>
+<section id="import-and-match-evidence">
+<h2>Import and match evidence<a class="headerlink" href="#import-and-match-evidence" title="Link to this heading"></a></h2>
+<p>The reports distinguish <code class="docutils literal notranslate"><span class="pre">n_tablegen_patterns_imported</span></code>,
+<code class="docutils literal notranslate"><span class="pre">n_tablegen_patterns_matched</span></code> and <code class="docutils literal notranslate"><span class="pre">n_gisel_table_patterns_matched</span></code> and <code class="docutils literal notranslate"><span class="pre">n_gisel_table_entries_matched</span></code>. Importing
+means acceptance by the GlobalISel importer, not selection at runtime. Matching
+means a distinct generated rule/entry was selected in codegen validation, not
+that the generated instruction has been proved semantically correct. Multiple
+executions of one rule count once. Direct entries have no importer count.</p>
+<p>Current PatternGen versions do not provide per-pattern import or match evidence.
+Their counts are therefore unavailable (JSON null / empty CSV cells), not zero
+and not the extraction count. Whole-backend <code class="docutils literal notranslate"><span class="pre">gisel-emitter</span></code> totals are retained
+in raw statistics but cannot be attributed to one generated instruction.
+If an instrumented PatternGen emits scoped <code class="docutils literal notranslate"><span class="pre">Imported</span> <span class="pre">patterns</span></code> / <code class="docutils literal notranslate"><span class="pre">Matched</span>
+<span class="pre">patterns</span></code> counters in its <code class="docutils literal notranslate"><span class="pre">pattern-gen</span></code> group, these are consumed directly.</p>
+<p>Alternatively supply <code class="docutils literal notranslate"><span class="pre">--validation</span> <span class="pre">evidence.json</span></code>. This is a JSON list, with
+one entry per (model, set, instruction, mode):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+  <span class="p">{</span>
+    <span class="s2">"model"</span><span class="p">:</span> <span class="s2">"Example"</span><span class="p">,</span> <span class="s2">"set"</span><span class="p">:</span> <span class="s2">"XExample"</span><span class="p">,</span> <span class="s2">"instruction"</span><span class="p">:</span> <span class="s2">"ADD3"</span><span class="p">,</span>
+    <span class="s2">"mode"</span><span class="p">:</span> <span class="s2">"tablegen"</span><span class="p">,</span>
+    <span class="s2">"imported"</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s2">"imported_source"</span><span class="p">:</span> <span class="s2">"artifacts/import-records.json"</span><span class="p">,</span>
+    <span class="s2">"matched"</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">"matched_source"</span><span class="p">:</span> <span class="s2">"artifacts/rule-coverage.json"</span>
+  <span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>Indices are zero-based in the generator’s pattern-output order. A supplied list
+is a complete result for that invocation: an empty list means zero validated
+patterns, whereas an omitted list means unavailable. The source field identifies
+the evidence to retain with the experiment; the reporter validates identities,
+index ranges and duplicates, but does not independently verify that evidence.
+Use <code class="docutils literal notranslate"><span class="pre">mode:</span> <span class="pre">gisel_table</span></code> for direct generation: <code class="docutils literal notranslate"><span class="pre">matched</span></code> identifies extracted
+roots, while <code class="docutils literal notranslate"><span class="pre">matched_entries</span></code> / <code class="docutils literal notranslate"><span class="pre">matched_entries_source</span></code> can independently
+record expanded-entry coverage, with indices in emitted entry order. Do not
+supply <code class="docutils literal notranslate"><span class="pre">imported</span></code> for direct generation. A passing
+instruction-level FileCheck test cannot establish which of several alternative
+patterns matched: supply rule-level evidence rather than counting every pattern
+of the instruction as tested.</p>
+<p>An aggregate remains unavailable if any contributing instruction lacks that
+measurement. <code class="docutils literal notranslate"><span class="pre">*_known</span></code> reports the measured subtotal and
+<code class="docutils literal notranslate"><span class="pre">*_unreported_instructions</span></code> reports the missing population. This prevents a
+partial coverage result from appearing to be a complete total.</p>
+<p>Reports also accept older <code class="docutils literal notranslate"><span class="pre">.td.stats</span></code> files without a manifest. In this case
+instruction enumeration, timing, sizes and generation mode may be incomplete;
+regenerate the artifacts for a controlled experiment. Older files are assumed
+to use ordinary TableGen mode because they did not record the generation mode.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, TUM Department of Electrical and Computer Engineering - Chair of Electronic Design Automation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

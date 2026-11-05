@@ -1,0 +1,398 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Packed SIMD: TableGen-first investigation &mdash; Seal5 v0.1.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=69c7a37b"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="GNU binutils and GDB backend" href="gnu-toolchain.html" />
+    <link rel="prev" title="Seal5 architecture diagrams" href="seal5-diagrams.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Seal5
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="_autosummary/seal5.html">seal5</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Seal5</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seal5-diagrams.html">Seal5 architecture diagrams</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Packed SIMD: TableGen-first investigation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#baseline-measured-on-2026-11-04">Baseline measured on 2026-11-04</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#historical-sources-inspected">Historical sources inspected</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#corev-llvm-project-seal5-paper"><code class="docutils literal notranslate"><span class="pre">corev-llvm-project:seal5_paper</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#coredsl2llvm-llvm20-simd"><code class="docutils literal notranslate"><span class="pre">CoreDSL2LLVM:llvm20_simd</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pattern-gen-loop-iters-fix"><code class="docutils literal notranslate"><span class="pre">pattern-gen-loop-iters-fix</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#simd-signed-unpacking-tests-rebased"><code class="docutils literal notranslate"><span class="pre">simd-signed-unpacking-tests-rebased</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#simd-comp-gisel-rebase"><code class="docutils literal notranslate"><span class="pre">simd-comp-gisel-rebase</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#current-integration-gaps">Current integration gaps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#proposed-implementation-gates">Proposed implementation gates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#working-llvm-22-23-port">Working LLVM 22/23 port</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#initial-real-source-vectorization-embench">Initial real-source vectorization: Embench</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#implemented-real-source-flow">Implemented real-source flow</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gnu-toolchain.html">GNU binutils and GDB backend</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Seal5</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Packed SIMD: TableGen-first investigation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/packed-simd.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="packed-simd-tablegen-first-investigation">
+<h1>Packed SIMD: TableGen-first investigation<a class="headerlink" href="#packed-simd-tablegen-first-investigation" title="Link to this heading"></a></h1>
+<p>The initial scope is RV32 packed operations on <code class="docutils literal notranslate"><span class="pre">&lt;4</span> <span class="pre">x</span> <span class="pre">i8&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;2</span> <span class="pre">x</span> <span class="pre">i16&gt;</span></code>
+using ordinary TableGen <code class="docutils literal notranslate"><span class="pre">Pat</span></code> records. Both GlobalISel’s TableGen importer and
+SelectionDAG are relevant consumers; direct <code class="docutils literal notranslate"><span class="pre">--gisel-table</span></code> matchers are not
+part of this investigation. LLVM 22 and 23 remain the target versions.</p>
+<p>The feature is named <code class="docutils literal notranslate"><span class="pre">GPR32V</span></code> (command-line spelling <code class="docutils literal notranslate"><span class="pre">+gpr32v</span></code>), rather than
+<code class="docutils literal notranslate"><span class="pre">GRP32V</span></code>. It represents packed values in integer registers, independently of
+RISC-V V-extension registers. The presence of the feature alone does not prove
+that the legalization, extraction and selection paths are connected.</p>
+<section id="baseline-measured-on-2026-11-04">
+<h2>Baseline measured on 2026-11-04<a class="headerlink" href="#baseline-measured-on-2026-11-04" title="Link to this heading"></a></h2>
+<p>Four fixtures cover add/subtract on four byte lanes and two halfword lanes.
+Each is exercised with <code class="docutils literal notranslate"><span class="pre">+gpr32v</span></code> and <code class="docutils literal notranslate"><span class="pre">-gpr32v</span></code> on the existing LLVM 22.1.8 and
+23.1.3 experimental builds. No toolchain was rebuilt for these probes.</p>
+<table class="docutils align-default" id="id5">
+<caption><span class="caption-text">Outcomes per LLVM version (eight probes per row)</span><a class="headerlink" href="#id5" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 35.0%" />
+<col style="width: 20.0%" />
+<col style="width: 45.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Probe</p></th>
+<th class="head"><p>LLVM 22 / LLVM 23</p></th>
+<th class="head"><p>Interpretation</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Ordinary TableGen extraction</p></td>
+<td><p>0/8 / 0/8</p></td>
+<td><p>All four lane-wise instruction descriptions fail extraction, in either
+feature state; no vector-typed packed pattern is produced.</p></td>
+</tr>
+<tr class="row-odd"><td><p>GlobalISel legalization</p></td>
+<td><p>0/8 / 0/8</p></td>
+<td><p>Explicit scalar/vector bitcasts cannot be legalized, even with the feature.</p></td>
+</tr>
+<tr class="row-even"><td><p>SelectionDAG compilation</p></td>
+<td><p>8/8 / 8/8</p></td>
+<td><p>Scalar fallback compiles. These are not packed-instruction selection tests.</p></td>
+</tr>
+</tbody>
+</table>
+<p>There are 48 probes in total. For example, <code class="docutils literal notranslate"><span class="pre">PACK_ADD_2X16</span></code> fails ordinary
+extraction with <code class="docutils literal notranslate"><span class="pre">multiple</span> <span class="pre">stores</span></code>. Its explicit LLVM IR fails GlobalISel with
+<code class="docutils literal notranslate"><span class="pre">unable</span> <span class="pre">to</span> <span class="pre">legalize</span> <span class="pre">instruction:</span> <span class="pre">...</span> <span class="pre">(s32)</span> <span class="pre">=</span> <span class="pre">G_BITCAST</span> <span class="pre">...</span> <span class="pre">(&lt;2</span> <span class="pre">x</span> <span class="pre">s16&gt;)</span></code>.
+The same results occur for four-byte operations. Pattern extraction uses the
+default O3 optimization pipeline; explicit-IR probes use O2.</p>
+<p>The reproducible driver is <code class="docutils literal notranslate"><span class="pre">examples/packed_simd/probe.py</span></code>. It saves stdout,
+stderr and <code class="docutils literal notranslate"><span class="pre">results.json</span></code> in a requested output directory. The initial run is
+at <code class="docutils literal notranslate"><span class="pre">/tmp/seal5-packed-simd-probes</span></code>; its result records are also preserved in
+<code class="docutils literal notranslate"><span class="pre">examples/packed_simd/baseline-llvm22-23.json</span></code>. A scalar compilation or process exit code
+alone must not be counted as successful packed-pattern support.</p>
+</section>
+<section id="historical-sources-inspected">
+<h2>Historical sources inspected<a class="headerlink" href="#historical-sources-inspected" title="Link to this heading"></a></h2>
+<p>All five linked branches were inspected. The GitHub histories were read through
+the GitHub connector. The LRZ branches were reachable with existing SSH access
+and fetched into <code class="docutils literal notranslate"><span class="pre">/tmp/seal5-packed-simd-research</span></code>; source snapshots used for
+comparison are under <code class="docutils literal notranslate"><span class="pre">/tmp/seal5-packed-simd-baseline/history</span></code>. Branch heads
+below identify the inspected revisions, not a claim that their tests pass today.</p>
+<section id="corev-llvm-project-seal5-paper">
+<h3><code class="docutils literal notranslate"><span class="pre">corev-llvm-project:seal5_paper</span></code><a class="headerlink" href="#corev-llvm-project-seal5-paper" title="Link to this heading"></a></h3>
+<p>Head: <code class="docutils literal notranslate"><span class="pre">7b1c3965fc2337fc7d63f05ef835768a16fd2c29</span></code>.</p>
+<p>This is the older SelectionDAG-oriented path. In particular, commit
+<code class="docutils literal notranslate"><span class="pre">632a3a46919e7cef416581e58921103021eb5f3b</span></code> adds packed register classes,
+<code class="docutils literal notranslate"><span class="pre">addRegisterClass</span></code> support for <code class="docutils literal notranslate"><span class="pre">v4i8</span></code>/<code class="docutils literal notranslate"><span class="pre">v2i16</span></code>, decoder helpers and vector
+lowering changes. Later history includes vector insert, abs/min/max and loop
+vectorization/interleave tuning. It is a useful reference for register and DAG
+integration, not a substitute for current GlobalISel legalization. The branch
+also contains disabled CORE-V patterns, so its head should not be treated as an
+unqualified working baseline.</p>
+<p>Sources: <a class="reference external" href="https://github.com/PhilippvK/corev-llvm-project/commits/seal5_paper/">branch history</a>,
+<a class="reference external" href="https://github.com/PhilippvK/corev-llvm-project/commit/632a3a46919e7cef416581e58921103021eb5f3b">SIMD backport commit</a>.</p>
+</section>
+<section id="coredsl2llvm-llvm20-simd">
+<h3><code class="docutils literal notranslate"><span class="pre">CoreDSL2LLVM:llvm20_simd</span></code><a class="headerlink" href="#coredsl2llvm-llvm20-simd" title="Link to this heading"></a></h3>
+<p>Head: <code class="docutils literal notranslate"><span class="pre">bcbeaf4fd3e3bffd332a556e2ffa7e5e70490c84</span></code>.</p>
+<p>This is the most direct source of the newer basic GlobalISel work. It includes
+feature-gated vector add/sub legalization, scalar/vector bitcasts, vector
+load/store handling, element operations, shifts, multiplication, min/max,
+reduction handling, target lowering registration and vectorization heuristics.
+Relevant commits include:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">5c7100257941</span></code>: GPR32V legalizer settings.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fa002e143d92</span></code>: <code class="docutils literal notranslate"><span class="pre">addRegisterClass</span></code> statements for packed types.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">52e69af252bf</span></code> and <code class="docutils literal notranslate"><span class="pre">d5e04c2fae2a</span></code>: multiply and min/max legalization.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">122c796c6fd8</span></code> and <code class="docutils literal notranslate"><span class="pre">4054446cffc2</span></code>: vector reduction work.</p></li>
+</ul>
+<p>Its generated <code class="docutils literal notranslate"><span class="pre">ExampleGPR32V.td</span></code> contains the desired shapes, such as
+<code class="docutils literal notranslate"><span class="pre">(v4i8</span> <span class="pre">(add</span> <span class="pre">GPR32V4:$rs2,</span> <span class="pre">GPR32V4:$rs1))</span></code>. However, the branch history explicitly
+labels the initial example tests broken; the register definitions use
+<code class="docutils literal notranslate"><span class="pre">PulpV2/PulpV4</span></code> while extraction prints <code class="docutils literal notranslate"><span class="pre">GPR32V2/GPR32V4</span></code>. The saved example
+patterns also use an ALU extension predicate. Generated snapshots are useful
+examples, not verified golden outputs. Some operations are gated by
+<code class="docutils literal notranslate"><span class="pre">hasVendorXCVsimd</span></code> and others by <code class="docutils literal notranslate"><span class="pre">hasGPR32V</span></code>; the port needs a deliberate,
+consistent policy rather than wholesale cherry-picking.</p>
+<p>Source: <a class="reference external" href="https://github.com/PhilippvK/CoreDSL2LLVM/commits/llvm20_simd/">branch history</a>.</p>
+</section>
+<section id="pattern-gen-loop-iters-fix">
+<h3><code class="docutils literal notranslate"><span class="pre">pattern-gen-loop-iters-fix</span></code><a class="headerlink" href="#pattern-gen-loop-iters-fix" title="Link to this heading"></a></h3>
+<p>Head: <code class="docutils literal notranslate"><span class="pre">e6536615d15058264380a9dadcd3d73bd6e73071</span></code>.</p>
+<p>This predates the GlobalISel extractor in the inspected tree. Its history
+contains build-vector ordering and vector-extract index fixes, vectorization
+heuristics and an experimental iterator-pointer optimization pass
+(<code class="docutils literal notranslate"><span class="pre">7d73c0c9608d</span></code>), implemented as a <code class="docutils literal notranslate"><span class="pre">MachineFunctionPass</span></code> over machine loops.
+The head adds a missing SIMD-extension predicate to patterns;
+this is relevant evidence for testing feature gating explicitly. The iterator
+pass belongs to a separate loop-optimization investigation; it should not be
+assumed necessary merely to select a straight-line packed add.</p>
+<p>Source: <a class="reference external" href="https://gitlab.lrz.de/de-tum-ei-eda-esl/llvm/core-v-llvm-project/-/commits/pattern-gen-loop-iters-fix?ref_type=heads">branch history</a>.</p>
+</section>
+<section id="simd-signed-unpacking-tests-rebased">
+<h3><code class="docutils literal notranslate"><span class="pre">simd-signed-unpacking-tests-rebased</span></code><a class="headerlink" href="#simd-signed-unpacking-tests-rebased" title="Link to this heading"></a></h3>
+<p>Head: <code class="docutils literal notranslate"><span class="pre">f94247caf6e33cae848b8480fb2d93e2be184123</span></code>.</p>
+<p>This extends the GlobalISel experimentation to signed unpacking, notably the
+<code class="docutils literal notranslate"><span class="pre">v2s8</span></code> to <code class="docutils literal notranslate"><span class="pre">v2s16</span></code> path and the bridge between <code class="docutils literal notranslate"><span class="pre">v2s8</span></code> and scalar <code class="docutils literal notranslate"><span class="pre">s16</span></code>.
+Commit <code class="docutils literal notranslate"><span class="pre">8fdbaa5c1b6a</span></code> modifies the legalizer helper, target legalizer and pattern
+extractor; the head adds the short-vector bitcasts. The source also contains
+broad experimental legalization and commented alternatives. Signed unpacking
+needs its own lane-order, sign-extension and narrowing tests after the basic
+arithmetic path is established; these settings should not all become generally
+legal by default.</p>
+<p>Source: <a class="reference external" href="https://gitlab.lrz.de/de-tum-ei-eda-esl/llvm/core-v-llvm-project/-/commits/simd-signed-unpacking-tests-rebased?ref_type=heads">branch history</a>.</p>
+</section>
+<section id="simd-comp-gisel-rebase">
+<h3><code class="docutils literal notranslate"><span class="pre">simd-comp-gisel-rebase</span></code><a class="headerlink" href="#simd-comp-gisel-rebase" title="Link to this heading"></a></h3>
+<p>Head: <code class="docutils literal notranslate"><span class="pre">448f4dad71e5cf7abbf0e6fe998a0db16adc99a2</span></code>.</p>
+<p>This is the comparison/scalar-replication experiment. Commit <code class="docutils literal notranslate"><span class="pre">47eff9aaef76</span></code>
+adds extensive vector-compare and replication legalizer settings. Its extractor
+and register definitions both use the older <code class="docutils literal notranslate"><span class="pre">PulpV</span></code> names. It is a reference
+for comparison-result widths and replicated scalar inputs, not proof that the
+current generic compare legalization is ready. The head reverts generated test
+and SIMD patterns, another reason not to treat the branch head as a passing
+selection baseline.</p>
+<p>Source: <a class="reference external" href="https://gitlab.lrz.de/de-tum-ei-eda-esl/llvm/core-v-llvm-project/-/commits/simd-comp-gisel-rebase?ref_type=heads">branch history</a>.</p>
+</section>
+</section>
+<section id="current-integration-gaps">
+<h2>Current integration gaps<a class="headerlink" href="#current-integration-gaps" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Feature predicate.</strong> The inspected CoreDSL2LLVM LLVM 23 source defines
+<code class="docutils literal notranslate"><span class="pre">HasGPR32V</span></code> with the predicate string <code class="docutils literal notranslate"><span class="pre">Subtarget-&gt;hasGPR32V)</span></code>; it should
+call <code class="docutils literal notranslate"><span class="pre">hasGPR32V()</span></code>. Because the baseline never reaches a vector matcher,
+simply seeing that the current toolchain builds does not validate this unused
+predicate’s generated C++.</p></li>
+<li><p><strong>Register classes.</strong> The ordinary extractor emits <code class="docutils literal notranslate"><span class="pre">GPR32V2/GPR32V4</span></code>, while
+target definitions retain <code class="docutils literal notranslate"><span class="pre">PulpV2/PulpV4</span></code>. Names, target-lowering registration,
+decoder support and register-bank handling must agree. RV64 additionally
+needs a separate mapping: the current vector operand printer asserts RV32.</p></li>
+<li><p><strong>Legalization.</strong> The modern target legalizer lacks the historical GPR32V
+path. First restore only the required scalar/packed-vector bridges and basic
+arithmetic, with precise types and feature predicates. Do not import broad
+<code class="docutils literal notranslate"><span class="pre">alwaysLegal</span></code> rules from experiments.</p></li>
+<li><p><strong>Vectorization before extraction.</strong> The lane-wise descriptions currently
+remain multiple stores. PatternGen already enables SLP vectorization; the
+missing lowering/type-cost configuration must be addressed and the resulting
+single packed output verified. This is one packed destination, not a reason
+to enable the unrelated multi-output matcher.</p></li>
+<li><p><strong>Seal5 import/configuration.</strong> <code class="docutils literal notranslate"><span class="pre">examples/common/cfg/simd_patches.yml</span></code> still
+contains <code class="docutils literal notranslate"><span class="pre">?</span></code> placeholders. The common RISC-V configuration requests
+<code class="docutils literal notranslate"><span class="pre">gpr32v</span></code>, but its sample vector legalization entries are commented out.
+The current backend importer covers the scalar/memory/branch and direct
+matcher support; it does not import the full SIMD feature, register-class,
+target-lowering and target-cost changes. These must become explicit,
+version-matched support for a clean upstream LLVM checkout.</p></li>
+<li><p><strong>Pattern predicates.</strong> <code class="docutils literal notranslate"><span class="pre">riscv_instr_info/writer.py</span></code> still has a TODO for
+requiring <code class="docutils literal notranslate"><span class="pre">HasGPR32V</span></code> with packed classes. Generated packed rules should
+require both the applicable instruction-set feature and the packed-register
+capability. Enabling a representation feature alone must not imply arbitrary
+packed instructions exist.</p></li>
+</ol>
+</section>
+<section id="proposed-implementation-gates">
+<h2>Proposed implementation gates<a class="headerlink" href="#proposed-implementation-gates" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Start with RV32 add/subtract on <code class="docutils literal notranslate"><span class="pre">v4i8</span></code> and <code class="docutils literal notranslate"><span class="pre">v2i16</span></code>. Resolve the naming and
+feature predicate, restore the minimum register/lowering and legalization
+support, and verify that SLP produces a single vector output. Keep all output
+as ordinary TableGen <code class="docutils literal notranslate"><span class="pre">Pat</span></code> records.</p></li>
+<li><p>Build the generated TableGen definitions and check GlobalISel import. Run one
+codegen file per instruction, with both feature states, object decoding and
+packed-lane overflow/isolation checks. Compare generated patterns with a small
+hand-written reference so extraction and selection failures are separable.</p></li>
+<li><p>Verify the SelectionDAG consumer separately. Its scalar fallback successes
+above are not adequate packed-selection evidence.</p></li>
+<li><p>Then add constant shifts, multiplication and signed/unsigned min/max. Only
+after those pass, examine replicated scalar/immediate operands, comparison
+masks, signed unpacking, reductions and dot products. Iterator/vectorizer
+heuristics are a later performance task.</p></li>
+</ul>
+</section>
+<section id="working-llvm-22-23-port">
+<h2>Working LLVM 22/23 port<a class="headerlink" href="#working-llvm-22-23-port" title="Link to this heading"></a></h2>
+<p>The first gate above now works on both versions: packed add/subtract for RV32
+<code class="docutils literal notranslate"><span class="pre">v4i8</span></code> and <code class="docutils literal notranslate"><span class="pre">v2i16</span></code>. The local CoreDSL2LLVM branches are
+<code class="docutils literal notranslate"><span class="pre">llvm-22.1.8-packed-simd</span></code> and <code class="docutils literal notranslate"><span class="pre">llvm-23.1.3-packed-simd</span></code>. These branches build
+on the existing PatternGen work and adapt the LLVM20 register/lowering approach
+to each version’s APIs. They have not been pushed.</p>
+<p>The port fixes the GPR32V predicate and register-class names, registers the packed
+DAG types, restores precise GlobalISel legalization/register-bank rules, and adds
+scalar/vector register-class bridges. Packed memory transfers use scalar words;
+unaligned addresses retain normal target lowering. Natural alignment on synthetic
+register-storage arguments lets SLP combine lane writes into one packed output.
+This alignment does not apply to memory addresses represented by those registers.</p>
+<p>Seal5 imports this version-matched support and requires <code class="docutils literal notranslate"><span class="pre">HasGPR32V</span></code> in generated
+packed patterns, preserving ISA and XLEN predicates. The demo ISA additionally
+requires <code class="docutils literal notranslate"><span class="pre">HasStdExtXPackedSIMD32</span></code>. Autogenerated MIR tests allow a register-class
+copy between a packed instruction and its scalar result writeback.</p>
+<p>Validation on each version:</p>
+<ul class="simple">
+<li><p>Four extracted vector patterns; no direct matcher output.</p></li>
+<li><p>Eight passing integrated demo test files: four handwritten and four generated.</p></li>
+<li><p>Both selectors at O0/O2/O3, with GlobalISel fallback prohibited.</p></li>
+<li><p>Correct optimized subtraction operand order, aligned and unaligned vector
+memory transfers, object decoding, and disabled-feature checks.</p></li>
+<li><p>Backend import patches apply cleanly to the matching upstream LLVM sources.</p></li>
+<li><p>Seal5: 62 unit tests pass. Native RISC-V GlobalISel: 450/450 on LLVM 22
+and 469/469 on LLVM 23. The LLVM 23 object-symbol test uses the existing
+matching-version llvm-readobj utility from the normal demo build.</p></li>
+</ul>
+<p>Run <code class="docutils literal notranslate"><span class="pre">examples/packed_simd_demo.py</span></code> using the matching local branch; commands
+and the standalone verifier are documented in <code class="docutils literal notranslate"><span class="pre">examples/packed_simd/README.md</span></code>.
+The baseline and gaps above describe the pre-port investigation. RV64 and the
+remaining SIMD operations are still unverified and are not enabled by this demo.</p>
+</section>
+<section id="initial-real-source-vectorization-embench">
+<h2>Initial real-source vectorization: Embench<a class="headerlink" href="#initial-real-source-vectorization-embench" title="Link to this heading"></a></h2>
+<p>The compile-only Embench experiment in
+<code class="docutils literal notranslate"><span class="pre">examples/packed_simd/results/embench-llvm22-23.md</span></code> tests 22 programs / 26 C
+translation units with default O3 vectorization. It compares disabled
+vectorizers, the native target, and the packed target on both LLVM versions.</p>
+<p>It exposed and fixed two RVV-only cost-query paths reached by GPR32V vectors.
+All translation units now optimize successfully. Packed codegen succeeds for
+19/26 units with SelectionDAG and 18/26 with GlobalISel, but none of those objects
+contains a demo packed instruction. The optimizer does form packed arithmetic
+in other units, whose surrounding vector operations prevent code generation.
+The synthetic add/sub selection result therefore does not yet extend to
+successful complete vectorized Embench programs. No runtime speedup was measured.</p>
+<p>The report records the first blockers and a source hash manifest; the runner
+<code class="docutils literal notranslate"><span class="pre">examples/packed_simd/embench.py</span></code> retains IR, optimization remarks, commands,
+object disassembly and diagnostics for subsequent work.</p>
+</section>
+<section id="implemented-real-source-flow">
+<h2>Implemented real-source flow<a class="headerlink" href="#implemented-real-source-flow" title="Link to this heading"></a></h2>
+<p>The follow-up report <code class="docutils literal notranslate"><span class="pre">examples/packed_simd/results/implemented-llvm22-23.md</span></code>
+records working benchmark execution after adding packed construction, loop PHIs
+and scalar fallback for unsupported operations. DSP widening, multiplication,
+shifts and narrowing can now surround packed halfword addition. Shuffles,
+comparisons/selects and narrow memory transfers also have fallback paths.</p>
+<p>Packed add/sub capability flags are distinct from the GPR32V representation;
+<code class="docutils literal notranslate"><span class="pre">ExtensionsSettings.backend_features</span></code> lets a generated ISA imply precisely
+those backend capabilities. Shuffle, packing and unaligned-memory costs now
+reflect instruction expansion instead of the shuffle placeholder.</p>
+<p>All 26 Embench translation units compile with SelectionDAG, and 25 with
+GlobalISel, on LLVM 22 and 23. Complete executables pass benchmark verification
+for 22/22 programs and 21/22 respectively. The remaining GlobalISel failure is
+the scalar-control <code class="docutils literal notranslate"><span class="pre">cubic</span></code> long-double comparison case.</p>
+<p>Default O3 selects packed instructions in <code class="docutils literal notranslate"><span class="pre">edn</span></code> and <code class="docutils literal notranslate"><span class="pre">md5sum</span></code> when efficient
+unaligned scalar memory is enabled for both packed and native controls. Retired
+instruction reductions are 1.55–2.24 percent and 7.57–7.67 percent, with code-size
+growth. Strict-alignment costing does not select these packed instructions in
+this snapshot. Measurements use Spike’s CPI=1 model and do not establish hardware
+cycle speedups. The report includes reproducible compile/execute/replay commands,
+source hashes, all-program comparisons and correctness checks.</p>
+<p>Pattern extraction, direct GISel-table entry counts, generation times and output
+sizes can be collected with the <a class="reference internal" href="pattern-metrics.html"><span class="doc">Pattern generation metrics</span></a> reports.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="seal5-diagrams.html" class="btn btn-neutral float-left" title="Seal5 architecture diagrams" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="gnu-toolchain.html" class="btn btn-neutral float-right" title="GNU binutils and GDB backend" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, TUM Department of Electrical and Computer Engineering - Chair of Electronic Design Automation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

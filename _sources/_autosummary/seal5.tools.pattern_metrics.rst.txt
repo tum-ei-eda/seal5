@@ -1,0 +1,17 @@
+seal5.tools.pattern\_metrics
+============================
+
+.. automodule:: seal5.tools.pattern_metrics
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      aggregate
+      count_gisel_entries
+      instruction_metrics
+      parse_statistics
+      report_rows
+      write_statistics
+   

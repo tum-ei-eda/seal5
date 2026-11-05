@@ -9,4 +9,5 @@ seal5.backends.patterngen.writer
    .. autosummary::
    
       main
+      require_packed_simd_feature
    

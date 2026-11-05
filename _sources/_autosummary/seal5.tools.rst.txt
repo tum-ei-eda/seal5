@@ -16,3 +16,4 @@ seal5.tools
    inject_patches
    llvm
    m2isar
+   pattern_metrics

@@ -1,0 +1,113 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="340.0mm" height="382.5mm" viewBox="0 0 1360 1530" role="img">
+  <title>Seal5 full compiler-generation flow</title>
+  <desc>Default fresh run including bootstrap builds, model processing, PatternGen, validation and delivery.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M 0 0 L 8 4 L 0 8 z" fill="#526370" />
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1360" height="1530" fill="white" />
+  <text x="36" y="43" fill="#172b3a" font-size="27" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">Seal5 full flow</text>
+  <text x="36" y="72" fill="#526370" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Fresh run with integrated PatternGen; optional controls are shown as annotations.</text>
+  <rect x="42" y="112" width="662" height="94" rx="7" fill="#edf4f9" stroke="#23618c" stroke-width="1.3" />
+  <text x="58" y="140" fill="#23618c" font-size="18" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">01  Initialize and load</text>
+  <text x="58" y="166" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Clone / select LLVM; create metadata</text>
+  <text x="58" y="188" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Load CoreDSL, YAML configuration and tests</text>
+  <polyline points="373,206 373,227" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="42" y="228" width="662" height="94" rx="7" fill="#edf4f9" stroke="#23618c" stroke-width="1.3" />
+  <text x="58" y="256" fill="#23618c" font-size="18" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">02  Setup and bootstrap patch</text>
+  <text x="58" y="282" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Fetch CoreDSL2LLVM dependency</text>
+  <text x="58" y="304" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Apply PHASE_0 support patches</text>
+  <polyline points="373,322 373,343" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="42" y="344" width="662" height="94" rx="7" fill="#edf4f9" stroke="#23618c" stroke-width="1.3" />
+  <text x="58" y="372" fill="#23618c" font-size="18" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">03  Initial LLVM build</text>
+  <text x="58" y="398" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Configure and compile the bootstrapped toolchain</text>
+  <text x="58" y="420" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Skipped when reusing an existing build</text>
+  <polyline points="373,438 373,459" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="42" y="460" width="662" height="94" rx="7" fill="#edf4f9" stroke="#23618c" stroke-width="1.3" />
+  <text x="58" y="488" fill="#23618c" font-size="18" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">04  Transform models</text>
+  <text x="58" y="514" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">T01–T38: convert, normalize, infer and annotate</text>
+  <text x="58" y="536" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Create annotated Seal5 models + full CoreDSL</text>
+  <polyline points="373,554 373,575" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="42" y="576" width="662" height="94" rx="7" fill="#edf4f9" stroke="#23618c" stroke-width="1.3" />
+  <text x="58" y="604" fill="#23618c" font-size="18" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">05  Generate structural artifacts</text>
+  <text x="58" y="630" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">G01–G11: instruction / target / frontend metadata</text>
+  <text x="58" y="652" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Create patch indices and generated tests</text>
+  <polyline points="373,670 373,691" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="42" y="692" width="662" height="94" rx="7" fill="#edf4f9" stroke="#23618c" stroke-width="1.3" />
+  <text x="58" y="720" fill="#23618c" font-size="18" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">06  Patch and rebuild</text>
+  <text x="58" y="746" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Apply PHASE_1 and PHASE_2</text>
+  <text x="58" y="768" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Build the instruction-aware LLVM toolchain</text>
+  <polyline points="373,786 373,807" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="42" y="808" width="662" height="94" rx="7" fill="#edf4f9" stroke="#23618c" stroke-width="1.3" />
+  <text x="58" y="836" fill="#23618c" font-size="18" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">07  Build extraction tools</text>
+  <text x="58" y="862" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Build pattern-gen and llc</text>
+  <text x="58" y="884" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Required before instruction-selection rule extraction</text>
+  <polyline points="373,902 373,923" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="42" y="924" width="662" height="94" rx="7" fill="#edf4f9" stroke="#23618c" stroke-width="1.3" />
+  <text x="58" y="952" fill="#23618c" font-size="18" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">08  Generate selection patterns</text>
+  <text x="58" y="978" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">G12: P01–P04 (see detail at right)</text>
+  <text x="58" y="1000" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Produce TableGen patterns or direct GISel matchers</text>
+  <polyline points="373,1018 373,1039" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="42" y="1040" width="662" height="94" rx="7" fill="#edf4f9" stroke="#23618c" stroke-width="1.3" />
+  <text x="58" y="1068" fill="#23618c" font-size="18" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">09  Apply remaining phases</text>
+  <text x="58" y="1094" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Apply PHASE_3 → PHASE_4 → PHASE_5</text>
+  <text x="58" y="1116" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">PHASE_4 receives the generated selection rules</text>
+  <polyline points="373,1134 373,1155" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="42" y="1156" width="662" height="94" rx="7" fill="#edf4f9" stroke="#23618c" stroke-width="1.3" />
+  <text x="58" y="1184" fill="#23618c" font-size="18" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">10  Final LLVM build</text>
+  <text x="58" y="1210" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Compile the retargeted compiler</text>
+  <text x="58" y="1232" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Includes the generated instruction-selection rules</text>
+  <polyline points="373,1250 373,1271" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="42" y="1272" width="662" height="94" rx="7" fill="#edf7f3" stroke="#187668" stroke-width="1.3" />
+  <text x="58" y="1300" fill="#187668" font-size="18" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">11  Validate and deliver</text>
+  <text x="58" y="1326" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Run imported + generated llvm-lit tests</text>
+  <text x="58" y="1348" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Optionally install, deploy sources, export metadata</text>
+  <rect x="780" y="112" width="538" height="144" rx="7" fill="#edf7f3" stroke="#187668" stroke-width="1.3" />
+  <text x="796" y="140" fill="#187668" font-size="18" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">Inputs</text>
+  <text x="796" y="166" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">CoreDSL architecture / instruction descriptions</text>
+  <text x="796" y="188" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">YAML: filters, extensions, passes and build settings</text>
+  <text x="796" y="210" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">C / LLVM IR / assembly test files</text>
+  <polyline points="780,158 704,158" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="780" y="292" width="538" height="144" rx="7" fill="#edf4f9" stroke="#23618c" stroke-width="1.3" />
+  <text x="796" y="320" fill="#23618c" font-size="18" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">Model artifacts</text>
+  <text x="796" y="346" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">CoreDSL → M2-ISA-R model → Seal5 model</text>
+  <text x="796" y="368" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Instruction sets, operands, behavior and attributes</text>
+  <text x="796" y="390" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Normalized behavior + per-model settings</text>
+  <polyline points="704,507 744,507 744,365 780,365" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="780" y="486" width="538" height="136" rx="7" fill="#edf4f9" stroke="#23618c" stroke-width="1.3" />
+  <text x="796" y="514" fill="#23618c" font-size="18" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">Generated integration</text>
+  <text x="796" y="540" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">TableGen definitions; ISA / feature metadata</text>
+  <text x="796" y="562" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Intrinsics / builtins; disassembler integration</text>
+  <text x="796" y="584" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Patch indices + generated test sources</text>
+  <polyline points="704,622 752,622 752,550 780,550" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="780" y="680" width="538" height="407" rx="7" fill="#edf4f9" stroke="#23618c" stroke-width="1.3" />
+  <text x="796" y="708" fill="#23618c" font-size="18" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">PatternGen detail · G12</text>
+  <text x="800" y="738" fill="#172b3a" font-size="16" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">P01  write_cdsl_compat</text>
+  <text x="800" y="762" fill="#526370" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Reduced CoreDSL, split per instruction</text>
+  <text x="800" y="809" fill="#172b3a" font-size="16" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">P02  behav_to_llvmir</text>
+  <text x="800" y="833" fill="#526370" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">LLVM IR inspection artifact (.ll)</text>
+  <text x="800" y="880" fill="#172b3a" font-size="16" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">P03  llvmir_to_gmir</text>
+  <text x="800" y="904" fill="#526370" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Generic MIR inspection artifact (.gmir)</text>
+  <text x="800" y="951" fill="#172b3a" font-size="16" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">P04  behav_to_pat</text>
+  <text x="800" y="975" fill="#526370" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">pattern-gen consumes reduced CoreDSL again</text>
+  <text x="800" y="1017" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Internally: behavior → LLVM IR → GMIR → matcher</text>
+  <text x="800" y="1042" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Output: .td patterns; optional direct .inc matchers</text>
+  <text x="800" y="1066" fill="#526370" font-size="14" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">P02 / P03 files are not direct inputs to P04.</text>
+  <polyline points="704,970 744,970 744,715 780,715" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <polyline points="1040,770 1040,785" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5 4" />
+  <polyline points="1040,841 1040,856" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5 4" />
+  <polyline points="1040,912 1040,927" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5 4" />
+  <rect x="780" y="1128" width="538" height="143" rx="7" fill="#edf7f3" stroke="#187668" stroke-width="1.3" />
+  <text x="796" y="1156" fill="#187668" font-size="18" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">Outputs</text>
+  <text x="796" y="1182" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Retargeted LLVM / Clang / assembler tools</text>
+  <text x="796" y="1204" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Test results, metrics and generated artifacts</text>
+  <text x="796" y="1226" fill="#172b3a" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Optional installation and source / metadata archives</text>
+  <polyline points="704,1320 748,1320 748,1200 780,1200" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <text x="42" y="1410" fill="#526370" font-size="14" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Execution controls: PREPATCHED reuses phase 0; RERUN suppresses the initial / intermediate all-target builds.</text>
+  <text x="42" y="1432" fill="#526370" font-size="14" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">SKIP_PATTERNS omits extraction tools, G12 and phases 3–5. TEST_ONLY bypasses setup, generation, patching and builds.</text>
+  <text x="42" y="1454" fill="#526370" font-size="14" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Lifecycle flags can disable individual operations; reset and final cleanup are optional. GNU patch generation is opt-in.</text>
+  <text x="42" y="1476" fill="#526370" font-size="14" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Solid arrows: main execution / artifact relationships. Dashed arrows inside G12: pass order, not artifact dependencies.</text>
+  <text x="42" y="1498" fill="#526370" font-size="14" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Source: seal5/wrapper.py · seal5/flow.py · seal5/pass_list.py</text>
+</svg>

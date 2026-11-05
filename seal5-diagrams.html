@@ -1,0 +1,179 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seal5 architecture diagrams &mdash; Seal5 v0.1.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=69c7a37b"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Packed SIMD: TableGen-first investigation" href="packed-simd.html" />
+    <link rel="prev" title="Seal5" href="readme.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Seal5
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="_autosummary/seal5.html">seal5</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Seal5</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Seal5 architecture diagrams</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#stage-sequence">Stage sequence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#llvm-patch-phases">LLVM patch phases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pass-order-and-scope">Pass order and scope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#full-compiler-generation-flow">Full compiler-generation flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reproduction-and-source-provenance">Reproduction and source provenance</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="packed-simd.html">Packed SIMD: TableGen-first investigation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gnu-toolchain.html">GNU binutils and GDB backend</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Seal5</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Seal5 architecture diagrams</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/seal5-diagrams.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="seal5-architecture-diagrams">
+<h1>Seal5 architecture diagrams<a class="headerlink" href="#seal5-architecture-diagrams" title="Link to this heading"></a></h1>
+<p>These figures describe the registered passes and wrapper flow in this source
+checkout. Vector PDFs are suitable for a dissertation; SVGs remain editable.
+The pass inventory is best placed on a landscape page or in an appendix.</p>
+<section id="stage-sequence">
+<h2>Stage sequence<a class="headerlink" href="#stage-sequence" title="Link to this heading"></a></h2>
+<figure class="align-default" id="id1">
+<a class="reference internal image-reference" href="_images/01-stages.svg"><img alt="Sequential numbered stage boxes grouped into preparation, construction, validation, and delivery." src="_images/01-stages.svg" style="width: 100%;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Sequential stages for a fresh run with PatternGen, grouped by lifecycle role.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p><a class="reference download internal" download="" href="_downloads/0ba6d302dd95f5eaa5270425cc2ca284/01-stages.pdf"><code class="xref download docutils literal notranslate"><span class="pre">Vector</span> <span class="pre">PDF</span></code></a></p>
+</section>
+<section id="llvm-patch-phases">
+<h2>LLVM patch phases<a class="headerlink" href="#llvm-patch-phases" title="Link to this heading"></a></h2>
+<p>The patch phases are provided as a separate TeX table with an independently
+compiled PDF preview. The table lists default assignments for phases zero
+through five; these phase numbers are distinct from the lifecycle steps above.
+Load <code class="docutils literal notranslate"><span class="pre">booktabs</span></code> and <code class="docutils literal notranslate"><span class="pre">tabularx</span></code> and include the TeX file with <code class="docutils literal notranslate"><span class="pre">\input</span></code>.</p>
+<p><a class="reference download internal" download="" href="_downloads/7446453c61102ed9827e82846a92a9c0/01-patch-phases.tex"><code class="xref download docutils literal notranslate"><span class="pre">TeX</span> <span class="pre">table</span></code></a> |
+<a class="reference download internal" download="" href="_downloads/243c157264d9893414bd3e6f4cf94125/01-patch-phases.pdf"><code class="xref download docutils literal notranslate"><span class="pre">PDF</span> <span class="pre">preview</span></code></a></p>
+</section>
+<section id="pass-order-and-scope">
+<h2>Pass order and scope<a class="headerlink" href="#pass-order-and-scope" title="Link to this heading"></a></h2>
+<figure class="align-default" id="id2">
+<a class="reference internal image-reference" href="_images/02-passes.svg"><img alt="All 38 transformation passes, 12 generation passes, and four nested PatternGen passes, in order with model or global scope." src="_images/02-passes.svg" style="width: 100%;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Registered pass order and scope. M denotes per-model execution; G denotes
+global execution. The final generation pass expands into four nested passes.</span><a class="headerlink" href="#id2" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p><a class="reference download internal" download="" href="_downloads/02f254e442f0fab3c3204a8e26e242fa/02-passes.pdf"><code class="xref download docutils literal notranslate"><span class="pre">Vector</span> <span class="pre">PDF</span></code></a> |
+<a class="reference download internal" download="" href="_downloads/75bc7ff2872416791bbd277b49576241/passes.csv"><code class="xref download docutils literal notranslate"><span class="pre">Pass</span> <span class="pre">catalog</span> <span class="pre">(CSV)</span></code></a></p>
+</section>
+<section id="full-compiler-generation-flow">
+<h2>Full compiler-generation flow<a class="headerlink" href="#full-compiler-generation-flow" title="Link to this heading"></a></h2>
+<figure class="align-default" id="id3">
+<a class="reference internal image-reference" href="_images/03-full-flow.svg"><img alt="Full Seal5 flow including bootstrap, model transformations, repeated builds, pattern generation, validation, and delivery." src="_images/03-full-flow.svg" style="width: 100%;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Fresh-run flow with integrated PatternGen. The inset distinguishes pass order
+from artifact dependencies during pattern extraction.</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p><a class="reference download internal" download="" href="_downloads/7dc1ef9ec15614d1fc395ea2741651ed/03-full-flow.pdf"><code class="xref download docutils literal notranslate"><span class="pre">Vector</span> <span class="pre">PDF</span></code></a></p>
+</section>
+<section id="reproduction-and-source-provenance">
+<h2>Reproduction and source provenance<a class="headerlink" href="#reproduction-and-source-provenance" title="Link to this heading"></a></h2>
+<p><a class="reference download internal" download="" href="_downloads/f01b0cc5854049252911cc75d11147bc/README.md"><code class="xref download docutils literal notranslate"><span class="pre">Figure</span> <span class="pre">notes,</span> <span class="pre">captions</span> <span class="pre">and</span> <span class="pre">LaTeX</span> <span class="pre">examples</span></code></a>
+include execution controls, inactive handlers, and regeneration instructions.
+The <a class="reference download internal" download="" href="_downloads/d3c047c99d9834b9a52057ab4171187d/generate.py"><code class="xref download docutils literal notranslate"><span class="pre">generator</span></code></a> reads the pass registration
+lists from Python syntax trees without importing Seal5 or running any builds.
+The <a class="reference download internal" download="" href="_downloads/2506ddfc68524cdea3fa27d7c88b9df3/sources.json"><code class="xref download docutils literal notranslate"><span class="pre">source</span> <span class="pre">manifest</span></code></a> records fingerprints
+of the implementation files used for these figures.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="readme.html" class="btn btn-neutral float-left" title="Seal5" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="packed-simd.html" class="btn btn-neutral float-right" title="Packed SIMD: TableGen-first investigation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, TUM Department of Electrical and Computer Engineering - Chair of Electronic Design Automation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
