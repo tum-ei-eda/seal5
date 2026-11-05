@@ -17,6 +17,7 @@ def read_metrics(metrics_file: Union[str, Path], allow_missing: bool = True):
         assert len(data) == 2
         keys = data[0]
         vals = data[1]
-        vals = list(map(lambda x: ast.literal_eval(x), vals))
+        # Pandas writes unavailable measurements (None) as empty CSV cells.
+        vals = [None if not value.strip() else ast.literal_eval(value) for value in vals]
         data = dict(zip(keys, vals))
     return data
