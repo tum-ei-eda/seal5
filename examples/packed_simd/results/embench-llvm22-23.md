@@ -1,6 +1,9 @@
-# Embench automatic packed SIMD: LLVM 22 and 23
+# Initial Embench automatic packed SIMD: LLVM 22 and 23
 
-The optimizer vectorizes real benchmark code, but the current packed backend does
+This is the initial 2026-11-04 result. See the [implemented follow-up](implemented-llvm22-23.md)
+for working benchmark execution after the proposed steps.
+
+The optimizer vectorizes real benchmark code, but this initial packed backend does
 not yet compile those vectorized programs successfully. **No successful complete
 Embench object contains one of the four demo packed instructions.**
 

@@ -238,8 +238,8 @@ and the standalone verifier are documented in ``examples/packed_simd/README.md``
 The baseline and gaps above describe the pre-port investigation. RV64 and the
 remaining SIMD operations are still unverified and are not enabled by this demo.
 
-Real-source vectorization: Embench
----------------------------------
+Initial real-source vectorization: Embench
+-----------------------------------------
 
 The compile-only Embench experiment in
 ``examples/packed_simd/results/embench-llvm22-23.md`` tests 22 programs / 26 C
@@ -257,3 +257,30 @@ successful complete vectorized Embench programs. No runtime speedup was measured
 The report records the first blockers and a source hash manifest; the runner
 ``examples/packed_simd/embench.py`` retains IR, optimization remarks, commands,
 object disassembly and diagnostics for subsequent work.
+
+Implemented real-source flow
+----------------------------
+
+The follow-up report ``examples/packed_simd/results/implemented-llvm22-23.md``
+records working benchmark execution after adding packed construction, loop PHIs
+and scalar fallback for unsupported operations. DSP widening, multiplication,
+shifts and narrowing can now surround packed halfword addition. Shuffles,
+comparisons/selects and narrow memory transfers also have fallback paths.
+
+Packed add/sub capability flags are distinct from the GPR32V representation;
+``ExtensionsSettings.backend_features`` lets a generated ISA imply precisely
+those backend capabilities. Shuffle, packing and unaligned-memory costs now
+reflect instruction expansion instead of the shuffle placeholder.
+
+All 26 Embench translation units compile with SelectionDAG, and 25 with
+GlobalISel, on LLVM 22 and 23. Complete executables pass benchmark verification
+for 22/22 programs and 21/22 respectively. The remaining GlobalISel failure is
+the scalar-control ``cubic`` long-double comparison case.
+
+Default O3 selects packed instructions in ``edn`` and ``md5sum`` when efficient
+unaligned scalar memory is enabled for both packed and native controls. Retired
+instruction reductions are 1.55--2.24 percent and 7.57--7.67 percent, with code-size
+growth. Strict-alignment costing does not select these packed instructions in
+this snapshot. Measurements use Spike's CPI=1 model and do not establish hardware
+cycle speedups. The report includes reproducible compile/execute/replay commands,
+source hashes, all-program comparisons and correctness checks.
