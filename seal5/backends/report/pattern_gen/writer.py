@@ -1,94 +1,113 @@
 # SPDX-License-Identifier: Apache-2.0
-#
-# This file is part of the M2-ISA-R project: https://github.com/tum-ei-eda/M2-ISA-R
-#
-# Copyright (C) 2022
-# Chair of Electrical Design Automation
-# Technical University of Munich
-
-"""Status report writer for Seal5."""
+"""Instruction, set and global reports for PatternGen experiments."""
 
 import argparse
+import json
 import logging
-import pathlib
-from collections import defaultdict
+from pathlib import Path
 
-import yaml
 import pandas as pd
+import yaml
 
 from seal5.settings import Seal5Settings
+from seal5.tools.pattern_metrics import instruction_metrics, report_rows
 
-logger = logging.getLogger("status_writer")
+
+def collect_measurements(temp_dir):
+    """Prefer current-run manifests; support older statistics as partial data."""
+    rows = []
+    covered = set()
+    for manifest in sorted(Path(temp_dir).rglob("pattern_gen_manifest.json")):
+        data = json.loads(manifest.read_text())
+        if data["schema_version"] != 1:
+            raise ValueError(f"Unsupported manifest version: {manifest}")
+        rows.extend(data["instructions"])
+        covered.add(manifest.parent)
+    for path in sorted(Path(temp_dir).rglob("*.td.stats")):
+        if any(parent in covered for parent in path.parents):
+            continue
+        dest = Path(str(path)[:-6])
+        data = yaml.safe_load(path.read_text()) or {}
+        mode = data.get("seal5", {}).get("mode", "tablegen")
+        # Old artifacts cannot distinguish a failed extraction from a skipped one.
+        status = "success" if dest.is_file() else "failed"
+        rows.append(
+            {
+                "model": path.parent.parent.name,
+                "set": path.parent.name,
+                "instruction": dest.stem,
+                "mode": mode,
+                "status": status,
+                **instruction_metrics(dest, mode, status),
+            }
+        )
+    return rows
+
+
+def apply_validation(rows, validation):
+    """Attach explicit per-pattern evidence; never infer it from extraction."""
+    by_key = {(row["model"], row["set"], row["instruction"], row["mode"]): row for row in rows}
+    seen = set()
+    for evidence in validation:
+        key = tuple(evidence[name] for name in ("model", "set", "instruction", "mode"))
+        if key not in by_key or key in seen:
+            raise ValueError(f"Unknown or duplicate validation identity: {key}")
+        seen.add(key)
+        row = by_key[key]
+        mode = row["mode"]
+        if mode not in ("tablegen", "gisel_table"):
+            raise ValueError(f"Cannot validate non-pattern invocation: {key}")
+        count = row[f"n_{mode}_patterns"]
+        for kind in ("imported", "matched", "matched_entries"):
+            indices = evidence.get(kind)
+            if indices is None:
+                continue
+            if not evidence.get(f"{kind}_source"):
+                raise ValueError(f"Missing {kind} evidence source: {key}")
+            if not isinstance(indices, list):
+                raise ValueError(f"Expected pattern-index list: {key}")
+            limit = row["n_gisel_table_entries"] if kind == "matched_entries" else count
+            if kind == "matched_entries" and (mode != "gisel_table" or limit is None):
+                raise ValueError(f"No known direct-entry population: {key}")
+            if any(type(i) is not int or i < 0 or i >= limit for i in indices) or len(set(indices)) != len(indices):
+                raise ValueError(f"Invalid {kind} pattern indices: {key}")
+            if kind == "imported" and mode == "gisel_table":
+                raise ValueError("Direct GISel entries bypass the SelectionDAG importer")
+            field = "n_gisel_table_entries_matched" if kind == "matched_entries" else f"n_{mode}_patterns_{kind}"
+            row[field] = len(indices)
+    return rows
 
 
 def main():
-    """Main app entrypoint."""
-
-    # read command line args
-    parser = argparse.ArgumentParser()
-    # parser.add_argument("top_level", nargs="+", help="A .m2isarmodel or .seal5model file.")
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
-    parser.add_argument("--output", "-o", type=str, default=None)
-    parser.add_argument("--fmt", type=str, choices=["auto", "csv", "pkl", "md"], default="auto")
-    parser.add_argument("--yaml", type=str, default=None)
-    parser.add_argument("--agg", action="store_true")
+    parser.add_argument("--output", "-o", required=True)
+    parser.add_argument("--fmt", choices=["auto", "csv", "pkl", "md", "json"], default="auto")
+    parser.add_argument("--yaml", required=True)
+    parser.add_argument("--scope", choices=["instruction", "set", "global", "all"], default="all")
+    parser.add_argument("--agg", action="store_true", help="Alias for --scope global")
+    parser.add_argument("--validation", help="JSON list of per-pattern import/match evidence")
     parser.add_argument("--print-df", action="store_true")
     args = parser.parse_args()
-
-    # initialize logging
     logging.basicConfig(level=getattr(logging, args.log.upper()))
-
-    # if args.output is None:
-    #     assert top_level.suffix in [".m2isarmodel", ".seal5model"], "Can not infer model type from file extension."
-    #     raise NotImplementedError
-
-    #     # out_path = top_level.parent / (top_level.stem + ".core_desc")
-    # else:
-    assert args.output is not None
-    out_path = pathlib.Path(args.output)
-
-    assert args.yaml is not None
-    assert pathlib.Path(args.yaml).is_file()
     settings = Seal5Settings.from_yaml_file(args.yaml)
-    meta_dir = pathlib.Path(settings.meta_dir)
-    # TODOL combine stats automnatically via metrics?
-    temp_dir = meta_dir / "temp"
-    assert temp_dir.is_dir()
-    # all_data = {}
-    all_data = []
-    agg_data = defaultdict(int)
-    for p in temp_dir.rglob("**/*.td.stats"):
-        instr_name = p.name.split(".td", 1)[0]
-        # print("instr_name", instr_name)
-        with open(p, "r") as f:
-            data = yaml.safe_load(f)
-        assert "pattern-gen" in data
-        data = data["pattern-gen"]
-        # print("data", data)
-        # all_data[instr_name] = data
-        all_data.append({"instr_name": instr_name, **data})
-        for key, val in data.items():
-            agg_data[key] += val
-
-    all_df = pd.DataFrame(all_data)
-    agg_df = pd.Series(agg_data).to_frame().reset_index().rename(columns={"index": "stat", 0: "count"})
-
-    df = agg_df if args.agg else all_df
+    rows = collect_measurements(Path(settings.meta_dir) / "temp")
+    if args.validation:
+        rows = apply_validation(rows, json.loads(Path(args.validation).read_text()))
+    result = report_rows(rows, "global" if args.agg else args.scope)
+    df = pd.DataFrame(result)
     if args.print_df:
         print(df)
-
-    fmt = args.fmt
-    if fmt == "auto":
-        fmt = out_path.suffix
-        assert len(fmt) > 1
-        fmt = fmt[1:].lower()
-
+    out = Path(args.output)
+    fmt = out.suffix[1:].lower() if args.fmt == "auto" else args.fmt
     if fmt == "csv":
-        df.to_csv(out_path, index=False)
+        df.to_csv(out, index=False)
     elif fmt == "pkl":
-        df.to_pickle(out_path)
+        df.to_pickle(out)
     elif fmt == "md":
-        df.to_markdown(out_path, index=False)
+        df.to_markdown(out, index=False)
+    elif fmt == "json":
+        out.write_text(json.dumps(result, indent=2) + "\n")
     else:
         raise ValueError(f"Unsupported fmt: {fmt}")
 

@@ -9,6 +9,10 @@
 """Clean M2-ISA-R/Seal5 metamodel to .core_desc file."""
 
 import os
+import json
+import time
+import difflib
+from threading import Lock
 import re
 import argparse
 import logging
@@ -16,6 +20,9 @@ import pathlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import pandas as pd
+import yaml
+
+from seal5.tools.pattern_metrics import instruction_metrics, aggregate, report_rows
 
 from seal5.tools import cdsl2llvm
 from seal5.index import write_index_yaml, File, NamedPatch, TestFile
@@ -88,6 +95,10 @@ def main():
         "failed_instructions": [],
         "success_instructions": [],
     }
+    measurements = []
+    measurement_lock = Lock()
+    generation_started = time.perf_counter()
+    mode = "formats" if not args.patterns else "gisel_table" if args.gisel_table else "tablegen"
     # preprocess model
     # print("model", model)
     artifacts = {}
@@ -133,9 +144,8 @@ def main():
 
             mattr = build_riscv_mattr(features, xlen)
 
-            def process_instrunction(instr_def, set_name, set_dir, mattr, predicate, xlen):
+            def process_instruction_impl(instr_def, set_name, set_dir, mattr, predicate, xlen):
                 includes_ = []
-                metrics["n_instructions"] += 1
                 input_file = out_path / set_name / f"{instr_def.name}.core_desc"
                 attrs = instr_def.attributes
                 skip = False
@@ -144,8 +154,6 @@ def main():
                 if not input_file.is_file():
                     skip = True
                 if skip:
-                    metrics["n_skipped"] += 1
-                    metrics["skipped_instructions"].append(instr_def.name)
                     return False, includes_
                 # if args.patterns:
                 out_name = f"{instr_def.name}.{args.ext}"
@@ -211,8 +219,6 @@ def main():
                             table_path = f"seal5/{set_name}/{table.name}"
                             artifacts[set_name].append(File(f"llvm/utils/TableGen/{table_path}", src_path=table))
                             table_includes.append(f'#include "{table_path}"')
-                        metrics["n_success"] += 1
-                        metrics["success_instructions"].append(instr_def.name)
                         if args.formats:
                             file_artifact_fmt_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}/{out_name_fmt}"
                             file_artifact_fmt = File(file_artifact_fmt_dest, src_path=output_file_fmt)
@@ -234,14 +240,62 @@ def main():
                                 )
                                 artifacts[set_name].append(test_artifact)
                     else:
-                        metrics["n_failed"] += 1
-                        metrics["failed_instructions"].append(instr_def.name)
+                        return False, includes_
                 except AssertionError:
-                    metrics["n_failed"] += 1
-                    metrics["failed_instructions"].append(instr_def.name)
                     return False, includes_
                     # errs.append((insn_name, str(ex)))
                 return True, includes_
+
+            def process_instrunction(instr_def, set_name, set_dir, mattr, predicate, xlen):
+                output = set_dir / f"{instr_def.name}.{args.ext}"
+                skipped = (
+                    Seal5InstrAttribute.SKIP_PATTERN_GEN in instr_def.attributes
+                    or not (set_dir / f"{instr_def.name}.core_desc").is_file()
+                )
+                if not skipped:
+                    pathlib.Path(str(output) + ".stats").unlink(missing_ok=True)
+                status = "skipped" if skipped else "failed"
+                try:
+                    result = process_instruction_impl(instr_def, set_name, set_dir, mattr, predicate, xlen)
+                    if not skipped and result[0] and output.is_file():
+                        status = "success"
+                    return result
+                finally:
+                    stat_path = pathlib.Path(str(output) + ".stats")
+                    if not skipped and stat_path.is_file():
+                        data = yaml.safe_load(stat_path.read_text())
+                        measured = data.get("seal5", {})
+                        measured["tablegen_bytes"] = output.stat().st_size if output.is_file() else 0
+                        if args.formats:
+                            fmt_path = set_dir / f"{instr_def.name}InstrFormat.{args.ext}"
+                            measured["tablegen_bytes"] += fmt_path.stat().st_size if fmt_path.is_file() else 0
+                        table = output.with_suffix(".inc")
+                        if mode == "gisel_table" and status == "success" and table.is_file():
+                            target = f"llvm/utils/TableGen/seal5/{set_name}/{table.name}"
+                            patch = "".join(
+                                difflib.unified_diff(
+                                    [],
+                                    table.read_text().splitlines(keepends=True),
+                                    fromfile="/dev/null",
+                                    tofile=f"b/{target}",
+                                )
+                            )
+                            patch_path = table.with_suffix(".inc.patch")
+                            patch_path.write_text(patch, encoding="utf-8")
+                            measured["gisel_table_bytes"] = table.stat().st_size
+                            measured["gisel_table_patch_bytes"] = patch_path.stat().st_size
+                        data["seal5"] = measured
+                        stat_path.write_text(yaml.safe_dump(data), encoding="utf-8")
+                    row = {
+                        "model": model_name,
+                        "set": set_name,
+                        "instruction": instr_def.name,
+                        "mode": mode,
+                        "status": status,
+                        **instruction_metrics(output, mode, status),
+                    }
+                    with measurement_lock:
+                        measurements.append(row)
 
             includes = []
             with ThreadPoolExecutor(args.parallel) as executor:
@@ -290,6 +344,20 @@ def main():
                 content="\n".join(sorted(table_includes)),
             )
         )
+    measurements.sort(key=lambda row: (row["set"], row["instruction"]))
+    metadata = {"model", "set", "instruction", "mode", "status"}
+    totals = aggregate([{k: v for k, v in row.items() if k not in metadata} for row in measurements])
+    metrics.update(totals)
+    metrics["n_processed_sets"] = len({row["set"] for row in measurements if row["n_processed_instructions"]})
+    metrics["generation_wall_time_s"] = time.perf_counter() - generation_started
+    for status in ("skipped", "failed", "success"):
+        metrics[f"{status}_instructions"] = [row["instruction"] for row in measurements if row["status"] == status]
+    manifest = out_path / "pattern_gen_manifest.json"
+    manifest.write_text(json.dumps({"schema_version": 1, "instructions": measurements}, indent=2) + "\n")
+    report = report_rows(measurements)
+    report[-1]["generation_wall_time_s"] = metrics["generation_wall_time_s"]
+    (out_path / "pattern_gen_report.json").write_text(json.dumps(report, indent=2) + "\n")
+    pd.DataFrame(report).to_csv(out_path / "pattern_gen_report.csv", index=False)
     if args.metrics:
         metrics_file = args.metrics
         metrics_df = pd.DataFrame({key: [val] for key, val in metrics.items()})

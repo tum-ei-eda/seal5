@@ -20,17 +20,17 @@
 
 import difflib
 import re
+import time
 from pathlib import Path
 from typing import Optional, Union
-from collections import defaultdict
 
-import yaml
 
 from seal5.logging import Logger
 from seal5.settings import PatchSettings
 from seal5.types import PatchStage
 from seal5.index import File, Directory, AppendPatch, NamedPatch, write_index_yaml
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
+from seal5.tools.pattern_metrics import write_statistics
 from seal5 import utils
 
 logger = Logger("tools")
@@ -410,7 +410,13 @@ def run_pattern_gen(
     break_on_err = False
 
     # TODO: dump gmir?
+    returncode = None
+    captured_output = ""
+
     def handle_exit(code=None, out=None):
+        nonlocal returncode, captured_output
+        returncode = code
+        captured_output = out or ""
         if code is not None and code != 0:
             err_file = str(dest) + ".err"
             with open(err_file, "w", encoding="utf-8") as f:
@@ -427,6 +433,16 @@ def run_pattern_gen(
     cmd_file = str(dest) + ".cmd"
     with open(cmd_file, "w", encoding="utf-8") as f:
         f.write(cmd_str)
+    # Remove artifacts from a previous invocation before measuring this one.
+    for suffix in (".stats", ".pat", ".err", ".out"):
+        Path(str(dest) + suffix).unlink(missing_ok=True)
+    dest.unlink(missing_ok=True)
+    dest.with_name(dest.stem + "InstrFormat" + dest.suffix).unlink(missing_ok=True)
+    dest.with_suffix(".inc.patch").unlink(missing_ok=True)
+    if gisel_table:
+        dest.with_suffix(".inc").unlink(missing_ok=True)
+    started = time.perf_counter()
+    out = ""
     try:
         out = utils.exec_getout(
             pattern_gen_exe,
@@ -445,6 +461,16 @@ def run_pattern_gen(
             if len(content) == 0:
                 dest.unlink()
         raise e
+    finally:
+        write_statistics(
+            dest,
+            out or captured_output,
+            time.perf_counter() - started,
+            gisel_table,
+            skip_patterns,
+            returncode,
+            skip_formats=skip_formats,
+        )
     if not skip_patterns:
         # errs = None
         # opt_ll = None
@@ -453,8 +479,6 @@ def run_pattern_gen(
         # reason = None
         # rest = []
         num_err = 0
-        has_stats = False
-        all_stats = defaultdict(dict)
         instr = None
         mnemonic = None
 
@@ -523,30 +547,11 @@ def run_pattern_gen(
                 #     mnemonic = "TODO"
                 #     pat = [line.split(":", 1)[1]]
                 #     # found_pattern = True
-            if has_stats:
-                parsed = re.compile(r"^\s*(\d+)\s([^\s]+)\s+-\s(.*)$").findall(line)
-                if len(parsed) > 0:
-                    assert len(parsed) == 1
-                    assert len(parsed[0]) == 3
-                    stat_count, stat_type, stat_descr = parsed[0]
-                    stat_count = int(stat_count)
-                    if stat_type not in ["pattern-gen"]:
-                        continue
-                    new_stats = {stat_descr: stat_count}
-                    all_stats[stat_type].update(new_stats)
-            else:
-                if "Statistics Collected" in line:
-                    has_stats = True
         if found_pattern:
             pattern = "\n".join(pat)
             patterns.append(pattern)
             pat = []
             found_pattern = False
-        if len(all_stats) > 0:
-            all_stats = dict(all_stats)
-            stat_file = str(dest) + ".stats"
-            with open(stat_file, "w", encoding="utf-8") as f:
-                yaml.dump(all_stats, f)
         ll_files = []
         has_imm = False
         # print("pat", pat, len(pat))

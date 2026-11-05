@@ -28,7 +28,6 @@ class PatternGenTestGenerationTests(unittest.TestCase):
         source = root / "test.core_desc"
         source.touch()
         destination = root / "test.td"
-        destination.write_text("(outs GPR32V4:$rd)" if packed_output else "")
         ir = "define void @implTEST() {\n  ret void\n}\n"
         if may_load:
             ir = (
@@ -37,7 +36,12 @@ class PatternGenTestGenerationTests(unittest.TestCase):
                 f"  store i{xlen} %v, ptr %rd, align {xlen // 8}\n  ret void\n}}\n"
             )
         (root / "test.ll").write_text(ir)
-        with patch("seal5.tools.cdsl2llvm.utils.exec_getout", return_value=f"Pattern for TEST [xtest]: {pattern}\n"):
+
+        def execute(*_args, **_kwargs):
+            destination.write_text("(outs GPR32V4:$rd)" if packed_output else "")
+            return f"Pattern for TEST [xtest]: {pattern}\n"
+
+        with patch("seal5.tools.cdsl2llvm.utils.exec_getout", side_effect=execute):
             return run_pattern_gen(
                 root,
                 source,
