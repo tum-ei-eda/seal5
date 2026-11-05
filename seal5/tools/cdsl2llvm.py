@@ -222,14 +222,30 @@ def get_pattern_gen_backend_patch(src: Path, llvm_dir: Path, temp_dir: Path):
                 assert bridges is not None, "Missing packed SIMD register-copy patterns"
                 updated += bridges.group() + "\n"
         elif name == "packed_registers":
-            updated = original + "\n" + "\n\n".join(packed_classes) + "\n"
+            # Marker patches add an insertion site at EOF. Appending classes
+            # here would invalidate that hunk before the marker pass runs.
+            anchor = "let RegInfos = XLenRI in {"
+            assert original.count(anchor) == 1, "Missing packed-register import anchor"
+            updated = original.replace(anchor, "\n\n".join(packed_classes) + "\n\n" + anchor, 1)
         elif name == "packed_features":
             feature = re.search(r"^def FeatureGPR32V\b.*?\n\s*\n", (src / path).read_text(), re.MULTILINE | re.DOTALL)
             assert feature is not None, "Missing packed SIMD feature and predicate"
             assert "hasGPR32V()" in feature.group(), "Malformed packed SIMD predicate"
-            updated = original + "\n" + feature.group()
+            # Keep both the Svinval marker context and the native EOF intact.
+            anchor = "def FeatureStdExtSvpbmt"
+            assert original.count(anchor) == 1, "Missing packed-feature import anchor"
+            updated = original.replace(anchor, feature.group() + anchor, 1)
         else:
             updated = (src / path).read_text()
+        if name == "GISel/RISCVLegalizerInfo.cpp" and has_packed_simd:
+            # Removing validation-only markers can leave an extra blank line in
+            # the source branch. Keep the native marker insertion context.
+            updated = re.sub(
+                r"(const LLT nxv16p0 = LLT::scalable_vector\(16, p0\);\n)\n+(?=  using namespace TargetOpcode;)",
+                r"\1\n",
+                updated,
+            )
+            updated = re.sub(r"(  using namespace TargetOpcode;\n)\n+(?=  auto BoolVecTys)", r"\1\n", updated)
         changes.extend(
             difflib.unified_diff(
                 original.splitlines(keepends=True),

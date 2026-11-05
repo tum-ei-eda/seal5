@@ -2,6 +2,8 @@
 """Import packed support completely while retaining the legacy scalar path."""
 from pathlib import Path
 import tempfile
+import difflib
+import subprocess
 import unittest
 
 from seal5.tools.cdsl2llvm import get_pattern_gen_backend_patch
@@ -33,6 +35,13 @@ class PackedSIMDImportTests(unittest.TestCase):
                 path = tree / target / name
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text(text)
+        (native / target / "RISCVRegisterInfo.td").write_text(
+            "NATIVE_SUPPORT\nlet RegInfos = XLenRI in {\n  NATIVE_REGISTER_TAIL\n}\n"
+        )
+        (native / target / "RISCVFeatures.td").write_text(
+            'NATIVE_SUPPORT\ndef FeatureStdExtSvpbmt : RISCVExtension<1, 0, "Page-Based Memory Types">;\n'
+            "NATIVE_FEATURE_TAIL\nNATIVE_FEATURE_TAIL2\nNATIVE_FEATURE_TAIL3\n\n"
+        )
         (native / target / "GISel/RISCVLegalizerInfo.cpp").write_text(
             "NATIVE_LEGALIZER\n  case Intrinsic::riscv_vsetvli:\n"
         )
@@ -70,6 +79,52 @@ class PackedSIMDImportTests(unittest.TestCase):
             self.assertIn("+PACKED_BRIDGE", patch)
             self.assertNotIn("validation-only", patch)
             self.assertIn("+SOURCE_SUPPORT", patch)
+
+    def test_backend_import_preserves_marker_patch_context(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            self.materialize(root, True)
+            native = root / "native"
+            target = Path("llvm/lib/Target/RISCV")
+            marker_diff = []
+            for name in ("RISCVFeatures.td", "RISCVRegisterInfo.td"):
+                path = target / name
+                original = (native / path).read_text()
+                # The LLVM 22 feature marker patch removes the last blank line;
+                # the register marker patch adds its site at the end of file.
+                updated = original[:-1] if name == "RISCVFeatures.td" else original + "\n// INSERTION_START\n"
+                marker_diff.extend(
+                    difflib.unified_diff(
+                        original.splitlines(keepends=True),
+                        updated.splitlines(keepends=True),
+                        fromfile=f"a/{path}",
+                        tofile=f"b/{path}",
+                    )
+                )
+            marker_patch = root / "markers.patch"
+            marker_patch.write_text("".join(marker_diff))
+            for patch in (root / "pattern_gen_backend_support.patch", marker_patch):
+                subprocess.run(["git", "apply", str(patch)], cwd=native, check=True, capture_output=True)
+            self.assertIn("def GPR32V2", (native / target / "RISCVRegisterInfo.td").read_text())
+            self.assertTrue((native / target / "RISCVRegisterInfo.td").read_text().endswith("// INSERTION_START\n"))
+            self.assertIn("def FeatureGPR32V", (native / target / "RISCVFeatures.td").read_text())
+
+    def test_packed_legalizer_marker_whitespace(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            self.materialize(root, True)
+            target = Path("llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp")
+            content = (
+                "  const LLT nxv8p0 = LLT::scalable_vector(8, p0);\n"
+                "  const LLT nxv16p0 = LLT::scalable_vector(16, p0);\n\n"
+                "  using namespace TargetOpcode;\n\n"
+                "  auto BoolVecTys = {};\n"
+            )
+            (root / "native" / target).write_text(content)
+            (root / "source" / target).write_text(content.replace("\n\n", "\n\n\n"))
+            patch = get_pattern_gen_backend_patch(root / "source", root / "native", root)
+            # Only whitespace at marker sites differs, so no legalizer diff remains.
+            self.assertNotIn("b/" + str(target), Path(patch.file).read_text())
 
     def test_legacy_keeps_native_legalizer(self):
         with tempfile.TemporaryDirectory() as folder:
