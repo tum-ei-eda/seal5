@@ -11,9 +11,7 @@ from embench import execute
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--results", required=True, type=Path, help="Earlier run's results.json and artifact directory"
-    )
+    parser.add_argument("--results", required=True, type=Path, help="Earlier run's results.json and artifact directory")
     parser.add_argument("--llvm22-bin", type=Path)
     parser.add_argument("--llvm23-bin", type=Path)
     parser.add_argument("--output", required=True, type=Path)

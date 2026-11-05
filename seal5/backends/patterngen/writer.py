@@ -66,9 +66,7 @@ def main():
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
     parser.add_argument("--index", default=None, help="Output index to file")
     parser.add_argument("--ext", type=str, default="td", help="Default file extension (if using --splitted)")
-    parser.add_argument(
-        "--parallel", type=int, default=1, help="How many instructions should be processed in parallel"
-    )
+    parser.add_argument("--parallel", type=int, default=1, help="How many instructions should be processed in parallel")
     parser.add_argument("--compat", action="store_true")
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--generate-tests", action="store_true")
@@ -179,9 +177,7 @@ def main():
                         verbose=args.verbose,
                         mnemonic_override=instr_def.mnemonic,
                         immediate_operands=[
-                            name
-                            for name, operand in instr_def.operands.items()
-                            if isinstance(operand, Seal5ImmOperand)
+                            name for name, operand in instr_def.operands.items() if isinstance(operand, Seal5ImmOperand)
                         ],
                         has_register_output=any(
                             Seal5OperandAttribute.OUT in operand.attributes
@@ -301,9 +297,7 @@ def main():
             with ThreadPoolExecutor(args.parallel) as executor:
                 futures = []
                 for instr_def in set_def.instructions.values():
-                    future = executor.submit(
-                        process_instrunction, instr_def, set_name, set_dir, mattr, predicate, xlen
-                    )
+                    future = executor.submit(process_instrunction, instr_def, set_name, set_dir, mattr, predicate, xlen)
                     futures.append(future)
                 results = []
                 for future in as_completed(futures):

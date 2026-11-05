@@ -96,9 +96,7 @@ def gen_riscv_features_str(
     if slim:
         # TODO: support experimental- prefix
         feature_lower = feature.lower()
-        assert (
-            feature_lower == arch_
-        ), f"LLVM 20 requires matching arch and feature names ({feature_lower} vs. {arch_})"
+        assert feature_lower == arch_, f"LLVM 20 requires matching arch and feature names ({feature_lower} vs. {arch_})"
         assert predicate == (f"Vendor{feature}" if vendor else f"StdExt{feature}")
     content_text = content_template.render(
         predicate=predicate,

@@ -482,9 +482,7 @@ def run_pattern_gen(
         instr = None
         mnemonic = None
 
-        pattern_re = re.compile(
-            r"^Pattern for\s+(?P<instr>\S+)(?:\s+\[(?P<mnemonic>[^\]]+)\])?\s*:\s*(?P<pattern>.*)$"
-        )
+        pattern_re = re.compile(r"^Pattern for\s+(?P<instr>\S+)(?:\s+\[(?P<mnemonic>[^\]]+)\])?\s*:\s*(?P<pattern>.*)$")
 
         pat = []
         for line in out.split("\n"):
