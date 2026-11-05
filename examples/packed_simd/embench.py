@@ -48,6 +48,8 @@ def summarize(report):
     lines = [
         "# Embench packed SIMD compilation report",
         "",
+        f"Memory model: {report.get('memory_model', 'strict')}.",
+        "",
         "Unmodified C; RV32IM/ILP32; O3; no LTO. No forced vector widths or profitability thresholds.",
         "Scalar disables both vectorizers; native uses normal vectorizers without GPR32V; "
         "packed enables GPR32V and the demo ISA.",
@@ -107,6 +109,12 @@ def main():
     parser.add_argument("--llvm23-clang", type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--benchmarks", nargs="+", help="Optional benchmark directory names")
+    parser.add_argument(
+        "--memory-model",
+        choices=("strict", "unaligned"),
+        default="strict",
+        help="Whether scalar hardware supports efficient unaligned word transfers",
+    )
     parser.add_argument("--variants", nargs="+", choices=VARIANTS, default=list(VARIANTS))
     args = parser.parse_args()
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
@@ -123,6 +131,7 @@ def main():
         "source_sha256": {},
         "toolchains": {},
         "variants": args.variants,
+        "memory_model": args.memory_model,
         "records": [],
     }
     for path in sorted(source.rglob("*")):
@@ -176,6 +185,8 @@ def main():
                 if frontend:
                     continue
                 attrs, vectorize = VARIANTS[variant]
+                if args.memory_model == "unaligned":
+                    attrs += ",+unaligned-scalar-mem"
                 dest = folder / variant
                 optimized = dest / "optimized.ll"
                 command = [
