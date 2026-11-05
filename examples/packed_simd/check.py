@@ -52,7 +52,7 @@ def prepare(binary, output):
 
 
 def check(binary, output, extension=None):
-    enabled = "+m,+gpr32v" + (f",+{extension}" if extension else "")
+    enabled = "+m,+gpr32v" + (f",+{extension}" if extension else ",+gpr32v-add,+gpr32v-sub")
     disabled_vectors = "+m,-gpr32v" + (f",+{extension}" if extension else "")
     for source in sorted(FIXTURES.glob("*.ll")):
         name = source.stem.upper()

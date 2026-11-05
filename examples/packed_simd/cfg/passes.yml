@@ -8,5 +8,6 @@ models:
           added_complexity: 1000
     extensions:
       XPackedSIMD32:
+        backend_features: [FeatureGPR32VAdd, FeatureGPR32VSub]
         riscv:
           xlen: 32

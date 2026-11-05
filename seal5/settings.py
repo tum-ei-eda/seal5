@@ -559,7 +559,7 @@ class ExtensionsSettings(YAMLSettings):
     requires: Optional[List[str]] = None
     parent: Optional[str] = None
     max_parent: Optional[str] = None
-    # implies: Optional[List[str]] = None
+    backend_features: Optional[List[str]] = None  # Non-ISA TableGen feature dependencies
     instructions: Optional[List[str]] = None
     riscv: Optional[RISCVSettings] = None
     passes: Optional[PassesSettings] = None

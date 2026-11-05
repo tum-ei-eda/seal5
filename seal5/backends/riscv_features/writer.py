@@ -9,6 +9,7 @@
 """Clean M2-ISA-R/Seal5 metamodel to .core_desc file."""
 
 import argparse
+import re
 import logging
 import pathlib
 
@@ -43,7 +44,9 @@ def gen_riscv_features_str(
     experimental = ext_settings.experimental
     vendor = ext_settings.vendor
 
-    implied_features = set()
+    implied_features = set(ext_settings.backend_features or [])
+    for backend_feature in implied_features:
+        assert re.fullmatch(r"Feature[A-Za-z0-9_]+", backend_feature), backend_feature
     implies_archs_with_ver = []
     if implies:
         for implied in implies:
@@ -93,7 +96,9 @@ def gen_riscv_features_str(
     if slim:
         # TODO: support experimental- prefix
         feature_lower = feature.lower()
-        assert feature_lower == arch_, f"LLVM 20 requires matching arch and feature names ({feature_lower} vs. {arch_})"
+        assert (
+            feature_lower == arch_
+        ), f"LLVM 20 requires matching arch and feature names ({feature_lower} vs. {arch_})"
         assert predicate == (f"Vendor{feature}" if vendor else f"StdExt{feature}")
     content_text = content_template.render(
         predicate=predicate,
@@ -102,7 +107,7 @@ def gen_riscv_features_str(
         description=description,
         major=major,
         minor=minor,
-        implies="[" + ", ".join(implied_features) + "]",
+        implies="[" + ", ".join(sorted(implied_features)) + "]",
     )
     test_files = {}
     if generate_tests:
