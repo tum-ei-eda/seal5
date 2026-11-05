@@ -284,3 +284,6 @@ growth. Strict-alignment costing does not select these packed instructions in
 this snapshot. Measurements use Spike's CPI=1 model and do not establish hardware
 cycle speedups. The report includes reproducible compile/execute/replay commands,
 source hashes, all-program comparisons and correctness checks.
+
+Pattern extraction, direct GISel-table entry counts, generation times and output
+sizes can be collected with the :doc:`pattern-metrics` reports.
