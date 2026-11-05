@@ -42,6 +42,16 @@ The extra checker also runs automatically after the LLVM 22/23 demo tests. It
 verifies the normalized split CDSL, generated memory and branch patterns, and
 invokes the built pattern-gen on the memory instructions. It checks LLVM load/store widths and
 writes a JSON report to `.seal5/temp/normalization_checks/results.json`.
+Each of the 39 PatternGen-supported instructions has a separate
+`<instruction-name-lowercase>.test-cg.ll` file. The test report uses that name
+and the `cg` test kind to attribute coverage to the instruction. This includes
+every fused address/data memory instruction and AND/OR/XOR branch instruction.
+Multiple cases for one instruction stay together: immediate bounds and fallback,
+unaligned extraction, integer-address loads, and unsafe load-folding checks.
+Every instruction has assembly selection and object/disassembly checks with
+GlobalISel fallback disabled; memory fusion tests also check native selection
+with the extension disabled.
+
 The lit tests check actual GlobalISel selection for loads, a truncating store,
 indexed and fused memory operations, and conditional branches, in addition to
 object emission/disassembly. The memory fixtures use ordinary pointers and GEPs;

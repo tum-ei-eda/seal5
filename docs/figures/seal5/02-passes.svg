@@ -1,0 +1,293 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="382.5mm" height="312.5mm" viewBox="0 0 1530 1250" role="img">
+  <title>Seal5 passes, order and scope</title>
+  <desc>All registered passes in execution order, with model/global scopes and nested PatternGen expansion.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M 0 0 L 8 4 L 0 8 z" fill="#526370" />
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1530" height="1250" fill="white" />
+  <text x="36" y="43" fill="#172b3a" font-size="27" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">Seal5 passes: execution order and scope</text>
+  <text x="36" y="72" fill="#526370" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Read T01–T38, then G01–G11, then the expanded G12 pipeline P01–P04.</text>
+  <text x="36" y="101" fill="#526370" font-size="15" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">M = once per input model     G = once globally     * = conditional / opt-in</text>
+  <text x="36" y="144" fill="#23618c" font-size="21" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">Transform · part 1</text>
+  <rect x="36" y="166" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="45" y="189" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T01</text>
+  <text x="92" y="189" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">convert_models</text>
+  <text x="474" y="189" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="264,201 264,209" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="36" y="211" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="45" y="234" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T02</text>
+  <text x="92" y="234" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">filter_models</text>
+  <text x="474" y="234" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="264,246 264,254" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="36" y="256" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="45" y="279" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T03</text>
+  <text x="92" y="279" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">drop_unused</text>
+  <text x="474" y="279" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="264,291 264,299" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="36" y="301" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="45" y="324" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T04</text>
+  <text x="92" y="324" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">eliminate_mod_rfs</text>
+  <text x="474" y="324" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="264,336 264,344" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="36" y="346" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="45" y="369" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T05</text>
+  <text x="92" y="369" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">eliminate_rd_cmp_zero</text>
+  <text x="474" y="369" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="264,381 264,389" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="36" y="391" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="45" y="414" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T06</text>
+  <text x="92" y="414" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">drop_unused2</text>
+  <text x="474" y="414" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="264,426 264,434" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="36" y="436" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="45" y="459" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T07</text>
+  <text x="92" y="459" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">inline_functions</text>
+  <text x="474" y="459" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="264,471 264,479" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="36" y="481" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="45" y="504" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T08</text>
+  <text x="92" y="504" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">drop_unused3</text>
+  <text x="474" y="504" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="264,516 264,524" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="36" y="526" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="45" y="549" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T09</text>
+  <text x="92" y="549" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">optimize_model</text>
+  <text x="474" y="549" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="264,561 264,569" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="36" y="571" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="45" y="594" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T10</text>
+  <text x="92" y="594" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">infer_types</text>
+  <text x="474" y="594" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="264,606 264,614" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="36" y="616" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="45" y="639" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T11</text>
+  <text x="92" y="639" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">simplify_trivial_slices</text>
+  <text x="474" y="639" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="264,651 264,659" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="36" y="661" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="45" y="684" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T12</text>
+  <text x="92" y="684" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">explicit_truncations</text>
+  <text x="474" y="684" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="264,696 264,704" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="36" y="706" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="45" y="729" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T13</text>
+  <text x="92" y="729" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">unroll_loops</text>
+  <text x="474" y="729" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="264,741 264,749" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="36" y="751" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="45" y="774" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T14</text>
+  <text x="92" y="774" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">infer_types1</text>
+  <text x="474" y="774" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="264,786 264,794" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="36" y="796" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="45" y="819" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T15</text>
+  <text x="92" y="819" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">detect_behavior_constraints</text>
+  <text x="474" y="819" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="264,831 264,839" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="36" y="841" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="45" y="864" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T16</text>
+  <text x="92" y="864" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">detect_registers</text>
+  <text x="474" y="864" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="264,876 264,884" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="36" y="886" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="45" y="909" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T17</text>
+  <text x="92" y="909" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">collect_register_operands</text>
+  <text x="474" y="909" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="264,921 264,929" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="36" y="931" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="45" y="954" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T18</text>
+  <text x="92" y="954" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">collect_immediate_operands</text>
+  <text x="474" y="954" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="264,966 264,974" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="36" y="976" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="45" y="999" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T19</text>
+  <text x="92" y="999" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">collect_operand_types</text>
+  <text x="474" y="999" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <text x="36" y="1051" fill="#23618c" font-size="17" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">Continue at T20 →</text>
+  <text x="536" y="144" fill="#23618c" font-size="21" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">Transform · part 2</text>
+  <rect x="536" y="166" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="545" y="189" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T20</text>
+  <text x="592" y="189" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">process_settings</text>
+  <text x="974" y="189" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="764,201 764,209" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="536" y="211" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="545" y="234" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T21</text>
+  <text x="592" y="234" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">write_yaml2</text>
+  <text x="974" y="234" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="764,246 764,254" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="536" y="256" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="545" y="279" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T22</text>
+  <text x="592" y="279" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">process_settings3</text>
+  <text x="974" y="279" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="764,291 764,299" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="536" y="301" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="545" y="324" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T23</text>
+  <text x="592" y="324" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">detect_side_effects</text>
+  <text x="974" y="324" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="764,336 764,344" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="536" y="346" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="545" y="369" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T24</text>
+  <text x="592" y="369" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">detect_inouts</text>
+  <text x="974" y="369" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="764,381 764,389" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="536" y="391" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="545" y="414" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T25</text>
+  <text x="592" y="414" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">detect_imm_leafs</text>
+  <text x="974" y="414" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="764,426 764,434" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="536" y="436" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="545" y="459" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T26</text>
+  <text x="592" y="459" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">detect_calls</text>
+  <text x="974" y="459" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="764,471 764,479" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="536" y="481" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="545" y="504" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T27</text>
+  <text x="592" y="504" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">detect_loops</text>
+  <text x="974" y="504" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="764,516 764,524" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="536" y="526" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="545" y="549" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T28</text>
+  <text x="592" y="549" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">annotate_opcodes</text>
+  <text x="974" y="549" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="764,561 764,569" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="536" y="571" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="545" y="594" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T29</text>
+  <text x="592" y="594" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">handle_auto_unroll_operands</text>
+  <text x="974" y="594" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="764,606 764,614" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="536" y="616" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="545" y="639" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T30</text>
+  <text x="592" y="639" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">gen_auto_intrinsics</text>
+  <text x="974" y="639" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="764,651 764,659" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="536" y="661" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="545" y="684" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T31</text>
+  <text x="592" y="684" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">write_yaml3</text>
+  <text x="974" y="684" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="764,696 764,704" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="536" y="706" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="545" y="729" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T32</text>
+  <text x="592" y="729" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">infer_types2</text>
+  <text x="974" y="729" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="764,741 764,749" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="536" y="751" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="545" y="774" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T33</text>
+  <text x="592" y="774" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">explicit_memory_names *</text>
+  <text x="974" y="774" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="764,786 764,794" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="536" y="796" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="545" y="819" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T34</text>
+  <text x="592" y="819" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">explicit_register_names *</text>
+  <text x="974" y="819" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="764,831 764,839" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="536" y="841" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="545" y="864" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T35</text>
+  <text x="592" y="864" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">normalize_subscripts *</text>
+  <text x="974" y="864" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="764,876 764,884" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="536" y="886" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="545" y="909" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T36</text>
+  <text x="592" y="909" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">detect_branches *</text>
+  <text x="974" y="909" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="764,921 764,929" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="536" y="931" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="545" y="954" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T37</text>
+  <text x="592" y="954" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">check_pattern_support</text>
+  <text x="974" y="954" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="764,966 764,974" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="536" y="976" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="545" y="999" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">T38</text>
+  <text x="592" y="999" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">write_cdsl_full</text>
+  <text x="974" y="999" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <text x="536" y="1051" fill="#23618c" font-size="17" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">Continue at G01 →</text>
+  <text x="1036" y="144" fill="#23618c" font-size="21" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">Generate</text>
+  <rect x="1036" y="166" width="458" height="35" rx="4" fill="#edf7f3" stroke="#187668" stroke-width="0.7" />
+  <text x="1045" y="189" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">G01</text>
+  <text x="1092" y="189" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">riscv_gnu *</text>
+  <text x="1474" y="189" fill="#187668" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">G</text>
+  <polyline points="1264,201 1264,209" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="1036" y="211" width="458" height="35" rx="4" fill="#edf7f3" stroke="#187668" stroke-width="0.7" />
+  <text x="1045" y="234" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">G02</text>
+  <text x="1092" y="234" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">seal5_td</text>
+  <text x="1474" y="234" fill="#187668" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">G</text>
+  <polyline points="1264,246 1264,254" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="1036" y="256" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="1045" y="279" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">G03</text>
+  <text x="1092" y="279" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">set_td</text>
+  <text x="1474" y="279" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="1264,291 1264,299" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="1036" y="301" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="1045" y="324" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">G04</text>
+  <text x="1092" y="324" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">riscv_features</text>
+  <text x="1474" y="324" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="1264,336 1264,344" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="1036" y="346" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="1045" y="369" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">G05</text>
+  <text x="1092" y="369" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">riscv_isa_infos</text>
+  <text x="1474" y="369" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="1264,381 1264,389" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="1036" y="391" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="1045" y="414" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">G06</text>
+  <text x="1092" y="414" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">riscv_register_info</text>
+  <text x="1474" y="414" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="1264,426 1264,434" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="1036" y="436" width="458" height="35" rx="4" fill="#edf7f3" stroke="#187668" stroke-width="0.7" />
+  <text x="1045" y="459" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">G07</text>
+  <text x="1092" y="459" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">riscv_field_types</text>
+  <text x="1474" y="459" fill="#187668" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">G</text>
+  <polyline points="1264,471 1264,479" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="1036" y="481" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="1045" y="504" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">G08</text>
+  <text x="1092" y="504" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">riscv_instr_info</text>
+  <text x="1474" y="504" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="1264,516 1264,524" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="1036" y="526" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="1045" y="549" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">G09</text>
+  <text x="1092" y="549" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">riscv_intrinsics</text>
+  <text x="1474" y="549" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="1264,561 1264,569" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="1036" y="571" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="1045" y="594" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">G10</text>
+  <text x="1092" y="594" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">riscv_disass</text>
+  <text x="1474" y="594" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="1264,606 1264,614" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="1036" y="616" width="458" height="35" rx="4" fill="#edf7f3" stroke="#187668" stroke-width="0.7" />
+  <text x="1045" y="639" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">G11</text>
+  <text x="1092" y="639" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">riscv_gisel_legalizer</text>
+  <text x="1474" y="639" fill="#187668" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">G</text>
+  <polyline points="1264,651 1264,659" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="1036" y="661" width="458" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="1045" y="684" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">G12</text>
+  <text x="1092" y="684" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">pattern_gen</text>
+  <text x="1474" y="684" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <text x="1036" y="739" fill="#23618c" font-size="17" font-family="DejaVu Sans" font-weight="bold" text-anchor="start">G12 expands into:</text>
+  <rect x="1056" y="758" width="438" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="1065" y="781" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">P01</text>
+  <text x="1114" y="781" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">write_cdsl_compat</text>
+  <text x="1474" y="781" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="1274,793 1274,801" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="1056" y="803" width="438" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="1065" y="826" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">P02</text>
+  <text x="1114" y="826" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">behav_to_llvmir</text>
+  <text x="1474" y="826" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="1274,838 1274,846" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="1056" y="848" width="438" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="1065" y="871" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">P03</text>
+  <text x="1114" y="871" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">llvmir_to_gmir</text>
+  <text x="1474" y="871" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <polyline points="1274,883 1274,891" fill="none" stroke="#526370" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="none" />
+  <rect x="1056" y="893" width="438" height="35" rx="4" fill="#edf4f9" stroke="#23618c" stroke-width="0.7" />
+  <text x="1065" y="916" fill="#526370" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">P04</text>
+  <text x="1114" y="916" fill="#172b3a" font-size="14" font-family="DejaVu Sans Mono" font-weight="normal" text-anchor="start">behav_to_pat</text>
+  <text x="1474" y="916" fill="#23618c" font-size="14" font-family="DejaVu Sans" font-weight="bold" text-anchor="middle">M</text>
+  <text x="36" y="1102" fill="#526370" font-size="14" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Default wrapper: G01–G11 run before phases 1–2 are applied; G12 runs after PatternGen / llc are built.</text>
+  <text x="36" y="1123" fill="#526370" font-size="14" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Order follows the registered lists, not Seal5Pass.order. Passes are serial; model instances may run concurrently.</text>
+  <text x="36" y="1144" fill="#526370" font-size="14" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">All transforms and P01–P04 have MODEL scope. Four generators have GLOBAL scope. INSTR scope is not implemented;</text>
+  <text x="36" y="1165" fill="#526370" font-size="14" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">SET is marked unsupported in the API and is not used by any registered pass. Splitting files per instruction does not change scope.</text>
+  <text x="36" y="1186" fill="#526370" font-size="14" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">* T33–T36 require enabled=true; G01 needs a GNU source tree. Filters and PatternGen eligibility can skip additional work.</text>
+  <text x="36" y="1207" fill="#526370" font-size="14" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">gen_model_td is an available handler but is not registered; it has no default execution position (MODEL, phase 1).</text>
+  <text x="36" y="1228" fill="#526370" font-size="14" font-family="DejaVu Sans" font-weight="normal" text-anchor="start">Source: seal5/flow.py (pass maps + create_passes) · seal5/passes.py · seal5/pass_list.py (pattern_gen_pass)</text>
+</svg>

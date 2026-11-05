@@ -21,6 +21,8 @@ taken:
 }
 
 define void @signed5_max(i32 %value) {
+; OBJ-LABEL: <signed5_max>:
+; OBJ: xnormalize32.beqi5
 ; CHECK-LABEL: signed5_max:
 ; CHECK: xnormalize32.beqi5 a0, 15,
   %condition = icmp eq i32 %value, 15
@@ -38,45 +40,6 @@ define void @signed5_too_large(i32 %value) {
 ; CHECK-NOT: xnormalize32.beqi5
 ; CHECK: ret
   %condition = icmp eq i32 %value, 16
-  br i1 %condition, label %taken, label %fall
-fall:
-  store volatile i8 1, ptr @branch_fall
-  ret void
-taken:
-  store volatile i8 2, ptr @branch_taken
-  ret void
-}
-
-define void @unsigned3_max(i32 %value) {
-; CHECK-LABEL: unsigned3_max:
-; CHECK: xnormalize32.bltui3 a0, 7,
-  %condition = icmp ult i32 %value, 7
-  br i1 %condition, label %taken, label %fall
-fall:
-  store volatile i8 1, ptr @branch_fall
-  ret void
-taken:
-  store volatile i8 2, ptr @branch_taken
-  ret void
-}
-
-define void @signed8_min(i32 %value) {
-; CHECK-LABEL: signed8_min:
-; CHECK: xnormalize32.bnei8 a0, -128,
-  %condition = icmp ne i32 %value, -128
-  br i1 %condition, label %taken, label %fall
-fall:
-  store volatile i8 1, ptr @branch_fall
-  ret void
-taken:
-  store volatile i8 2, ptr @branch_taken
-  ret void
-}
-
-define void @signed8_max(i32 %value) {
-; CHECK-LABEL: signed8_max:
-; CHECK: xnormalize32.bnei8 a0, 127,
-  %condition = icmp ne i32 %value, 127
   br i1 %condition, label %taken, label %fall
 fall:
   store volatile i8 1, ptr @branch_fall
