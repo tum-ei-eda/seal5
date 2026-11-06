@@ -945,6 +945,11 @@ class Seal5Flow:
 
         else:
             file = self.resolve_patch_file(patch.file)
+            builtin_split = Path(__file__).parent / "resources/patches/llvm/legalizer_split.patch"
+            if (patch.name == "legalizer_split" and file == builtin_split.resolve()
+                    and self.settings.llvm.state.version.major >= 20):
+                file = cdsl2llvm.get_legalizer_split_patch(self.directory, self.settings.temp_dir)
+                patch.file = str(file)
         dest = None
         if target == "llvm":
             dest = self.directory

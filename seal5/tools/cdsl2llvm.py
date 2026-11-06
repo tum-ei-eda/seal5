@@ -189,6 +189,48 @@ def get_pattern_gen_backend_patch(src: Path, llvm_dir: Path, temp_dir: Path):
     )
 
 
+
+def split_minmax_legalizer_actions(source: str) -> str:
+    """Give each min/max opcode its own legality rules, preserving all rules.
+
+    Seal5 extends these rules per instruction. LLVM19 uses a named shared
+    builder; newer releases use a chained builder with conditional actions.
+    """
+    pattern = (r"(?m)^  (?:auto &(?P<variable>\w+)\s*=\s*)?"
+               r"getActionDefinitionsBuilder\(\{G_UMAX, G_UMIN, G_SMAX, G_SMIN\}\)")
+    match = re.search(pattern, source)
+    if match is None:
+        raise ValueError("Cannot find the shared RISC-V min/max legality rules; source preserved")
+    variable = match.group("variable")
+    terminator = f"{variable}.lower();" if variable else ";"
+    end = source.find(terminator, match.end())
+    if end < 0:
+        raise ValueError("Cannot find the end of the RISC-V min/max legality rules")
+    end += len(terminator)
+    original = source[match.start():end]
+    single = original.replace(
+        "getActionDefinitionsBuilder({G_UMAX, G_UMIN, G_SMAX, G_SMIN})",
+        "getActionDefinitionsBuilder(Opcode)", 1,
+    )
+    replacement = "  for (unsigned Opcode : {G_UMAX, G_UMIN, G_SMAX, G_SMIN}) {\n"
+    replacement += "\n".join("  " + line if line else line for line in single.splitlines())
+    replacement += "\n  }"
+    return source[:match.start()] + replacement + source[end:]
+
+
+def get_legalizer_split_patch(llvm_dir: Path, temp_dir: Path) -> Path:
+    """Materialize a min/max split against the selected LLVM source version."""
+    path = "llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp"
+    original = (llvm_dir / path).read_text()
+    updated = split_minmax_legalizer_actions(original)
+    output = temp_dir / "legalizer_split_selected_llvm.patch"
+    output.write_text("".join(difflib.unified_diff(
+        original.splitlines(keepends=True), updated.splitlines(keepends=True),
+        fromfile="a/" + path, tofile="b/" + path,
+    )))
+    return output
+
+
 def build_llc(
     src: Path,
     dest: Path,
