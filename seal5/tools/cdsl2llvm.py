@@ -228,13 +228,20 @@ def get_pattern_gen_backend_patch(src: Path, llvm_dir: Path, temp_dir: Path):
             assert original.count(anchor) == 1, "Missing packed-register import anchor"
             updated = original.replace(anchor, "\n\n".join(packed_classes) + "\n\n" + anchor, 1)
         elif name == "packed_features":
-            feature = re.search(r"^def FeatureGPR32V\b.*?\n\s*\n", (src / path).read_text(), re.MULTILINE | re.DOTALL)
-            assert feature is not None, "Missing packed SIMD feature and predicate"
-            assert "hasGPR32V()" in feature.group(), "Malformed packed SIMD predicate"
-            # Keep both the Svinval marker context and the native EOF intact.
-            anchor = "def FeatureStdExtSvpbmt"
+            feature_text = (src / path).read_text()
+            features = []
+            for feature_name in ("FeatureGPR32V", "HasGPR32V", "FeatureGPR32VAdd", "FeatureGPR32VSub"):
+                feature = re.search(rf"^def {feature_name}\b.*?;", feature_text, re.MULTILINE | re.DOTALL)
+                if feature is None:
+                    assert feature_name not in ("FeatureGPR32V", "HasGPR32V"), f"Missing {feature_name}"
+                    continue
+                features.append(feature.group())
+            assert any("hasGPR32V()" in feature for feature in features), "Malformed packed SIMD predicate"
+            # TableGen requires these definitions before generated extensions
+            # reference them. Preserve the Svinval marker context and EOF too.
+            anchor = "def FeatureStdExtSvinval"
             assert original.count(anchor) == 1, "Missing packed-feature import anchor"
-            updated = original.replace(anchor, feature.group() + anchor, 1)
+            updated = original.replace(anchor, "\n\n".join(features) + "\n\n" + anchor, 1)
         else:
             updated = (src / path).read_text()
         if name == "GISel/RISCVLegalizerInfo.cpp" and has_packed_simd:

@@ -39,7 +39,7 @@ class PackedSIMDImportTests(unittest.TestCase):
             "NATIVE_SUPPORT\nlet RegInfos = XLenRI in {\n  NATIVE_REGISTER_TAIL\n}\n"
         )
         (native / target / "RISCVFeatures.td").write_text(
-            'NATIVE_SUPPORT\ndef FeatureStdExtSvpbmt : RISCVExtension<1, 0, "Page-Based Memory Types">;\n'
+            'NATIVE_SUPPORT\ndef FeatureStdExtSvinval : RISCVExtension<1, 0, "Page-Based Memory Types">;\n'
             "NATIVE_FEATURE_TAIL\nNATIVE_FEATURE_TAIL2\nNATIVE_FEATURE_TAIL3\n\n"
         )
         (native / target / "GISel/RISCVLegalizerInfo.cpp").write_text(
@@ -58,6 +58,8 @@ class PackedSIMDImportTests(unittest.TestCase):
             (source / target / "RISCVFeatures.td").write_text(
                 'def FeatureGPR32V : SubtargetFeature<"gpr32v", "HasGPR32V", "true", "Packed">;\n'
                 'def HasGPR32V : Predicate<"Subtarget->hasGPR32V()">;\n\n'
+                'def FeatureGPR32VAdd : SubtargetFeature<"gpr32v-add", "HasGPR32VAdd", "true", "Add">;\n\n'
+                'def FeatureGPR32VSub : SubtargetFeature<"gpr32v-sub", "HasGPR32VSub", "true", "Sub">;\n\n'
             )
         patch = get_pattern_gen_backend_patch(source, native, root)
         return Path(patch.file).read_text()
@@ -108,6 +110,22 @@ class PackedSIMDImportTests(unittest.TestCase):
             self.assertIn("def GPR32V2", (native / target / "RISCVRegisterInfo.td").read_text())
             self.assertTrue((native / target / "RISCVRegisterInfo.td").read_text().endswith("// INSERTION_START\n"))
             self.assertIn("def FeatureGPR32V", (native / target / "RISCVFeatures.td").read_text())
+
+    def test_capabilities_precede_generated_extension_site(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            self.materialize(root, True)
+            native = root / "native"
+            subprocess.run(
+                ["git", "apply", str(root / "pattern_gen_backend_support.patch")],
+                cwd=native,
+                check=True,
+                capture_output=True,
+            )
+            text = (native / "llvm/lib/Target/RISCV/RISCVFeatures.td").read_text()
+            site = text.index("def FeatureStdExtSvinval")
+            for name in ("FeatureGPR32V", "HasGPR32V", "FeatureGPR32VAdd", "FeatureGPR32VSub"):
+                self.assertLess(text.index("def " + name + " "), site)
 
     def test_packed_legalizer_marker_whitespace(self):
         with tempfile.TemporaryDirectory() as folder:
