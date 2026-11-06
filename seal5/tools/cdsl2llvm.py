@@ -262,6 +262,7 @@ def combine_test_fragments(
     test_mir_checks: str,
     test_asm_checks: str,
     return_output=False,
+    scalar_inputs=False,
 ):
     with open(ll_file, "r") as f:
         contents = f.read()
@@ -273,6 +274,11 @@ def combine_test_fragments(
         ty, value = result.groups()
         contents = contents[: result.start()] + f"  ret {ty} {value}" + contents[result.end() :]
         contents = contents.replace("define void @impl", f"define {ty} @impl", 1)
+    if scalar_inputs:
+        # Register operands should arrive as scalar arguments. Synthetic loads
+        # of operand pointers otherwise compete with the memory fusion under
+        # test (e.g. a word-load/add can absorb a narrow-load/add's second input).
+        contents = scalarize_test_inputs(contents)
     lines = contents.splitlines()
     ret_lines = []
     ret_lines += test_header.splitlines()
@@ -292,6 +298,26 @@ def combine_test_fragments(
     return ret
 
 
+def scalarize_test_inputs(contents):
+    signature = re.search(r"(?m)^define [^\n]+", contents)
+    if signature is None:
+        raise ValueError("Missing test function signature")
+    header = signature.group()
+    loads = list(re.finditer(
+        r"(?m)^  (%[\w.]+) = load (i\d+), ptr (%[\w.]+),[^\n]+\n", contents
+    ))
+    for load in reversed(loads):
+        value, ty, pointer = load.groups()
+        parameter = r"ptr\b[^,%]*" + re.escape(pointer) + r"(?![\w.])"
+        if not re.search(parameter, header):
+            continue
+        header = re.sub(parameter, ty + " " + pointer, header)
+        contents = contents[:load.start()] + contents[load.end():]
+        contents = re.sub(re.escape(value) + r"(?![\w.])", pointer, contents)
+    # Edits above only affect the body, so signature offsets remain stable.
+    return contents[:signature.start()] + header + contents[signature.end():]
+
+
 def run_pattern_gen(
     build_dir: Path,
     src: Path,
@@ -309,6 +335,8 @@ def run_pattern_gen(
     immediate_operands=None,
     has_register_output=True,
     may_load=False,
+    dag_only=False,
+    memory_instruction=False,
 ):
     """Excute pattern-gen executable."""
     if not isinstance(build_dir, Path):
@@ -562,14 +590,25 @@ def run_pattern_gen(
             for xlen in xlens:
                 store_mir = "SD" if xlen == 64 else "SW"
                 store_asm = store_mir.lower()
+                selector = "-global-isel=0" if dag_only else "-global-isel=1 -global-isel-abort=1"
+                selected_pass = "finalize-isel" if dag_only else "instruction-select"
                 test_header += (
-                    f"; RUN: llc -mtriple=riscv{xlen} -stop-after=instruction-select "
-                    f"-mattr={mattr} %s -global-isel=1 -o - \\\n"
+                    f"; RUN: llc -mtriple=riscv{xlen} -stop-after={selected_pass} "
+                    f"-mattr={mattr} %s {selector} -o - \\\n"
                     f"  ; RUN: | FileCheck -check-prefix=RV{xlen}-MIR %s\n"
                     f"  ; RUN: llc -mtriple=riscv{xlen} -mattr={mattr} %s "
-                    f"-global-isel=1 -o - \\\n"
+                    f"{selector} -o - \\\n"
                     f"  ; RUN: | FileCheck -check-prefix=RV{xlen}-ASM %s\n"
                 )
+                if memory_instruction and not dag_only:
+                    test_header += (
+                        f"; RUN: llc -mtriple=riscv{xlen} -stop-after=finalize-isel "
+                        f"-mattr={mattr} %s -global-isel=0 -o - \\\n"
+                        f"  ; RUN: | FileCheck -check-prefix=RV{xlen}-MIR %s\n"
+                        f"; RUN: llc -mtriple=riscv{xlen} -mattr={mattr} %s "
+                        f"-global-isel=0 -o - \\\n"
+                        f"  ; RUN: | FileCheck -check-prefix=RV{xlen}-ASM %s\n"
+                    )
                 test_mir_checks += f"  ; RV{xlen}-MIR-LABEL: name: impl{instr}\n"
                 # test_mir_checks += f"  ; RV{xlen}-MIR: LW\n"  # TODO: once per reg input operand
                 test_mir_checks += f"  ; RV{xlen}-MIR: {llvm_instr}\n"
@@ -596,6 +635,7 @@ def run_pattern_gen(
                 test_mir_checks,
                 test_asm_checks,
                 return_output=may_load and has_register_output,
+                scalar_inputs=memory_instruction,
             )
             # print("test_content", test_content)
             test_file = ll_file.replace(".ll", ".test-cg.ll")
@@ -665,3 +705,58 @@ def convert_ll_to_gmir(
         print_func=logger.info if verbose else logger.debug,
         live=True,
     )
+
+
+def lower_branch_patterns_to_riscv(contents):
+    """Match the target BR_CC node produced by RISC-V's BRCOND lowering.
+
+    PatternGen describes generic brcond/setcc trees. RISC-V custom-lowers those
+    before DAG selection, including swapping greater-than comparisons. Keep
+    these rules out of the GlobalISel importer.
+    """
+    def arguments(text):
+        depth, start, result = 0, 0, []
+        for index, char in enumerate(text):
+            depth += (char == '(') - (char == ')')
+            if char == ',' and depth == 0:
+                result.append(text[start:index].strip())
+                start = index + 1
+        result.append(text[start:].strip())
+        return result
+
+    def untype(text):
+        match = re.fullmatch(r'\(i(?:32|64)\s+(.*)\)', text, re.S)
+        return match.group(1).strip() if match else text
+
+    offset = 0
+    while True:
+        match = re.search(r'\(brcond\s+', contents[offset:])
+        if match is None:
+            break
+        start = offset + match.start()
+        depth, end = 1, start + 1
+        while end < len(contents) and depth:
+            depth += (contents[end] == '(') - (contents[end] == ')')
+            end += 1
+        if depth:
+            raise ValueError('Unbalanced branch TableGen pattern')
+        condition, target = arguments(contents[start + len('(brcond'):end - 1])
+        condition = untype(condition)
+        if not condition.startswith('(setcc ') or not condition.endswith(')'):
+            raise ValueError('Expected a setcc condition in a generated branch pattern')
+        lhs, rhs, cc = arguments(condition[len('(setcc '):-1])
+        swaps = {'SETGT': 'SETLT', 'SETLE': 'SETGE', 'SETUGT': 'SETULT', 'SETULE': 'SETUGE'}
+        if cc in swaps:
+            lhs, rhs, cc = rhs, lhs, swaps[cc]
+        if cc not in ('SETEQ', 'SETNE', 'SETLT', 'SETGE', 'SETULT', 'SETUGE'):
+            raise ValueError(f'Unsupported branch condition {cc}')
+        replacement = f'(riscv_brcc {lhs}, {rhs}, {cc}, {target})'
+        contents = contents[:start] + replacement + contents[end:]
+        offset = start + len(replacement)
+    return ignore_gisel_patterns(contents)
+
+
+def ignore_gisel_patterns(contents):
+    """Scope the importer exclusion to Pattern records, preserving helpers."""
+    return re.sub(r'(?m)^([ \t]*)def\s*:\s*Pat\s*<',
+                  r'\1let GISelShouldIgnore = 1 in def : Pat<', contents)

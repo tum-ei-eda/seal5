@@ -37,6 +37,7 @@ def main():
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--splitted", action="store_true", help="Split per set and instruction")
     parser.add_argument("--formats", action="store_true", help="Also generate instruction formats")
+    parser.add_argument("--dag-only-memory", action="store_true", help="Exclude memory patterns from GlobalISel import")
     parser.add_argument("--patterns", action="store_true", help="Also generate instruction patterns")
     parser.add_argument(
         "--added-complexity", type=int, default=0, help="Extra selection priority for generated patterns"
@@ -161,8 +162,21 @@ def main():
                             for operand in instr_def.operands.values()
                         ),
                         may_load=Seal5InstrAttribute.MAY_LOAD in attrs,
+                        memory_instruction=(Seal5InstrAttribute.MAY_LOAD in attrs
+                                            or Seal5InstrAttribute.MAY_STORE in attrs),
+                        dag_only=args.dag_only_memory and (
+                            Seal5InstrAttribute.MAY_LOAD in attrs or Seal5InstrAttribute.MAY_STORE in attrs
+                        ),
                     )
                     if output_file.is_file():
+                        if args.patterns and Seal5InstrAttribute.IS_BRANCH in attrs:
+                            # Imported DAG patterns must never enter the GlobalISel tables.
+                            contents = output_file.read_text()
+                            output_file.write_text(cdsl2llvm.lower_branch_patterns_to_riscv(contents))
+                        if args.patterns and args.dag_only_memory and (
+                            Seal5InstrAttribute.MAY_LOAD in attrs or Seal5InstrAttribute.MAY_STORE in attrs
+                        ):
+                            output_file.write_text(cdsl2llvm.ignore_gisel_patterns(output_file.read_text()))
                         if args.patterns and args.added_complexity:
                             contents = output_file.read_text()
                             output_file.write_text(

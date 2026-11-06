@@ -294,6 +294,7 @@ def detect_branches(input_model, settings=None, enabled=False, **_kwargs):
                 instr.operation = operation
                 instr.operands[offset_name].attributes[Seal5OperandAttribute.IS_BRANCH_OFFS] = []
                 instr.attributes[Seal5InstrAttribute.IS_BRANCH] = []
+                instr.attributes[Seal5InstrAttribute.IS_TERMINATOR] = []
                 changed += 1
     dump_model(model, path)
     return PassResult(metrics={"enabled": True, "rewritten": changed})
@@ -1107,6 +1108,7 @@ def convert_behav_to_tablegen(
     gen_tests: bool = True,
     log_level: str = "warning",
     added_complexity: int = 0,
+    dag_only_memory: bool = False,
     **_kwargs,
 ):
     assert split, "TODO"
@@ -1131,6 +1133,8 @@ def convert_behav_to_tablegen(
     if split:
         (settings.temp_dir / new_name).mkdir(exist_ok=True)
         args.append("--splitted")
+    if dag_only_memory:
+        args.append("--dag-only-memory")
     if formats:
         args.append("--formats")
     if patterns:
