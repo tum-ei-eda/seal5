@@ -153,8 +153,9 @@ def lookup_manual_patch(patch: PatchSettings, allow_missing=False):
     if patch.target is None:
         target = res.parent.name
         patch.target = str(target)
-    if patch.file is None:
-        patch.file = str(res)
+    # A missing relative filename may resolve to a bundled resource. Store
+    # that resolved path so apply_patch does not retry the missing filename.
+    patch.file = str(res)
     return res
 
 
