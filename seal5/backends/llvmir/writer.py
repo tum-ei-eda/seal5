@@ -37,6 +37,7 @@ def main():
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
     parser.add_argument("--ext", type=str, default="ll", help="Default file extension (if using --splitted)")
     parser.add_argument("--compat", action="store_true")
+    parser.add_argument("--coredsl-typing", action="store_true", help="Preserve CoreDSL widening arithmetic rules")
     args = parser.parse_args()
 
     # initialize logging
@@ -132,6 +133,7 @@ def main():
                         install_dir,
                         input_file,
                         output_file,
+                        no_extend=not args.coredsl_typing,
                         skip_patterns=True,
                         skip_formats=True,
                         mattr=mattr,
