@@ -3,7 +3,7 @@ models:
   XCoreVBranchImmediate:
     extensions:
       XCoreVBranchImmediate:
-        # feature: XCVbi
+        feature: XCoreVBi
         # arch: xcvbi
         version: "1.0"
         experimental: false

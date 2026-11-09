@@ -1,0 +1,33 @@
+---
+tools:
+  pattern_gen:
+    ref: llvm-22.1.8-packed-simd
+passes:
+  overrides:
+    explicit_memory_names:
+      enabled: true
+    explicit_register_names:
+      enabled: true
+    normalize_subscripts:
+      enabled: true
+    detect_branches:
+      enabled: true
+    check_pattern_support:
+      allow_memory: true
+      allow_branches: true
+    behav_to_pat:
+      parallel: false
+      added_complexity: 1000  # Exercise generated rules even when native rules also match.
+patches:
+  - name: corev_register_offset_asm
+    target: llvm
+    stage: 0
+    file: ../patches/llvm22-register-offset-asm.patch
+    comment: Parse generated register-offset memory operands
+  - name: corev_packed_capabilities
+    target: llvm
+    stage: 0
+    priority: 0  # Apply after PatternGen integration and insertion markers.
+    file: ../patches/llvm22-packed-capabilities.patch
+    comment: Supply packed operation capabilities until they reach the dependency branch
+    onlyif: "'FeatureGPR32VAdd' not in (settings.deps_dir / 'cdsl2llvm/llvm/lib/Target/RISCV/RISCVFeatures.td').read_text()"

@@ -3,155 +3,259 @@ models:
   XCoreVAlu:
     extensions:
       XCoreVAlu:
-        # feature: XCValu
-        # arch: xcvalu
-        version: "1.0"
+        version: '1.0'
         experimental: false
         vendor: true
     passes:
       overrides:
         convert_models:
-          prefix: "SEAL5_"
+          prefix: SEAL5_
 intrinsics:
-  # See: https://github.com/openhwgroup/core-v-sw/blob/master/specifications/corev-builtin-spec.md#listing-of-multiply-accumulate-builtins-xcvmac
   intrinsics:
-  # unary
-  - &ScalarCoreVAluGprIntrinsicSigned
-    args:
+  - args: &id001
     - arg_name: rs1
       arg_type: i32
       signed: true
-    set_name: XCoreVAlu
     instr_name: SEAL5_CV_ABS
     intrinsic_name: alu_abs
-    ret_type: i32
     ret_signed: true
-  - <<: *ScalarCoreVAluGprIntrinsicSigned
+    ret_type: i32
+    set_name: XCoreVAlu
+  - args: *id001
     instr_name: SEAL5_CV_EXTHS
     intrinsic_name: alu_exths
-  - &ScalarCoreVAluGprIntrinsicUnsigned
-    args:
+    ret_signed: true
+    ret_type: i32
+    set_name: XCoreVAlu
+  - args: &id002
     - arg_name: rs1
       arg_type: i32
       signed: false
     instr_name: SEAL5_CV_EXTHZ
     intrinsic_name: alu_exthz
     ret_signed: false
-  - <<: *ScalarCoreVAluGprIntrinsicSigned
+    ret_type: i32
+    set_name: XCoreVAlu
+  - args: *id001
     instr_name: SEAL5_CV_EXTBS
     intrinsic_name: alu_extbs
-  - <<: *ScalarCoreVAluGprIntrinsicUnsigned
+    ret_signed: true
+    ret_type: i32
+    set_name: XCoreVAlu
+  - args: *id002
     instr_name: SEAL5_CV_EXTBZ
     intrinsic_name: alu_extbz
-  # binary
-  - &ScalarCoreVAluGprGprIntrinsicSigned
-    args:
+    ret_signed: false
+    ret_type: i32
+    set_name: XCoreVAlu
+  - args: &id003
     - arg_name: rs1
       arg_type: i32
       signed: true
     - arg_name: rs2
       arg_type: i32
       signed: true
-    set_name: XCoreVAlu
     instr_name: SEAL5_CV_SLET
     intrinsic_name: alu_slet
-    ret_type: i32
     ret_signed: true
-  - &ScalarCoreVAluGprGprIntrinsicUnsigned
-    args:
+    ret_type: i32
+    set_name: XCoreVAlu
+  - args: &id004
     - arg_name: rs1
       arg_type: i32
       signed: false
     - arg_name: rs2
       arg_type: i32
       signed: false
-    set_name: XCoreVAlu
     instr_name: SEAL5_CV_SLETU
     intrinsic_name: alu_sletu
-    ret_type: i32
     ret_signed: false
-  - <<: *ScalarCoreVAluGprGprIntrinsicSigned
+    ret_type: i32
+    set_name: XCoreVAlu
+  - args: *id003
     instr_name: SEAL5_CV_MIN
     intrinsic_name: alu_min
-  - <<: *ScalarCoreVAluGprGprIntrinsicUnsigned
+    ret_signed: true
+    ret_type: i32
+    set_name: XCoreVAlu
+  - args: *id004
     instr_name: SEAL5_CV_MINU
     intrinsic_name: alu_minu
-  - <<: *ScalarCoreVAluGprGprIntrinsicSigned
+    ret_signed: false
+    ret_type: i32
+    set_name: XCoreVAlu
+  - args: *id003
     instr_name: SEAL5_CV_MAX
     intrinsic_name: alu_max
-  - <<: *ScalarCoreVAluGprGprIntrinsicUnsigned
+    ret_signed: true
+    ret_type: i32
+    set_name: XCoreVAlu
+  - args: *id004
     instr_name: SEAL5_CV_MAXU
     intrinsic_name: alu_maxu
-  - &ScalarCoreVAluGprGprIntrinsicSignedUnsigned
-    args:
+    ret_signed: false
+    ret_type: i32
+    set_name: XCoreVAlu
+  - args:
     - arg_name: rs1
       arg_type: i32
       signed: true
-    - arg_name: rs2
+    - arg_name: Iuimm5
       arg_type: i32
+      immediate: true
       signed: false
-    set_name: XCoreVAlu
     instr_name: SEAL5_CV_CLIP
     intrinsic_name: alu_clip
-    ret_type: i32
     ret_signed: true
-  - <<: *ScalarCoreVAluGprGprIntrinsicUnsigned
+    ret_type: i32
+    set_name: XCoreVAlu
+  - args:
+    - arg_name: rs1
+      arg_type: i32
+      signed: false
+    - arg_name: Iuimm5
+      arg_type: i32
+      immediate: true
+      signed: false
     instr_name: SEAL5_CV_CLIPU
     intrinsic_name: alu_clipu
-  # ternary
-  - &ScalarCoreVAluGprGprGprIntrinsicSignedSignedUnsigned
-    args:
+    ret_signed: false
+    ret_type: i32
+    set_name: XCoreVAlu
+  - args: &id005
     - arg_name: rs1
       arg_type: i32
       signed: true
     - arg_name: rs2
       arg_type: i32
       signed: true
-    - arg_name: rs3  # TODO: Shouldn't this be Luimm5 and immediate: true?
+    - arg_name: Luimm5
       arg_type: i32
+      immediate: true
       signed: false
-    # - arg_name: Is3
-    #   arg_type: i32
-    #   immediate: true
-    set_name: XCoreVAlu
     instr_name: SEAL5_CV_ADDN
     intrinsic_name: alu_addn
-    ret_type: i32
     ret_signed: true
-  - &ScalarCoreVAluGprGprGprIntrinsicUnsigned
-    args:
+    ret_type: i32
+    set_name: XCoreVAlu
+  - args: &id006
     - arg_name: rs1
       arg_type: i32
       signed: false
     - arg_name: rs2
       arg_type: i32
       signed: false
-    - arg_name: rs3  # TODO: Shouldn't this be Luimm5 and immediate: true?
+    - arg_name: Luimm5
       arg_type: i32
+      immediate: true
       signed: false
-    # - arg_name: Is3
-    #   arg_type: i32
-    #   immediate: true
-    set_name: XCoreVAlu
     instr_name: SEAL5_CV_ADDUN
     intrinsic_name: alu_addun
-    ret_type: i32
     ret_signed: false
-  - <<: *ScalarCoreVAluGprGprGprIntrinsicSignedSignedUnsigned
+    ret_type: i32
+    set_name: XCoreVAlu
+  - args: *id005
     instr_name: SEAL5_CV_ADDRN
     intrinsic_name: alu_addrn
-  - <<: *ScalarCoreVAluGprGprGprIntrinsicUnsigned
+    ret_signed: true
+    ret_type: i32
+    set_name: XCoreVAlu
+  - args: *id006
     instr_name: SEAL5_CV_ADDURN
     intrinsic_name: alu_addurn
-  - <<: *ScalarCoreVAluGprGprGprIntrinsicSignedSignedUnsigned
+    ret_signed: false
+    ret_type: i32
+    set_name: XCoreVAlu
+  - args: *id005
     instr_name: SEAL5_CV_SUBN
     intrinsic_name: alu_subn
-  - <<: *ScalarCoreVAluGprGprGprIntrinsicUnsigned
+    ret_signed: true
+    ret_type: i32
+    set_name: XCoreVAlu
+  - args: *id006
     instr_name: SEAL5_CV_SUBUN
     intrinsic_name: alu_subun
-  - <<: *ScalarCoreVAluGprGprGprIntrinsicSignedSignedUnsigned
+    ret_signed: false
+    ret_type: i32
+    set_name: XCoreVAlu
+  - args: *id005
     instr_name: SEAL5_CV_SUBRN
     intrinsic_name: alu_subrn
-  - <<: *ScalarCoreVAluGprGprGprIntrinsicUnsigned
+    ret_signed: true
+    ret_type: i32
+    set_name: XCoreVAlu
+  - args: *id006
     instr_name: SEAL5_CV_SUBURN
     intrinsic_name: alu_suburn
+    ret_signed: false
+    ret_type: i32
+    set_name: XCoreVAlu
+  - set_name: XCoreVAlu
+    instr_name: SEAL5_CV_CLIPR
+    intrinsic_name: alu_clipr
+    ret_type: i32
+    ret_signed: true
+    args: *id004
+  - set_name: XCoreVAlu
+    instr_name: SEAL5_CV_CLIPUR
+    intrinsic_name: alu_clipur
+    ret_type: i32
+    ret_signed: true
+    args: *id004
+  - set_name: XCoreVAlu
+    instr_name: SEAL5_CV_ADDNR
+    intrinsic_name: alu_addnr
+    ret_type: i32
+    ret_signed: true
+    args: &id007
+    - arg_name: rd
+      arg_type: i32
+      signed: false
+    - arg_name: rs1
+      arg_type: i32
+      signed: false
+    - arg_name: rs2
+      arg_type: i32
+      signed: false
+  - set_name: XCoreVAlu
+    instr_name: SEAL5_CV_ADDUNR
+    intrinsic_name: alu_addunr
+    ret_type: i32
+    ret_signed: true
+    args: *id007
+  - set_name: XCoreVAlu
+    instr_name: SEAL5_CV_ADDRNR
+    intrinsic_name: alu_addrnr
+    ret_type: i32
+    ret_signed: true
+    args: *id007
+  - set_name: XCoreVAlu
+    instr_name: SEAL5_CV_ADDURNR
+    intrinsic_name: alu_addurnr
+    ret_type: i32
+    ret_signed: true
+    args: *id007
+  - set_name: XCoreVAlu
+    instr_name: SEAL5_CV_SUBNR
+    intrinsic_name: alu_subnr
+    ret_type: i32
+    ret_signed: true
+    args: *id007
+  - set_name: XCoreVAlu
+    instr_name: SEAL5_CV_SUBUNR
+    intrinsic_name: alu_subunr
+    ret_type: i32
+    ret_signed: true
+    args: *id007
+  - set_name: XCoreVAlu
+    instr_name: SEAL5_CV_SUBRNR
+    intrinsic_name: alu_subrnr
+    ret_type: i32
+    ret_signed: true
+    args: *id007
+  - set_name: XCoreVAlu
+    instr_name: SEAL5_CV_SUBURNR
+    intrinsic_name: alu_suburnr
+    ret_type: i32
+    ret_signed: true
+    args: *id007

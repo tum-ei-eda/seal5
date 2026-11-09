@@ -22,7 +22,7 @@ import os
 
 from pathlib import Path
 
-from seal5.wrapper import run_seal5_flow
+from seal5.wrapper import LLVM_REF, run_seal5_flow
 
 EXAMPLES_DIR = Path(os.path.dirname(os.path.realpath(__file__)))
 DEST_DIR = os.environ.get("DEST_DIR", "/tmp")
@@ -35,7 +35,7 @@ FILES = [
     EXAMPLES_DIR / "corev" / "cdsl" / "XCoreVBitmanip.core_desc",
     EXAMPLES_DIR / "corev" / "cdsl" / "XCoreVSimd.core_desc",
     EXAMPLES_DIR / "corev" / "cdsl" / "XCoreVMem.core_desc",
-    # EXAMPLES_DIR / "corev" / "cdsl" / "XCoreVBranchImmediate.core_desc",
+    EXAMPLES_DIR / "corev" / "cdsl" / "XCoreVBranchImmediate.core_desc",
     # Test inputs
     EXAMPLES_DIR / "corev" / "tests" / "alu" / "*.c",
     EXAMPLES_DIR / "corev" / "tests" / "alu" / "*.s",
@@ -45,18 +45,19 @@ FILES = [
     EXAMPLES_DIR / "corev" / "tests" / "mac" / "*.ll",
     EXAMPLES_DIR / "corev" / "tests" / "bitmanip" / "*.s",
     EXAMPLES_DIR / "corev" / "tests" / "bitmanip" / "*.ll",
-    # EXAMPLES_DIR / "corev" / "tests" / "bi" / "*.s",
-    # EXAMPLES_DIR / "corev" / "tests" / "bi" / "*.ll",
-    # EXAMPLES_DIR / "corev" / "tests" / "simd" / "*.s",
-    # EXAMPLES_DIR / "corev" / "tests" / "simd" / "*.ll",
-    # EXAMPLES_DIR / "corev" / "tests" / "mem" / "*.s",
-    # EXAMPLES_DIR / "corev" / "tests" / "mem" / "*.ll",
+    EXAMPLES_DIR / "corev" / "tests" / "bi" / "*.s",
+    EXAMPLES_DIR / "corev" / "tests" / "bi" / "*.ll",
+    EXAMPLES_DIR / "corev" / "tests" / "simd" / "*.s",
+    EXAMPLES_DIR / "corev" / "tests" / "simd" / "*.ll",
+    EXAMPLES_DIR / "corev" / "tests" / "mem" / "*.s",
+    EXAMPLES_DIR / "corev" / "tests" / "mem" / "*.ll",
     # YAML inputs
     EXAMPLES_DIR / "corev" / "cfg" / "XCoreVMac.yml",
     EXAMPLES_DIR / "corev" / "cfg" / "XCoreVAlu.yml",
     EXAMPLES_DIR / "corev" / "cfg" / "XCoreVBitmanip.yml",
     EXAMPLES_DIR / "corev" / "cfg" / "XCoreVSimd.yml",
     EXAMPLES_DIR / "corev" / "cfg" / "XCoreVMem.yml",
+    EXAMPLES_DIR / "corev" / "cfg" / "XCoreVBranchImmediate.yml",
     EXAMPLES_DIR / "corev" / "cfg" / "filter.yml",
     EXAMPLES_DIR / "corev" / "cfg" / "riscv.yml",
     EXAMPLES_DIR / "common" / "cfg" / "llvm.yml",
@@ -65,4 +66,7 @@ FILES = [
     EXAMPLES_DIR / "common" / "cfg" / "passes.yml",
     EXAMPLES_DIR / "common" / "cfg" / "git.yml",
 ]
-run_seal5_flow(FILES, name="corev", dest=DEST)
+if LLVM_REF.startswith("llvmorg-22."):
+    FILES.append(EXAMPLES_DIR / "corev" / "cfg" / "llvm22.yml")
+
+run_seal5_flow(FILES, name="corev", dest=DEST, lookup_paths=[EXAMPLES_DIR / "common/cdsl/rv_base"])
