@@ -15,7 +15,10 @@ passes:
     check_pattern_support:
       allow_memory: true
       allow_branches: true
+    behav_to_llvmir:
+      no_extend: false
     behav_to_pat:
+      no_extend: false
       parallel: false
       added_complexity: 1000  # Exercise generated rules even when native rules also match.
 patches:

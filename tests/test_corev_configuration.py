@@ -65,6 +65,8 @@ class CoreVConfigurationTests(unittest.TestCase):
         check = data["passes"]["overrides"]["check_pattern_support"]
         self.assertTrue(check["allow_memory"])
         self.assertTrue(check["allow_branches"])
+        for name in ("behav_to_llvmir", "behav_to_pat"):
+            self.assertFalse(data["passes"]["overrides"][name]["no_extend"])
 
 
 if __name__ == "__main__":
