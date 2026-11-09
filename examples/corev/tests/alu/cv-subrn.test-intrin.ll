@@ -1,13 +1,17 @@
-; RUN: llc -O3 -mtriple=riscv32 -mattr=+xcorevalu -verify-machineinstrs < %s \
-; RUN:   | FileCheck %s
+; RUN: llc -mtriple=riscv32 -mattr=+m,+xcorevalu -verify-machineinstrs %s -o - | FileCheck %s
 
 declare i32 @llvm.riscv.xcorevalu.alu.subrn(i32, i32, i32)
 
-define i32 @test_subrn(i32 %a, i32 %b) {
-; CHECK-LABEL: test_subrn:
-; CHECK:       # %bb.0:
-; CHECK-NEXT:    seal5.cv.subrn a0, a1, 15
-; CHECK-NEXT:    ret
-  %1 = call i32 @llvm.riscv.xcorevalu.alu.subrn(i32 %a, i32 %b, i32 15)
-  ret i32 %1
+define i32 @cv_subrn_0(i32 %a0, i32 %a1) {
+; CHECK-LABEL: cv_subrn_0:
+; CHECK: seal5.cv.subRN
+  %result = call i32 @llvm.riscv.xcorevalu.alu.subrn(i32 %a0, i32 %a1, i32 0)
+  ret i32 %result
+}
+
+define i32 @cv_subrn_1(i32 %a0, i32 %a1) {
+; CHECK-LABEL: cv_subrn_1:
+; CHECK: seal5.cv.subRN
+  %result = call i32 @llvm.riscv.xcorevalu.alu.subrn(i32 %a0, i32 %a1, i32 1)
+  ret i32 %result
 }
