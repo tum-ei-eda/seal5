@@ -205,6 +205,16 @@ class Seal5Alias:
     pass
 
 
+class Seal5InstSetAttribute(Enum):
+    KEEP = auto()
+    DROP = auto()
+    FEATURE = auto()
+    ARCH = auto()
+    VER = auto()
+    VERSION = auto()
+    EXPERIMENTAL = auto()
+
+
 class Seal5InstrAttribute(Enum):
     HAS_SIDE_EFFECTS = auto()
     MAY_LOAD = auto()
@@ -229,6 +239,8 @@ class Seal5InstrAttribute(Enum):
     ENC_MATCH = auto()
     AUTO_UNROLL_IMM = auto()
     AUTO_INTRIN = auto()
+    KEEP = auto()
+    DROP = auto()
 
 
 class Seal5FunctionAttribute(Enum):

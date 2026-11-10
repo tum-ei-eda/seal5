@@ -15,6 +15,7 @@ import pathlib
 import yaml
 
 from seal5.model_utils import load_model
+from seal5.model import Seal5InstSetAttribute
 
 from seal5.logging import Logger
 
@@ -72,6 +73,16 @@ def main():
             assert len(set_def.extension) > 0
             is_group_set = True
         set_data = {"instructions": []}
+        attrs = getattr(set_def, "attributes", {})
+        for attr, field in (
+            (Seal5InstSetAttribute.FEATURE, "feature"),
+            (Seal5InstSetAttribute.ARCH, "arch"),
+            (Seal5InstSetAttribute.VER, "version"),
+            (Seal5InstSetAttribute.VERSION, "version"),
+            (Seal5InstSetAttribute.EXPERIMENTAL, "experimental"),
+        ):
+            if attr in attrs and set_def.settings is not None:
+                set_data[field] = getattr(set_def.settings, field)
         riscv_data = {}
         if is_group_set:
             # set_data["implies"] = set_def.extension
