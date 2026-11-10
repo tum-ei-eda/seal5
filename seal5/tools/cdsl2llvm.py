@@ -348,6 +348,7 @@ def combine_test_fragments(
     return_output=False,
     register_writebacks=0,
     scalar_inputs=None,
+    checked_functions=None,
 ):
     with open(ll_file, "r") as f:
         contents = f.read()
@@ -394,8 +395,8 @@ def combine_test_fragments(
             ret_lines += test_mir_checks.replace(f"impl{instr}", f"impl{function_instr}").splitlines()
             ret_lines += test_asm_checks.replace(f"impl{instr}", f"impl{function_instr}").splitlines()
         if line.startswith("define ") and " @impl" in line:
-            insert_checks = True
             function_instr = re.search(r"@impl([^\s(]+)\(", line).group(1)
+            insert_checks = checked_functions is None or function_instr in checked_functions
             # instr_name = line.split("(", 1)[0].split("impl", 1)[-1]
         ret_lines.append(line)
     ret = "\n".join(ret_lines)
@@ -546,6 +547,7 @@ def run_pattern_gen(
         # errs = None
         # opt_ll = None
         patterns = []
+        pattern_functions = set()
         found_pattern = False
         # reason = None
         # rest = []
@@ -586,6 +588,7 @@ def run_pattern_gen(
                         raise ValueError(f"Could not parse pattern line: {line!r}")
 
                     instr_ = match_.group("instr")
+                    pattern_functions.add(instr_)
                     # print("instr", instr)
                     mnemonic_ = match_.group("mnemonic")  # None when [...] is absent
                     # print("mnemonic_", mnemonic_)
@@ -734,6 +737,7 @@ def run_pattern_gen(
                 test_asm_checks,
                 return_output=may_load and has_register_output,
                 register_writebacks=num_register_outputs if gisel_table else 0,
+                checked_functions=pattern_functions,
                 scalar_inputs=(
                     (xlen, build_dir / "bin" / "opt")
                     if num_patterns > 1 and not may_load and not may_store and xlen is not None

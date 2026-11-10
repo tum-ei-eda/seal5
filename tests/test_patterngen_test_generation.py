@@ -54,6 +54,50 @@ class PatternGenTestGenerationTests(unittest.TestCase):
                 num_register_outputs=num_register_outputs,
             )
 
+    def test_skipped_constants_keep_tests_for_successful_specializations(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "bin").mkdir()
+            (root / "bin" / "pattern-gen").touch()
+            source = root / "test.core_desc"
+            source.touch()
+            source.with_suffix(".ll").write_text(
+                "define void @implTEST_0() {\n  ret void\n}\n" "define void @implTEST_2() {\n  ret void\n}\n"
+            )
+            destination = root / "test.td"
+
+            def execute(*_args, **_kwargs):
+                destination.write_text("def TEST_ : RVInst_TEST<(outs GPR:$rd), (ins GPR:$a)>;\n")
+                return (
+                    "Skipped constant specialization for TEST_0\n"
+                    "Pattern for TEST_2 [xtest]: (smax GPR:$a, (i32 0))\n"
+                    "Pattern for TEST_2 [xtest]: (select (setcc GPR:$a, 0, SETGT), GPR:$a, 0)\n"
+                )
+
+            with patch("seal5.tools.cdsl2llvm.utils.exec_getout", side_effect=execute):
+                files = run_pattern_gen(root, source, destination, xlen=32, mattr="+m", immediate_operands=["imm"])
+            self.assertEqual(len(files), 1)
+            contents = Path(files[0]).read_text()
+            self.assertIn("define void @implTEST_0", contents)
+            self.assertNotIn("MIR-LABEL: name: implTEST_0", contents)
+            self.assertIn("MIR-LABEL: name: implTEST_2", contents)
+
+    def test_constant_specializations_do_not_require_an_instruction_match(self):
+        with tempfile.TemporaryDirectory() as directory:
+            ir = Path(directory) / "test.ll"
+            ir.write_text("define void @implTEST_0() {\n  ret void\n}\n" "define void @implTEST_1() {\n  ret void\n}\n")
+            result = combine_test_fragments(
+                ir,
+                "TEST_1",
+                "; RUN: test",
+                "; CHECK-LABEL: implTEST_1",
+                "",
+                checked_functions={"TEST_1"},
+            )
+            self.assertIn("define void @implTEST_0()", result)
+            self.assertNotIn("; CHECK-LABEL: implTEST_0", result)
+            self.assertEqual(result.count("; CHECK-LABEL: implTEST_1"), 1)
+
     def test_scalar_register_inputs_preserve_subregister_extraction(self):
         ir = (
             "define void @implTEST(ptr noalias writeonly %rd, ptr readonly align 4 %rs1) {\n"
