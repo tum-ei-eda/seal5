@@ -12,13 +12,39 @@ import sys
 import argparse
 import logging
 import pathlib
+from copy import deepcopy
 
 from seal5.settings import Seal5Settings, ExtensionsSettings, RISCVSettings
+from seal5.model import Seal5InstSetAttribute
 from seal5.model_utils import load_model, dump_model
 
 from seal5.logging import Logger
 
 logger = Logger("transform.process_settings")
+
+
+def settings_from_attributes(set_def):
+    attrs = getattr(set_def, "attributes", {})
+    values = {}
+    for attr, field in (
+        (Seal5InstSetAttribute.FEATURE, "feature"),
+        (Seal5InstSetAttribute.ARCH, "arch"),
+        (Seal5InstSetAttribute.VER, "version"),
+        (Seal5InstSetAttribute.VERSION, "version"),
+    ):
+        if attr in attrs:
+            value = attrs[attr]
+            if not isinstance(value, str) or not value:
+                raise ValueError(f"{set_def.name}: {attr.name.lower()} requires a value")
+            if field in values:
+                raise ValueError(f"{set_def.name}: specify only one of ver and version")
+            values[field] = value
+    if Seal5InstSetAttribute.EXPERIMENTAL in attrs:
+        value = attrs[Seal5InstSetAttribute.EXPERIMENTAL]
+        if value not in (None, "true", "false"):
+            raise ValueError(f"{set_def.name}: experimental must be a flag, true, or false")
+        values["experimental"] = value != "false"
+    return ExtensionsSettings(**values)
 
 
 def get_parser():
@@ -55,7 +81,7 @@ def run(args):
 
     model_settings = settings.models.get(model_name)
     if model_settings is not None:
-        ext_names = set(model_settings.extensions.keys())
+        ext_names = set((model_settings.extensions or {}).keys())
         set_names = set(model_obj.sets.keys())
         unknown_exts = ext_names - set_names
         ignore_unknown_sets = False
@@ -73,11 +99,12 @@ def run(args):
         if len(set_def.instructions) == 0:
             assert len(set_def.extension) > 0
             is_group_set = True
-        ext_settings = None
+        ext_settings = settings_from_attributes(set_def)
         if model_settings is not None:
-            ext_settings = model_settings.extensions.get(set_name, None)
-        if ext_settings is None:
-            ext_settings = ExtensionsSettings()
+            yaml_settings = (model_settings.extensions or {}).get(set_name, None)
+            if yaml_settings is not None:
+                ext_settings.merge(deepcopy(yaml_settings), overwrite=True, inplace=True)
+        if ext_settings.feature is None:
             ext_settings.feature = ext_settings.get_feature(set_name)
         if not is_group_set:
             riscv_settings = ext_settings.riscv

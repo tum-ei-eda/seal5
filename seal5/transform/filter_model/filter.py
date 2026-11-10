@@ -17,6 +17,7 @@ import pathlib
 from m2isar.metamodel import arch
 
 from seal5.model_utils import load_model, dump_model
+from seal5.model import Seal5InstrAttribute, Seal5InstSetAttribute
 from seal5.riscv_utils import OPCODE_LOOKUP
 
 from seal5.logging import Logger
@@ -165,22 +166,55 @@ def run(args):
             return opcode not in drop
         return True
 
+    def selected(name, attrs, keep, drop, attr_type, has_keep):
+        marked_keep = attr_type.KEEP in attrs
+        marked_drop = attr_type.DROP in attrs
+        if marked_keep and marked_drop:
+            raise ValueError(f"{name} cannot have both keep and drop attributes")
+        for attr in (attr_type.KEEP, attr_type.DROP):
+            if attr in attrs and attrs[attr] not in (None, []):
+                raise ValueError(f"{name}: {attr.name.lower()} does not take a value")
+        if marked_drop:
+            return False
+        if marked_keep:
+            return True
+        if has_keep and not keep:
+            return False
+        return check_filter_regex(name, keep, drop)
+
+    has_keep_sets = any(
+        Seal5InstSetAttribute.KEEP in getattr(set_def, "attributes", {}) for set_def in model_obj.sets.values()
+    )
     before = len(model_obj.sets)
     model_obj.sets = {
         set_name: set_def
         for set_name, set_def in model_obj.sets.items()
-        if check_filter_regex(set_name, keep_sets, drop_sets)
+        if selected(
+            set_name, getattr(set_def, "attributes", {}), keep_sets, drop_sets, Seal5InstSetAttribute, has_keep_sets
+        )
     }
     after = len(model_obj.sets)
     diff = before - after
     if diff > 0:
         logger.debug("Filtered %d sets", diff)
+    has_keep_instructions = any(
+        Seal5InstrAttribute.KEEP in instr.attributes
+        for set_def in model_obj.sets.values()
+        for instr in set_def.instructions.values()
+    )
     for set_name, set_def in model_obj.sets.items():
         before = len(set_def.instructions)
         set_def.instructions = {
             key: instr_def
             for key, instr_def in set_def.instructions.items()
-            if check_filter_regex(instr_def.name, keep_instructions, drop_instructions)
+            if selected(
+                instr_def.name,
+                instr_def.attributes,
+                keep_instructions,
+                drop_instructions,
+                Seal5InstrAttribute,
+                has_keep_instructions,
+            )
             and check_encoding_filter(
                 instr_def.name, instr_def.encoding, keep_opcodes, drop_opcodes, keep_encoding_sizes, drop_encoding_sizes
             )

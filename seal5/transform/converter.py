@@ -113,6 +113,9 @@ def run(args):
             {},
             {},
         )
+        sets[set_name].attributes = convert_attrs(
+            getattr(set_def, "attributes", {}), base=seal5_model.Seal5InstSetAttribute
+        )
 
     new_model_obj = seal5_model.Seal5Model(seal5_model.SEAL5_METAMODEL_VERSION, {}, sets, CodeInfoBase.database)
     dump_model(new_model_obj, out_path)
