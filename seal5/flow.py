@@ -1150,6 +1150,93 @@ class Seal5Flow:
         self.settings.save()
         self.logger.info("Completed test of Seal5 LLVM")
 
+    def report(self, dest: Optional[Union[str, Path]] = None, verbose: bool = False):
+        """Generate Seal5 reports."""
+        self.logger.info("Generating Seal5 reports")
+        if dest is None:
+            dest = self.meta_dir / "reports"
+        elif not isinstance(dest, Path):
+            dest = Path(dest)
+        dest.mkdir(parents=True, exist_ok=True)
+
+        model_files = sorted(self.settings.models_dir.glob("*.seal5model"))
+        if not model_files:
+            raise RuntimeError(f"No Seal5 models found in {self.settings.models_dir}")
+        model_args = [str(path) for path in model_files]
+        yaml_args = ["--yaml", str(self.settings.settings_file)]
+
+        def run_writer(module, *args):
+            utils.python(
+                "-m",
+                f"seal5.backends.report.{module}.writer",
+                *args,
+                print_func=self.logger.info if verbose else self.logger.debug,
+                live=verbose,
+            )
+
+        def output_args(name):
+            return ["--output", str(dest / name)]
+
+        run_writer("properties", *model_args, *output_args("properties.csv"))
+        run_writer("properties", *model_args, *output_args("properties.md"))
+
+        run_writer("status", *model_args, *yaml_args, *output_args("status.csv"))
+        run_writer("status", *model_args, *yaml_args, "--compact", *output_args("status_compact.csv"))
+        run_writer("status", *model_args, *yaml_args, *output_args("status.md"), "--markdown-icons")
+        run_writer(
+            "status", *model_args, *yaml_args, "--compact", *output_args("status_compact.md"), "--markdown-icons"
+        )
+
+        run_writer("pattern_gen", *yaml_args, *output_args("pattern_gen.csv"))
+        run_writer("pattern_gen", *yaml_args, "--agg", *output_args("pattern_gen_agg.csv"))
+        run_writer("pattern_gen", *yaml_args, *output_args("pattern_gen.md"))
+        run_writer("pattern_gen", *yaml_args, "--agg", *output_args("pattern_gen_agg.md"))
+
+        run_writer(
+            "test_results",
+            *model_args,
+            *yaml_args,
+            *output_args("test_results.csv"),
+            "--coverage",
+            str(dest / "test_coverage.csv"),
+        )
+        run_writer(
+            "test_results",
+            *model_args,
+            *yaml_args,
+            "--compact",
+            *output_args("test_results_compact.csv"),
+            "--coverage",
+            str(dest / "test_coverage_compact.csv"),
+        )
+        run_writer(
+            "test_results",
+            *model_args,
+            *yaml_args,
+            *output_args("test_results.md"),
+            "--coverage",
+            str(dest / "test_coverage.md"),
+            "--markdown-icons",
+        )
+        run_writer(
+            "test_results",
+            *model_args,
+            *yaml_args,
+            "--compact",
+            *output_args("test_results_compact.md"),
+            "--coverage",
+            str(dest / "test_coverage_compact.md"),
+            "--markdown-icons",
+        )
+
+        run_writer("diff", *yaml_args, *output_args("diff.csv"))
+        run_writer("diff", *yaml_args, *output_args("diff.md"))
+
+        run_writer("times", *yaml_args, "--pass-times", *output_args("stage_times.csv"), "--sum-level", "2")
+        run_writer("times", *yaml_args, "--pass-times", *output_args("stage_times.md"), "--sum-level", "2")
+        run_writer("times", *yaml_args, "--pass-times", *output_args("stage_times.mermaid"), "--sum-level", "2")
+        self.logger.info("Completed generation of Seal5 reports")
+
     def deploy(self, dest: Path, verbose: bool = False, stage: PatchStage = PatchStage.PHASE_5):
         """Deploy Seal5 LLVM."""
         del verbose  # unused

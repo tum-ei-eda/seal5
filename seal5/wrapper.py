@@ -66,6 +66,8 @@ TEST_ONLY = str2bool(os.environ.get("TEST_ONLY", 0))
 INSTALL = str2bool(os.environ.get("INSTALL", 1))
 DEPLOY = str2bool(os.environ.get("DEPLOY", 1))
 EXPORT = str2bool(os.environ.get("EXPORT", 1))
+REPORT = str2bool(os.environ.get("REPORT", 1))
+REPORT_DIR = os.environ.get("REPORT_DIR", None)
 CLEANUP = str2bool(os.environ.get("CLEANUP", 0))
 RESET = str2bool(os.environ.get("RESET", 1))
 INIT = str2bool(os.environ.get("INIT", 1))
@@ -115,6 +117,8 @@ def run_seal5_flow(
     use_combined_patches: bool = USE_COMBINED_PATCHES,
     log_level: Optional[str] = LOG_LEVEL,
     lookup_paths: Optional[List[str]] = None,  # TODO: expose via env?
+    report: bool = REPORT,
+    report_dir: Optional[Union[str, Path]] = REPORT_DIR,
 ):
     """Single entry point (wrapper) to excute the full seal5 flow for a given set of files."""
     seal5_flow = Seal5Flow(dest, name=name)
@@ -292,6 +296,9 @@ def run_seal5_flow(
         if export:
             # Export patches, logs, reports
             seal5_flow.export(f"{dest}.tar.gz" if out_dir is None else Path(out_dir) / "seal5.tar.gz", verbose=verbose)
+
+        if report:
+            seal5_flow.report(dest=report_dir, verbose=verbose)
 
         if cleanup:
             # Optional: cleanup temorary files, build dirs,...
