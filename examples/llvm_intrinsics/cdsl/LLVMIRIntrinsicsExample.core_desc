@@ -1,0 +1,32 @@
+import "../../common/cdsl/rv_base/RV32I.core_desc"
+import "../../common/cdsl/LLVMIRIntrinsics.core_desc"
+
+InstructionSet XLLVMIRIntrinsicsExample extends RV32I {
+    instructions {
+        LLVM_ABS_I32 {
+            encoding: 7'd0 :: 5'b00000 :: rs1[4:0] :: 3'd0 :: rd[4:0] :: 7'b0101011;
+            assembly: {"xllvm.abs.i32", "{name(rd)}, {name(rs1)}"};
+            behavior: if (rd != 0) X[rd] = llvm_abs_i32(X[rs1], 1'b0);
+        }
+        LLVM_BITREVERSE_I32 {
+            encoding: 7'd0 :: 5'b00000 :: rs1[4:0] :: 3'd1 :: rd[4:0] :: 7'b0101011;
+            assembly: {"xllvm.bitreverse.i32", "{name(rd)}, {name(rs1)}"};
+            behavior: if (rd != 0) X[rd] = llvm_bitreverse_i32(X[rs1]);
+        }
+        LLVM_SMAX_I32 {
+            encoding: 7'd0 :: rs2[4:0] :: rs1[4:0] :: 3'd2 :: rd[4:0] :: 7'b0101011;
+            assembly: {"xllvm.smax.i32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+            behavior: if (rd != 0) X[rd] = llvm_smax_i32(X[rs1], X[rs2]);
+        }
+        LLVM_CTLZ_I32 {
+            encoding: 7'd0 :: 5'b00000 :: rs1[4:0] :: 3'd3 :: rd[4:0] :: 7'b0101011;
+            assembly: {"xllvm.ctlz.i32", "{name(rd)}, {name(rs1)}"};
+            behavior: if (rd != 0) X[rd] = llvm_ctlz_i32(X[rs1], 1'b0);
+        }
+        LLVM_CTTZ_I32 {
+            encoding: 7'd0 :: 5'b00000 :: rs1[4:0] :: 3'd4 :: rd[4:0] :: 7'b0101011;
+            assembly: {"xllvm.cttz.i32", "{name(rd)}, {name(rs1)}"};
+            behavior: if (rd != 0) X[rd] = llvm_cttz_i32(X[rs1], 1'b0);
+        }
+    }
+}
