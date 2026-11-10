@@ -438,6 +438,11 @@ class LoggingSettings(YAMLSettings):
 
     console: ConsoleLoggingSettings
     file: FileLoggingSettings
+    progress: Optional[str] = None  # None/"none" (default), "tqdm" or "rich" (mutually exclusive)
+
+    def __post_init__(self):
+        if self.progress is not None and self.progress not in ("none", "tqdm", "rich"):
+            raise ValueError(f"Invalid progress mode: {self.progress} (expected none, tqdm or rich)")
 
 
 @dataclass
