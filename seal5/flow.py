@@ -24,6 +24,7 @@ import time
 import glob
 import tarfile
 import atexit
+import subprocess
 from pathlib import Path
 from typing import Optional, List, Dict, Tuple, Union
 
@@ -909,6 +910,39 @@ class Seal5Flow:
             return ret.resolve()
         raise RuntimeError(f"Patch file {path} not found!")
 
+    def _apply_and_stage_patch(self, repo, file, force):
+        dirty = repo.is_dirty(untracked_files=True)
+        if dirty and not llvm.check_llvm_repo(self.directory):
+            if force:
+                repo.git.reset(".")
+                repo.git.restore(".")
+            else:
+                raise RuntimeError("LLVM repository is not clean!")
+        if dirty:
+            repo.git.apply(file)
+            repo.git.add(A=True)
+        else:
+            repo.git.apply("--index", file)
+            # Unlike git add -A, git apply --index stages newly created ignored files.
+            added = repo.git.diff(
+                "--cached", "--no-renames", "--name-only", "--diff-filter=A", "-z", stdout_as_string=False
+            )
+            if added:
+                result = subprocess.run(
+                    [git.Git.GIT_PYTHON_GIT_EXECUTABLE, "check-ignore", "--no-index", "-z", "--stdin"],
+                    cwd=repo.working_tree_dir,
+                    input=added,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    check=False,
+                )
+                if result.returncode not in (0, 1):
+                    result.check_returncode()
+                if result.stdout:
+                    paths = [os.fsdecode(path) for path in result.stdout.split(b"\0") if path]
+                    with repo.git.custom_environment(GIT_LITERAL_PATHSPECS="1"):
+                        repo.git.reset("-q", "HEAD", "--", *paths)
+
     def apply_patch(self, patch: PatchSettings, force: bool = False):
         """Apply Seal5 patch."""
         name = patch.name
@@ -949,16 +983,9 @@ class Seal5Flow:
         if target == "llvm":
             dest = self.directory
             repo = git.Repo(dest)
-            if not llvm.check_llvm_repo(dest):
-                if force:
-                    repo.git.reset(".")
-                    repo.git.restore(".")
-                else:
-                    raise RuntimeError("LLVM repository is not clean!")
         if dest is None:
             raise RuntimeError(f"Unsupported patch target: {target}")
-        # TODO: check if clean
-        repo.git.apply(file)
+        self._apply_and_stage_patch(repo, file, force)
         author = self.settings.git.author
         mail = self.settings.git.mail
         actor = git.Actor(author, mail)
@@ -968,7 +995,6 @@ class Seal5Flow:
             msg = f"Apply patch: {patch.name}"
         if prefix:
             msg = prefix + " " + msg
-        repo.git.add(A=True)
         repo.index.commit(msg, author=actor)
         patch.applied = True
         self.settings.save()
@@ -1023,13 +1049,7 @@ class Seal5Flow:
                     self.logger.info("Applying combined patch '%s'", name)
                     dest = self.directory
                     repo = git.Repo(dest)
-                    if not llvm.check_llvm_repo(dest):
-                        if force:
-                            repo.git.reset(".")
-                            repo.git.restore(".")
-                        else:
-                            raise RuntimeError("LLVM repository is not clean!")
-                    repo.git.apply(combined_file)
+                    self._apply_and_stage_patch(repo, combined_file, force)
                     author = self.settings.git.author
                     mail = self.settings.git.mail
                     actor = git.Actor(author, mail)
@@ -1037,7 +1057,6 @@ class Seal5Flow:
                     msg = f"Combined {stage_name} patches"
                     if prefix:
                         msg = prefix + " " + msg
-                    repo.git.add(A=True)
                     repo.index.commit(msg, author=actor)
                 else:
                     logger.warning("No combined patch found for stage %s.", stage_name)
