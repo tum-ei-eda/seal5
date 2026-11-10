@@ -15,7 +15,7 @@ import pathlib
 from seal5.index import NamedPatch, write_index_yaml
 
 # from seal5.settings import ExtensionsSettings
-from seal5.model import Seal5RegisterClass
+from seal5.model import Seal5InstrAttribute, Seal5RegisterClass
 from seal5.model_utils import load_model
 
 from seal5.logging import Logger
@@ -36,6 +36,11 @@ def write_riscv_register_info(reg):
     return out_str
 
 
+def write_riscv_csr_register_info(reg):
+    """Generate an implicit register definition for CSR state."""
+    return f'let Namespace = "RISCV" in def {reg.name} : Register<"{reg.name.lower()}">;'
+
+
 def write_riscv_register_class_info(group_name, group, group_regs):
     """Generate code for RISCVRegisterInfo.td LLVM patch (RISCVRegisterClass)."""
     # registers_template = Template(filename=str(template_dir / "registers_tablegen.mako"))
@@ -48,7 +53,6 @@ def write_riscv_register_class_info(group_name, group, group_regs):
     VT_LOOKUP = {
         Seal5RegisterClass.GPR: ("XLenVT", reg_width),
         Seal5RegisterClass.FPR: (f"f{reg_width}", reg_width),
-        Seal5RegisterClass.CSR: ("XLenVT", reg_width),
         Seal5RegisterClass.CUSTOM: (f"i{reg_width}", reg_width),
     }
     vt_name, vt_size = VT_LOOKUP.get(group.reg_class)
@@ -76,6 +80,13 @@ def gen_riscv_register_info_str(set_def):
     """Generate full code for RISCVRegisterInfo.td patch for a set."""
     registers = set_def.registers
     register_groups = set_def.register_groups
+    csr_register_names = {
+        name
+        for instruction in set_def.instructions.values()
+        for attribute in (Seal5InstrAttribute.USES, Seal5InstrAttribute.DEFS)
+        for name in instruction.attributes.get(attribute, [])
+        if name in registers and registers[name].reg_class == Seal5RegisterClass.CSR
+    }
     # print("registers", registers)
     # print("register_groups", register_groups)
     group_regs = {group_name: group.names for group_name, group in register_groups.items()}
@@ -94,7 +105,7 @@ def gen_riscv_register_info_str(set_def):
             # TODO: check size and width
             # raise NotImplementedError("Floating point registers not supported")
         elif group.reg_class == Seal5RegisterClass.CSR:
-            raise NotImplementedError("CSR registers not yet supported")
+            continue  # CSR state is emitted as implicit registers below.
         elif group.reg_class == Seal5RegisterClass.CUSTOM:
             group_regs = [registers[name] for name in group.names]
             tablegen_str = write_riscv_register_class_info(group_name, group, group_regs)
@@ -107,7 +118,11 @@ def gen_riscv_register_info_str(set_def):
         if reg_name in to_skip:
             logger.debug("Skipping register %s", reg_name)
             continue
-        assert reg.reg_class not in [Seal5RegisterClass.GPR, Seal5RegisterClass.FPR, Seal5RegisterClass.CSR]
+        if reg.reg_class == Seal5RegisterClass.CSR:
+            if reg_name in csr_register_names:
+                ret.append(write_riscv_csr_register_info(reg))
+            continue  # CSR operands are immediate values, not register-class operands.
+        assert reg.reg_class not in [Seal5RegisterClass.GPR, Seal5RegisterClass.FPR]
         if reg.reg_class == Seal5RegisterClass.CUSTOM:
             assert reg.size == 1
             tablegen_str = write_riscv_register_info(reg)
