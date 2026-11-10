@@ -28,7 +28,7 @@ def make_set_attribute_parser(filename, make_parser, set_attributes):
         if depth == 0 and token.text == "InstructionSet" and i + 2 < len(tokens):
             name = tokens[i + 1]
             j = i + 2
-            if tokens[j].text == "extends" and j + 2 < len(tokens):
+            if tokens[j].text in ("extends", "combines") and j + 2 < len(tokens):
                 j += 2
                 while tokens[j].text == "," and j + 2 < len(tokens):
                     j += 2

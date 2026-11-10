@@ -166,13 +166,22 @@ def run(args):
             return opcode not in drop
         return True
 
+    def flag_value(attrs, attr):
+        for key, value in attrs.items():
+            if key == attr or (isinstance(key, str) and key.upper() == attr.name):
+                return True, value
+        return False, None
+
     def selected(name, attrs, keep, drop, attr_type, has_keep):
-        marked_keep = attr_type.KEEP in attrs
-        marked_drop = attr_type.DROP in attrs
+        marked_keep, keep_value = flag_value(attrs, attr_type.KEEP)
+        marked_drop, drop_value = flag_value(attrs, attr_type.DROP)
         if marked_keep and marked_drop:
             raise ValueError(f"{name} cannot have both keep and drop attributes")
-        for attr in (attr_type.KEEP, attr_type.DROP):
-            if attr in attrs and attrs[attr] not in (None, []):
+        for marked, value, attr in (
+            (marked_keep, keep_value, attr_type.KEEP),
+            (marked_drop, drop_value, attr_type.DROP),
+        ):
+            if marked and value not in (None, []):
                 raise ValueError(f"{name}: {attr.name.lower()} does not take a value")
         if marked_drop:
             return False
@@ -183,7 +192,8 @@ def run(args):
         return check_filter_regex(name, keep, drop)
 
     has_keep_sets = any(
-        Seal5InstSetAttribute.KEEP in getattr(set_def, "attributes", {}) for set_def in model_obj.sets.values()
+        flag_value(getattr(set_def, "attributes", {}), Seal5InstSetAttribute.KEEP)[0]
+        for set_def in model_obj.sets.values()
     )
     before = len(model_obj.sets)
     model_obj.sets = {
@@ -198,7 +208,7 @@ def run(args):
     if diff > 0:
         logger.debug("Filtered %d sets", diff)
     has_keep_instructions = any(
-        Seal5InstrAttribute.KEEP in instr.attributes
+        flag_value(instr.attributes, Seal5InstrAttribute.KEEP)[0]
         for set_def in model_obj.sets.values()
         for instr in set_def.instructions.values()
     )
