@@ -2252,6 +2252,7 @@ def check_pattern_support(
     log_level: str = "warning",
     allow_memory: bool = False,
     allow_branches: bool = False,
+    allow_csr: bool = False,
     **_kwargs,
 ):
     assert inplace
@@ -2276,6 +2277,8 @@ def check_pattern_support(
         args.append("--allow-memory")
     if allow_branches:
         args.append("--allow-branches")
+    if allow_csr:
+        args.append("--allow-csr")
     if gen_metrics_file:
         # TODO: move to .seal5/metrics
         metrics_file = settings.temp_dir / (name + "_check_pattern_support_metrics.csv")
