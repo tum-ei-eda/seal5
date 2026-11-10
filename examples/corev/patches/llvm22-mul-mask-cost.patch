@@ -1,0 +1,23 @@
+diff --git a/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp b/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
+--- a/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
++++ b/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
+@@ -247,6 +247,19 @@
+     // If the address is a constant, use the materialization cost.
+     return getIntImmCost(Imm, Ty, CostKind);
+   case Instruction::And:
++    // Generated CORE-V low-half multiplication consumes these masks without
++    // materializing them. Do not hoist them behind constant-fold barriers.
++    if (ST->isRV32() && ST->hasVendorXCoreVMac() && Ty->isIntegerTy(32) &&
++        Imm == UINT64_C(0xffff) && Inst && !Inst->use_empty()) {
++      auto IsMaskedMul = [](const User *U) {
++        auto *Mul = dyn_cast<BinaryOperator>(U);
++        return Mul && Mul->getOpcode() == Instruction::Mul &&
++               match(Mul->getOperand(0), m_c_And(m_Value(), m_SpecificInt(65535))) &&
++               match(Mul->getOperand(1), m_c_And(m_Value(), m_SpecificInt(65535)));
++      };
++      if (llvm::all_of(Inst->users(), IsMaskedMul))
++        return TTI::TCC_Free;
++    }
+     // zext.h
+     if (Imm == UINT64_C(0xffff) && ST->hasStdExtZbb())
+       return TTI::TCC_Free;

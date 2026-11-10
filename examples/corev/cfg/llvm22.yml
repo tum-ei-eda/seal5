@@ -46,3 +46,8 @@ patches:
     file: ../patches/llvm22-rotate-capability.patch
     comment: Preserve RV32 rotate-right nodes for generated instruction patterns
     onlyif: "'FeatureSeal5Rotate32' not in (settings.deps_dir / 'cdsl2llvm/llvm/lib/Target/RISCV/RISCVFeatures.td').read_text()"
+  - name: corev_mul_mask_cost
+    target: llvm
+    stage: 3  # The generated XCoreVMac subtarget feature must exist first.
+    file: ../patches/llvm22-mul-mask-cost.patch
+    comment: Keep low-half multiply masks visible for generated patterns

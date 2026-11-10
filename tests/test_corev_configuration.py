@@ -19,7 +19,7 @@ class CoreVConfigurationTests(unittest.TestCase):
     def test_intrinsics_reference_real_instructions(self):
         for config in sorted((ROOT / "cfg").glob("XCoreV*.yml")):
             source = ROOT / "cdsl" / f"{config.stem}.core_desc"
-            instructions = set(re.findall(r"^\s*(CV_\w+)\s*\{", source.read_text(), re.MULTILINE))
+            instructions = set(re.findall(r"^\s*(CV_\w+)\s*(?:\[\[.*?\]\]\s*)*\{", source.read_text(), re.MULTILINE))
             data = yaml.safe_load(config.read_text())
             for intrinsic in data.get("intrinsics", {}).get("intrinsics", []):
                 with self.subTest(config=config.name, intrinsic=intrinsic["instr_name"]):
@@ -27,7 +27,7 @@ class CoreVConfigurationTests(unittest.TestCase):
                     self.assertIn(intrinsic["instr_name"].removeprefix("SEAL5_"), instructions)
                     name = intrinsic["instr_name"].removeprefix("SEAL5_")
                     block = re.search(
-                        r"^\s*" + name + r"\s*\{(.*?)(?=^\s*CV_\w+\s*\{|\Z)",
+                        r"^\s*" + name + r"\s*(?:\[\[.*?\]\]\s*)*\{(.*?)(?=^\s*CV_\w+\s*(?:\[\[.*?\]\]\s*)*\{|\Z)",
                         source.read_text(),
                         re.MULTILINE | re.DOTALL,
                     ).group(1)

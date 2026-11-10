@@ -48,11 +48,16 @@ for path in paths:
         continue
     name = path.stem.removeprefix("SEAL5_CV_")
     text = path.read_text()
-    body = re.search(r"define void @impl.*?^}", text, re.M | re.S)[0]
-    body = re.sub(r" #\d+", "", body)
-    pieces.append(body)
+    bodies = re.findall(r"define void @impl.*?^}", text, re.M | re.S)
+    if not bodies:
+        raise ValueError(f"No extracted implementation functions in {path}")
+    # Specialized modules add per-function alias metadata; the checks use distinct allocas.
+    pieces.extend(re.sub(r", ![\w.]+ !\d+", "", re.sub(r" #\d+", "", body)) for body in bodies)
+    shifts = [0] if name in ["MAC", "MSU"] else [0, 1, 5, 31]
+    if f"@implSEAL5_CV_{name}_0(" in text:
+        shifts = range(32)
     for k, (a, b, c) in enumerate(samples):
-        for shift in [0] if name in ["MAC", "MSU"] else [0, 1, 5, 31]:
+        for shift in shifts:
             hi = "HH" in name
             signed = "S" in name
             aa = (a >> (16 if hi else 0)) & 0xFFFF
@@ -74,7 +79,12 @@ for path in paths:
             expected = expected - (1 << 32) if expected & (1 << 31) else expected
             fn = f"check_{name}_{k}_{shift}"
             checks[fn] = expected
-            call_args = "" if name in ["MAC", "MSU"] else f", i32 {shift}"
+            callee = f"implSEAL5_CV_{name}"
+            specialized = f"{callee}_{shift}"
+            is_specialized = f"@{specialized}(" in text
+            if is_specialized:
+                callee = specialized
+            call_args = "" if is_specialized or name in ["MAC", "MSU"] else f", i32 {shift}"
             pieces.append(
                 f"""define i32 @{fn}() {{
  %rd=alloca i32
@@ -83,7 +93,7 @@ for path in paths:
  store i32 {c}, ptr %rd
  store i32 {a}, ptr %a
  store i32 {b}, ptr %b
- call void @implSEAL5_CV_{name}(ptr %rd, ptr %a, ptr %b{call_args})
+ call void @{callee}(ptr %rd, ptr %a, ptr %b{call_args})
  %v=load i32, ptr %rd
  ret i32 %v
 }}"""

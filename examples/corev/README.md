@@ -63,18 +63,17 @@ no direct GISel table entries are enabled.
 | Checked-in assembler tests | 338 | 0 |
 | Checked-in intrinsic tests | 199 | 0 |
 | Checked-in builtin tests | 2 | 0 |
-| Checked-in codegen tests | 44 | 24 |
-| Generated pattern codegen tests | 46 | 55 |
+| Checked-in codegen tests | 48 | 20 |
+| Generated pattern codegen tests | 46 | 59 |
 
-The checked-in total is **583/607 passing**. Assembler tests cover all 311
+The checked-in total is **587/607 passing**. Assembler tests cover all 311
 instructions and compare each sample encoding with LLVM's native CORE-V
 assembler. The new codegen tests for both immediate branches, all eight
 ordinary register-offset loads/stores, and four packed add/sub operations
 pass. Those tests exercise both SelectionDAG and GlobalISel, with GlobalISel
 fallback disabled.
 
-The remaining checked-in failures concern rounded normalization, clipping,
-and zero-normalization multiply forms. One obsolete
+The remaining checked-in failures concern rounded normalization and clipping. One obsolete
 unsigned multiply test used an arithmetic right shift; it now uses a logical
 right shift. Generated-test failures include equivalent-instruction choices
 (such as byte versus halfword bitwise operations) and genuine missing
@@ -91,21 +90,21 @@ is not yet a fully passing pattern-selection suite.
 | ALU | 31 | 31 | 0 | 0 |
 | Bit manipulation | 16 | 10 | 3 | 3 |
 | Immediate branches | 2 | 2 | 0 | 0 |
-| MAC | 18 | 18 | 0 | 0 |
+| MAC | 18 | 142 | 0 | 0 |
 | Memory | 24 | 8 | 0 | 16 |
 | SIMD | 220 | 96 | 124 | 0 |
-| Total | 311 | 165 | 127 | 19 |
+| Total | 311 | 289 | 127 | 19 |
 
 Extraction success does not establish importer acceptance or instruction
-selection. The generated TableGen pattern files total 126,624 bytes in this
+selection. The generated TableGen pattern files total 155,130 bytes in this
 run. Reports retain separate extraction, import, and match fields; unavailable
 validation counts remain unknown.
 
 MAC behavior follows the 32-bit truncation before normalization in the
 [CV32E40P multiplier RTL](https://github.com/openhwgroup/cv32e40p/blob/master/rtl/cv32e40p_mult.sv).
 The rounding term is zero for normalization amount zero. The extracted MAC
-IR passes 264 constant-folding checks, including overflow and shifts 0, 1,
-5 and 31. Reproduce them after generation with:
+IR passes 712 constant-folding checks, covering all 32 normalization amounts
+for the specialized forms and shifts 0, 1, 5 and 31 for the other forms. Reproduce them after generation with:
 
 ```sh
 DEST=/tmp/seal5_llvm_corev_llvm22
@@ -143,3 +142,35 @@ funnel shift with distinct inputs still expands to shifts and OR. The
 capability leaves the baseline policy for RV64 and rotate-left unchanged.
 The ordinary TableGen rotate pattern is extracted from the description;
 no handwritten instruction-selection rule or direct GISel table is used.
+
+## Immediate specialization for multiplication
+
+The four unrounded halfword multiply descriptions use `[[auto_unroll_imm]]`.
+Seal5 marks their 5-bit `Is3` operand for specialization, and PatternGen
+extracts 32 constant-folded patterns per instruction. This includes the
+normalization-zero case, where the shift disappears. The four descriptions
+therefore contribute 128 patterns instead of four; the ISA still contains
+311 instructions. Specialization is intentionally limited to these four
+instructions rather than every small immediate in the example.
+
+The tests exercise all 128 instruction/count combinations with SelectionDAG
+and GlobalISel at `-O0` and `-O3`, with fallback disabled. The original four
+zero-normalization failures now pass. Register-controlled amounts cannot
+be enumerated through this attribute.
+
+Optimized GlobalISel also required a cost-model correction: constant
+hoisting had hidden the `65535` masks behind `G_CONSTANT_FOLD_BARRIER` nodes.
+The LLVM 22 stage-3 compatibility patch treats those masks as free only for
+RV32 XCoreVMac when all their uses are multiplications with both operands
+masked to 16 bits. The generated multiply consumes these masks directly.
+Negative tests retain the baseline behavior for masked addition and for a
+target without XCoreVMac. This does not disable constant hoisting globally.
+
+Immediate specialization additionally exposes four generated wrapper-test
+failures, increasing the generated suite from 101 to 105 files. Those wrappers
+load halfwords through pointers; load folding removes the explicit extraction
+operations and the resulting code uses ordinary multiply instructions. These
+checks remain enabled. They are distinct from the passing scalar-register
+patterns above. Generated-test labels now identify each specialized function
+and check the shared target instruction, and diagnostic output is captured
+separately so statistics cannot interrupt a pattern record.
