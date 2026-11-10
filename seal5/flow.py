@@ -24,6 +24,7 @@ import time
 import glob
 import tarfile
 import atexit
+import subprocess
 from pathlib import Path
 from typing import Optional, List, Dict, Tuple, Union
 
@@ -922,6 +923,25 @@ class Seal5Flow:
             repo.git.add(A=True)
         else:
             repo.git.apply("--index", file)
+            # Unlike git add -A, git apply --index stages newly created ignored files.
+            added = repo.git.diff(
+                "--cached", "--no-renames", "--name-only", "--diff-filter=A", "-z", stdout_as_string=False
+            )
+            if added:
+                result = subprocess.run(
+                    [git.Git.GIT_PYTHON_GIT_EXECUTABLE, "check-ignore", "--no-index", "-z", "--stdin"],
+                    cwd=repo.working_tree_dir,
+                    input=added,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    check=False,
+                )
+                if result.returncode not in (0, 1):
+                    result.check_returncode()
+                if result.stdout:
+                    paths = [os.fsdecode(path) for path in result.stdout.split(b"\0") if path]
+                    with repo.git.custom_environment(GIT_LITERAL_PATHSPECS="1"):
+                        repo.git.reset("-q", "HEAD", "--", *paths)
 
     def apply_patch(self, patch: PatchSettings, force: bool = False):
         """Apply Seal5 patch."""
