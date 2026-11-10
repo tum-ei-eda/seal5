@@ -15,15 +15,15 @@ import pathlib
 
 import pandas as pd
 
-from m2isar.metamodel import patch_model
-
 import seal5.model
 from seal5.model_utils import load_model, dump_model
 
-from . import visitor
+from .visitor import DetectInoutsVisitor
 from .utils import IOMode
 
-logger = logging.getLogger("detect_inouts")
+from seal5.logging import Logger
+
+logger = Logger("transform.detect_inouts")
 
 
 class VisitorContext:
@@ -31,6 +31,10 @@ class VisitorContext:
         self.reads = set()
         self.writes = set()
         self.stack = []
+
+    @property
+    def uses(self):
+        return self.reads | self.writes
 
     def push(self, mode):
         self.stack.append(mode)
@@ -60,7 +64,7 @@ def get_parser():
 
 def run(args):
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
@@ -82,13 +86,12 @@ def run(args):
     for _, set_def in model_obj.sets.items():
         metrics["n_sets"] += 1
         logger.debug("collecting inouts for set %s", set_def.name)
-        patch_model(visitor)
         for _, instr_def in set_def.instructions.items():
             metrics["n_instructions"] += 1
             context = VisitorContext()
             logger.debug("collecting inouts for instr %s", instr_def.name)
             try:
-                instr_def.operation.generate(context)
+                DetectInoutsVisitor().generate(instr_def.operation, context)
                 for op_name, op_def in instr_def.operands.items():
                     if op_name in context.reads and op_name in context.writes:
                         if seal5.model.Seal5OperandAttribute.INOUT not in instr_def.attributes:
@@ -99,41 +102,37 @@ def run(args):
                     elif op_name in context.writes:
                         if seal5.model.Seal5OperandAttribute.OUT not in instr_def.attributes:
                             op_def.attributes[seal5.model.Seal5OperandAttribute.OUT] = []
-                # print("---")
-                # print("instr_def.scalars.keys()", instr_def.scalars.keys())
+                    if op_name not in context.uses:
+                        if seal5.model.Seal5OperandAttribute.UNUSED not in instr_def.attributes:
+                            op_def.attributes[seal5.model.Seal5OperandAttribute.UNUSED] = []
+                reg_names = [
+                    reg_name
+                    for reg_name in list(set_def.registers.keys())
+                    + list(set_def.register_banks.keys())
+                    + list(set_def.register_aliases.keys())
+                ]
                 for reg_name in context.reads:
                     if reg_name == "PC":
                         continue
-                    # print("reg_name1", reg_name)
                     if reg_name in instr_def.operands.keys():
                         continue
-                    if reg_name in instr_def.scalars.keys():
+                    if reg_name in instr_def.vars.keys():
                         continue
-                    # TODO: how about register groups
-                    # TODO: handle other architectural state vars here (PC,...)
-                    assert reg_name in set_def.registers
+                    assert reg_name in reg_names
                     uses = instr_def.attributes.get(seal5.model.Seal5InstrAttribute.USES, [])
                     uses.append(reg_name)
-                    # TODO: drop duplicates?
                     instr_def.attributes[seal5.model.Seal5InstrAttribute.USES] = uses
                 for reg_name in context.writes:
-                    # print("reg_name2", reg_name)
                     if reg_name == "PC":
                         continue
                     if reg_name in instr_def.operands.keys():
                         continue
-                    if reg_name in instr_def.scalars.keys():
+                    if reg_name in instr_def.vars.keys():
                         continue
-                    # TODO: how about register groups
-                    # TODO: handle other architectural state vars here (PC,...)
-                    assert reg_name in set_def.registers
+                    assert reg_name in reg_names
                     defs = instr_def.attributes.get(seal5.model.Seal5InstrAttribute.DEFS, [])
                     defs.append(reg_name)
-                    # TODO: drop duplicates?
                     instr_def.attributes[seal5.model.Seal5InstrAttribute.DEFS] = defs
-                # print("instr_def.operands_", instr_def.operands)
-                # print("instr_def.attributes", instr_def.attributes)
-                # input("999")
                 metrics["n_success"] += 1
                 metrics["success_instructions"].append(instr_def.name)
             except Exception as ex:

@@ -1,0 +1,4 @@
+# for build-caching feature
+fuse-overlayfs
+mntfinder==0.1.1
+rich

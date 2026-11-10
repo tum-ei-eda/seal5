@@ -6,7 +6,7 @@
 # Chair of Electrical Design Automation
 # Technical University of Munich
 
-"""Remove (rd != 0) checks from M2-ISA-R/Seal5 metamodel."""
+"""Simplify trivial slice operations in M2-ISA-R/Seal5 metamodel."""
 
 import sys
 import argparse
@@ -15,13 +15,13 @@ import pathlib
 
 import pandas as pd
 
-from m2isar.metamodel import patch_model
-
 from seal5.model_utils import load_model, dump_model
 
-from . import visitor
+from .visitor import SimplifyTrivialSlicesVisitor
 
-logger = logging.getLogger("simplify_trivial_slices")
+from seal5.logging import Logger
+
+logger = Logger("transform.simplify_trivial_slices")
 
 
 def get_parser():
@@ -37,7 +37,7 @@ def get_parser():
 
 def run(args):
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
@@ -59,13 +59,13 @@ def run(args):
     for _, set_def in model_obj.sets.items():
         metrics["n_sets"] += 1
         logger.debug("simplify trivial slices for set %s", set_def.name)
-        patch_model(visitor)
+        visitor = SimplifyTrivialSlicesVisitor()
         # TODO: handle RFS symbolically
         for _, instr_def in set_def.instructions.items():
             metrics["n_instructions"] += 1
             logger.debug("simplify trivial slices for instr %s", instr_def.name)
             try:
-                instr_def.operation.generate(None)
+                visitor.generate(instr_def.operation, None)
                 metrics["n_success"] += 1
                 metrics["success_instructions"].append(instr_def.name)
             except Exception as ex:

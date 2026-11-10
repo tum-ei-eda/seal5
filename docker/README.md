@@ -24,9 +24,38 @@ The image `seal5-quickstart` builds up on the user `seal5-base` image by initial
 
 ## Usage
 
-### Building Images
+### Pulling prebuilt images
 
-#### Available Dockerfiles
+Check our DockerHub for the latest images and supported OS/LLVM versions:
+
+- [`tumeda/seal5-deps`](https://hub.docker.com/r/tumeda/seal5-deps/tags)
+  - Ubuntu 20.04 ![Docker Image Version (tag)](https://img.shields.io/docker/v/tumeda/seal5-deps/latest-default-ubuntu-20.04) ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/tumeda/seal5-deps/latest-default-ubuntu-20.04)
+  - Ubuntu 22.04 ![Docker Image Version (tag)](https://img.shields.io/docker/v/tumeda/seal5-deps/latest-default-ubuntu-22.04) ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/tumeda/seal5-deps/latest-default-ubuntu-22.04)
+  - Ubuntu 24.04 ![Docker Image Version (tag)](https://img.shields.io/docker/v/tumeda/seal5-deps/latest-default-ubuntu-24.04) ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/tumeda/seal5-deps/latest-default-ubuntu-24.04)
+- [`tumeda/seal5-base`](https://hub.docker.com/r/tumeda/seal5-base/tags)
+  - Ubuntu 20.04 ![Docker Image Version (tag)](https://img.shields.io/docker/v/tumeda/seal5-base/latest-default-ubuntu-20.04) ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/tumeda/seal5-base/latest-default-ubuntu-20.04)
+  - Ubuntu 22.04 ![Docker Image Version (tag)](https://img.shields.io/docker/v/tumeda/seal5-base/latest-default-ubuntu-22.04) ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/tumeda/seal5-base/latest-default-ubuntu-22.04)
+  - Ubuntu 24.04 ![Docker Image Version (tag)](https://img.shields.io/docker/v/tumeda/seal5-base/latest-default-ubuntu-24.04) ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/tumeda/seal5-base/latest-default-ubuntu-24.04)
+- [`tumeda/seal5-quickstart`](https://hub.docker.com/r/tumeda/seal5-quickstart/tags)
+  - Ubuntu 20.04
+    - LLVM 18.1.8 ![Docker Image Version (tag)](https://img.shields.io/docker/v/tumeda/seal5-quickstart/latest-default-ubuntu-20.04-llvmorg-18.1.8) ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/tumeda/seal5-quickstart/latest-default-ubuntu-20.04-llvmorg-18.1.8)
+    - LLVM 19.1.7 ![Docker Image Version (tag)](https://img.shields.io/docker/v/tumeda/seal5-quickstart/latest-default-ubuntu-20.04-llvmorg-19.1.7) ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/tumeda/seal5-quickstart/latest-default-ubuntu-20.04-llvmorg-19.1.7)
+  - Ubuntu 22.04
+    - LLVM 18.1.8 ![Docker Image Version (tag)](https://img.shields.io/docker/v/tumeda/seal5-quickstart/latest-default-ubuntu-22.04-llvmorg-18.1.8) ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/tumeda/seal5-quickstart/latest-default-ubuntu-22.04-llvmorg-18.1.8)
+    - LLVM 19.1.7 ![Docker Image Version (tag)](https://img.shields.io/docker/v/tumeda/seal5-quickstart/latest-default-ubuntu-22.04-llvmorg-19.1.7) ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/tumeda/seal5-quickstart/latest-default-ubuntu-22.04-llvmorg-19.1.7)
+  - Ubuntu 24.04
+    - LLVM 18.1.8 ![Docker Image Version (tag)](https://img.shields.io/docker/v/tumeda/seal5-quickstart/latest-default-ubuntu-24.04-llvmorg-18.1.8) ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/tumeda/seal5-quickstart/latest-default-ubuntu-24.04-llvmorg-18.1.8)
+    - LLVM 19.1.7 ![Docker Image Version (tag)](https://img.shields.io/docker/v/tumeda/seal5-quickstart/latest-default-ubuntu-24.04-llvmorg-19.1.7) ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/tumeda/seal5-quickstart/latest-default-ubuntu-24.04-llvmorg-19.1.7)
+
+Example Commands:
+
+```sh
+docker pull tumeda/seal5-deps:latest-default-ubuntu-20.04
+docker pull tumeda/seal5-base:latest-default-ubuntu-20.04
+docker pull tumeda/seal5-quickstart:latest-default-ubuntu-20.04-llvmorg-19.1.7
+```
+
+### Building images
 
 #### Command line (local)
 
@@ -36,13 +65,13 @@ You can build the images as follows:
 # Execute from top level of repository
 
 # Build seal5-deps image
-docker buildx build . -f docker/Dockerfile --tag tumeda/seal5-deps:latest-default-ubuntu-20.04 --target seal5-deps
+docker buildx build . -f docker/Dockerfile --tag tumeda/seal5-deps:latest-default-ubuntu-20.04 --target seal5-deps --build-arg BASE_IMAGE=ubuntu:20.04
 
 # Build seal5-base image
-docker buildx build . -f docker/Dockerfile --tag tumeda/seal5-base:latest-default-ubuntu-20.04 --target seal5-base
+docker buildx build . -f docker/Dockerfile --tag tumeda/seal5-base:latest-default-ubuntu-20.04 --target seal5-base --build-arg BASE_IMAGE=ubuntu:20.04
 
 # Build seal5-quickstart image (takes a long time)
-docker buildx build . -f docker/Dockerfile --tag tumeda/seal5-quickstart:latest-default-ubuntu-20.04-llvmorg-19.1.7 --target seal5-quickstart
+docker buildx build . -f docker/Dockerfile --tag tumeda/seal5-quickstart:latest-default-ubuntu-20.04-llvmorg-19.1.7 --target seal5-quickstart --build-arg BASE_IMAGE=ubuntu:20.04 --build-arg LLVM_REF="llvmorg-19.1.7"
 ```
 
 Build times (excluding pulling of base image) on 18-core workstation:

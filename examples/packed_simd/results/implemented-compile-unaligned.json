@@ -1,0 +1,3786 @@
+{
+  "source": "/tmp/xcorev-example-check/etiss_riscv_examples/target_code/embench/embench-iot",
+  "headers": "/work/git/m2isar/m2isar_new/install/riscv64-unknown-elf/include",
+  "source_sha256": {
+    "config/arc/boards/generic/boardsupport.c": "5c8633a9833004f2f2ab734f6d3704cd2475cd714eb822146e40b559af5aba54",
+    "config/arc/boards/generic/boardsupport.h": "66f3ac5121e3dbaf49a046ff677a74b47eca13a73abd35530aef51e62b2bfc23",
+    "config/arc/chips/em/chipsupport.c": "c0ad53258a6795f0e64871f909bf706369f6e97e17110d8eadf1c810a1db39cc",
+    "config/arc/chips/em/chipsupport.h": "ec1400dd7ae43c9aabf359aa94cb809e26278c597e19765d86acc46f38295bd7",
+    "config/arm/boards/generic/boardsupport.c": "7f93f779f84917d6e10d9cfcec1773ef239690cdbc86c7c3b5de92ce88aaf60c",
+    "config/arm/boards/generic/boardsupport.h": "ef6f7df2e9f9f453b950ed2f046a79ad09b39f4af50e6c3be29f47b6c5640ab8",
+    "config/arm/boards/stm32f4-discovery/boardsupport.c": "5203dbd4b48900c7c6bc4ab16f074b47002987f4ac4e2fd0cbd8b28e9226f547",
+    "config/arm/boards/stm32f4-discovery/boardsupport.h": "b7306736a3c2980b755752fecdbcf299aae6dc0da5cd329307b93bbfebe4aafd",
+    "config/arm/chips/cortex-m4/chipsupport.c": "a06b173eb41342be942fcaaa4e418f528bd2253eec18f5ec159223156d207fd0",
+    "config/arm/chips/cortex-m4/chipsupport.h": "8d806ce0217de1e63ed34b9cf5d67a12e60049c529fff20cbfe67d88f50a1fbf",
+    "config/avr/boards/generic/boardsupport.c": "2de7d81c23bf2783a608108e47263f17c9ba8e9de7a596429770a51fb0180935",
+    "config/avr/boards/generic/boardsupport.h": "33d3de5ca9fbf2bcc5635792fb5f943b0b95a579d89eac33af13c20ddb8d0f31",
+    "config/avr/chips/atmega64/chipsupport.c": "254a65d1b79cc15a629bf377d982ee9ef3ee7f98276c3a1bde7e2c4676742b85",
+    "config/avr/chips/atmega64/chipsupport.h": "b24b20a0df5d1209388dd957fa7009422919015947300d1b2e3aa17f0adc3ba2",
+    "config/mac/boards/generic/boardsupport.c": "daf6afb4eb3d7c5f636c1daff34de720956cef3e03631b90f95f3dde0cd5732d",
+    "config/mac/boards/generic/boardsupport.h": "71e6df69efbfda7bb46c03a71e7d7cff449aff1853459c3cead20cef4ae3ae63",
+    "config/mac/boards/size/boardsupport.c": "7f93f779f84917d6e10d9cfcec1773ef239690cdbc86c7c3b5de92ce88aaf60c",
+    "config/mac/boards/size/boardsupport.h": "71e6df69efbfda7bb46c03a71e7d7cff449aff1853459c3cead20cef4ae3ae63",
+    "config/mac/chips/generic/chipsupport.c": "b4f486886ee1f93bd421f384ef6e0bb53bd5479df7efacdf9fc61e7b95d98208",
+    "config/mac/chips/generic/chipsupport.h": "6ea1c225d1385dba6479ef6a3d7d600157d3e8ff702677b5c128f6a0c289fdbc",
+    "config/mac/chips/size-test-clang/chipsupport.c": "c525279795e8aa02d57585b33f1fd9b036805b2340189706ab1341de8965ff98",
+    "config/mac/chips/size-test-clang/chipsupport.h": "5d577107c76f6173680a19cbb0cd5235705448c97263fd7b5d631c491a2cea41",
+    "config/mac/chips/size-test-clang-ARM-M1/chipsupport.c": "c0288044dce6b2f24a4e430a5b516f9dd4795233c6627eaf18e8f04d0035e5af",
+    "config/mac/chips/size-test-clang-ARM-M1/chipsupport.h": "677dfcd0fd87bfe8f7298eb9fae1630a0d7b7034ab356499728a4290c54b99d0",
+    "config/mac/chips/size-test-clang-X86-64/chipsupport.c": "c0288044dce6b2f24a4e430a5b516f9dd4795233c6627eaf18e8f04d0035e5af",
+    "config/mac/chips/size-test-clang-X86-64/chipsupport.h": "677dfcd0fd87bfe8f7298eb9fae1630a0d7b7034ab356499728a4290c54b99d0",
+    "config/mac/chips/speed-test-clang/chipsupport.c": "c0288044dce6b2f24a4e430a5b516f9dd4795233c6627eaf18e8f04d0035e5af",
+    "config/mac/chips/speed-test-clang/chipsupport.h": "677dfcd0fd87bfe8f7298eb9fae1630a0d7b7034ab356499728a4290c54b99d0",
+    "config/mac/chips/speed-test-clang-ARM-M1/chipsupport.c": "c0288044dce6b2f24a4e430a5b516f9dd4795233c6627eaf18e8f04d0035e5af",
+    "config/mac/chips/speed-test-clang-ARM-M1/chipsupport.h": "677dfcd0fd87bfe8f7298eb9fae1630a0d7b7034ab356499728a4290c54b99d0",
+    "config/mac/chips/speed-test-clang-X86-64/chipsupport.c": "c0288044dce6b2f24a4e430a5b516f9dd4795233c6627eaf18e8f04d0035e5af",
+    "config/mac/chips/speed-test-clang-X86-64/chipsupport.h": "677dfcd0fd87bfe8f7298eb9fae1630a0d7b7034ab356499728a4290c54b99d0",
+    "config/native/boards/default/boardsupport.c": "1e6c72c22a5d87cf4810aa106977f4c40f5ed0cbb72573f33b60c52ce1684cd1",
+    "config/native/boards/default/boardsupport.h": "946bfa869739d5abd9b8abd89be8829040ccba991938475b9c971ae4cfd34b12",
+    "config/native/chips/debug-gcc/chipsupport.c": "b4f486886ee1f93bd421f384ef6e0bb53bd5479df7efacdf9fc61e7b95d98208",
+    "config/native/chips/debug-gcc/chipsupport.h": "6ea1c225d1385dba6479ef6a3d7d600157d3e8ff702677b5c128f6a0c289fdbc",
+    "config/native/chips/default/chipsupport.c": "b4f486886ee1f93bd421f384ef6e0bb53bd5479df7efacdf9fc61e7b95d98208",
+    "config/native/chips/default/chipsupport.h": "6ea1c225d1385dba6479ef6a3d7d600157d3e8ff702677b5c128f6a0c289fdbc",
+    "config/native/chips/size-test-gcc/chipsupport.c": "c525279795e8aa02d57585b33f1fd9b036805b2340189706ab1341de8965ff98",
+    "config/native/chips/size-test-gcc/chipsupport.h": "5d577107c76f6173680a19cbb0cd5235705448c97263fd7b5d631c491a2cea41",
+    "config/native/chips/speed-test-gcc/chipsupport.c": "b4f486886ee1f93bd421f384ef6e0bb53bd5479df7efacdf9fc61e7b95d98208",
+    "config/native/chips/speed-test-gcc/chipsupport.h": "6ea1c225d1385dba6479ef6a3d7d600157d3e8ff702677b5c128f6a0c289fdbc",
+    "config/riscv32/boards/ri5cyverilator/boardsupport.c": "6dfae9ee498d03313a51300410d0a97ecfbe0bf47183613caf1948d1932d412b",
+    "config/riscv32/boards/ri5cyverilator/boardsupport.h": "7733351aea4b92179786c3c73dda0329233d3ceb1d034e258ec84c2eb9dd358a",
+    "config/riscv32/boards/rv32wallyverilog/boardsupport.c": "389b402a743c0b96c1d62d0dcca78763cddcd60aa4aa9f737d77c64e5924c86e",
+    "config/riscv32/boards/rv32wallyverilog/boardsupport.h": "f897dfc7d03c8543382250637d9b324c3bf67bf29eafe63301137c37abd90290",
+    "config/riscv32/chips/generic/chipsupport.c": "e92a5581c8f20ce34e128a2919a7fbf609cf294329aaf64ca9342f2248a9ef26",
+    "config/riscv32/chips/generic/chipsupport.h": "3bc62a56f971ec7be4f0deab49fa9dc956368b6636c975cacd9e74d5934c698f",
+    "src/aha-mont64/mont64.c": "e18ee3f518de0431597a16cf27c27c08dba9a540f45ecc9e9ed13956e4f1eb49",
+    "src/crc32/crc_32.c": "8180991358e28507a14426207840ec5c340e2491beac8e72658b3832621efb9c",
+    "src/cubic/basicmath_small.c": "9c6e07fef13af99e4c225299ca7623ac6889f35ab70c05d92355a4a48c8c82c2",
+    "src/cubic/libcubic.c": "dfbd2621ed65dbd7313a7ef5b1063799f20839219b298686b7eed2efbcfdee69",
+    "src/cubic/pi.h": "a85e73070dbd8f87d96fb75c189afd96e20f645b7bd93c04e26cf6831aec02ac",
+    "src/cubic/snipmath.h": "d16b9fbcb53bd7ed14bf9b2d04c041ff5e0e47727284ac5175965cc4d09c006e",
+    "src/cubic/sniptype.h": "6e1d83b87f51034d8154f3b0e89d33005cd53e68add6148556ddfb963554c23e",
+    "src/edn/libedn.c": "e94f8a6707d37be7cf6b5ed2227903da41988cfcd3ac145b791c756714420ff5",
+    "src/huffbench/libhuffbench.c": "a6d0faac21da603ee5b3a061ab77a59a37df431961d4254147659544ddb914fb",
+    "src/matmult-int/matmult-int.c": "d070416c56a5fe1c66ae8f16ca10f59e7c0002a6dbd62ff1db633914220f959d",
+    "src/md5sum/md5.c": "df94c469a6fff6729000a981fd19d85a7b9a46bb4ebfcb2405e759a7d700b765",
+    "src/minver/libminver.c": "1840042f2bc683f5bb373aaf9c9441a3dac2a9080aa812384d455b7416243662",
+    "src/nbody/nbody.c": "ae4aa56e7cf9c65cc7a74ab974ec756c40d36c5785b382c600bd5117096efb6f",
+    "src/nettle-aes/nettle-aes.c": "87cd050b8e7eb603f2a15ad1eaba00333915fd1ab3e2d3d3d1b540fa3476f296",
+    "src/nettle-sha256/nettle-sha256.c": "2770ad46ac26fac096821eb3ae558364600bdaeb6d96bc06049327c90138959f",
+    "src/nsichneu/libnsichneu.c": "e4515f435c8d8d13c13f9a7204536a376527f3fbe2737803d8f16d0a0a3747d6",
+    "src/picojpeg/libpicojpeg.c": "72cfb201379ccbb943d10334b941f91413a5bf4213cbf75f1657aa3492e5e103",
+    "src/picojpeg/picojpeg.h": "50dbd519c3e7b5732cc2e58d9e47195a3e5652f5d14f9d997f102b844e64db36",
+    "src/picojpeg/picojpeg_test.c": "d41425baf9bafd7d07c7a6656d4bf9678d7b85a4b5d4aa93cacda56a3a29d097",
+    "src/primecount/primecount.c": "3073a224e04be2155165c8793cd45d529e108ab55989820e3e08e78e4fb6fae2",
+    "src/qrduino/ecctable.h": "54e176fa47d4c20baab098962a0c0f1a8629362499dbc8fbab5d581312b1002c",
+    "src/qrduino/qrbits.h": "af772ed9bd01daab613ed2161c47fd065a92ff4932765ab65bfd9877b48af609",
+    "src/qrduino/qrencode.c": "05d2147e1809578fcdce4ebd6105a555e59dc8c9b5c5b2f4d7a239ea8d9bf5b8",
+    "src/qrduino/qrencode.h": "0e53eccb11ab127e3e6d54bdc66a3d2d5fdb213b937b18d20f7ffe6d890799c3",
+    "src/qrduino/qrframe.c": "3d3400ff94ba165d0cf2945a364527f55291fa144511e0a94f317fdc58992f15",
+    "src/qrduino/qrtest.c": "6b09aa24d48344494f75187cb3854b891dcbd537a3cbede182d85457a62acabc",
+    "src/sglib-combined/combined.c": "f8ef3f9be64fee51fcb4845fbefcad74b84cfca6417126d4fb94af0a44264e11",
+    "src/sglib-combined/sglib.h": "fb3f51027b228ef863803fe3086dfb9a769a76e6e3016dc0cca826952bb03bd7",
+    "src/slre/libslre.c": "fb2f84e5133b60655fa7e3a72a6128e63dadd53408fdf38eff5a2ed1732c014d",
+    "src/slre/slre.h": "87bdc34b18e269c46c13c3e221f2618fa2aac2b4299fe59561810522880e3264",
+    "src/st/libst.c": "f04afbb2c3786c86db51094e65db0c4e8d39aee7521c0fd7fb729d7fdac51818",
+    "src/statemate/libstatemate.c": "0522d5a9b7502a8f78e5210a35df9ba0e31874d77b22bb7e56e47fce9bc0f3c9",
+    "src/tarfind/tarfind.c": "366dfc4ea6d0d5e4489c483fd3fad32a48ddc755e0b2ffefe682f577fc4853ba",
+    "src/ud/libud.c": "b03de5ab8657c509a1d314725a0f082f512047b32b5bbd82e9cdbc1f4133d37d",
+    "src/wikisort/libwikisort.c": "9fe2e014b0fc8270264722cb680f010f7ae654dfbdd485b66f61e73fdb961471",
+    "support/beebsc.c": "b7ac0fd67a772bf58ec5361b410959d27d9be7384ac7369c9e6805fc5c821566",
+    "support/beebsc.h": "9a9fdef180978ec3caa6531d3c2dc6823bc5387731b568402c6c65442a2d7c6c",
+    "support/board.c": "93df5b9b66c35294cd216a482df753efe8b216822bbb6d9221e7b92368fc646c",
+    "support/chip.c": "c70e2547dd0f0c8bff594a89b26676d4c175c1c9397f68c9792288497f920ecf",
+    "support/dummy-crt0.c": "7add27dce1678a3534f0ed5cde0d206fe3ca7be52125d52418881fd6c8c4b02b",
+    "support/dummy-libc.c": "71d3c33cde463cdd2c06705c622f0359daf33ca8f7b6924db199cd875f4003b8",
+    "support/dummy-libgcc.c": "65cf56110e1e533d2aeec85571f743327dfe39d9842d1819d64d11487b6fa04a",
+    "support/dummy-libm.c": "96970651b5897dc5737311b65607f7d8897c80b65a7eb0a86a03dde60ef3e3a0",
+    "support/main.c": "2227468e1743a037a053f2624b68763ee4c0feb16c4b9bfafc4ba55e29daec23",
+    "support/support.h": "3c0862b8279c8d01951b2c8a180f04bd996431c2fb63ffb91773e38895f25e53"
+  },
+  "toolchains": {
+    "22": {
+      "/tmp/seal5_llvm_demo_llvm22_port/.seal5/build/release_assertions/bin/clang-22": "clang version 22.1.8 (file:///tmp/coredsl2llvm-llvm22-validation.git d2c30f8feacf070813b7358972834fe06b2015a2)\nTarget: riscv32-unknown-unknown-elf\nThread model: posix\nInstalledDir: /tmp/seal5_llvm_demo_llvm22_port/.seal5/build/release_assertions/bin\nBuild config: +assertions\n",
+      "/tmp/seal5-gisel-table22/build/bin/opt": "LLVM (http://llvm.org/):\n  LLVM version 22.1.8\n  Optimized build with assertions.\n  Default target: \n  Host CPU: cascadelake\n",
+      "/tmp/seal5-gisel-table22/build/bin/llc": "LLVM (http://llvm.org/):\n  LLVM version 22.1.8\n  Optimized build with assertions.\n  Default target: \n  Host CPU: cascadelake\n\n  Registered Targets:\n    riscv32   - 32-bit RISC-V\n    riscv32be - 32-bit big endian RISC-V\n    riscv64   - 64-bit RISC-V\n    riscv64be - 64-bit big endian RISC-V\n"
+    },
+    "23": {
+      "/tmp/seal5_llvm_demo_llvm23/.seal5/build/release_assertions/bin/clang-23": "clang version 23.1.3 (https://github.com/llvm/llvm-project.git 3a4614f0544cb0ac107a0ffa8d7bc0dd65f5815b)\nTarget: riscv32-unknown-unknown-elf\nThread model: posix\nInstalledDir: /tmp/seal5_llvm_demo_llvm23/.seal5/build/release_assertions/bin\nBuild config: +assertions\n",
+      "/tmp/cdsl2llvm-llvm23-gisel-port/build-port/bin/opt": "LLVM (http://llvm.org/):\n  LLVM version 23.1.3\n  Optimized build with assertions.\n  Default target: \n  Host CPU: cascadelake\n",
+      "/tmp/cdsl2llvm-llvm23-gisel-port/build-port/bin/llc": "LLVM (http://llvm.org/):\n  LLVM version 23.1.3\n  Optimized build with assertions.\n  Default target: \n  Host CPU: cascadelake\n\n  Registered Targets:\n    riscv32   - 32-bit RISC-V\n    riscv32be - 32-bit big endian RISC-V\n    riscv64   - 64-bit RISC-V\n    riscv64be - 64-bit big endian RISC-V\n"
+    }
+  },
+  "variants": [
+    "scalar",
+    "native",
+    "packed"
+  ],
+  "memory_model": "unaligned",
+  "records": [
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/aha-mont64/mont64.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3672,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4024,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/aha-mont64/mont64.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3672,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4024,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/aha-mont64/mont64.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3672,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4024,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/crc32/crc_32.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 324,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 376,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/crc32/crc_32.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 324,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 376,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/crc32/crc_32.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 324,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 376,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/cubic/basicmath_small.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1572,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1600,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/cubic/basicmath_small.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1572,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1600,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/cubic/basicmath_small.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1572,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1600,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/cubic/libcubic.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3140,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 1,
+          "diagnostic": "LLVM ERROR: unable to legalize instruction: %201:_(s32) = G_FCMP floatpred(olt), %40:_(s128), %163:_ (in function: SolveCubic)"
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/cubic/libcubic.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3140,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 1,
+          "diagnostic": "LLVM ERROR: unable to legalize instruction: %201:_(s32) = G_FCMP floatpred(olt), %40:_(s128), %163:_ (in function: SolveCubic)"
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/cubic/libcubic.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3140,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 1,
+          "diagnostic": "LLVM ERROR: unable to legalize instruction: %201:_(s32) = G_FCMP floatpred(olt), %40:_(s128), %163:_ (in function: SolveCubic)"
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/edn/libedn.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3372,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3456,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/edn/libedn.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3372,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3456,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/edn/libedn.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [
+        "remark: /tmp/xcorev-example-check/etiss_riscv_examples/target_code/embench/embench-iot/src/edn/libedn.c:63:3: vectorized loop (vectorization width: 2, interleaved count: 1)",
+        "remark: /tmp/xcorev-example-check/etiss_riscv_examples/target_code/embench/embench-iot/src/edn/libedn.c:63:3: vectorized loop (vectorization width: 2, interleaved count: 1)",
+        "remark: /tmp/xcorev-example-check/etiss_riscv_examples/target_code/embench/embench-iot/src/edn/libedn.c:364:7: vectorized loop (vectorization width: 2, interleaved count: 1)"
+      ],
+      "optimizer_exit": 0,
+      "vector_operations": {
+        "load <2 x i16>": 6,
+        "load <2 x i32>": 2,
+        "mul <2 x i32>": 2,
+        "lshr <2 x i32>": 2,
+        "add <2 x i16>": 2,
+        "store <2 x i16>": 4
+      },
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3492,
+          "packed_instructions": {
+            "pack.add.2x16": 2
+          }
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3608,
+          "packed_instructions": {
+            "pack.add.2x16": 2
+          }
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/huffbench/libhuffbench.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2336,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2268,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/huffbench/libhuffbench.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2336,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2268,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/huffbench/libhuffbench.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2336,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2268,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/matmult-int/matmult-int.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2140,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2152,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/matmult-int/matmult-int.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2140,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2152,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/matmult-int/matmult-int.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2140,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2152,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/md5sum/md5.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 884,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 944,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/md5sum/md5.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 884,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 944,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/md5sum/md5.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [
+        "remark: /tmp/xcorev-example-check/etiss_riscv_examples/target_code/embench/embench-iot/src/md5sum/md5.c:213:5: vectorized loop (vectorization width: 4, interleaved count: 1)"
+      ],
+      "optimizer_exit": 0,
+      "vector_operations": {
+        "store <4 x i8>": 1,
+        "add <4 x i8>": 1
+      },
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 912,
+          "packed_instructions": {
+            "pack.add.4x8": 1
+          }
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1020,
+          "packed_instructions": {
+            "pack.add.4x8": 1
+          }
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/minver/libminver.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3812,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3744,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/minver/libminver.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3812,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3744,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/minver/libminver.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3812,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3744,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/nbody/nbody.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4564,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4444,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/nbody/nbody.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4564,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4444,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/nbody/nbody.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4564,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4444,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/nettle-aes/nettle-aes.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4000,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4212,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/nettle-aes/nettle-aes.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4000,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4212,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/nettle-aes/nettle-aes.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4000,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4212,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/nettle-sha256/nettle-sha256.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 8356,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 8700,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/nettle-sha256/nettle-sha256.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 8356,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 8700,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/nettle-sha256/nettle-sha256.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {
+        "load <8 x i8>": 2,
+        "icmp <8 x i8>": 1
+      },
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 8488,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 8796,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/nsichneu/libnsichneu.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 16956,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 16968,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/nsichneu/libnsichneu.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 16956,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 16968,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/nsichneu/libnsichneu.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 16956,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 16968,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/picojpeg/libpicojpeg.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 23648,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 28488,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/picojpeg/libpicojpeg.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 23648,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 28488,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/picojpeg/libpicojpeg.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [
+        "remark: /tmp/xcorev-example-check/etiss_riscv_examples/target_code/embench/embench-iot/src/picojpeg/libpicojpeg.c:1161:14: Stores SLP vectorized with cost -1 and with tree size 2",
+        "remark: /tmp/xcorev-example-check/etiss_riscv_examples/target_code/embench/embench-iot/src/picojpeg/libpicojpeg.c:1233:14: Stores SLP vectorized with cost -1 and with tree size 2",
+        "remark: /tmp/xcorev-example-check/etiss_riscv_examples/target_code/embench/embench-iot/src/picojpeg/libpicojpeg.c:1288:15: Stores SLP vectorized with cost -3 and with tree size 2",
+        "remark: /tmp/xcorev-example-check/etiss_riscv_examples/target_code/embench/embench-iot/src/picojpeg/libpicojpeg.c:1301:15: Stores SLP vectorized with cost -3 and with tree size 2",
+        "remark: /tmp/xcorev-example-check/etiss_riscv_examples/target_code/embench/embench-iot/src/picojpeg/libpicojpeg.c:1314:15: Stores SLP vectorized with cost -3 and with tree size 2",
+        "remark: /tmp/xcorev-example-check/etiss_riscv_examples/target_code/embench/embench-iot/src/picojpeg/libpicojpeg.c:1370:3: vectorized loop (vectorization width: 2, interleaved count: 1)"
+      ],
+      "optimizer_exit": 0,
+      "vector_operations": {
+        "store <2 x i16>": 3,
+        "store <4 x i8>": 3,
+        "load <2 x i16>": 1,
+        "load <2 x i32>": 1,
+        "load <2 x i8>": 1,
+        "mul <2 x i32>": 1,
+        "add <2 x i32>": 1,
+        "lshr <2 x i32>": 1
+      },
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 23688,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 28532,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/picojpeg/picojpeg_test.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 476,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 492,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/picojpeg/picojpeg_test.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 476,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 492,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/picojpeg/picojpeg_test.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 476,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 492,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/primecount/primecount.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 564,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 656,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/primecount/primecount.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 564,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 656,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/primecount/primecount.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 564,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 656,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/qrduino/qrencode.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 7616,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 7448,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/qrduino/qrencode.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 7616,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 7448,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/qrduino/qrencode.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 7616,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 7448,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/qrduino/qrframe.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 10136,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 10732,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/qrduino/qrframe.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 10136,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 10732,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/qrduino/qrframe.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 10136,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 10732,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/qrduino/qrtest.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 376,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 364,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/qrduino/qrtest.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 376,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 364,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/qrduino/qrtest.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 376,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 364,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/sglib-combined/combined.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 12244,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 11848,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/sglib-combined/combined.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 12244,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 11848,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/sglib-combined/combined.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 12244,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 11848,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/slre/libslre.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4696,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4776,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/slre/libslre.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4696,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4776,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/slre/libslre.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4696,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4776,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/st/libst.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2932,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3148,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/st/libst.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2932,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3148,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/st/libst.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2932,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3148,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/statemate/libstatemate.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4688,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4564,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/statemate/libstatemate.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4688,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4564,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/statemate/libstatemate.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4688,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4564,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/tarfind/tarfind.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 936,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1008,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/tarfind/tarfind.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 936,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1008,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/tarfind/tarfind.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 936,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1008,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/ud/libud.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1300,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1352,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/ud/libud.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1300,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1352,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/ud/libud.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1300,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1352,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "scalar",
+      "source": "src/wikisort/libwikisort.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 10348,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 10800,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "native",
+      "source": "src/wikisort/libwikisort.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 10348,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 10800,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 22,
+      "variant": "packed",
+      "source": "src/wikisort/libwikisort.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 10348,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 10800,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/aha-mont64/mont64.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3668,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4064,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/aha-mont64/mont64.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3668,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4064,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/aha-mont64/mont64.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3668,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4064,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/crc32/crc_32.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 324,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 376,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/crc32/crc_32.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 324,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 376,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/crc32/crc_32.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 324,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 376,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/cubic/basicmath_small.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1572,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1600,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/cubic/basicmath_small.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1572,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1600,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/cubic/basicmath_small.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1572,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1600,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/cubic/libcubic.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3140,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 1,
+          "diagnostic": "LLVM ERROR: unable to legalize instruction: %201:_(s32) = G_FCMP floatpred(olt), %40:_(s128), %163:_ (in function: SolveCubic)"
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/cubic/libcubic.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3140,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 1,
+          "diagnostic": "LLVM ERROR: unable to legalize instruction: %201:_(s32) = G_FCMP floatpred(olt), %40:_(s128), %163:_ (in function: SolveCubic)"
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/cubic/libcubic.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3140,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 1,
+          "diagnostic": "LLVM ERROR: unable to legalize instruction: %201:_(s32) = G_FCMP floatpred(olt), %40:_(s128), %163:_ (in function: SolveCubic)"
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/edn/libedn.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3244,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3316,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/edn/libedn.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3244,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3316,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/edn/libedn.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [
+        "remark: /tmp/xcorev-example-check/etiss_riscv_examples/target_code/embench/embench-iot/src/edn/libedn.c:63:3: vectorized loop (vectorization width: 2, interleaved count: 1)",
+        "remark: /tmp/xcorev-example-check/etiss_riscv_examples/target_code/embench/embench-iot/src/edn/libedn.c:63:3: vectorized loop (vectorization width: 2, interleaved count: 1)",
+        "remark: /tmp/xcorev-example-check/etiss_riscv_examples/target_code/embench/embench-iot/src/edn/libedn.c:364:7: vectorized loop (vectorization width: 2, interleaved count: 1)"
+      ],
+      "optimizer_exit": 0,
+      "vector_operations": {
+        "load <2 x i16>": 6,
+        "load <2 x i32>": 2,
+        "mul <2 x i32>": 2,
+        "lshr <2 x i32>": 2,
+        "add <2 x i16>": 2,
+        "store <2 x i16>": 4
+      },
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3372,
+          "packed_instructions": {
+            "pack.add.2x16": 2
+          }
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3476,
+          "packed_instructions": {
+            "pack.add.2x16": 2
+          }
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/huffbench/libhuffbench.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2336,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2304,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/huffbench/libhuffbench.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2336,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2304,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/huffbench/libhuffbench.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2336,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2304,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/matmult-int/matmult-int.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2140,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2176,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/matmult-int/matmult-int.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2140,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2176,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/matmult-int/matmult-int.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2140,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2176,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/md5sum/md5.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 884,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 944,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/md5sum/md5.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 884,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 944,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/md5sum/md5.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [
+        "remark: /tmp/xcorev-example-check/etiss_riscv_examples/target_code/embench/embench-iot/src/md5sum/md5.c:213:5: vectorized loop (vectorization width: 4, interleaved count: 1)"
+      ],
+      "optimizer_exit": 0,
+      "vector_operations": {
+        "store <4 x i8>": 1,
+        "add <4 x i8>": 1
+      },
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 912,
+          "packed_instructions": {
+            "pack.add.4x8": 1
+          }
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1020,
+          "packed_instructions": {
+            "pack.add.4x8": 1
+          }
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/minver/libminver.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3820,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3724,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/minver/libminver.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3820,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3724,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/minver/libminver.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3820,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3724,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/nbody/nbody.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4564,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4444,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/nbody/nbody.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4564,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4444,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/nbody/nbody.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4564,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4444,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/nettle-aes/nettle-aes.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4016,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4220,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/nettle-aes/nettle-aes.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4016,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4220,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/nettle-aes/nettle-aes.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4016,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4220,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/nettle-sha256/nettle-sha256.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 7680,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 7792,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/nettle-sha256/nettle-sha256.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 7680,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 7792,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/nettle-sha256/nettle-sha256.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {
+        "load <8 x i8>": 2,
+        "icmp <8 x i8>": 1
+      },
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 7796,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 7880,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/nsichneu/libnsichneu.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 16956,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 16968,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/nsichneu/libnsichneu.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 16956,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 16968,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/nsichneu/libnsichneu.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 16956,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 16968,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/picojpeg/libpicojpeg.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 24432,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 28136,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/picojpeg/libpicojpeg.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 24432,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 28136,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/picojpeg/libpicojpeg.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [
+        "remark: /tmp/xcorev-example-check/etiss_riscv_examples/target_code/embench/embench-iot/src/picojpeg/libpicojpeg.c:1161:14: Stores SLP vectorized with cost -1 and with tree size 2",
+        "remark: /tmp/xcorev-example-check/etiss_riscv_examples/target_code/embench/embench-iot/src/picojpeg/libpicojpeg.c:1233:14: Stores SLP vectorized with cost -1 and with tree size 2",
+        "remark: /tmp/xcorev-example-check/etiss_riscv_examples/target_code/embench/embench-iot/src/picojpeg/libpicojpeg.c:1288:15: Stores SLP vectorized with cost -3 and with tree size 2",
+        "remark: /tmp/xcorev-example-check/etiss_riscv_examples/target_code/embench/embench-iot/src/picojpeg/libpicojpeg.c:1301:15: Stores SLP vectorized with cost -3 and with tree size 2",
+        "remark: /tmp/xcorev-example-check/etiss_riscv_examples/target_code/embench/embench-iot/src/picojpeg/libpicojpeg.c:1314:15: Stores SLP vectorized with cost -3 and with tree size 2",
+        "remark: /tmp/xcorev-example-check/etiss_riscv_examples/target_code/embench/embench-iot/src/picojpeg/libpicojpeg.c:1370:3: vectorized loop (vectorization width: 2, interleaved count: 1)"
+      ],
+      "optimizer_exit": 0,
+      "vector_operations": {
+        "store <2 x i16>": 3,
+        "store <4 x i8>": 3,
+        "load <2 x i16>": 1,
+        "load <2 x i32>": 1,
+        "load <2 x i8>": 1,
+        "mul <2 x i32>": 1,
+        "add <2 x i32>": 1,
+        "lshr <2 x i32>": 1
+      },
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 24472,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 28136,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/picojpeg/picojpeg_test.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 476,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 492,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/picojpeg/picojpeg_test.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 476,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 492,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/picojpeg/picojpeg_test.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 476,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 492,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/primecount/primecount.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 564,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 656,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/primecount/primecount.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 564,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 656,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/primecount/primecount.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 564,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 656,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/qrduino/qrencode.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 7556,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 7368,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/qrduino/qrencode.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 7556,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 7368,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/qrduino/qrencode.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 7556,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 7368,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/qrduino/qrframe.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 10228,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 10780,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/qrduino/qrframe.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 10228,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 10780,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/qrduino/qrframe.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 10228,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 10780,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/qrduino/qrtest.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 376,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 364,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/qrduino/qrtest.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 376,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 364,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/qrduino/qrtest.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 376,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 364,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/sglib-combined/combined.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 12444,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 11916,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/sglib-combined/combined.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 12444,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 11916,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/sglib-combined/combined.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 12444,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 11916,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/slre/libslre.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4740,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4772,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/slre/libslre.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4740,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4772,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/slre/libslre.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4740,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4772,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/st/libst.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2932,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3152,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/st/libst.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2932,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3152,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/st/libst.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 2932,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 3152,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/statemate/libstatemate.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 5036,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4396,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/statemate/libstatemate.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 5036,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4396,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/statemate/libstatemate.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 5036,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 4396,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/tarfind/tarfind.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 936,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1008,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/tarfind/tarfind.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 936,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1008,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/tarfind/tarfind.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 936,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1008,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/ud/libud.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1300,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1348,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/ud/libud.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1300,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1348,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/ud/libud.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1300,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 1348,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "scalar",
+      "source": "src/wikisort/libwikisort.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 11672,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 12068,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "native",
+      "source": "src/wikisort/libwikisort.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 11672,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 12068,
+          "packed_instructions": {}
+        }
+      }
+    },
+    {
+      "llvm": 23,
+      "variant": "packed",
+      "source": "src/wikisort/libwikisort.c",
+      "frontend_exit": 0,
+      "vectorization_remarks": [],
+      "optimizer_exit": 0,
+      "vector_operations": {},
+      "selectors": {
+        "dag": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 11672,
+          "packed_instructions": {}
+        },
+        "gisel": {
+          "exit_code": 0,
+          "decode_exit": 0,
+          "text_bytes": 12068,
+          "packed_instructions": {}
+        }
+      }
+    }
+  ],
+  "tested_backend_refs": {
+    "22": "4c9b23ffa790323d0bb0d70ff2576c34993ff6ef",
+    "23": "f3e4c5705c2da4ecadc2babeae356e2960220293"
+  },
+  "experiment_date": "2026-11-05"
+}

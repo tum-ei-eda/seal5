@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 """Type definitions for seal5."""
+
 from enum import Enum, IntEnum, auto
 
 

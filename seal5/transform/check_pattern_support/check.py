@@ -15,12 +15,14 @@ import pathlib
 
 import pandas as pd
 
-from m2isar.metamodel import arch, behav
+from m2isar.metamodel import behav, type_info, attribute_info
 from seal5.model import Seal5InstrAttribute, Seal5OperandAttribute
 from seal5.model_utils import load_model, dump_model
 
 
-logger = logging.getLogger("check_pattern_support")
+from seal5.logging import Logger
+
+logger = Logger("transform.check_pattern_support")
 
 
 def get_parser():
@@ -31,12 +33,17 @@ def get_parser():
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
     parser.add_argument("--compat", action="store_true")
+    parser.add_argument("--allow-memory", action="store_true", help="Try experimental load/store patterns")
+    parser.add_argument("--allow-branches", action="store_true", help="Try recognized branch intrinsic patterns")
+    parser.add_argument(
+        "--gisel-table", action="store_true", help="Try direct GlobalISel two-result arithmetic patterns"
+    )
     return parser
 
 
 def run(args):
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
@@ -89,8 +96,19 @@ def run(args):
                 )
                 may_load = Seal5InstrAttribute.MAY_LOAD in attributes
                 may_store = Seal5InstrAttribute.MAY_STORE in attributes
-                is_rvc = instr_def.size != 32
-                is_branch = arch.InstrAttribute.COND in attributes or arch.InstrAttribute.NO_CONT in attributes
+                is_rvc = instr_def.size == 16
+                # is_extended = instr_def.size == 48
+                is_branch = (
+                    attribute_info.InstrAttribute.COND in attributes
+                    or attribute_info.InstrAttribute.NO_CONT in attributes
+                )
+                lowered_branch = Seal5InstrAttribute.IS_BRANCH in attributes
+                allowed_branch = args.allow_branches and lowered_branch
+                allowed_store = args.allow_memory and may_store and not may_load
+                expected_outs = 0 if allowed_store or allowed_branch else 1
+                allowed_multi = (
+                    args.gisel_table and num_outs == 2 and not (may_load or may_store or is_branch or lowered_branch)
+                )
                 has_loop = Seal5InstrAttribute.HAS_LOOP in attributes
                 # TODO: has_static_loop
                 has_call = Seal5InstrAttribute.HAS_CALL in attributes
@@ -102,10 +120,11 @@ def run(args):
                     is_noop
                     or is_rvc
                     or (num_ins == 0)
-                    or (num_outs != 1)
-                    or may_load
-                    or may_store
-                    or is_branch
+                    or (num_outs != expected_outs and not allowed_multi)
+                    or (may_load and may_store)
+                    or (may_load and not args.allow_memory)
+                    or (may_store and not args.allow_memory)
+                    or ((is_branch or lowered_branch) and not allowed_branch)
                     or has_loop
                     or has_call
                     or uses_custom_reg
@@ -115,7 +134,9 @@ def run(args):
                     attributes[Seal5InstrAttribute.SKIP_PATTERN_GEN] = []
                 # TODO: move to different/new pass (add_instr_attributes) and
                 # move detections to Seal5Instr class in metamodel
-                attributes[Seal5InstrAttribute.LLVM_INSTR] = behav.StringLiteral(instr_def.name)
+                attributes[Seal5InstrAttribute.LLVM_INSTR] = behav.Literal(
+                    instr_def.name, type_info.PrimitiveType(type_info.TypeKind.STR, len(instr_def.name))
+                )
                 instr_def.attributes = attributes
                 metrics["n_success"] += 1
                 metrics["success_instructions"].append(instr_def.name)

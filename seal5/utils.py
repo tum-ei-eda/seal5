@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 """Seal5 utility functions."""
+
 import os
 import sys
 import shutil
@@ -27,9 +28,11 @@ import multiprocessing
 from pathlib import Path
 from typing import List, Callable, Optional
 
-from seal5.logging import get_logger
 
-logger = get_logger()
+def get_logger():
+    from seal5.logging import Logger
+
+    return Logger("utils")
 
 
 def str2bool(value, allow_none=False):
@@ -69,7 +72,7 @@ def exec_getout(
     live: bool = False,
     print_func: Callable = print,
     handle_exit=None,
-    err_func: Callable = logger.error,
+    err_func: Optional[Callable] = None,
     **kwargs,
 ) -> str:
     """Wrapper for running a program in a subprocess.
@@ -94,7 +97,14 @@ def exec_getout(
     out : str
         The command line output of the command
     """
+
+    logger = get_logger()  # instantiate here
     logger.debug("- Executing: %s", str(args))
+    if err_func is None:
+        err_func = logger.error
+    else:
+        err_func = print
+
     if ignore_output:
         assert not live
         subprocess.run(args, **kwargs, check=True)
@@ -176,7 +186,7 @@ def make(*args, target=None, threads=multiprocessing.cpu_count(), use_ninja=Fals
     # TODO: make sure that ninja is installed?
     extra_args = []
     if target:
-        extra_args.append(target)
+        extra_args.extend(target.split(",") if isinstance(target, str) else target)
     tool = "ninja" if use_ninja else "make"
     extra_args.append("-j" + str(threads))
     cmd = [tool] + extra_args + list(args)

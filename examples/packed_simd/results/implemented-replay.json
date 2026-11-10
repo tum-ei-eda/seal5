@@ -1,0 +1,841 @@
+{
+  "input_results": "/tmp/seal5-packed-embench-final/results.json",
+  "records": [
+    {
+      "llvm": 22,
+      "source": "src/aha-mont64/mont64.c",
+      "ir_sha256": "608618c46aacbfd55ca2260de971f407691c958d4472841860604ec1cfad10b2",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/aha-mont64/mont64.c",
+      "ir_sha256": "608618c46aacbfd55ca2260de971f407691c958d4472841860604ec1cfad10b2",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/crc32/crc_32.c",
+      "ir_sha256": "442bb160f7bcd1e17e1ae7ba0c6169d96bd55d4c296d74f628484a68999be17c",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/crc32/crc_32.c",
+      "ir_sha256": "442bb160f7bcd1e17e1ae7ba0c6169d96bd55d4c296d74f628484a68999be17c",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/cubic/basicmath_small.c",
+      "ir_sha256": "fe5752dcc0c690cec81642aa415b0bed334ebbe15062118c4613a6858e5e635b",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/cubic/basicmath_small.c",
+      "ir_sha256": "fe5752dcc0c690cec81642aa415b0bed334ebbe15062118c4613a6858e5e635b",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/cubic/libcubic.c",
+      "ir_sha256": "46b91afd9d5225250ccd200da9008b2bdb0ae9a41cd776bf260453dd3a47649f",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/cubic/libcubic.c",
+      "ir_sha256": "46b91afd9d5225250ccd200da9008b2bdb0ae9a41cd776bf260453dd3a47649f",
+      "selector": 1,
+      "exit_code": 1,
+      "diagnostic": "LLVM ERROR: unable to legalize instruction: %201:_(s32) = G_FCMP floatpred(olt), %40:_(s128), %163:_ (in function: SolveCubic)"
+    },
+    {
+      "llvm": 22,
+      "source": "src/edn/libedn.c",
+      "ir_sha256": "7e76325febd60ee5979217239254b17d75470279dc1880410b3629afd9b145d1",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/edn/libedn.c",
+      "ir_sha256": "7e76325febd60ee5979217239254b17d75470279dc1880410b3629afd9b145d1",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/huffbench/libhuffbench.c",
+      "ir_sha256": "6bf956c52c261574a0f6ca43819672a0e9eaa85f94f9e05cfb420517960389f5",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/huffbench/libhuffbench.c",
+      "ir_sha256": "6bf956c52c261574a0f6ca43819672a0e9eaa85f94f9e05cfb420517960389f5",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/matmult-int/matmult-int.c",
+      "ir_sha256": "b837682b34e2bd43e9aa0a90c29ae1e2785070559ea0af8b5587570ab0e5c327",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/matmult-int/matmult-int.c",
+      "ir_sha256": "b837682b34e2bd43e9aa0a90c29ae1e2785070559ea0af8b5587570ab0e5c327",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/md5sum/md5.c",
+      "ir_sha256": "b5aae7fee45c0da26db865cc92b350711d5458c1db70b34067280532f3a83789",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/md5sum/md5.c",
+      "ir_sha256": "b5aae7fee45c0da26db865cc92b350711d5458c1db70b34067280532f3a83789",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/minver/libminver.c",
+      "ir_sha256": "020d56c3925edf9403a4846a7f09cf55e3ba7ced2a178dd46548ed48f8deb98d",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/minver/libminver.c",
+      "ir_sha256": "020d56c3925edf9403a4846a7f09cf55e3ba7ced2a178dd46548ed48f8deb98d",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/nbody/nbody.c",
+      "ir_sha256": "ef2e8cd5722792527ffdbd3111dcb575639a1ed8b23a4b38dd9290e619ef2e53",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/nbody/nbody.c",
+      "ir_sha256": "ef2e8cd5722792527ffdbd3111dcb575639a1ed8b23a4b38dd9290e619ef2e53",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/nettle-aes/nettle-aes.c",
+      "ir_sha256": "7bbb23cf8ee0952dfabbd2d93fb5824542000b1b562ee92614b28c72b3a77911",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/nettle-aes/nettle-aes.c",
+      "ir_sha256": "7bbb23cf8ee0952dfabbd2d93fb5824542000b1b562ee92614b28c72b3a77911",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/nettle-sha256/nettle-sha256.c",
+      "ir_sha256": "f59a1259b2191773cd258f7d9a145e4cb35f94b65729fc70dcbb8fd4085c204c",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/nettle-sha256/nettle-sha256.c",
+      "ir_sha256": "f59a1259b2191773cd258f7d9a145e4cb35f94b65729fc70dcbb8fd4085c204c",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/nsichneu/libnsichneu.c",
+      "ir_sha256": "f788219cd31706a3bfdbd055ea43cc4d361febe2329471861d52a3f4e007ea5f",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/nsichneu/libnsichneu.c",
+      "ir_sha256": "f788219cd31706a3bfdbd055ea43cc4d361febe2329471861d52a3f4e007ea5f",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/picojpeg/libpicojpeg.c",
+      "ir_sha256": "e891b58f9ecb52275204a7f74bbf7778c9594ef0c3ced78a95334736c42ab452",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/picojpeg/libpicojpeg.c",
+      "ir_sha256": "e891b58f9ecb52275204a7f74bbf7778c9594ef0c3ced78a95334736c42ab452",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/picojpeg/picojpeg_test.c",
+      "ir_sha256": "6bf5b686dda4630d4a4e5b2fff4d9defa6dd41b208847f72459c119f4b7ff7c9",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/picojpeg/picojpeg_test.c",
+      "ir_sha256": "6bf5b686dda4630d4a4e5b2fff4d9defa6dd41b208847f72459c119f4b7ff7c9",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/primecount/primecount.c",
+      "ir_sha256": "79e45ef2acdd199332b0fbca1e6f53b4e585c58da1aa333393a997cea6280a76",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/primecount/primecount.c",
+      "ir_sha256": "79e45ef2acdd199332b0fbca1e6f53b4e585c58da1aa333393a997cea6280a76",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/qrduino/qrencode.c",
+      "ir_sha256": "ad1e4c87a413d0bbb03d61db539c2f8f8a17debe758409363121bc519395f92f",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/qrduino/qrencode.c",
+      "ir_sha256": "ad1e4c87a413d0bbb03d61db539c2f8f8a17debe758409363121bc519395f92f",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/qrduino/qrframe.c",
+      "ir_sha256": "b2a0bec6a30b0985e4e7c63a155ca308028313dc538d3d510c3bc95ec064e116",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/qrduino/qrframe.c",
+      "ir_sha256": "b2a0bec6a30b0985e4e7c63a155ca308028313dc538d3d510c3bc95ec064e116",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/qrduino/qrtest.c",
+      "ir_sha256": "858d6765085756ce7159c6314fabfe11e5bdb78fc7d94dc62bc036b07f6e27a0",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/qrduino/qrtest.c",
+      "ir_sha256": "858d6765085756ce7159c6314fabfe11e5bdb78fc7d94dc62bc036b07f6e27a0",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/sglib-combined/combined.c",
+      "ir_sha256": "58c2c6876bb8e82659359805cc936bb9caf6e2f68c1d85229d9f992211233fe7",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/sglib-combined/combined.c",
+      "ir_sha256": "58c2c6876bb8e82659359805cc936bb9caf6e2f68c1d85229d9f992211233fe7",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/slre/libslre.c",
+      "ir_sha256": "73d3dace958590916f26142a10b874459afd8c335b9e4d2a219c6278d3c8a025",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/slre/libslre.c",
+      "ir_sha256": "73d3dace958590916f26142a10b874459afd8c335b9e4d2a219c6278d3c8a025",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/st/libst.c",
+      "ir_sha256": "9d5740ac2f849d0ac9ce8be50d9f1363f8c5d4bbf01f14f94c0d3119c97cd01d",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/st/libst.c",
+      "ir_sha256": "9d5740ac2f849d0ac9ce8be50d9f1363f8c5d4bbf01f14f94c0d3119c97cd01d",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/statemate/libstatemate.c",
+      "ir_sha256": "f1ee28fe247786f07b4dfe513f548d98c364c9c18e6a0f5ed07233db8a4c94e0",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/statemate/libstatemate.c",
+      "ir_sha256": "f1ee28fe247786f07b4dfe513f548d98c364c9c18e6a0f5ed07233db8a4c94e0",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/tarfind/tarfind.c",
+      "ir_sha256": "a663e8575e1345271bb8208d25c19dc7027b5dd14bcec5da4e29b715e745432e",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/tarfind/tarfind.c",
+      "ir_sha256": "a663e8575e1345271bb8208d25c19dc7027b5dd14bcec5da4e29b715e745432e",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/ud/libud.c",
+      "ir_sha256": "0255532c130a1c7e0b741cdc476e04f963b2de5bfc782c8e5b20ddafa67ffa6b",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/ud/libud.c",
+      "ir_sha256": "0255532c130a1c7e0b741cdc476e04f963b2de5bfc782c8e5b20ddafa67ffa6b",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/wikisort/libwikisort.c",
+      "ir_sha256": "a3b27cc39566e938dfd11e6d8ae05dae7f1c2a2300297b629876d6ad5522ca81",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 22,
+      "source": "src/wikisort/libwikisort.c",
+      "ir_sha256": "a3b27cc39566e938dfd11e6d8ae05dae7f1c2a2300297b629876d6ad5522ca81",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/aha-mont64/mont64.c",
+      "ir_sha256": "8b0f6652602629cb0e8c4cbc183e4963159d3411a854fcc39e3cad708179185d",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/aha-mont64/mont64.c",
+      "ir_sha256": "8b0f6652602629cb0e8c4cbc183e4963159d3411a854fcc39e3cad708179185d",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/crc32/crc_32.c",
+      "ir_sha256": "07392caba19f7cffca2ca43e36007f0186ee5a5b2764b4cdcee88190eea78ade",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/crc32/crc_32.c",
+      "ir_sha256": "07392caba19f7cffca2ca43e36007f0186ee5a5b2764b4cdcee88190eea78ade",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/cubic/basicmath_small.c",
+      "ir_sha256": "7d06cfe353c9d95702be9a56a8198bf26ad9b3393badc9ef49a1ae134111e06a",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/cubic/basicmath_small.c",
+      "ir_sha256": "7d06cfe353c9d95702be9a56a8198bf26ad9b3393badc9ef49a1ae134111e06a",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/cubic/libcubic.c",
+      "ir_sha256": "cfa15d98b80158776ad761bd6ac978dbb5b0c2fb4c5ab7496092008c785ebb1b",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/cubic/libcubic.c",
+      "ir_sha256": "cfa15d98b80158776ad761bd6ac978dbb5b0c2fb4c5ab7496092008c785ebb1b",
+      "selector": 1,
+      "exit_code": 1,
+      "diagnostic": "LLVM ERROR: unable to legalize instruction: %201:_(s32) = G_FCMP floatpred(olt), %40:_(s128), %163:_ (in function: SolveCubic)"
+    },
+    {
+      "llvm": 23,
+      "source": "src/edn/libedn.c",
+      "ir_sha256": "73fc822e8e598e616a35aa6c97ad63526868d95182e1534b3a995693868d6ac1",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/edn/libedn.c",
+      "ir_sha256": "73fc822e8e598e616a35aa6c97ad63526868d95182e1534b3a995693868d6ac1",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/huffbench/libhuffbench.c",
+      "ir_sha256": "f6173f5147557269639e7f91f96fc863a2831303d12971b1065eeff65be054ca",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/huffbench/libhuffbench.c",
+      "ir_sha256": "f6173f5147557269639e7f91f96fc863a2831303d12971b1065eeff65be054ca",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/matmult-int/matmult-int.c",
+      "ir_sha256": "d3378e443749ced96faaef12badcfa56633cc504c340d041a173c9c6ef8ed8a1",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/matmult-int/matmult-int.c",
+      "ir_sha256": "d3378e443749ced96faaef12badcfa56633cc504c340d041a173c9c6ef8ed8a1",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/md5sum/md5.c",
+      "ir_sha256": "53a06cd64b69bf6d84640738f8be30c08e0b2b8d093b22955a3ff902706424b8",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/md5sum/md5.c",
+      "ir_sha256": "53a06cd64b69bf6d84640738f8be30c08e0b2b8d093b22955a3ff902706424b8",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/minver/libminver.c",
+      "ir_sha256": "61045d1214a385c8f1589fbdc69f58283249a7322057147f8ff6d6fb7830aa77",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/minver/libminver.c",
+      "ir_sha256": "61045d1214a385c8f1589fbdc69f58283249a7322057147f8ff6d6fb7830aa77",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/nbody/nbody.c",
+      "ir_sha256": "0a25812b189f0a504a5da8858e872da49d22b6abd0469fb69628dfb89f1ce7ac",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/nbody/nbody.c",
+      "ir_sha256": "0a25812b189f0a504a5da8858e872da49d22b6abd0469fb69628dfb89f1ce7ac",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/nettle-aes/nettle-aes.c",
+      "ir_sha256": "70f1397406a0534e2d47069bde242b84e0653d1cfdd1c3b66530dd2109a3c3da",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/nettle-aes/nettle-aes.c",
+      "ir_sha256": "70f1397406a0534e2d47069bde242b84e0653d1cfdd1c3b66530dd2109a3c3da",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/nettle-sha256/nettle-sha256.c",
+      "ir_sha256": "6acd5a3f0d06446da5ee8c0e9b4d5f56b082656d3c6f29ebfb5e0d280349dc64",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/nettle-sha256/nettle-sha256.c",
+      "ir_sha256": "6acd5a3f0d06446da5ee8c0e9b4d5f56b082656d3c6f29ebfb5e0d280349dc64",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/nsichneu/libnsichneu.c",
+      "ir_sha256": "89a9755cea674f4b343bc57db0085b8664e519d43a215600cfc4f0b53264c34c",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/nsichneu/libnsichneu.c",
+      "ir_sha256": "89a9755cea674f4b343bc57db0085b8664e519d43a215600cfc4f0b53264c34c",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/picojpeg/libpicojpeg.c",
+      "ir_sha256": "80a6f482e6156677c7aa7e2a04a92ac2edcbb5c4576ad6331161faa5abd52928",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/picojpeg/libpicojpeg.c",
+      "ir_sha256": "80a6f482e6156677c7aa7e2a04a92ac2edcbb5c4576ad6331161faa5abd52928",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/picojpeg/picojpeg_test.c",
+      "ir_sha256": "041ba63e80a3ce5a1f8897ea27a7a1841c14617959fd83f16b9c7d69094c982f",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/picojpeg/picojpeg_test.c",
+      "ir_sha256": "041ba63e80a3ce5a1f8897ea27a7a1841c14617959fd83f16b9c7d69094c982f",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/primecount/primecount.c",
+      "ir_sha256": "91176e953c9bbc3d12156b02dde8a28f9674d7bbf413a957105307fce28c98b1",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/primecount/primecount.c",
+      "ir_sha256": "91176e953c9bbc3d12156b02dde8a28f9674d7bbf413a957105307fce28c98b1",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/qrduino/qrencode.c",
+      "ir_sha256": "e4d32d9aad77be60e83416cd96edf94099e87e2ff2c5e599925d5727e77f595e",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/qrduino/qrencode.c",
+      "ir_sha256": "e4d32d9aad77be60e83416cd96edf94099e87e2ff2c5e599925d5727e77f595e",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/qrduino/qrframe.c",
+      "ir_sha256": "c0b4645973065400b1d93f25de1de619b2c24aadd3c98ab0bcfebd2d04a6979f",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/qrduino/qrframe.c",
+      "ir_sha256": "c0b4645973065400b1d93f25de1de619b2c24aadd3c98ab0bcfebd2d04a6979f",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/qrduino/qrtest.c",
+      "ir_sha256": "4a6c248b29846bcd979e600bf6f0f225e56fbaac1ce9d6ad8a8d594275a1dd66",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/qrduino/qrtest.c",
+      "ir_sha256": "4a6c248b29846bcd979e600bf6f0f225e56fbaac1ce9d6ad8a8d594275a1dd66",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/sglib-combined/combined.c",
+      "ir_sha256": "5525a5cbba7d25ae787d45a43cdc13433dbb72ac40b0a9fdbe996a65491499d1",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/sglib-combined/combined.c",
+      "ir_sha256": "5525a5cbba7d25ae787d45a43cdc13433dbb72ac40b0a9fdbe996a65491499d1",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/slre/libslre.c",
+      "ir_sha256": "d6b7c4d704f3bd18691c909ab32dc13c57058856d36b557d44f816c317e016eb",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/slre/libslre.c",
+      "ir_sha256": "d6b7c4d704f3bd18691c909ab32dc13c57058856d36b557d44f816c317e016eb",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/st/libst.c",
+      "ir_sha256": "4859259e2a2e487fe053ab8f5b6394262297a90bf831fae9a31ead00aa89a65a",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/st/libst.c",
+      "ir_sha256": "4859259e2a2e487fe053ab8f5b6394262297a90bf831fae9a31ead00aa89a65a",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/statemate/libstatemate.c",
+      "ir_sha256": "342406e95ca0970ce00bf44082932f7cd44e29d9ac28048a64a3bcaadd14f01d",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/statemate/libstatemate.c",
+      "ir_sha256": "342406e95ca0970ce00bf44082932f7cd44e29d9ac28048a64a3bcaadd14f01d",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/tarfind/tarfind.c",
+      "ir_sha256": "db65849463d6ad562fed53ffa5c7fcb849c67298dfa88ae234a44e56cb9ab600",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/tarfind/tarfind.c",
+      "ir_sha256": "db65849463d6ad562fed53ffa5c7fcb849c67298dfa88ae234a44e56cb9ab600",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/ud/libud.c",
+      "ir_sha256": "716ab983685603c424eec0f0dc9256cf190c4678ff2347a66cc2eaa4270841a1",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/ud/libud.c",
+      "ir_sha256": "716ab983685603c424eec0f0dc9256cf190c4678ff2347a66cc2eaa4270841a1",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/wikisort/libwikisort.c",
+      "ir_sha256": "7ed2e2141ea22393219ea2bc869316837ba9f87f1e3e94e7c2ca1695711b7138",
+      "selector": 0,
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    {
+      "llvm": 23,
+      "source": "src/wikisort/libwikisort.c",
+      "ir_sha256": "7ed2e2141ea22393219ea2bc869316837ba9f87f1e3e94e7c2ca1695711b7138",
+      "selector": 1,
+      "exit_code": 0,
+      "diagnostic": ""
+    }
+  ],
+  "tested_backend_refs": {
+    "22": "4c9b23ffa790323d0bb0d70ff2576c34993ff6ef",
+    "23": "f3e4c5705c2da4ecadc2babeae356e2960220293"
+  }
+}

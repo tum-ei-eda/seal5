@@ -1,0 +1,64 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Seal5
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Philipp
+    family-names: Van Kempen
+    email: philipp.van-kempen@tum.de
+    orcid: 'https://orcid.org/0000-0002-1135-8070'
+    affiliation: Technical University of Munich
+  - given-names: Mathis
+    family-names: Salmen
+    affiliation: Technical University of Munich
+    orcid: 'https://orcid.org/0009-0006-3449-1460'
+  - given-names: Daniel
+    family-names: Mueller-Gritschneder
+    orcid: 'https://orcid.org/0000-0003-0903-631X'
+    affiliation: TU Wien
+  - given-names: Ulf
+    family-names: Schlichtmann
+    affiliation: Technical University of Munich
+    orcid: 'https://orcid.org/0000-0003-4431-7619'
+identifiers:
+  - type: doi
+    value: 10.1109/DSD64264.2024.00052
+repository-code: 'https://github.com/tum-ei-eda/seal5'
+url: 'https://tum-ei-eda.github.io/seal5/'
+license: Apache-2.0
+preferred-citation:
+  type: conference-paper
+  authors:
+  - given-names: Philipp
+    family-names: Van Kempen
+    email: philipp.van-kempen@tum.de
+    orcid: 'https://orcid.org/0000-0002-1135-8070'
+    affiliation: Technical University of Munich
+  - given-names: Mathis
+    family-names: Salmen
+    affiliation: Technical University of Munich
+    orcid: 'https://orcid.org/0009-0006-3449-1460'
+  - given-names: Daniel
+    family-names: Mueller-Gritschneder
+    orcid: 'https://orcid.org/0000-0003-0903-631X'
+    affiliation: TU Wien
+  - given-names: Ulf
+    family-names: Schlichtmann
+    affiliation: Technical University of Munich
+    orcid: 'https://orcid.org/0000-0003-4431-7619'
+  year: "2024"
+  title: "Seal5: Semi-Automated LLVM Support for RISC-V ISA Extensions Including Autovectorization"
+  start: "335"
+  end: "342"
+  doi: "10.1109/DSD64264.2024.00052"
+  url: "https://doi.org/10.1109/DSD64264.2024.00052"
+  publisher: "IEEE"
+  conference: "27th Euromicro Conference on Digital System Design (DSD)"
+  location: "Paris, France"
+  collection-type: "proceedings"
+  isbn: "979-8-3503-8038-5"

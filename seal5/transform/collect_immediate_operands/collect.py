@@ -6,7 +6,7 @@
 # Chair of Electrical Design Automation
 # Technical University of Munich
 
-"""Infer types of instruction operands from behavior."""
+"""Collect immediate operands from behavior expressions."""
 
 import sys
 import argparse
@@ -15,12 +15,13 @@ import pathlib
 
 import pandas as pd
 
-from m2isar.metamodel import patch_model
 from seal5.model_utils import load_model, dump_model
 
-from . import visitor
+from .visitor import CollectImmediateOperandsVisitor
 
-logger = logging.getLogger("collect_register_operands")
+from seal5.logging import Logger
+
+logger = Logger("transform.collect_immediate_operands")
 
 
 class VisitorContext:
@@ -42,7 +43,7 @@ def get_parser():
 
 def run(args):
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
@@ -64,13 +65,13 @@ def run(args):
     for _, set_def in model_obj.sets.items():
         metrics["n_sets"] += 1
         logger.debug("collecting immediate operands for set %s", set_def.name)
-        patch_model(visitor)
+        visitor = CollectImmediateOperandsVisitor()
         for _, instr_def in set_def.instructions.items():
             metrics["n_instructions"] += 1
             context = VisitorContext(instr_def.operands)
             logger.debug("collecting immediate operands for instr %s", instr_def.name)
             try:
-                instr_def.operation.generate(context)
+                visitor.generate(instr_def.operation, context)
                 instr_def.operands = context.operands
                 # print("context.raises", context.raises)
                 # input("next?")

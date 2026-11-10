@@ -1,6 +1,9 @@
 from typing import Optional
 
 from seal5.settings import RISCVSettings
+from seal5.model import Seal5OperandAttribute
+
+from m2isar.metamodel import arch
 
 
 def get_riscv_defaults(riscv_settings: Optional[RISCVSettings] = None):
@@ -33,3 +36,117 @@ def build_riscv_mattr(features, xlen: Optional[int] = None):
     mattrs = list(set(map(fix_prefix, mattrs)))
     mattr = ",".join(mattrs)
     return mattr
+
+
+OPCODE_LOOKUP = {
+    "LOAD": 0b00000,
+    "LOAD-FP": 0b00001,
+    "custom-0": 0b00010,
+    "MISC-MEM": 0b00011,
+    "OP-IMM": 0b00100,
+    "AUIPC": 0b00101,
+    "OP-IMM-32": 0b00110,
+    "48bit": 0b00111,
+    "STORE": 0b01000,
+    "STORE-FP": 0b01001,
+    "custom-1": 0b01010,
+    "AMO": 0b01011,
+    "OP": 0b01100,
+    "LUI": 0b01101,
+    "OP-32": 0b01110,
+    # "64bit": 0b01111,
+    "MADD": 0b10000,
+    "MSUB": 0b10001,
+    "NMADD": 0b10010,
+    "NMSUB": 0b10011,
+    "OP-FP": 0b10100,
+    "OP-V": 0b10101,
+    "custom-2": 0b10110,  # rv128i
+    "48bit2": 0b10111,
+    "BRANCH": 0b11000,
+    "JALR": 0b11001,
+    "reserved": 0b11010,
+    "JAL": 0b11011,
+    "SYSTEM": 0b11100,
+    "OP-P": 0b11101,
+    "custom-3": 0b11110,
+    # "80bit+": 0b11111,
+}
+
+
+def detect_opcode(instr_def):  # TODO: move to transform and store as attr
+    OPCODE_LOOKUP_REV = {v: k for k, v in OPCODE_LOOKUP.items()}
+    size = instr_def.size
+    if size == 16:
+        return "COMPRESSED", None
+    assert size in [32, 48], f"Unsupported encoding size: {size}"
+    assert instr_def.code is not None and instr_def.mask & 0x7F == 0x7F, "Opcode must be fixed"
+    # The generator can emit each fixed bit as a separate BitVal.
+    opcode = (instr_def.code & 0x7F) >> 2
+    found = OPCODE_LOOKUP_REV.get(opcode, None)
+    assert found is not None, f"Opcode not found: {bin(opcode)}"
+    return found, opcode
+
+
+def detect_funct3_funct7(instr_def):
+    if instr_def.size != 32:
+        return None, None
+    funct3 = (instr_def.code >> 12) & 0x7 if instr_def.mask & 0x7000 == 0x7000 else None
+    funct7 = (instr_def.code >> 25) & 0x7F if instr_def.mask & 0xFE000000 == 0xFE000000 else None
+    return funct3, funct7
+
+
+def detect_format(instr_def):  # TODO: move to transform and store as attr
+    # enc = instr_def.encoding
+    operands = instr_def.operands
+    char_lookup = {}
+    imm_char = "a"
+    reg_char = "A"
+    temp = ""
+    for e in reversed(instr_def.encoding):
+        if isinstance(e, arch.BitVal):
+            new = bin(e.value)[2:].zfill(e.length)
+            temp = f"{new}{temp}"
+        elif isinstance(e, arch.BitField):
+            length = e.range.length
+            found = char_lookup.get(e.name, None)
+            char = "#"
+            if found is not None:
+                char = found
+            else:
+                op = operands.get(e.name, None)
+                if op is not None:
+                    if Seal5OperandAttribute.IS_REG in op.attributes:
+                        char = reg_char
+                        reg_char = chr(ord(reg_char) + 1)
+                    elif Seal5OperandAttribute.IS_IMM in op.attributes:
+                        char = imm_char
+                        imm_char = chr(ord(imm_char) + 1)
+                    else:
+                        char = "%"
+                char_lookup[e.name] = char
+            new = char * length
+            temp = f"{new}{temp}"
+        else:
+            assert False
+    FMT_LOOKUP = [  # needs to be sorted by weight (number of non-?)
+        ("aaaaaaaBBBBBAAAAA???aaaaa???????", "s-type (mem)"),
+        ("??aaaaaCCCCCBBBBB???AAAAA???????", "f2-type (binop)"),
+        ("??bbbbbaaaaaBBBBB???AAAAA???????", "f2-type (unop)"),
+        ("???????CCCCCBBBBB???AAAAA???????", "r-type (binop)"),
+        ("???????BBBBBAAAAA???00000???????", "r-type (binop, noout)"),
+        ("???????00000BBBBB???AAAAA???????", "r-type (unop)"),
+        ("???????00000BBBBB???00000???????", "r-type (unop, noout)"),
+        ("???????0000000000???AAAAA???????", "r-type (nonop)"),
+        ("???????0000000000???00000???????", "r-type (nonop)"),  # s4emac
+        ("???????aaaaaBBBBB???AAAAA???????", "ri-type (binop)"),
+    ]
+    found2 = f"unknown[{temp}]"
+    for mask, fmt in FMT_LOOKUP:
+        if len(mask) != len(temp):
+            continue
+        masked = "".join([c if mask[i] != "?" else "?" for i, c in enumerate(temp)])
+        if masked == mask:
+            found2 = fmt
+            break
+    return found2, temp

@@ -15,7 +15,9 @@ import pathlib
 from seal5.index import NamedPatch, write_index_yaml
 from seal5.settings import RISCVLegalizerSettings, Seal5Settings
 
-logger = logging.getLogger("riscv_gisel_legalizer")
+from seal5.logging import Logger
+
+logger = Logger("backends.riscv_gisel_legalizer")
 
 # if (ST.hasVendorXCvsimd()) {
 
@@ -108,7 +110,7 @@ def main():
     args = parser.parse_args()
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)

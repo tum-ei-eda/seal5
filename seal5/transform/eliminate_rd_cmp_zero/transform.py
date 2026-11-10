@@ -13,13 +13,13 @@ import argparse
 import logging
 import pathlib
 
-from m2isar.metamodel import patch_model
-
 from seal5.model_utils import load_model, dump_model
 
-from . import visitor
+from .visitor import EliminateRdCmpZeroVisitor
 
-logger = logging.getLogger("eliminate_rd_cmp_zero")
+from seal5.logging import Logger
+
+logger = Logger("transform.eliminate_rd_cmp_zero")
 
 
 def get_parser():
@@ -29,12 +29,13 @@ def get_parser():
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--compat", action="store_true")
+    parser.add_argument("--destination-names", nargs="+", default=["rd"])
     return parser
 
 
 def run(args):
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
@@ -45,10 +46,10 @@ def run(args):
 
     for _, set_def in model_obj.sets.items():
         logger.debug("eliminating rd != 0 for set %s", set_def.name)
-        patch_model(visitor)
+        visitor = EliminateRdCmpZeroVisitor(args.destination_names)
         for _, instr_def in set_def.instructions.items():
-            logger.debug("collecting raises for instr %s", instr_def.name)
-            instr_def.operation.generate(None)
+            logger.debug("eliminating rd != 0 for instr %s", instr_def.name)
+            visitor.generate(instr_def.operation, None)
 
     dump_model(model_obj, out_path, compat=args.compat)
 
