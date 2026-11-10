@@ -63,10 +63,10 @@ no direct GISel table entries are enabled.
 | Checked-in assembler tests | 338 | 0 |
 | Checked-in intrinsic tests | 199 | 0 |
 | Checked-in builtin tests | 2 | 0 |
-| Checked-in codegen tests | 43 | 25 |
-| Generated pattern codegen tests | 45 | 55 |
+| Checked-in codegen tests | 44 | 24 |
+| Generated pattern codegen tests | 46 | 55 |
 
-The checked-in total is **582/607 passing**. Assembler tests cover all 311
+The checked-in total is **583/607 passing**. Assembler tests cover all 311
 instructions and compare each sample encoding with LLVM's native CORE-V
 assembler. The new codegen tests for both immediate branches, all eight
 ordinary register-offset loads/stores, and four packed add/sub operations
@@ -74,7 +74,7 @@ pass. Those tests exercise both SelectionDAG and GlobalISel, with GlobalISel
 fallback disabled.
 
 The remaining checked-in failures concern rounded normalization, clipping,
-zero-normalization multiply forms, and rotate selection. One obsolete
+and zero-normalization multiply forms. One obsolete
 unsigned multiply test used an arithmetic right shift; it now uses a logical
 right shift. Generated-test failures include equivalent-instruction choices
 (such as byte versus halfword bitwise operations) and genuine missing
@@ -89,15 +89,15 @@ is not yet a fully passing pattern-selection suite.
 | Instruction set | Instructions | Extracted patterns | Failed extraction | Skipped |
 | --- | ---: | ---: | ---: | ---: |
 | ALU | 31 | 31 | 0 | 0 |
-| Bit manipulation | 16 | 9 | 3 | 4 |
+| Bit manipulation | 16 | 10 | 3 | 3 |
 | Immediate branches | 2 | 2 | 0 | 0 |
 | MAC | 18 | 18 | 0 | 0 |
 | Memory | 24 | 8 | 0 | 16 |
 | SIMD | 220 | 96 | 124 | 0 |
-| Total | 311 | 164 | 127 | 20 |
+| Total | 311 | 165 | 127 | 19 |
 
 Extraction success does not establish importer acceptance or instruction
-selection. The generated TableGen pattern files total 126,245 bytes in this
+selection. The generated TableGen pattern files total 126,624 bytes in this
 run. Reports retain separate extraction, import, and match fields; unavailable
 validation counts remain unknown.
 
@@ -118,3 +118,28 @@ factored scalar-immediate byte dot product was also checked against the
 unfactored arithmetic for all 64 immediate values and four packed inputs
 (256 cases). Factoring avoids TableGen's excessive enumeration of
 commutable subexpressions.
+
+## Rotate-right selection
+
+`cv-ror.test-cg.ll` checks SelectionDAG and GlobalISel at both `-O0` and
+`-O3`, with GlobalISel fallback disabled. All four configurations now emit
+`seal5.cv.ror` for the register-count rotate. Masked counts and constants
+0, 1, 32 and 33 are covered too. Negative checks cover disabling the rotate
+capability, RV64, and a funnel shift with distinct input operands.
+
+Two separate issues previously prevented selection. Seal5's inliner wrapped
+`Return` in a type conversion before checking for a return statement, so
+`rotr32` remained a call and PatternGen skipped the instruction. The fixed
+inliner substitutes independent, typed argument expressions and preserves
+the declared return width. Both complementary shift counts are now masked
+to five bits, including the zero and overshift cases. The extracted rotate
+IR passes 544 constant-folding checks against modulo-32 rotation.
+
+The generated ISA feature now implies `FeatureSeal5Rotate32`. Its LLVM 22
+compatibility patch keeps RV32 rotate-right nodes legal in both selectors.
+At `-O0`, GlobalISel also needs a custom legalization step to recognize a
+same-input funnel shift, because the optional combiner is disabled. A
+funnel shift with distinct inputs still expands to shifts and OR. The
+capability leaves the baseline policy for RV64 and rotate-left unchanged.
+The ordinary TableGen rotate pattern is extracted from the description;
+no handwritten instruction-selection rule or direct GISel table is used.

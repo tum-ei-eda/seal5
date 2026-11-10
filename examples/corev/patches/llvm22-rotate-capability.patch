@@ -1,0 +1,75 @@
+diff --git a/llvm/lib/Target/RISCV/RISCVFeatures.td b/llvm/lib/Target/RISCV/RISCVFeatures.td
+--- a/llvm/lib/Target/RISCV/RISCVFeatures.td
++++ b/llvm/lib/Target/RISCV/RISCVFeatures.td
+@@ -1044,6 +1044,10 @@
+ 
+ def FeatureGPR32VSub : SubtargetFeature<"gpr32v-sub", "HasGPR32VSub", "true",
+                                       "Packed byte/halfword subtraction">;
++
++// Register rotate supplied by generated RV32 instruction patterns.
++def FeatureSeal5Rotate32 : SubtargetFeature<"seal5-rotate32", "HasSeal5Rotate32",
++                                           "true", "Generated 32-bit rotate-right">;
+ 
+ def FeatureStdExtSvinval
+     : RISCVExtension<1, 0,
+diff --git a/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp b/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
+--- a/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
++++ b/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
+@@ -227,13 +227,19 @@
+         .clampScalar(BigTyIdx, sXLen, sXLen);
+   }
+ 
+-  getActionDefinitionsBuilder({G_FSHL, G_FSHR}).lower();
+-
+-  getActionDefinitionsBuilder({G_ROTR, G_ROTL})
+-      .legalFor(ST.hasStdExtZbb() || ST.hasStdExtZbkb(), {{sXLen, sXLen}})
+-      .customFor(ST.is64Bit() && (ST.hasStdExtZbb() || ST.hasStdExtZbkb()),
+-                 {{s32, s32}})
++  getActionDefinitionsBuilder(G_FSHL).lower();
++  getActionDefinitionsBuilder(G_FSHR)
++      .customFor(!ST.is64Bit() && ST.hasSeal5Rotate32(), {{s32, s32}})
+       .lower();
++
++  for (unsigned Opc : {G_ROTR, G_ROTL})
++    getActionDefinitionsBuilder(Opc)
++        .legalFor(ST.hasStdExtZbb() || ST.hasStdExtZbkb() ||
++                      (Opc == G_ROTR && !ST.is64Bit() && ST.hasSeal5Rotate32()),
++                  {{sXLen, sXLen}})
++        .customFor(ST.is64Bit() && (ST.hasStdExtZbb() || ST.hasStdExtZbkb()),
++                   {{s32, s32}})
++        .lower();
+ 
+   getActionDefinitionsBuilder(G_BITREVERSE).maxScalar(0, sXLen).lower();
+ 
+@@ -1578,6 +1584,16 @@
+     Helper.Observer.changedInstr(MI);
+     return true;
+   }
++  case TargetOpcode::G_FSHR: {
++    auto [Dst, X, Y, Amt] = MI.getFirst4Regs();
++    if (X != Y)
++      return Helper.lowerFunnelShiftAsShifts(MI) == LegalizerHelper::Legalized;
++    // At -O0 the optional combiner does not turn a same-input funnel shift
++    // into a rotate. Preserve that opportunity during legalization as well.
++    MIRBuilder.buildRotateRight(Dst, X, Amt);
++    MI.eraseFromParent();
++    return true;
++  }
+   case TargetOpcode::G_SEXT_INREG: {
+     LLT DstTy = MRI.getType(MI.getOperand(0).getReg());
+     int64_t SizeInBits = MI.getOperand(2).getImm();
+diff --git a/llvm/lib/Target/RISCV/RISCVISelLowering.cpp b/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
+--- a/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
++++ b/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
+@@ -438,6 +438,11 @@
+   } else {
+     setOperationAction({ISD::ROTL, ISD::ROTR}, XLenVT, Expand);
+   }
++
++  // Keep the rotate node available for generated RV32 register-rotate rules.
++  // Other widths and rotate-left still use the baseline expansion policy.
++  if (!Subtarget.is64Bit() && Subtarget.hasSeal5Rotate32())
++    setOperationAction(ISD::ROTR, MVT::i32, Legal);
+ 
+   if (Subtarget.hasStdExtP())
+     setOperationAction({ISD::FSHL, ISD::FSHR}, XLenVT, Legal);

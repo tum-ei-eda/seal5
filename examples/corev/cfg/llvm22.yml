@@ -2,6 +2,11 @@
 tools:
   pattern_gen:
     ref: llvm-22.1.8-packed-simd
+models:
+  XCoreVBitmanip:
+    extensions:
+      XCoreVBitmanip:
+        backend_features: [FeatureSeal5Rotate32]
 passes:
   overrides:
     explicit_memory_names:
@@ -34,3 +39,10 @@ patches:
     file: ../patches/llvm22-packed-capabilities.patch
     comment: Supply packed operation capabilities until they reach the dependency branch
     onlyif: "'FeatureGPR32VAdd' not in (settings.deps_dir / 'cdsl2llvm/llvm/lib/Target/RISCV/RISCVFeatures.td').read_text()"
+  - name: corev_rotate_capability
+    target: llvm
+    stage: 0
+    priority: 0
+    file: ../patches/llvm22-rotate-capability.patch
+    comment: Preserve RV32 rotate-right nodes for generated instruction patterns
+    onlyif: "'FeatureSeal5Rotate32' not in (settings.deps_dir / 'cdsl2llvm/llvm/lib/Target/RISCV/RISCVFeatures.td').read_text()"
