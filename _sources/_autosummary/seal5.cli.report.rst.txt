@@ -1,0 +1,13 @@
+seal5.cli.report
+================
+
+.. automodule:: seal5.cli.report
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_parser
+      handle
+   

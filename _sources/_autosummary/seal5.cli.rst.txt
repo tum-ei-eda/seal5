@@ -21,6 +21,7 @@ seal5.cli
    load
    main
    patch
+   report
    reset
    setup
    test
