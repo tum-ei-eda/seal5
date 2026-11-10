@@ -11,7 +11,8 @@
 > Our Seal5 paper was published and presented on the DSD 2024 conference: See [References](https://github.com/tum-ei-eda/seal5?tab=readme-ov-file#references) section for details.
 
 [![pypi package](https://badge.fury.io/py/seal5.svg)](https://pypi.org/project/seal5)
-[![readthedocs](https://readthedocs.org/projects/seal5/badge/?version=latest)](https://seal5.readthedocs.io/en/latest/?version=latest)
+[![Documentation Status](https://readthedocs.org/projects/seal5/badge/?version=latest)](https://seal5.readthedocs.io/en/latest/?badge=latest)
+[![codecov](https://codecov.io/gh/tum-ei-eda/seal5/branch/main/graph/badge.svg)](https://codecov.io/gh/tum-ei-eda/seal5)
 [![GitHub license](https://img.shields.io/github/license/tum-ei-eda/seal5.svg)](https://github.com/tum-ei-eda/seal5/blob/main/LICENSE)
 
 [![demo workflow](https://github.com/tum-ei-eda/seal5/actions/workflows/demo.yml/badge.svg)](https://github.com/tum-ei-eda/seal5/actions/workflows/demo.yml)
@@ -184,7 +185,7 @@ NAME                            # Label of the Seal5 flow (used in Git tags,...)
 
 ## Documentation
 
-Checkout [Seal5's ReadTheDocs Page](https://seal5.readthedocs.io/en/latest/?version=latest)!
+Checkout [Seal5's ReadTheDocs Page](https://seal5.readthedocs.io/en/latest/).
 
 The optional [GNU binutils/GDB backend](docs/gnu-toolchain.rst) generates patches
 for custom instruction assembly, linking, objdump and GDB, with a minimal build guide.
