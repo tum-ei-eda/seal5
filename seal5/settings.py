@@ -561,7 +561,9 @@ class ExtensionsSettings(YAMLSettings):
     experimental: Optional[bool] = None
     vendor: Optional[bool] = None
     description: Optional[str] = None
+    implies: Optional[List[str]] = None
     requires: Optional[List[str]] = None
+    incompatible: Optional[List[str]] = None
     parent: Optional[str] = None
     max_parent: Optional[str] = None
     backend_features: Optional[List[str]] = None  # Non-ISA TableGen feature dependencies

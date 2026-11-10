@@ -107,6 +107,17 @@ diff --git a/llvm/lib/Support/RISCVISAInfo.cpp b/llvm/lib/Support/RISCVISAInfo.c
      TableChecked.store(true, std::memory_order_relaxed);
    }
  #endif
+@@ -946,1 +951,3 @@
+-Error RISCVISAInfo::checkDependency() {
++Error RISCVISAInfo::checkDependency() {
++// RISCVISAInfo.cpp - riscv_isa_info_incompatible - INSERTION_START
++// RISCVISAInfo.cpp - riscv_isa_info_incompatible - INSERTION_END
+@@ -1155,1 +1162,3 @@
+-    StringRef ExtName = WorkList.pop_back_val();
++    StringRef ExtName = WorkList.pop_back_val();
++// RISCVISAInfo.cpp - riscv_isa_info_implies - INSERTION_START
++// RISCVISAInfo.cpp - riscv_isa_info_implies - INSERTION_END
+
 diff --git a/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp b/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
 --- a/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
 +++ b/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
