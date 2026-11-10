@@ -54,6 +54,39 @@ class PatternGenTestGenerationTests(unittest.TestCase):
                 num_register_outputs=num_register_outputs,
             )
 
+    def test_unrolled_functions_use_distinct_labels_and_the_real_target(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "bin").mkdir()
+            (root / "bin/pattern-gen").touch()
+            source = root / "test.core_desc"
+            source.touch()
+            destination = root / "test.td"
+            source.with_suffix(".ll").write_text(
+                "define void @implTEST_0() {\n  ret void\n}\n" "define void @implTEST_1() {\n  ret void\n}\n"
+            )
+
+            def execute(*_args, **_kwargs):
+                destination.write_text("def TEST_ : RVInst_TEST<(outs GPR:$rd), (ins GPR:$a)>;\n")
+                return (
+                    "Pattern for TEST_0 [xtest]: (mul GPR:$a, GPR:$b)\n"
+                    "Pattern for TEST_1 [xtest]: (sra (mul GPR:$a, GPR:$b), 1)\n"
+                    "source.core_desc: warning: example diagnostic\n"
+                    "=== Statistics Collected ===\n1 pattern-gen - Generated patterns\n"
+                )
+
+            with patch("seal5.tools.cdsl2llvm.utils.exec_getout", side_effect=execute):
+                files = run_pattern_gen(root, source, destination, xlen=32, mattr="+m", immediate_operands=["shift"])
+            contents = Path(files[0]).read_text()
+            for suffix in [0, 1]:
+                self.assertEqual(contents.count(f"RV32-MIR-LABEL: name: implTEST_{suffix}\n"), 1)
+                self.assertEqual(contents.count(f"RV32-ASM-LABEL: implTEST_{suffix}:\n"), 1)
+            self.assertEqual(contents.count("RV32-MIR: TEST_\n"), 2)
+            self.assertNotIn("RV32-MIR: TEST_0\n", contents)
+            patterns = Path(str(destination) + ".pat").read_text()
+            self.assertNotIn("diagnostic", patterns)
+            self.assertNotIn("Statistics", patterns)
+
     def test_packed_result_allows_register_class_copy(self):
         with tempfile.TemporaryDirectory() as directory:
             files = self.generate(

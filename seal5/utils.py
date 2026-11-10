@@ -70,6 +70,7 @@ def exec_getout(
     *args: List[str],
     ignore_output: bool = False,
     live: bool = False,
+    separate_stderr: bool = False,
     print_func: Callable = print,
     handle_exit=None,
     err_func: Optional[Callable] = None,
@@ -85,6 +86,9 @@ def exec_getout(
         Do not get the stdout and stderr or the subprocess.
     live : bool
         Print the output line by line instead of only at the end.
+    separate_stderr : bool
+        Buffer streams independently and append stderr after stdout. This prevents
+        diagnostics from interrupting stdout records; logging occurs after exit.
     print_func : Callable
         Function which should be used to print sysout messages.
     err_func : Callable
@@ -111,7 +115,7 @@ def exec_getout(
         return None
 
     out_str = ""
-    if live:
+    if live and not separate_stderr:
         with subprocess.Popen(
             args,
             **kwargs,
@@ -133,8 +137,12 @@ def exec_getout(
                 exit_code, " ".join(list(map(str, args)))
             )
     else:
-        with subprocess.Popen(args, **kwargs, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as p:
-            out_str = p.communicate()[0].decode(errors="replace")
+        stderr = subprocess.PIPE if separate_stderr else subprocess.STDOUT
+        with subprocess.Popen(args, **kwargs, stdout=subprocess.PIPE, stderr=stderr) as p:
+            stdout_data, stderr_data = p.communicate()
+            out_str = stdout_data.decode(errors="replace")
+            if stderr_data:
+                out_str += "\n" + stderr_data.decode(errors="replace")
             exit_code = p.poll()
         print_func(out_str)
         if handle_exit is not None:

@@ -341,15 +341,17 @@ def combine_test_fragments(
     ret_lines = []
     ret_lines += test_header.splitlines()
     insert_checks = False
+    function_instr = instr
     # instr_name = None
     for line in lines:
         if insert_checks:
             insert_checks = False
             # instr_name = None
-            ret_lines += test_mir_checks.splitlines()
-            ret_lines += test_asm_checks.splitlines()
+            ret_lines += test_mir_checks.replace(f"impl{instr}", f"impl{function_instr}").splitlines()
+            ret_lines += test_asm_checks.replace(f"impl{instr}", f"impl{function_instr}").splitlines()
         if line.startswith("define ") and " @impl" in line:
             insert_checks = True
+            function_instr = re.search(r"@impl([^\s(]+)\(", line).group(1)
             # instr_name = line.split("(", 1)[0].split("impl", 1)[-1]
         ret_lines.append(line)
     ret = "\n".join(ret_lines)
@@ -474,6 +476,7 @@ def run_pattern_gen(
             print_func=logger.info if verbose else logger.debug,
             handle_exit=handle_exit,
             live=True,
+            separate_stderr=True,
         )
     except Exception as e:
         if break_on_err:
@@ -512,6 +515,14 @@ def run_pattern_gen(
             # print("line", line)
             if len(line.strip()) == 0 or line.startswith("==="):
                 continue
+            # A complete record must end before diagnostics on the other stream.
+            # Keep collecting only while a multiline pattern is unbalanced.
+            if found_pattern and any(fragment.strip() for fragment in pat):
+                current = "\n".join(pat)
+                if current.count("(") == current.count(")"):
+                    patterns.append(current)
+                    pat = []
+                    found_pattern = False
             if found_pattern and "Pattern for" not in line:
                 # print("A1")
                 pat.append(line)
@@ -624,7 +635,10 @@ def run_pattern_gen(
             # TODO: get real mnemonic
             # mnemonic = instr.lower()
             # TODO: get real llvm instr name
-            llvm_instr = instr
+            # Immediate unrolling names semantic functions TEST_0, TEST_1, ...,
+            # while all variants select the same generated target instruction.
+            target = re.search(r"\bdef\s+(\w+)\s*:\s*RVInst_", dest.read_text())
+            llvm_instr = target.group(1) if target else instr
             # TODO: move to different pass
             # TODO: make optional
             if xlen is None:
