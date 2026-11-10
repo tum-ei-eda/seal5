@@ -10,6 +10,7 @@ seal5.passes
    
       check_filter
       filter_passes
+      get_progress_mode
    
    .. rubric:: Classes
 
