@@ -1,0 +1,15 @@
+seal5.backends.dot
+==================
+
+.. automodule:: seal5.backends.dot
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   treegen
+   utils
+   viewer

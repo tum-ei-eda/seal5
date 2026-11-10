@@ -1,0 +1,16 @@
+seal5.backends.dot.viewer
+=========================
+
+.. automodule:: seal5.backends.dot.viewer
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      build_tree
+      describe_type
+      export_tree
+      main
+      sort_instruction
+   

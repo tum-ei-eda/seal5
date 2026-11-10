@@ -11,6 +11,7 @@ seal5.backends
    :recursive:
 
    coredsl2
+   dot
    llvmir
    patterngen
    report
