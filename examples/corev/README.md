@@ -64,7 +64,7 @@ no direct GISel table entries are enabled.
 | Checked-in intrinsic tests | 199 | 0 |
 | Checked-in builtin tests | 2 | 0 |
 | Checked-in codegen tests | 48 | 20 |
-| Generated pattern codegen tests | 46 | 59 |
+| Generated pattern codegen tests | 50 | 55 |
 
 The checked-in total is **587/607 passing**. Assembler tests cover all 311
 instructions and compare each sample encoding with LLVM's native CORE-V
@@ -166,11 +166,19 @@ masked to 16 bits. The generated multiply consumes these masks directly.
 Negative tests retain the baseline behavior for masked addition and for a
 target without XCoreVMac. This does not disable constant hoisting globally.
 
-Immediate specialization additionally exposes four generated wrapper-test
-failures, increasing the generated suite from 101 to 105 files. Those wrappers
-load halfwords through pointers; load folding removes the explicit extraction
-operations and the resulting code uses ordinary multiply instructions. These
-checks remain enabled. They are distinct from the passing scalar-register
-patterns above. Generated-test labels now identify each specialized function
-and check the shared target instruction, and diagnostic output is captured
-separately so statistics cannot interrupt a pattern record.
+Generated tests for specialized register-only instructions expose readonly
+register inputs as scalar arguments. Local register slots are eliminated with
+SROA and InstCombine before codegen, preserving the subregister extractions
+that pointer-backed halfword loads previously absorbed. All four multiply
+wrapper files now pass, each checking all 32 specializations. Real memory
+instructions retain their pointer inputs. Generated-test labels identify each
+specialized function, and opcode checks cannot match function names.
+Diagnostic output is captured separately so statistics cannot interrupt a
+pattern record.
+
+The pattern report counts all 32 extracted rules for each instruction, while
+counting each instruction once. The MAC set contains 18 instructions and 142
+TableGen patterns; the global totals are 311 instructions and 289 patterns.
+Importer acceptance and codegen-match counts remain unknown without explicit
+per-pattern validation evidence; a passing wrapper file is not treated as
+proof that every extracted rule was imported or selected.

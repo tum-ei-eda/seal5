@@ -23,6 +23,33 @@ OUTPUT = """Pattern for ADD [add]: (add GPR:$rs1, GPR:$rs2)
 
 
 class PatternMetricsTests(unittest.TestCase):
+    def test_multiple_patterns_per_instruction_at_every_report_scope(self):
+        with TemporaryDirectory() as directory:
+            rows = []
+            for name in ("MULSN", "MULHHSN", "MULUN", "MULHHUN"):
+                dest = Path(directory) / f"{name}.td"
+                dest.write_text("generated")
+                output = "".join(f"Pattern for {name}_{n} [mul]: (mul GPR:$a, GPR:$b)\n" for n in range(32))
+                output += "=== Statistics Collected ===\n32 pattern-gen - Generated patterns\n"
+                write_statistics(dest, output, 0.25, returncode=0)
+                rows.append(
+                    {
+                        "model": "COREV",
+                        "set": "MAC",
+                        "instruction": name,
+                        "mode": "tablegen",
+                        "status": "success",
+                        **instruction_metrics(dest, "tablegen", "success"),
+                    }
+                )
+            for row in report_rows(rows):
+                count = 32 if row["scope"] == "instruction" else 128
+                self.assertEqual(row["n_extracted_patterns"], count)
+                self.assertEqual(row["n_tablegen_patterns"], count)
+                self.assertEqual(row["n_instructions"], 1 if count == 32 else 4)
+                self.assertIsNone(row["n_tablegen_patterns_imported"])
+                self.assertIsNone(row["n_tablegen_patterns_matched"])
+
     def test_direct_entry_permutations(self):
         table = (
             "for (int R_0 = 0; R_0 < 2; R_0++)\n"
