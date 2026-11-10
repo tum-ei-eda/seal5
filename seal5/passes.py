@@ -218,9 +218,19 @@ class Seal5Pass:
         return PassResult(metrics=self.metrics)
 
 
+PROGRESS_MODES = ("none", "tqdm", "rich")
+PROGRESS_ENV_VAR = "SEAL5_PROGRESS"
+
+
 def get_progress_mode(settings: Optional[Seal5Settings]):
-    logging_settings = getattr(settings, "logging", None)
-    mode = getattr(logging_settings, "progress", None)
+    """Resolve progress mode: SEAL5_PROGRESS env var (set by --progress CLI flag) overrides settings."""
+    mode = os.environ.get(PROGRESS_ENV_VAR) or None
+    if mode is not None:
+        mode = mode.lower()
+        if mode not in PROGRESS_MODES:
+            raise ValueError(f"Invalid {PROGRESS_ENV_VAR}: {mode} (expected {', '.join(PROGRESS_MODES)})")
+    else:
+        mode = getattr(getattr(settings, "logging", None), "progress", None)
     return mode if mode in ("tqdm", "rich") else None
 
 
