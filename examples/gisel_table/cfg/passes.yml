@@ -1,0 +1,18 @@
+---
+# Opt in for this model; ordinary examples retain their TableGen patterns.
+models:
+  GISelTable:
+    passes:
+      overrides:
+        eliminate_rd_cmp_zero:
+          destination_names: [rd, rd1, rd2]
+        behav_to_pat:
+          gisel_table: true
+          added_complexity: 1000
+    extensions:
+      XGISelTable32:
+        riscv:
+          xlen: 32
+      XGISelTable64:
+        riscv:
+          xlen: 64

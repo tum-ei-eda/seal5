@@ -21,9 +21,13 @@
 
 import argparse
 import pathlib
+
 import pandas as pd
 
 # import numpy as np
+from seal5.logging import Logger
+
+logger = Logger("examples." + __name__)
 
 
 def main():
@@ -44,7 +48,12 @@ def main():
         raise RuntimeError("Path to status file must be specified")
 
     if args.test_results:
-        test_result_df = pd.read_csv(pathlib.Path(args.test_results))
+        try:
+            test_result_df = pd.read_csv(pathlib.Path(args.test_results))
+            test_result_df = test_result_df[~pd.isna(test_result_df["instr"])]
+        except pd.errors.EmptyDataError:
+            logger.warning("Skipping empty file: %s", args.test_results)
+            test_result_df = None
     else:
         raise RuntimeError("Path to Test Results file must be specified")
 
@@ -59,18 +68,27 @@ def main():
         raise RuntimeError("Path to Test Coverage file must be specified")
 
     status_props_df = pd.merge(status_df, props_df)
-    stat_prop_result_df = pd.merge(status_props_df, test_result_df, on=["model", "set", "xlen", "instr"], how="left")
+    if test_result_df is not None and len(test_result_df) > 0:
+        stat_prop_result_df = pd.merge(
+            status_props_df, test_result_df, on=["model", "set", "xlen", "instr"], how="left"
+        )
+    else:
+        stat_prop_result_df = status_props_df
 
     stat_prop_result_df = stat_prop_result_df.sort_values("model")
 
     stat_prop_result_df.fillna(value=0, inplace=True)
 
-    stat_prop_result_cv_df = pd.merge(stat_prop_result_df, test_cv_df, on=["model", "set", "xlen", "instr"], how="left")
+    if test_cv_df is not None and len(test_cv_df) > 0:
+        stat_prop_result_cv_df = pd.merge(
+            stat_prop_result_df, test_cv_df, on=["model", "set", "xlen", "instr"], how="left"
+        )
+    else:
+        stat_prop_result_cv_df = stat_prop_result_df
 
     def save_data_frames_as_html_to_file(dataframe, filename):
         with open(filename, "w", encoding="utf-8") as html_file:
-            with pd.option_context("display.max_rows", 9999):
-                print(dataframe.to_html(buf=html_file, index=True))
+            dataframe.to_html(buf=html_file, index=True)
 
     def rounded_mean(x):
         return x.mean().round(0).astype(int)
@@ -90,22 +108,28 @@ def main():
         }
     )
 
-    stat_prop_result_cv_test = stat_prop_result_cv_df.groupby(level=[0, 1, 2])[
-        ["n_pass", "n_fail", "n_tests", "state"]
-    ].agg({"n_pass": rounded_mean, "n_fail": rounded_mean, "n_tests": rounded_mean, "state": "unique"})
+    if test_result_df is not None and len(test_result_df) > 0:
+        stat_prop_result_cv_test = stat_prop_result_cv_df.groupby(level=[0, 1, 2])[
+            ["n_pass", "n_fail", "n_tests", "state"]
+        ].agg({"n_pass": rounded_mean, "n_fail": rounded_mean, "n_tests": rounded_mean, "state": "unique"})
+    else:
+        stat_prop_result_cv_test = None
 
-    stat_prop_result_coverage = stat_prop_result_cv_df.groupby(level=[0, 1, 2])[
-        ["n_exists", "n_required", "n_optional", "n_required_exists", "n_optional_exists", "coverage"]
-    ].agg(
-        {
-            "n_exists": rounded_mean,
-            "n_required": rounded_mean,
-            "n_optional": rounded_mean,
-            "n_required_exists": rounded_mean,
-            "n_optional_exists": rounded_mean,
-            "coverage": "unique",
-        }
-    )
+    if test_cv_df is not None and len(test_cv_df) > 0:
+        stat_prop_result_coverage = stat_prop_result_cv_df.groupby(level=[0, 1, 2])[
+            ["n_exists", "n_required", "n_optional", "n_required_exists", "n_optional_exists", "coverage"]
+        ].agg(
+            {
+                "n_exists": rounded_mean,
+                "n_required": rounded_mean,
+                "n_optional": rounded_mean,
+                "n_required_exists": rounded_mean,
+                "n_optional_exists": rounded_mean,
+                "coverage": "unique",
+            }
+        )
+    else:
+        stat_prop_result_coverage = None
 
     def calc_stage_percentage():
         perc_success = (
@@ -197,40 +221,44 @@ def main():
     )
     stat_prop_result_all.insert(loc=1, column="Status_Summary: (Passed/Skipped/Failed) %", value=stat_result_summary)
 
-    stat_test_summary = (
-        stat_prop_result_cv_test["n_pass"].astype(str)
-        + " / "
-        + stat_prop_result_cv_test["n_fail"].astype(str)
-        + " "
-        + calc_test_percentage()
-    )
-    stat_prop_result_cv_test.insert(loc=1, column="Summary Test Results: (Passed/Failed) % ", value=stat_test_summary)
+    if stat_prop_result_cv_test is not None:
+        stat_test_summary = (
+            stat_prop_result_cv_test["n_pass"].astype(str)
+            + " / "
+            + stat_prop_result_cv_test["n_fail"].astype(str)
+            + " "
+            + calc_test_percentage()
+        )
+        stat_prop_result_cv_test.insert(
+            loc=1, column="Summary Test Results: (Passed/Failed) % ", value=stat_test_summary
+        )
 
-    stat_prop_coverage_summary = (
-        stat_prop_result_coverage["n_required_exists"].astype(str)
-        + " : "
-        + stat_prop_result_coverage["n_required"].astype(str)
-        + " / "
-        + stat_prop_result_coverage["n_optional_exists"].astype(str)
-        + " : "
-        + stat_prop_result_coverage["n_optional"].astype(str)
-        + " / "
-        + stat_prop_result_coverage["n_exists"].astype(str)
-        + " : "
-        + (stat_prop_result_coverage["n_optional"] + stat_prop_result_coverage["n_required"]).astype(str)
-        + " / "
-        + calc_coverage_percentage()
-    )
-    #   + (stat_prop_result_coverage["n_optional"]+stat_prop_result_coverage["n_required"]).astype(str)+
+    if stat_prop_result_coverage is not None:
+        stat_prop_coverage_summary = (
+            stat_prop_result_coverage["n_required_exists"].astype(str)
+            + " : "
+            + stat_prop_result_coverage["n_required"].astype(str)
+            + " / "
+            + stat_prop_result_coverage["n_optional_exists"].astype(str)
+            + " : "
+            + stat_prop_result_coverage["n_optional"].astype(str)
+            + " / "
+            + stat_prop_result_coverage["n_exists"].astype(str)
+            + " : "
+            + (stat_prop_result_coverage["n_optional"] + stat_prop_result_coverage["n_required"]).astype(str)
+            + " / "
+            + calc_coverage_percentage()
+        )
+        #   + (stat_prop_result_coverage["n_optional"]+stat_prop_result_coverage["n_required"]).astype(str)+
 
-    stat_prop_result_coverage.insert(
-        loc=1,
-        column=(
-            " Summary Test Results Coverage: (No. Existing Required : No. Required / "
-            "No. Optional Existing : No Optional / No. Total Existing Test : No. Total Tests) % "
-        ),
-        value=stat_prop_coverage_summary,
-    )
+        stat_prop_result_coverage.insert(
+            loc=1,
+            column=(
+                " Summary Test Results Coverage: (No. Existing Required : No. Required / "
+                "No. Optional Existing : No Optional / No. Total Existing Test : No. Total Tests) % "
+            ),
+            value=stat_prop_coverage_summary,
+        )
 
     final_status_results = (
         stat_prop_result_all.drop("n_success", axis=1)
@@ -238,21 +266,29 @@ def main():
         .drop("n_skipped", axis=1)
         .drop("n_total", axis=1)
     )
-    final_test_results = stat_prop_result_cv_test.drop("n_pass", axis=1).drop("n_fail", axis=1).drop("n_tests", axis=1)
-    final_coverage_results = (
-        stat_prop_result_coverage.drop("n_exists", axis=1)
-        .drop("n_required", axis=1)
-        .drop("n_optional", axis=1)
-        .drop("n_required_exists", axis=1)
-        .drop("n_optional_exists", axis=1)
-    )
 
-    final_test_table = pd.merge(
-        final_status_results, final_test_results, on=["model", "enc_format", "opcode"], how="inner"
-    )
-    final_coverage_table = pd.merge(
-        final_test_table, final_coverage_results, on=["model", "enc_format", "opcode"], how="inner"
-    )
+    if stat_prop_result_cv_test is not None and len(stat_prop_result_cv_test) > 0:
+        final_test_results = (
+            stat_prop_result_cv_test.drop("n_pass", axis=1).drop("n_fail", axis=1).drop("n_tests", axis=1)
+        )
+        final_test_table = pd.merge(
+            final_status_results, final_test_results, on=["model", "enc_format", "opcode"], how="inner"
+        )
+    else:
+        final_test_table = final_status_results
+    if stat_prop_result_coverage is not None and len(stat_prop_result_coverage) > 0:
+        final_coverage_results = (
+            stat_prop_result_coverage.drop("n_exists", axis=1)
+            .drop("n_required", axis=1)
+            .drop("n_optional", axis=1)
+            .drop("n_required_exists", axis=1)
+            .drop("n_optional_exists", axis=1)
+        )
+        final_coverage_table = pd.merge(
+            final_test_table, final_coverage_results, on=["model", "enc_format", "opcode"], how="inner"
+        )
+    else:
+        final_coverage_table = final_test_table
 
     save_data_frames_as_html_to_file(final_test_table, "Grouped_stat_prop_result_test.html")
     save_data_frames_as_html_to_file(final_coverage_table, "Grouped_stat_prop_result_cv.html")

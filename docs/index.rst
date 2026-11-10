@@ -17,6 +17,9 @@ Welcome to Seal5's documentation!
    :caption: Contents:
 
    readme
+   seal5-diagrams
+   packed-simd
+   gnu-toolchain
 
 
 Indices and tables

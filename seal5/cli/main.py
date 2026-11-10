@@ -22,7 +22,7 @@ import argparse
 import sys
 
 
-from seal5.logging import get_logger
+from seal5.logging import Logger
 from seal5.cli import (
     init,
     load,
@@ -37,12 +37,13 @@ from seal5.cli import (
     test,
     deploy,
     export,
+    report,
     wrapper,
 )
 from .common import handle_logging_flags, add_common_options
 from ..version import __version__
 
-logger = get_logger()
+logger = Logger("cli")
 
 
 def main(args=None):
@@ -67,6 +68,7 @@ def main(args=None):
     test.get_parser(subparsers)
     deploy.get_parser(subparsers)
     export.get_parser(subparsers)
+    report.get_parser(subparsers)
     wrapper.get_parser(subparsers)
     if args:
         args = parser.parse_args(args)

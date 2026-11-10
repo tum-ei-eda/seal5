@@ -18,6 +18,7 @@
 #
 
 """Git utils for seal5."""
+
 from git import Actor
 
 from seal5.settings import GitSettings

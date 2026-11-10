@@ -20,7 +20,9 @@ from seal5.model import Seal5InstrAttribute
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 from seal5.model_utils import load_model
 
-logger = logging.getLogger("llvmir_behavior_writer")
+from seal5.logging import Logger
+
+logger = Logger("backends.llvmir_behavior_writer")
 
 
 def main():
@@ -38,7 +40,7 @@ def main():
     args = parser.parse_args()
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
@@ -75,6 +77,8 @@ def main():
 
         assert out_path.is_dir(), "Expecting output directory when using --splitted"
         for set_name, set_def in model_obj.sets.items():
+            if len(set_def.instructions) == 0:
+                continue
             xlen = set_def.xlen
             metrics["n_sets"] += 1
             ext_settings = set_def.settings

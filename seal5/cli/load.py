@@ -19,10 +19,9 @@
 """Command line subcommand for loading Seal5 inputs (CoreDesc,yml, ll,.c ...) ."""
 
 from seal5.flow import Seal5Flow
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
-
-logger = get_logger()
+logger = Logger("cli")
 
 
 def add_load_options(parser):
@@ -35,6 +34,7 @@ def add_load_options(parser):
         default="examples/cdsl/rv_example/Example.core_desc",
         help="Files that should be loaded",
     )
+    load_parser.add_argument("-I", dest="includes", action="append", default=None, help="Extra include directories")
     load_parser.add_argument("--overwrite", default=False, action="store_true", help="Overwrite loaded file")
 
 
@@ -50,4 +50,4 @@ def handle(args):
     """Callback function which will be called to process the load subcommand"""
     seal5_flow = Seal5Flow(args.dir, name=args.name)
     logger.warning(args.files)
-    seal5_flow.load(files=list(args.files), overwrite=args.overwrite, verbose=args.verbose)
+    seal5_flow.load(files=list(args.files), overwrite=args.overwrite, verbose=args.verbose, lookup_paths=args.includes)

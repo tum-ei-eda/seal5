@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 """Patch utils for seal5."""
+
 import os
 import argparse
 from pathlib import Path
@@ -26,9 +27,9 @@ from email.utils import formatdate
 import yaml
 
 from seal5 import utils
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
-logger = get_logger()
+logger = Logger("tools")
 
 
 def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=None, msg=None, append=None):
@@ -93,6 +94,7 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
                     start_mark += line
         if start_mark is None:
             # fallback
+            logger.warning(f"Marker not found: {path}, {key}. Retrying without key...")
             if key:
                 return find_site(path, None)
             assert False, f"Marker not found: {path}, {key}"
@@ -106,13 +108,14 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
         end = artifact.get("end", None)
         line = artifact.get("line", None)
         content_ = artifact.get("content", None)
+        append = artifact.get("append", False)
         assert dest_path is not None
         is_file = False
         is_dir = False
-        is_patch = False
+        is_named_patch = False
         # TODO: do not depend on dest_path
         if key:  # NamedPatch
-            is_patch = True
+            is_named_patch = True
         elif start is not None and end is not None:
             raise NotImplementedError
         elif line is not None:
@@ -130,7 +133,7 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
         if content_:
             assert isinstance(content_, str)
         else:
-            if is_patch or is_file:
+            if is_named_patch or is_file:
                 with open(src_path, "r", encoding="utf-8") as f:
                     content_ = f.read()
             elif is_dir:
@@ -159,11 +162,13 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
             else:
                 assert False
         content = "+" + content_.replace("\n", "\n+")
-        if is_patch:
-            # Updating existing file
+        if is_named_patch:
+            # NamedPatch: inject at marker (Updating existing file)
             orig_file = "a/" + dest_path
             new_file = "b/" + dest_path
             site_line, site_len, start_mark, end_mark = find_site(dest_path, key)
+            old_start = site_line + 1
+            old_len = site_len
             new_start = site_line + 1
             new_len = content_.count("\n") + 1 + site_len
             # ensure all existing lines in the match prefixed by a space
@@ -173,18 +178,34 @@ def generate_patch(index_file, llvm_dir=None, out_file=None, author=None, mail=N
             # else:
             start_mark = start_mark.rstrip("\n").replace("\n", "\n ")
             content = f" {start_mark}\n{content}\n {end_mark}"
+        elif append:
+            # AppendPatch: append to an existing file
+            orig_file = "a/" + dest_path
+            new_file = "b/" + dest_path
+
+            fullpath = Path(llvm_dir) / dest_path if llvm_dir is not None else Path(dest_path)
+
+            with open(fullpath, "r", encoding="utf-8") as f:
+                line_count = len(f.readlines())
+
+            old_start = line_count
+            old_len = 0
+            new_start = line_count + 1
+            new_len = len(content_.splitlines())
         else:
+            # File: add a new file
             assert is_file
             # Adding new file
             orig_file = "/dev/null"
             new_file = "b/" + dest_path
+            # site_line = -1
+            old_start = 0
+            old_len = 0
             new_start = 1
-            site_len = 0
-            site_line = -1
             new_len = content_.count("\n") + 1
         return f"""--- {orig_file}
 +++ {new_file}
-@@ -{site_line + 1},{site_len} +{new_start},{new_len} @@
+@@ -{old_start},{old_len} +{new_start},{new_len} @@
 {content}
 """
 
@@ -230,6 +251,20 @@ def process_arguments():
     )
     args = parser.parse_args()
     return args
+
+
+def get_full_diff(repo, base: str, cur: Optional[str] = None):
+    args = ["git", "diff"]
+    args += [base]
+    if cur is not None:
+        args += [cur]
+    out = utils.exec_getout(
+        *args,
+        cwd=repo.working_tree_dir,
+        print_func=lambda *args, **kwargs: None,
+        live=False,
+    )
+    return out
 
 
 def analyze_diff(repo, base: str, cur: Optional[str] = None):

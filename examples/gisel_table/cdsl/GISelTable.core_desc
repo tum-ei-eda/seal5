@@ -1,0 +1,84 @@
+import "RVI.core_desc"
+
+// Ordinary single-result patterns used to compare both PatternGen backends.
+InstructionSet XGISelTable32 extends RV32I {
+  instructions {
+    GISEL32_NAND {
+      encoding: 7'd0 :: rs2[4:0] :: rs1[4:0] :: 3'd0 :: rd[4:0] :: 7'b0001011;
+      assembly: {"xgiseltable32.nand", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: if (rd != 0) X[rd] = ~(X[rs1] & X[rs2]);
+    }
+    GISEL32_ADD3 {
+      encoding: 2'd1 :: rs3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'd0 :: rd[4:0] :: 7'b0001011;
+      assembly: {"xgiseltable32.add3", "{name(rd)}, {name(rs1)}, {name(rs2)}, {name(rs3)}"};
+      behavior: if (rd != 0) X[rd] = X[rs1] + X[rs2] + X[rs3];
+    }
+    GISEL32_SUBINCACC {
+      encoding: 7'd2 :: rs2[4:0] :: rs1[4:0] :: 3'd0 :: rd[4:0] :: 7'b0001011;
+      assembly: {"xgiseltable32.subincacc", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: if (rd != 0) X[rd] += X[rs1] - X[rs2] + 1;
+    }
+    GISEL32_SHLI5 {
+      encoding: 7'd3 :: amount[4:0] :: rs1[4:0] :: 3'd0 :: rd[4:0] :: 7'b0001011;
+      assembly: {"xgiseltable32.shli5", "{name(rd)}, {name(rs1)}, {amount}"};
+      behavior: if (rd != 0) X[rd] = X[rs1] << amount;
+    }
+    GISEL32_MAXU {
+      encoding: 7'd4 :: rs2[4:0] :: rs1[4:0] :: 3'd0 :: rd[4:0] :: 7'b0001011;
+      assembly: {"xgiseltable32.maxu", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: if (rd != 0) X[rd] = X[rs1] > X[rs2] ? X[rs1] : X[rs2];
+    }
+    GISEL32_SUMDIFF {
+      encoding: 2'b10 :: rd2[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'd0 :: rd1[4:0] :: 7'b0001011;
+      assembly: {"xgiseltable32.sumdiff", "{name(rd1)}, {name(rd2)}, {name(rs1)}, {name(rs2)}"};
+      behavior: {
+        unsigned<XLEN> a = X[rs1];
+        unsigned<XLEN> b = X[rs2];
+        if (rd1 != 0) X[rd1] = a + b;
+        if (rd2 != 0) X[rd2] = a - b;
+      }
+    }
+  }
+}
+
+// Ordinary single-result patterns used to compare both PatternGen backends.
+InstructionSet XGISelTable64 extends RV64I {
+  instructions {
+    GISEL64_NAND {
+      encoding: 7'd0 :: rs2[4:0] :: rs1[4:0] :: 3'd0 :: rd[4:0] :: 7'b0001011;
+      assembly: {"xgiseltable64.nand", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: if (rd != 0) X[rd] = ~(X[rs1] & X[rs2]);
+    }
+    GISEL64_ADD3 {
+      encoding: 2'd1 :: rs3[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'd0 :: rd[4:0] :: 7'b0001011;
+      assembly: {"xgiseltable64.add3", "{name(rd)}, {name(rs1)}, {name(rs2)}, {name(rs3)}"};
+      behavior: if (rd != 0) X[rd] = X[rs1] + X[rs2] + X[rs3];
+    }
+    GISEL64_SUBINCACC {
+      encoding: 7'd2 :: rs2[4:0] :: rs1[4:0] :: 3'd0 :: rd[4:0] :: 7'b0001011;
+      assembly: {"xgiseltable64.subincacc", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: if (rd != 0) X[rd] += X[rs1] - X[rs2] + 1;
+    }
+    GISEL64_SHLI5 {
+      encoding: 7'd3 :: amount[4:0] :: rs1[4:0] :: 3'd0 :: rd[4:0] :: 7'b0001011;
+      assembly: {"xgiseltable64.shli5", "{name(rd)}, {name(rs1)}, {amount}"};
+      behavior: if (rd != 0) X[rd] = X[rs1] << amount;
+    }
+    GISEL64_MAXU {
+      encoding: 7'd4 :: rs2[4:0] :: rs1[4:0] :: 3'd0 :: rd[4:0] :: 7'b0001011;
+      assembly: {"xgiseltable64.maxu", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: if (rd != 0) X[rd] = X[rs1] > X[rs2] ? X[rs1] : X[rs2];
+    }
+    GISEL64_SUMDIFF {
+      encoding: 2'b10 :: rd2[4:0] :: rs2[4:0] :: rs1[4:0] :: 3'd0 :: rd1[4:0] :: 7'b0001011;
+      assembly: {"xgiseltable64.sumdiff", "{name(rd1)}, {name(rd2)}, {name(rs1)}, {name(rs2)}"};
+      behavior: {
+        unsigned<XLEN> a = X[rs1];
+        unsigned<XLEN> b = X[rs2];
+        if (rd1 != 0) X[rd1] = a + b;
+        if (rd2 != 0) X[rd2] = a - b;
+      }
+    }
+  }
+}
+

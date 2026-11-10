@@ -28,7 +28,9 @@ from seal5.model_utils import load_model
 
 from .templates import template_dir
 
-logger = logging.getLogger("riscv_instr_info")
+from seal5.logging import Logger
+
+logger = Logger("backends.riscv_instr_info")
 
 
 class Operand:
@@ -68,7 +70,7 @@ class EncodingField:
         return f"EncodingField({self.name}, {self.start}, {self.length}, {self.value}, {self.const})"
 
 
-def process_encoding(enc):
+def process_encoding(enc, full_width_operands=()):
     # print("get_encoding", enc)
     operands = {}
     for e in reversed(enc):
@@ -81,6 +83,8 @@ def process_encoding(enc):
             else:
                 op = Operand(name, e.range.lower, e.range.upper)
                 operands[name] = op
+    for name in full_width_operands:
+        operands[name].lower = 0
     fields = []
     start = 0
     for e in reversed(enc):
@@ -122,6 +126,9 @@ def write_riscv_instruction_info(
     constraints: Optional[list] = None,
     formats=False,
     compressed_pat=None,
+    decoder_namespace: Optional[str] = None,
+    full_width_operands=(),
+    format_str=None,
 ):
     if attrs is None:
         attrs = {}
@@ -133,7 +140,7 @@ def write_riscv_instruction_info(
     else:
         instr_template = Template(filename=str(template_dir / "instr_tablegen.mako"))
 
-    operands, fields = process_encoding(enc)
+    operands, fields = process_encoding(enc, full_width_operands=full_width_operands)
 
     def attr_helper(value):
         return int(value) if isinstance(value, bool) else value
@@ -156,6 +163,8 @@ def write_riscv_instruction_info(
         fields=fields,
         attrs=attrs,
         constraints_str=constraints_str,
+        decoder_namespace=decoder_namespace,
+        format_str=format_str,
     )
     if compressed_pat:
         out_str += f"\n{compressed_pat}"
@@ -204,6 +213,9 @@ def gen_riscv_instr_info_str(instr, set_def):
     encoding = instr.encoding
     # print("encoding")
     attrs = instr.llvm_attributes
+    ext_settings = set_def.settings
+    decoder_namespace = ext_settings.get_decoder_namespace(name=set_def.name)
+
     # constraints = instr.constraints
     # if len(constraints) > 0:
     #     raise NotImplementedError
@@ -224,6 +236,9 @@ def gen_riscv_instr_info_str(instr, set_def):
         constraints=constraints,
         formats=formats,
         compressed_pat=compressed_pat,
+        decoder_namespace=decoder_namespace,
+        full_width_operands=[name for name in instr.operands if instr.is_bformat_branch_offset(name)],
+        format_str="InstFormatB" if any(instr.is_bformat_branch_offset(name) for name in instr.operands) else None,
     )
     return tablegen_str
 
@@ -231,8 +246,9 @@ def gen_riscv_instr_info_str(instr, set_def):
 def gen_intrinsic_pattern(instr, set_name, intrinsic: IntrinsicDefn, ext_settings: Optional[ExtensionsSettings] = None):
     assert ext_settings is not None
     arch_ = ext_settings.get_arch(name=set_name)
+    # TODO: handle non-trivial operand order
     pat = f"""class Pat_{instr.name}<SDPatternOperator OpNode, Instruction Inst>
-: Pat<(OpNode {instr.llvm_ins_str}), (Inst {instr.llvm_ins_str})>;
+: Pat<(OpNode {instr.llvm_intrin_ins_str}), (Inst {instr.llvm_intrin_ins_str})>;
 def : Pat_{instr.name}<int_riscv_{arch_}_{intrinsic.intrinsic_name}, {instr.name}>;"""
     return pat
 
@@ -257,11 +273,12 @@ def main():
         action="store_false",
         help="Suppress patterns for intrinsic functions",
     )
+    parser.add_argument("--ignore-failing", action="store_true", help="Do not crash in case of errors.")
     parser.add_argument("--compat", action="store_true")
     args = parser.parse_args()
 
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
@@ -291,6 +308,8 @@ def main():
         content = ""
         # errs = []
         for set_name, set_def in model_obj.sets.items():
+            if len(set_def.instructions) == 0:
+                continue
             metrics["n_sets"] += 1
             set_name_lower = set_name.lower()
             artifacts[set_name] = []
@@ -353,6 +372,13 @@ def main():
                 artifacts[set_name].append(set_td_includes_patch)
     else:
         raise NotImplementedError
+    if not args.ignore_failing:
+        n_failed = metrics["n_failed"]
+        if n_failed > 0:
+            failed = metrics["failed_instructions"]
+            failing_str = ", ".join(failed)
+            logger.error("%s intructions failed: %s", n_failed, failing_str)
+            raise RuntimeError("Abort due to errors")
     if args.metrics:
         metrics_file = args.metrics
         metrics_df = pd.DataFrame({key: [val] for key, val in metrics.items()})

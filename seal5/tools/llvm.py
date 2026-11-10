@@ -17,22 +17,24 @@
 # limitations under the License.
 #
 """LLVM utils for seal5."""
+
 import re
 import os
 import shutil
+import shlex
+import tempfile
 from pathlib import Path
 from typing import List, Optional, Union
 
 import git
-from git import RemoteProgress
-from tqdm import tqdm
 
 from seal5 import utils
-from seal5.logging import get_logger
+from seal5.logging import Logger
 from seal5.tools.git import get_author_from_settings
 from seal5.settings import GitSettings, CcacheSettings
+from seal5.dependencies import apply_repository_override, CloneProgress
 
-logger = get_logger()
+logger = Logger("tools")
 
 
 def lookup_ccache():
@@ -42,6 +44,27 @@ def lookup_ccache():
         if found:
             return found
     return None  # Not found
+
+
+def update_excludes(repo: git.Repo, meta_dir: Path):
+    repo_dir = Path(repo.git_dir).parent
+    excludes_file = Path(repo.git_dir) / "info" / "exclude"
+    is_rel = meta_dir.is_relative_to(repo_dir)
+    if not is_rel:
+        return
+    rel_dir = meta_dir.relative_to(repo_dir)
+    lines_to_add = [str(rel_dir)]
+    if excludes_file.is_file():
+        with excludes_file.open("r+") as f:
+            lines = f.read().splitlines()
+            for line_to_add in lines_to_add:
+                if line_to_add.strip() not in lines:
+                    f.write(line_to_add)
+    else:
+        # If file doesn't exist, create it
+        excludes_file.parent.mkdir(parents=True, exist_ok=True)
+        for line_to_add in lines_to_add:
+            excludes_file.write_text(line_to_add)
 
 
 def check_llvm_repo(path: Path):
@@ -55,6 +78,8 @@ def check_llvm_repo(path: Path):
             _, file = line.strip().split(" ", 1)
             if file == ".seal5/":
                 continue
+            if "generated/" in file:
+                continue
             dirty.append(file)
         if len(dirty) > 0:
             logger.debug("Dirty files in LLVM repository: %s", ", ".join(dirty))
@@ -63,15 +88,17 @@ def check_llvm_repo(path: Path):
     return True
 
 
-class CloneProgress(RemoteProgress):
-    def __init__(self):
-        super().__init__()
-        self.pbar = tqdm()
-
-    def update(self, op_code, cur_count, max_count=None, message=""):
-        self.pbar.total = max_count
-        self.pbar.n = cur_count
-        self.pbar.refresh()
+def open_llvm_repo(dest: Path, meta_dir: Optional[Path] = None):
+    """Open an existing repository, allowing Seal5 metadata before the first clone."""
+    if not dest.is_dir() or not utils.is_populated(dest):
+        return None
+    try:
+        return git.Repo(dest)
+    except git.InvalidGitRepositoryError:
+        metadata = (meta_dir if meta_dir is not None else dest / ".seal5").resolve()
+        if all(entry.resolve() == metadata and entry.is_dir() for entry in dest.iterdir()):
+            return None
+        raise
 
 
 def clone_llvm_repo(
@@ -84,14 +111,17 @@ def clone_llvm_repo(
     depth: Optional[int] = None,
     default_major_version: int = 18,
     progress: bool = True,  # TODO: default to False and expose to flow.py
+    meta_dir: Optional[Path] = None,
 ):
     sha = None
     version_info = {}
     repo = None
-    if dest.is_dir() and utils.is_populated(dest):
+    clone_url = apply_repository_override(clone_url)
+    repo = open_llvm_repo(dest, meta_dir)
+    if repo is not None:
         if refresh:
             logger.debug("Refreshing LLVM repository: %s", dest)
-            repo = git.Repo(dest)
+            clone_url = apply_repository_override(clone_url)
             repo.remotes.origin.set_url(clone_url)
             repo.remotes.origin.fetch()
             if ref:
@@ -110,9 +140,21 @@ def clone_llvm_repo(
         if depth is not None and ref is not None:
             # assert "llvmorg" in ref  # Needs to be a valid branch name, not a tag
             branch = ref
-        repo = git.Repo.clone_from(
-            clone_url, dest, no_checkout=no_checkout, branch=branch, depth=depth, progress=clone_progress
-        )
+        # Git cannot clone directly into a directory containing pre-clone metadata.
+        # Finish the clone separately so failures leave that metadata intact.
+        with tempfile.TemporaryDirectory(prefix="seal5-llvm-clone-") as temporary:
+            clone_dest = Path(temporary) / "llvm" if utils.is_populated(dest) else dest
+            repo = git.Repo.clone_from(
+                clone_url, clone_dest, no_checkout=no_checkout, branch=branch, depth=depth, progress=clone_progress
+            )
+            if clone_dest != dest:
+                repo.close()
+                for entry in clone_dest.iterdir():
+                    if (dest / entry.name).exists():
+                        raise FileExistsError(f"LLVM clone conflicts with existing metadata: {dest / entry.name}")
+                for entry in clone_dest.iterdir():
+                    shutil.move(str(entry), dest / entry.name)
+                repo = git.Repo(dest)
         if ref:
             logger.debug("Checking out branch: %s", ref)
             repo.git.checkout(ref)
@@ -122,7 +164,7 @@ def clone_llvm_repo(
         writer.set_value("user", "name", author.name)
         writer.set_value("user", "email", author.email)
     # repo.create_tag(f"seal5-{label}-base", "-f", author=author)
-    repo.create_tag(f"seal5-{label}-base", "-f")
+    repo.create_tag(f"seal5-{label}-base", force=True)
     # git describe --tags --match "llvmorg-[0-9]*.[0-9]*.[0-9]*"
     try:
         describe = repo.git.describe("--tags", "--match", "llvmorg-[0-9]*.[0-9]*.[0-9]*")
@@ -160,9 +202,13 @@ def build_llvm(
     install: bool = False,
     install_dir: Optional[Union[str, Path]] = None,
     ccache_settings: Optional[CcacheSettings] = None,
+    skip_configure: bool = False,
+    cmake_extra_args: Optional[Union[str, List[str]]] = None,
+    reduced: bool = False,
 ):
     if cmake_options is None:
         cmake_options = {}
+    cmake_options = dict(cmake_options)
     if install:
         assert install_dir is not None
         assert Path(install_dir).parent.is_dir()
@@ -183,20 +229,56 @@ def build_llvm(
             if ccache_directory is not None:
                 env["CCACHE_DIR"] = ccache_directory
     cmake_args = utils.get_cmake_args(cmake_options)
+    if isinstance(cmake_extra_args, str):
+        # Accept the demo's comma-separated options and shell-style quoted values.
+        lexer = shlex.shlex(cmake_extra_args, posix=True)
+        lexer.whitespace += ","
+        lexer.whitespace_split = True
+        lexer.commenters = ""
+        cmake_extra_args = list(lexer)
+    cmake_args.extend(cmake_extra_args or [])
     dest.mkdir(exist_ok=True)
-    utils.cmake(
-        src / "llvm",
-        *cmake_args,
-        use_ninja=use_ninja,
-        debug=debug,
-        cwd=dest,
-        env=env,
-        print_func=logger.info if verbose else logger.debug,
-        live=True,
-    )
+    if not skip_configure:
+        utils.cmake(
+            src / "llvm",
+            *cmake_args,
+            use_ninja=use_ninja,
+            debug=debug,
+            cwd=dest,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=True,
+        )
+    reduced_tools = [
+        "clang",
+        "llvm-config",
+        "llc",
+        "lld",
+        "pattern-gen",
+        "FileCheck",
+        "llvm-objdump",
+        "llvm-as",
+        "llvm-ar",
+        "llvm-mc",
+        "llvm-mca",
+        "opt",
+    ]
     if install:
         assert target is None
-        target = "install"
+        do_strip = str(cmake_options.get("CMAKE_INSTALL_DO_STRIP", False)).upper() in (
+            "1",
+            "ON",
+            "TRUE",
+            "YES",
+            "Y",
+        )
+        if reduced:
+            suffix = "-stripped" if do_strip else ""
+            target = [f"install-{tool}{suffix}" for tool in reduced_tools]
+        else:
+            target = "install/strip" if do_strip else "install"
+    elif reduced and target in (None, "all"):
+        target = reduced_tools
     utils.make(
         target=target, cwd=dest, print_func=logger.info if verbose else logger.debug, live=True, use_ninja=use_ninja
     )
@@ -213,12 +295,29 @@ def test_llvm(base: Path, build_dir: Path, test_paths: Optional[List[str]] = Non
     failing_tests = []
     for test_path in test_paths:
 
-        def handler(_code, _out):
-            return 0
+        def handler(code, _out):
+            if code == 1:
+                return 0
+            return code
 
+        test_path = Path(test_path)
+        if test_path.is_absolute():
+            test_file = test_path
+        else:
+            test_file = base / test_path
+            if not test_file.is_file():
+                try:
+                    test_path = test_path.relative_to(base)
+                except ValueError as exc:
+                    raise RuntimeError(
+                        f"Relative test path needs to be relative to base ({base}): {test_path}"
+                    ) from exc
+                test_file = base / test_path
+                assert test_file.is_file()
         out = utils.exec_getout(
             lit_exe,
-            base / test_path,
+            *(["--verbose"] if verbose else []),
+            test_file,
             print_func=logger.info if verbose else logger.debug,
             live=True,
             env=env,
@@ -232,3 +331,23 @@ def test_llvm(base: Path, build_dir: Path, test_paths: Optional[List[str]] = Non
             passed_tests.extend(passed)
 
     return passed_tests, failing_tests
+
+
+def detect_llvm_imm_types(llvm_dir: Union[str, Path]):
+    # TODO: detect which ones are ImmLeafs!
+    def get_grep_cmd(prefix):
+        return f"grep -r \"def {prefix}imm\" llvm/lib/Target/RISCV | cut -d':' -f2 | tr -s ' ' | sed -e \"s/def //g\""
+
+    def _parse_output(output):
+        output = output.strip()
+        return set(map(lambda x: x.strip(), output.splitlines()))
+
+    uimm_types = _parse_output(
+        utils.exec_getout(get_grep_cmd("u"), shell=True, print_func=lambda *_: None, live=False, cwd=llvm_dir)
+    )
+    simm_types = _parse_output(
+        utils.exec_getout(get_grep_cmd("s"), shell=True, print_func=lambda *_: None, live=False, cwd=llvm_dir)
+    )
+
+    imm_types = uimm_types | simm_types
+    return imm_types

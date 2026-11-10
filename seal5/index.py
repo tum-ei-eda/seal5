@@ -51,6 +51,26 @@ class Patch(Artifact):
         super().__init__(dest_path, src_path=src_path, content=content, append=append)
 
 
+class AppendPatch(Patch):
+    """Patch that appends content to an existing file."""
+
+    def __init__(
+        self,
+        dest_path: Path,
+        src_path: Optional[Path] = None,
+        content: Optional[str] = None,
+    ):
+        if src_path is None and content is None:
+            raise ValueError("AppendPatch requires either src_path or content")
+
+        super().__init__(
+            dest_path,
+            src_path=src_path,
+            content=content,
+            append=True,
+        )
+
+
 class NamedPatch(Patch):
     """NamedPatch artifact class."""
 
@@ -114,6 +134,18 @@ class File(Artifact):
         self, dest_path: Path, src_path: Optional[Path] = None, content: Optional[Path] = None, append: bool = False
     ):
         super().__init__(dest_path, src_path=src_path, content=content, append=append)
+        assert self.src_path is not None or self.content is not None
+        self.is_test = False
+
+
+class TestFile(File):
+    """File artifact class."""
+
+    def __init__(
+        self, dest_path: Path, src_path: Optional[Path] = None, content: Optional[Path] = None, append: bool = False
+    ):
+        super().__init__(dest_path, src_path=src_path, content=content, append=append)
+        self.is_test = True
 
 
 class Directory(Artifact):

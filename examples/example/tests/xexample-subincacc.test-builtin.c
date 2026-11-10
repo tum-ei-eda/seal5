@@ -1,5 +1,5 @@
 // RUN: clang -c -target riscv32-unknown-elf -march=rv32ixexample -o %t.o %s
-// RUN: llvm-objdump --disassembler-options=numeric -d %t.o | FileCheck %s
+// RUN: llvm-objdump --disassembler-options=numeric --mattr=+xexample -d %t.o | FileCheck %s
 
 
 int test_intrinsic(int a, int b, int c) {

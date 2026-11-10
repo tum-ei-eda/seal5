@@ -19,7 +19,9 @@ from m2isar.metamodel.utils.expr_preprocessor import process_attributes, process
 import seal5.model as seal5_model
 from seal5.model_utils import load_model, dump_model
 
-logger = logging.getLogger("seal5_converter")
+from seal5.logging import Logger
+
+logger = Logger("transform.converter")
 
 
 def convert_attrs(attrs, base):
@@ -50,7 +52,7 @@ def get_parser():
 
 def run(args):
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
@@ -64,6 +66,10 @@ def run(args):
 
     # preprocess model
     for set_name, set_def in sets.items():
+        if getattr(set_def, "unencoded_instructions", {}):
+            raise ValueError(
+                f"Set {set_name} contains unencoded instructions; allocate encodings before Seal5 conversion"
+            )
         logger.info("preprocessing set %s", set_name)
         process_functions(set_def)
         process_instructions(set_def)
@@ -86,15 +92,19 @@ def run(args):
                 instr_def.function_info,
                 [],
                 {},
+                m2_operands=getattr(instr_def, "operands", {}),
             )
-            set_def.instructions[enc].scalars = instr_def.scalars
+            set_def.instructions[enc].vars = instr_def.vars
         for func_name, func_def in set_def.functions.items():
             func_def.attributes = convert_attrs(func_def.attributes, base=seal5_model.Seal5FunctionAttribute)
         sets[set_name] = seal5_model.Seal5InstructionSet(
             set_def.name,
             set_def.extension,
-            set_def.constants,
+            set_def.parameters,
             set_def.memories,
+            set_def.memory_aliases,
+            set_def.register_banks,
+            set_def.register_aliases,
             set_def.functions,
             set_def.instructions,
             {},

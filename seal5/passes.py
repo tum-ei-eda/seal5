@@ -1,19 +1,22 @@
 import os
 import time
-import multiprocessing
+
+# import multiprocessing
 from pathlib import Path
 from enum import Enum, IntFlag, auto
 from dataclasses import dataclass
 from typing import Callable, Optional, List
 from concurrent.futures import ThreadPoolExecutor
 
-from seal5.logging import get_logger
-from seal5.settings import Seal5Settings
+from seal5.logging import Logger
+from seal5.settings import Seal5Settings, PassesSettings
 
-logger = get_logger()
+logger = Logger("passes")
 
 
-NUM_THREADS = int(os.environ.get("SEAL5_NUM_THREADS", multiprocessing.cpu_count()))
+# DEFAULT_NUM_THREADS = multiprocessing.cpu_count()
+DEFAULT_NUM_THREADS = 1
+NUM_THREADS = int(os.environ.get("SEAL5_NUM_THREADS", DEFAULT_NUM_THREADS))
 
 
 class PassFormat(IntFlag):
@@ -105,7 +108,14 @@ class Seal5Pass:
             if self.pass_scope == PassScope.SET:
                 with ThreadPoolExecutor(max_workers=parallel) as executor:
                     futures = []
-                    passes_settings_ = passes_settings
+                    # passes_settings_ = dataclasses.replace(passes_settings)
+                    passes_settings_ = PassesSettings(
+                        skip=[*passes_settings.skip],
+                        only=[*passes_settings.only],
+                        overrides=[*passes_settings.overrides],
+                    )
+                    for key, val in passes_settings_.overrides.items():
+                        passes_settings_.overrides[key] = {**val}
                     for input_model in inputs:
                         model_settings = settings.models[input_model]
                         model_passes_settings = model_settings.passes
@@ -114,11 +124,20 @@ class Seal5Pass:
                         if check_filter(self.name, passes_settings_.skip, passes_settings_.only):
                             logger.info("Skipped pass %s for model %s", self.name, input_model)
                             continue
-                        passes_settings__ = passes_settings_
+                        # passes_settings__ = dataclasses.replace(passes_settings_)
+                        # FIX
+                        passes_settings__ = PassesSettings(
+                            skip=[*passes_settings_.skip],
+                            only=[*passes_settings_.only],
+                            overrides={**passes_settings_.overrides},
+                        )
+                        for key, val in passes_settings__.overrides.items():
+                            passes_settings__.overrides[key] = {**val}
                         for ext_name, ext_settings in model_settings.extensions.items():
                             ext_passes_settings = model_settings.passes
                             if ext_passes_settings is not None:
-                                passes_settings__ = passes_settings_.merge(ext_passes_settings)
+                                passes_settings__.overrides = {**passes_settings__.overrides}
+                                passes_settings__ = passes_settings__.merge(ext_passes_settings)
                             if check_filter(self.name, passes_settings__.skip, passes_settings__.only):
                                 logger.info("Skipped pass %s for extension %s", self.name, ext_name)
                                 continue
@@ -143,12 +162,21 @@ class Seal5Pass:
 
                 with ThreadPoolExecutor(max_workers=parallel) as executor:
                     futures = []
-                    passes_settings_ = passes_settings
                     for input_model in inputs:
+                        # passes_settings_ = dataclasses.replace(passes_settings)
+                        # FIX
+                        passes_settings_ = PassesSettings(
+                            skip=[*passes_settings.skip],
+                            only=[*passes_settings.only],
+                            overrides={**passes_settings.overrides},
+                        )
+                        for key, val in passes_settings_.overrides.items():
+                            passes_settings_.overrides[key] = {**val}
                         model_settings = settings.models.get(input_model)
                         model_passes_settings = model_settings.passes if model_settings is not None else None
                         kwargs__ = kwargs_.copy()
                         if model_passes_settings is not None:
+                            passes_settings_.overrides = {**passes_settings_.overrides}
                             passes_settings_ = passes_settings_.merge(model_passes_settings)
                         if check_filter(self.name, passes_settings_.skip, passes_settings_.only):
                             logger.info("Skipped pass %s for model %s", self.name, input_model)
@@ -190,6 +218,22 @@ class Seal5Pass:
         return PassResult(metrics=self.metrics)
 
 
+PROGRESS_MODES = ("none", "tqdm", "rich")
+PROGRESS_ENV_VAR = "SEAL5_PROGRESS"
+
+
+def get_progress_mode(settings: Optional[Seal5Settings]):
+    """Resolve progress mode: SEAL5_PROGRESS env var (set by --progress CLI flag) overrides settings."""
+    mode = os.environ.get(PROGRESS_ENV_VAR) or None
+    if mode is not None:
+        mode = mode.lower()
+        if mode not in PROGRESS_MODES:
+            raise ValueError(f"Invalid {PROGRESS_ENV_VAR}: {mode} (expected {', '.join(PROGRESS_MODES)})")
+    else:
+        mode = getattr(getattr(settings, "logging", None), "progress", None)
+    return mode if mode in ("tqdm", "rich") else None
+
+
 class PassManager:
     def __init__(
         self,
@@ -207,6 +251,7 @@ class PassManager:
         self.parallel = parallel if parallel is not None else (parent.parallel if parent else NUM_THREADS)
         self.metrics: dict = {}
         self.open: bool = False
+        self.has_parent = parent is not None
 
     @property
     def size(self):
@@ -237,13 +282,67 @@ class PassManager:
         # assert passes_settings is not None
         # assert passes_settings.per_model is not None
 
-        for pass_ in self.pass_list:
+        # Verify model settings
+        # TODO: move somewhere else?
+        if settings is not None and not self.has_parent:
+            if settings.models is not None:
+                model_names = set(input_models)
+                settings_model_names = set(settings.models.keys())
+                unknown_models = settings_model_names - model_names
+                ignore_unknown_models = False
+                if len(unknown_models) > 0:
+                    unknown_str = ", ".join(unknown_models)
+                    known_str = ", ".join(model_names)
+                    msg = f"Unknown model settings found: {unknown_str} (vs. {known_str})"
+                    if ignore_unknown_models:
+                        logger.warning(msg)
+                    else:
+                        logger.error(msg)
+                        raise RuntimeError(msg)
+
+        progress_mode = None if self.has_parent else get_progress_mode(settings)
+        progress = None
+        task = None
+        pass_iter = self.pass_list
+        if progress_mode == "tqdm":
+            from tqdm import tqdm
+
+            pass_iter = progress = tqdm(self.pass_list, desc=self.name, unit="pass")
+        elif progress_mode == "rich":
+            from rich.progress import Progress
+
+            progress = Progress()
+            progress.start()
+            task = progress.add_task(self.name, total=len(self.pass_list))
+
+        try:
+            self._run_passes(pass_iter, input_models, settings, env, verbose, progress_mode, progress, task)
+        finally:
+            if progress_mode == "rich":
+                progress.stop()
+            elif progress_mode == "tqdm":
+                progress.close()
+        end = time.time()
+        diff = end - start
+        self.metrics["start"] = start
+        self.metrics["end"] = end
+        self.metrics["time_s"] = diff
+        return PassResult(metrics=self.metrics)
+
+    def _run_passes(self, pass_iter, input_models, settings, env, verbose, progress_mode, progress, task):
+        for pass_ in pass_iter:
+            if progress_mode == "tqdm":
+                progress.set_postfix_str(pass_.name)
+            elif progress_mode == "rich":
+                progress.update(task, description=f"{self.name}: {pass_.name}")
             # input_models_ = []
             # for model_name in input_models:
             #    overrides = passes_settings.per_model.get(model_name, None)
             #    if overrides:
             if check_filter(pass_.name, self.skip, self.only):
                 pass_.skip()
+                if progress_mode == "rich":
+                    progress.advance(task)
                 continue
             assert pass_.is_pending, f"Pass {pass_.name} is not pending"
             result = pass_.run(input_models, settings=settings, env=env, verbose=verbose, parent=self)
@@ -251,12 +350,8 @@ class PassManager:
                 metrics = result.metrics
                 if metrics:
                     self.metrics["passes"].append({pass_.name: metrics})
-        end = time.time()
-        diff = end - start
-        self.metrics["start"] = start
-        self.metrics["end"] = end
-        self.metrics["time_s"] = diff
-        return PassResult(metrics=self.metrics)
+            if progress_mode == "rich":
+                progress.advance(task)
 
 
 def filter_passes(

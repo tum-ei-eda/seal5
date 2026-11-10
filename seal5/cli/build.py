@@ -19,15 +19,16 @@
 """Command line subcommand for building Seal5 LLVM."""
 
 from seal5.flow import Seal5Flow
-from seal5.logging import get_logger
+from seal5.logging import Logger
 
-
-logger = get_logger()
+logger = Logger("cli")
 
 
 def add_build_options(parser):
     """Setup parser for build argument group."""
     build_parser = parser.add_argument_group("build options")
+    build_parser.add_argument("--cmake-extra-args", default=None, help="Additional CMake arguments.")
+    build_parser.add_argument("--reduced", action="store_true", help="Build/install only ISAAC tools.")
     build_parser.add_argument(
         "--target",
         "-t",
@@ -62,4 +63,6 @@ def handle(args):
         target=args.target,
         verbose=args.verbose,
         enable_ccache=args.ccache,
+        cmake_extra_args=args.cmake_extra_args,
+        reduced=args.reduced,
     )

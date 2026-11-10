@@ -20,25 +20,64 @@
 
 from typing import Optional, List, Union
 from pathlib import Path
+import os
+import re
 
 import git
+from git import RemoteProgress
+from tqdm import tqdm
 
-from seal5.logging import get_logger
+from seal5.logging import Logger
 from seal5.settings import LLVMVersion
 from seal5.utils import is_populated
-from .tools.llvm import CloneProgress  # TODO: move to other file
 
-logger = get_logger()
+# from .tools.llvm import CloneProgress  # TODO: move to other file
+
+logger = Logger("dependencies")
+
+
+class CloneProgress(RemoteProgress):
+    def __init__(self):
+        super().__init__()
+        self.pbar = tqdm()
+
+    def update(self, op_code, cur_count, max_count=None, message=""):
+        self.pbar.total = max_count
+        self.pbar.n = cur_count
+        self.pbar.refresh()
 
 
 class Dependency:
     pass
 
 
+class SubstituteRepoURL:
+    def __init__(self):
+        self.repo_map = {}
+        for var, val in os.environ.items():
+            if var[:9] == "REPO_URL_":
+                self.repo_map[var[9:]] = val
+
+    def url(self, url: str):
+        # substitute shell-incompatible chars in url
+        key = re.sub("[-#?.,/]", "_", url)
+        for var, val in self.repo_map.items():
+            if key.find(var) >= 0:
+                return val
+        return url
+
+
+substitute_repo_url = SubstituteRepoURL()
+
+
+def apply_repository_override(url: str):
+    return substitute_repo_url.url(url)
+
+
 class GitDependency(Dependency):
     def __init__(self, name: str, clone_url: str, ref: Optional[str] = None, recursive: bool = False):
         self.name: str = name
-        self.clone_url: str = clone_url
+        self.clone_url = apply_repository_override(clone_url)
         self.ref: Optional[str] = ref
         self.recursive: bool = recursive
 
@@ -100,6 +139,7 @@ DEFAULT_CDSL2LLVM_DIRS = [
     "llvm/lib/CodeGen",
     "llvm/include/llvm/CodeGen",
     "llvm/lib/Target/RISCV",
+    "llvm/utils/TableGen",
 ]
 
 
@@ -114,7 +154,16 @@ def pick_coredsl2llvm_ref(ref: str, llvm_version: LLVMVersion):
 
     major, minor, patch = llvm_version.triple
 
-    if major == 19:
+    # TODO: auto-lookup ref after clone?
+    if major == 23:
+        ref = "llvm-23.1.3"
+    elif major == 22:
+        ref = "llvm-22.1.8"
+    elif major == 21:
+        ref = "llvm-21.1.7"
+    elif major == 20:
+        ref = "llvm-20.1.0"
+    elif major == 19:
         ref = "llvm-19.1.0"
     elif major == 18:
         ref = "philippvk5"

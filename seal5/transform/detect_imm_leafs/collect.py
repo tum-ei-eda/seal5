@@ -15,21 +15,21 @@ import pathlib
 
 import pandas as pd
 
-from m2isar.metamodel import patch_model
 import seal5.model
 
 from seal5.model_utils import load_model, dump_model
 
-from . import visitor
+from .visitor import DetectImmLeafsVisitor
 
-logger = logging.getLogger("detect_imm_leafs")
+from seal5.logging import Logger
+
+logger = Logger("transform.detect_imm_leafs")
 
 
 class VisitorContext:
     def __init__(self, imm_op_names):
         self.imm_op_names = imm_op_names
         self.imm_leaf_names = set()
-        self.last_imm_name = None
 
 
 def get_parser():
@@ -45,7 +45,7 @@ def get_parser():
 
 def run(args):
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
@@ -67,7 +67,6 @@ def run(args):
     for _, set_def in model_obj.sets.items():
         metrics["n_sets"] += 1
         logger.debug("collecting side effects for set %s", set_def.name)
-        patch_model(visitor)
         for _, instr_def in set_def.instructions.items():
             metrics["n_instructions"] += 1
             imm_op_names = [
@@ -75,14 +74,12 @@ def run(args):
                 for op_name, op_def in instr_def.operands.items()
                 if seal5.model.Seal5OperandAttribute.IS_IMM in op_def.attributes
             ]
-            # print("imm_op_names", imm_op_names)
             context = VisitorContext(imm_op_names)
             logger.debug("detecting imm leafs for instr %s", instr_def.name)
             try:
-                instr_def.operation.generate(context)
-                # print("context.imm_leaf_names", context.imm_leaf_names)
+                DetectImmLeafsVisitor().generate(instr_def.operation, context)
                 if len(context.imm_leaf_names) > 0:
-                    logger.debug("Found {len(context.imm_leaf_names)} imm leafs")
+                    logger.debug("Found %d imm leafs", len(context.imm_leaf_names))
                 for name in context.imm_leaf_names:
                     operand = instr_def.operands.get(name)
                     assert operand is not None

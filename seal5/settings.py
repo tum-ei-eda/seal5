@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 """Settings module for seal5."""
+
 import logging
 from pathlib import Path
 from dataclasses import dataclass, field, asdict, fields, replace
@@ -28,9 +29,12 @@ from dacite import from_dict, Config
 
 from seal5.types import PatchStage
 from seal5.utils import parse_cond
-from seal5.logging import get_logger
 
-logger = get_logger()
+
+def get_logger():
+    from seal5.logging import Logger
+
+    return Logger("settings")
 
 
 DEFAULT_SETTINGS = {
@@ -42,8 +46,8 @@ DEFAULT_SETTINGS = {
         },
         "file": {
             "level": "DEBUG",
-            "rotate": False,
-            "limit": 1000,
+            "rotate": True,
+            "limit": 3,
         },
     },
     "git": {
@@ -99,7 +103,7 @@ DEFAULT_SETTINGS = {
         # "paths": ["MC/RISCV", "CodeGen/RISCV"],
     },
     "llvm": {
-        "state": {"version": "auto", "base_commit": "unknown"},
+        "state": {"version": "auto", "base_commit": "unknown", "supported_imm_types": []},
         "ninja": True,
         "ccache": {
             "enable": False,
@@ -115,7 +119,7 @@ DEFAULT_SETTINGS = {
                     "LLVM_BUILD_TOOLS": True,
                     "LLVM_ENABLE_ASSERTIONS": False,
                     "LLVM_OPTIMIZED_TABLEGEN": True,
-                    "LLVM_ENABLE_PROJECTS": ["clang", "lld"],
+                    "LLVM_ENABLE_PROJECTS": ["clang", "lld", "lldb"],
                     "LLVM_TARGETS_TO_BUILD": ["RISCV"],
                 },
             },
@@ -125,7 +129,7 @@ DEFAULT_SETTINGS = {
                     "LLVM_BUILD_TOOLS": True,
                     "LLVM_ENABLE_ASSERTIONS": True,
                     "LLVM_OPTIMIZED_TABLEGEN": True,
-                    "LLVM_ENABLE_PROJECTS": ["clang", "lld"],
+                    "LLVM_ENABLE_PROJECTS": ["clang", "lld", "lldb"],
                     "LLVM_TARGETS_TO_BUILD": ["RISCV"],
                 },
             },
@@ -135,7 +139,7 @@ DEFAULT_SETTINGS = {
                     "LLVM_BUILD_TOOLS": True,
                     "LLVM_ENABLE_ASSERTIONS": True,
                     "LLVM_OPTIMIZED_TABLEGEN": True,
-                    "LLVM_ENABLE_PROJECTS": ["clang", "lld"],
+                    "LLVM_ENABLE_PROJECTS": ["clang", "lld", "lldb"],
                     "LLVM_TARGETS_TO_BUILD": ["RISCV"],
                 },
             },
@@ -185,6 +189,7 @@ class YAMLSettings:  # TODO: make abstract
         try:
             return from_dict(data_class=cls, data=data, config=Config(strict=True))
         except dacite.exceptions.UnexpectedDataError as err:
+            logger = get_logger()
             logger.error("Unexpected key in Seal5Settings. Check for missmatch between Seal5 versions!")
             raise err
 
@@ -216,6 +221,7 @@ class YAMLSettings:  # TODO: make abstract
 
     def merge(self, other: "YAMLSettings", overwrite: bool = False, inplace: bool = False):
         """Merge two instances of YAMLSettings."""
+        ret = None
         if not inplace:
             ret = replace(self)  # Make a copy of self
         for f1 in fields(other):
@@ -251,7 +257,7 @@ class YAMLSettings:  # TODO: make abstract
                                             assert isinstance(v2[dict_key], YAMLSettings)
                                             v2[dict_key].merge(dict_val, overwrite=overwrite, inplace=True)
                                         elif isinstance(dict_val, dict):
-                                            v2[dict_key].update(dict_val)
+                                            v2[dict_key].update({**dict_val})
                                         else:
                                             v2[dict_key] = dict_val
                                     else:
@@ -345,9 +351,19 @@ class PatchSettings(YAMLSettings):
     index: Optional[Union[Path, str]] = None
     # _file: Optional[Union[Path, str]] = field(init=False, repr=False)
     enable: bool = True
+    weak: bool = False  # Default patch than can be overriden
     generated: bool = False
     applied: bool = False
     onlyif: Optional[str] = None
+    # high priority (p=100) patches will be applied before lower priority ones (p=10)
+    priority: Optional[float] = None
+
+    def get_priority(self):
+        prio = self.priority
+        if prio is None:
+            return 10
+        assert isinstance(prio, (float, int))
+        return prio
 
     def check_enabled(self, settings: YAMLSettings):
         if self.onlyif is not None:
@@ -413,6 +429,7 @@ class FileLoggingSettings(YAMLSettings):
     level: Union[int, str] = logging.INFO
     limit: Optional[int] = None  # TODO: implement
     rotate: bool = False  # TODO: implement
+    filename: str = "seal5.log"
 
 
 @dataclass
@@ -421,6 +438,11 @@ class LoggingSettings(YAMLSettings):
 
     console: ConsoleLoggingSettings
     file: FileLoggingSettings
+    progress: Optional[str] = None  # None/"none" (default), "tqdm" or "rich" (mutually exclusive)
+
+    def __post_init__(self):
+        if self.progress is not None and self.progress not in ("none", "tqdm", "rich"):
+            raise ValueError(f"Invalid progress mode: {self.progress} (expected none, tqdm or rich)")
 
 
 @dataclass
@@ -464,6 +486,7 @@ class LLVMState(YAMLSettings):
 
     base_commit: Optional[str] = None
     version: Optional[Union[str, LLVMVersion]] = None
+    supported_imm_types: Optional[List[str]] = None
 
 
 @dataclass
@@ -530,19 +553,30 @@ class RISCVSettings(YAMLSettings):
 class ExtensionsSettings(YAMLSettings):
     """Seal5 extensions settings."""
 
+    # name: Optional[str] = None
     feature: Optional[str] = None
     predicate: Optional[str] = None
     arch: Optional[str] = None
     version: Optional[str] = None
     experimental: Optional[bool] = None
     vendor: Optional[bool] = None
-    std: Optional[bool] = None
     description: Optional[str] = None
     requires: Optional[List[str]] = None
+    parent: Optional[str] = None
+    max_parent: Optional[str] = None
+    backend_features: Optional[List[str]] = None  # Non-ISA TableGen feature dependencies
     instructions: Optional[List[str]] = None
     riscv: Optional[RISCVSettings] = None
     passes: Optional[PassesSettings] = None
+    required_imm_types: Optional[List[str]] = None
+    enc_sizes: Optional[List[int]] = None
     # patches
+
+    def get_decoder_namespace(self, name: Optional[str] = None):
+        if self.max_parent is not None:
+            return self.max_parent
+        else:
+            return name
 
     def get_version(self):
         """Get extension version."""
@@ -568,7 +602,7 @@ class ExtensionsSettings(YAMLSettings):
             feature = self.get_feature(name=name)
             assert feature is not None
             arch = feature.lower()
-            assert len(arch) > 0
+            assert len(arch) > 1
             if arch[0] != "x":
                 arch = f"x{arch}"
             # if self.experimental:
@@ -576,11 +610,21 @@ class ExtensionsSettings(YAMLSettings):
         assert arch[0] in ["z", "x"], "Arch needs to be start with z/x"
         return arch
 
+    def get_attr(self, name: Optional[str] = None):
+        """Get extension attr."""
+        attr = self.get_arch(name)
+        if self.experimental:
+            attr = "experimental-" + attr
+        return attr
+
     def get_feature(self, name: Optional[str] = None):
         """Get extension feature."""
         if self.feature is None:
             assert name is not None
             feature = name.replace("_", "")
+            assert len(feature) > 1
+            if feature.lower()[0] != "x":
+                feature = f"X{feature}"
             return feature
         return self.feature
 
@@ -590,12 +634,9 @@ class ExtensionsSettings(YAMLSettings):
             feature = self.get_feature(name=name)
             assert feature is not None
             if self.vendor:
-                assert not self.std
                 prefix = "Vendor"
-            elif self.std:
-                prefix = "StdExt"
             else:
-                prefix = "Ext"
+                prefix = "StdExt"
             if with_has:
                 prefix = "Has" + prefix
             return prefix + feature
@@ -661,6 +702,7 @@ class Seal5Settings(YAMLSettings):
     directory: Optional[str] = None
     name: Optional[str] = None
     meta_dir: Optional[str] = None
+    build_dir: Optional[str] = None
     logging: Optional[LoggingSettings] = None
     filter: Optional[FilterSettings] = None
     llvm: Optional[LLVMSettings] = None
@@ -676,6 +718,7 @@ class Seal5Settings(YAMLSettings):
     tools: Optional[ToolsSettings] = None
     metrics: list = field(default_factory=list)
     intrinsics: Optional[IntrinsicsSettings] = None
+    lookup_paths: Optional[List[str]] = None
 
     def reset(self):
         """Reset Seal5 seetings."""
@@ -705,6 +748,7 @@ class Seal5Settings(YAMLSettings):
             legalization=None,
         )
         self.intrinsics = IntrinsicsSettings()
+        self.lookup_paths = []
 
     def save(self, dest: Optional[Path] = None):
         """Save Seal5 settings to file."""
@@ -712,11 +756,22 @@ class Seal5Settings(YAMLSettings):
             dest = self.settings_file
         self.to_yaml_file(dest)
 
-    def add_patch(self, patch_settings: PatchSettings):
-        """Add patch to Seal5 seetings."""
-        for ps in self.patches:
-            if ps.name == patch_settings.name:
-                raise RuntimeError(f"Duplicate patch '{ps.name}'. Either clean patches or rename patch.")
+    def add_patch(self, patch_settings: PatchSettings, force: bool = False):
+        """Add a patch, retaining explicit settings over weak defaults."""
+        for index, existing in enumerate(self.patches):
+            if existing.name != patch_settings.name:
+                continue
+            logger = get_logger()
+            if not existing.weak and patch_settings.weak and not force:
+                logger.info("Skipping weak patch '%s'", existing.name)
+                return
+            if existing.weak or force:
+                self.patches[index] = patch_settings
+                logger.info("Overriding patch '%s'", existing.name)
+                return
+            raise RuntimeError(
+                f"Duplicate patch '{existing.name}'. Either use force=True, clean patches or rename patch."
+            )
         self.patches.append(patch_settings)
 
     @property
@@ -740,9 +795,11 @@ class Seal5Settings(YAMLSettings):
         return self._meta_dir / "deps"
 
     @property
-    def build_dir(self):
+    def _build_dir(self):
         """Seal5 build_dir getter."""
-        return self._meta_dir / "build"
+        if self.build_dir is None:
+            return self._meta_dir / "build"
+        return Path(self.build_dir)
 
     def get_llvm_build_dir(self, config: Optional[str] = None, fallback: bool = True, check: bool = False):
         if config is None:
@@ -752,12 +809,12 @@ class Seal5Settings(YAMLSettings):
 
         assert config is not None, "Could not resolve LLVM build dir"
 
-        llvm_build_dir = self.build_dir / config
+        llvm_build_dir = self._build_dir / config
 
         if not llvm_build_dir.is_dir():
             assert fallback, f"LLVM build dir {llvm_build_dir} does not exist and fallback is disabled."
             # Look for non-empty subdirs for .seal5/build
-            candidates = [f for f in self.build_dir.iterdir() if f.is_dir() and any(f.iterdir())]
+            candidates = [f for f in self._build_dir.iterdir() if f.is_dir() and any(f.iterdir())]
             if len(candidates) > 0:
                 llvm_build_dir = candidates[0]
         if check:
@@ -805,6 +862,20 @@ class Seal5Settings(YAMLSettings):
         return self._meta_dir / "patches"
 
     @property
+    def cache_dir(self):
+        """Seal5 cache_dir getter."""
+        return self._meta_dir / "cache"
+
+    @property
     def log_file_path(self):
         """Seal5 log_file_path getter."""
         return self.logs_dir / "seal5.log"
+
+    def get_extra_includes(self):
+        if self.lookup_paths is None:
+            return []
+        assert isinstance(self.lookup_paths, list)
+        return self.lookup_paths
+
+
+#  TODO: implement Seal5Settings.validate()

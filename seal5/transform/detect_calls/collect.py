@@ -15,13 +15,14 @@ import pathlib
 
 import pandas as pd
 
-from m2isar.metamodel import patch_model
 import seal5.model
 from seal5.model_utils import load_model, dump_model
 
-from . import visitor
+from .visitor import DetectCallsVisitor
 
-logger = logging.getLogger("detect_calls")
+from seal5.logging import Logger
+
+logger = Logger("transform.detect_calls")
 
 
 class VisitorContext:
@@ -42,7 +43,7 @@ def get_parser():
 
 def run(args):
     # initialize logging
-    logging.basicConfig(level=getattr(logging, args.log.upper()))
+    logger.setLevel(getattr(logging, args.log.upper()))
 
     # resolve model paths
     top_level = pathlib.Path(args.top_level)
@@ -64,13 +65,12 @@ def run(args):
     for _, set_def in model_obj.sets.items():
         metrics["n_sets"] += 1
         logger.debug("collecting calls for set %s", set_def.name)
-        patch_model(visitor)
         for _, instr_def in set_def.instructions.items():
             metrics["n_instructions"] += 1
             context = VisitorContext()
             logger.debug("collecting calls for instr %s", instr_def.name)
             try:
-                instr_def.operation.generate(context)
+                DetectCallsVisitor().generate(instr_def.operation, context)
                 if context.has_call:
                     if seal5.model.Seal5InstrAttribute.HAS_CALL not in instr_def.attributes:
                         instr_def.attributes[seal5.model.Seal5InstrAttribute.HAS_CALL] = []
