@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from seal5.tools.cdsl2llvm import combine_test_fragments, run_pattern_gen
+from seal5.tools.cdsl2llvm import combine_test_fragments, run_pattern_gen, scalarize_register_inputs
 
 
 class PatternGenTestGenerationTests(unittest.TestCase):
@@ -54,6 +54,26 @@ class PatternGenTestGenerationTests(unittest.TestCase):
                 num_register_outputs=num_register_outputs,
             )
 
+    def test_scalar_register_inputs_preserve_subregister_extraction(self):
+        ir = (
+            "define void @implTEST(ptr noalias writeonly %rd, ptr readonly align 4 %rs1) {\n"
+            "  %hi = getelementptr i8, ptr %rs1, i32 2\n"
+            "  %v = load i16, ptr %hi\n"
+            "  %w = sext i16 %v to i32\n"
+            "  store i32 %w, ptr %rd\n  ret void\n}\n"
+        )
+        with patch("seal5.tools.cdsl2llvm.subprocess.run") as optimize:
+            optimize.return_value.stdout = "optimized"
+            self.assertEqual(scalarize_register_inputs(ir, 32, Path("/tools/opt")), "optimized")
+            args, kwargs = optimize.call_args
+            self.assertIn("-passes=sroa,instcombine", args[0])
+            prepared = kwargs["input"]
+            self.assertIn("ptr noalias writeonly %rd, i32 %rs1.seal5_value", prepared)
+            self.assertIn("%rs1 = alloca i32, align 4", prepared)
+            self.assertIn("store i32 %rs1.seal5_value, ptr %rs1", prepared)
+            self.assertIn("%hi = getelementptr i8, ptr %rs1, i32 2", prepared)
+            self.assertIn("store i32 %w, ptr %rd", prepared)
+
     def test_unrolled_functions_use_distinct_labels_and_the_real_target(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -81,7 +101,7 @@ class PatternGenTestGenerationTests(unittest.TestCase):
             for suffix in [0, 1]:
                 self.assertEqual(contents.count(f"RV32-MIR-LABEL: name: implTEST_{suffix}\n"), 1)
                 self.assertEqual(contents.count(f"RV32-ASM-LABEL: implTEST_{suffix}:\n"), 1)
-            self.assertEqual(contents.count("RV32-MIR: TEST_\n"), 2)
+            self.assertEqual(contents.count("RV32-MIR: {{^ *[^;]*}} TEST_{{[ ,]}}\n"), 2)
             self.assertNotIn("RV32-MIR: TEST_0\n", contents)
             patterns = Path(str(destination) + ".pat").read_text()
             self.assertNotIn("diagnostic", patterns)
@@ -107,7 +127,7 @@ class PatternGenTestGenerationTests(unittest.TestCase):
                 has_register_output=False,
             )
             contents = Path(files[0]).read_text()
-            self.assertIn("RV32-MIR: TEST\n  ; RV32-MIR-NEXT: PseudoRET", contents)
+            self.assertIn("RV32-MIR: {{^ *[^;]*}} TEST{{[ ,]}}\n  ; RV32-MIR-NEXT: PseudoRET", contents)
             self.assertIn("RV32-ASM: xtest\n  ; RV32-ASM-NEXT: ret", contents)
             self.assertNotIn("RV32-MIR-NEXT: SW", contents)
 

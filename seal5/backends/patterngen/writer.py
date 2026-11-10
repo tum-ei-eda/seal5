@@ -192,6 +192,7 @@ def main():
                             for operand in instr_def.operands.values()
                         ),
                         may_load=Seal5InstrAttribute.MAY_LOAD in attrs,
+                        may_store=Seal5InstrAttribute.MAY_STORE in attrs,
                         gisel_table=args.gisel_table,
                     )
                     if output_file.is_file():

@@ -20,6 +20,7 @@
 
 import difflib
 import re
+import subprocess
 import time
 from pathlib import Path
 from typing import Optional, Union
@@ -298,6 +299,46 @@ def build_llc(
     utils.make("llc", cwd=dest, print_func=logger.info if verbose else logger.debug, live=True, use_ninja=use_ninja)
 
 
+def scalarize_register_inputs(contents, xlen, opt):
+    """Expose synthetic readonly register inputs through the scalar register ABI.
+
+    Only use this for register-only instructions: real memory operands must keep
+    their pointer semantics. SROA recovers subregister extractions from the local
+    register slots without allowing external loads to absorb them.
+    """
+
+    def rewrite(match):
+        header = match.group(0)
+        slots = []
+
+        def argument(arg):
+            name = arg.group(1)
+            scalar = name + ".seal5_value"
+            slots.extend(
+                [
+                    f"  {name} = alloca i{xlen}, align {xlen // 8}",
+                    f"  store i{xlen} {scalar}, ptr {name}, align {xlen // 8}",
+                ]
+            )
+            return f"i{xlen} {scalar}"
+
+        header = re.sub(r"ptr readonly [^,%]*?(%[\w.]+)(?=[,)])", argument, header)
+        return header + "\n" + "\n".join(slots)
+
+    original = contents
+    contents = re.sub(r"(?m)^define [^\n]+\{", rewrite, contents)
+    if contents == original or ".seal5_value" not in contents:
+        return original
+    result = subprocess.run(
+        [str(opt), "-S", "-passes=sroa,instcombine", "-o", "-"],
+        input=contents,
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    return result.stdout
+
+
 def combine_test_fragments(
     ll_file: Union[str, Path],
     instr: str,
@@ -306,9 +347,12 @@ def combine_test_fragments(
     test_asm_checks: str,
     return_output=False,
     register_writebacks=0,
+    scalar_inputs=None,
 ):
     with open(ll_file, "r") as f:
         contents = f.read()
+    if scalar_inputs is not None:
+        contents = scalarize_register_inputs(contents, *scalar_inputs)
     if register_writebacks > 1:
         # PatternGen models register outputs as stores through synthetic noalias
         # pointers. Group their writebacks after the computations, as register
@@ -377,6 +421,7 @@ def run_pattern_gen(
     may_load=False,
     gisel_table=False,
     num_register_outputs=None,
+    may_store=False,
 ):
     """Excute pattern-gen executable."""
     if not isinstance(build_dir, Path):
@@ -662,7 +707,7 @@ def run_pattern_gen(
                 )
                 test_mir_checks += f"  ; RV{xlen}-MIR-LABEL: name: impl{instr}\n"
                 # test_mir_checks += f"  ; RV{xlen}-MIR: LW\n"  # TODO: once per reg input operand
-                test_mir_checks += f"  ; RV{xlen}-MIR: {llvm_instr}\n"
+                test_mir_checks += f"  ; RV{xlen}-MIR: {{{{^ *[^;]*}}}} {llvm_instr}{{{{[ ,]}}}}\n"
                 if has_register_output and not may_load:
                     # Packed results may cross a register-class COPY before the scalar writeback.
                     store_check = "MIR" if packed_register_output else "MIR-NEXT"
@@ -689,6 +734,11 @@ def run_pattern_gen(
                 test_asm_checks,
                 return_output=may_load and has_register_output,
                 register_writebacks=num_register_outputs if gisel_table else 0,
+                scalar_inputs=(
+                    (xlen, build_dir / "bin" / "opt")
+                    if num_patterns > 1 and not may_load and not may_store and xlen is not None
+                    else None
+                ),
             )
             # print("test_content", test_content)
             test_file = ll_file.replace(".ll", ".test-cg.ll")
