@@ -17,6 +17,7 @@ seal5.model
       Seal5FunctionAttribute
       Seal5GPROperand
       Seal5ImmOperand
+      Seal5InstSetAttribute
       Seal5InstrAttribute
       Seal5Instruction
       Seal5InstructionSet

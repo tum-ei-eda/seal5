@@ -11,4 +11,5 @@ seal5.transform.process\_settings.transform
       get_parser
       main
       run
+      settings_from_attributes
    

@@ -9,6 +9,7 @@ seal5.frontends.coredsl
    .. autosummary::
    
       main
+      make_set_attribute_parser
    
    .. rubric:: Classes
 
