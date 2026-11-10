@@ -21,7 +21,6 @@
 from seal5.flow import Seal5Flow
 from seal5.logging import Logger
 
-
 logger = Logger("cli")
 
 
@@ -55,6 +54,7 @@ def add_init_options(parser):
         type=int,
         help="LLVM clone depth (use 1 for shallow clone)",
     )
+    init_parser.add_argument("-I", dest="includes", action="append", default=None, help="Extra include directories")
     init_parser.add_argument(
         "--progress",
         action="store_true",
@@ -88,4 +88,5 @@ def handle(args):
         progress=args.progress,
         force=args.force,
         verbose=args.verbose,
+        lookup_paths=args.includes,
     )

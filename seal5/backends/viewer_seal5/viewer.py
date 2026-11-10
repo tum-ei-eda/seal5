@@ -16,10 +16,10 @@ from collections import defaultdict
 from tkinter import ttk
 from anytree import Node, RenderTree
 
-from m2isar.metamodel import arch, patch_model
+from m2isar.metamodel import arch
 from seal5.model_utils import load_model
 
-from . import treegen
+from .treegen import TreeGenVisitor
 from .utils import TkTreeGenContext, TextTreeGenContext
 
 from seal5.logging import Logger
@@ -32,6 +32,11 @@ def sort_instruction(entry: "tuple[tuple[int, int], arch.Instruction]"):
     (code, mask), _ = entry
     return bin(mask).count("1"), code
     # return code, bin(mask).count("1")
+
+
+def describe_type(value):
+    """Return the current M2-ISA-R type representation for a model value."""
+    return str(value.ty)
 
 
 def main():
@@ -76,8 +81,7 @@ def main():
     # 	process_instructions(core)
     # 	process_attributes(core)
 
-    # load Ttk TreeView transformer functions
-    patch_model(treegen)
+    treegen = TreeGenVisitor()
 
     # create main Tk window
     if args.text:
@@ -126,14 +130,14 @@ def main():
                 _ = Node(
                     f"{mem_name}",
                     parent=mems_node,
-                    value=f"{mem_def.range.upper}:{mem_def.range.lower} ({mem_def.range.length}), {mem_def.size}",
+                    value=describe_type(mem_def),
                 )
             else:
                 tree.insert(
                     mems_id,
                     tk.END,
                     text=mem_name,
-                    values=(f"{mem_def.range.upper}:{mem_def.range.lower} ({mem_def.range.length}), {mem_def.size}",),
+                    values=(describe_type(mem_def),),
                 )
 
         # add memory aliases to tree
@@ -146,14 +150,14 @@ def main():
                 _ = Node(
                     f"{mem_name} ({mem_def.parent.name})",
                     parent=alias_node,
-                    value=f"{mem_def.range.upper}:{mem_def.range.lower} ({mem_def.range.length}), {mem_def.size}",
+                    value=describe_type(mem_def),
                 )
             else:
                 tree.insert(
                     alias_id,
                     tk.END,
                     text=f"{mem_name} ({mem_def.parent.name})",
-                    values=(f"{mem_def.range.upper}:{mem_def.range.lower} ({mem_def.range.length}), {mem_def.size}",),
+                    values=(describe_type(mem_def),),
                 )
 
         # add auxillary attributes
@@ -173,7 +177,7 @@ def main():
                 fn_id = tree.insert(fns_id, tk.END, text=fn_name, values=("extern" if fn_def.extern else ""))
 
             # add returns and throws information
-            return_str = "None" if fn_def.size is None else f"{fn_def.data_type} {fn_def.size}"
+            return_str = str(fn_def.ty)
             if args.text:
                 _ = Node("Return", parent=fn_node, value=return_str)
                 _ = Node("Throws", parent=fn_node, value=fn_def.throws)
@@ -198,7 +202,7 @@ def main():
                     else:
                         context = TkTreeGenContext(tree, parent=attr_id)
                     if args.operation:
-                        op.generate(context)
+                        treegen.generate(op, context)
 
             # generate and add parameters
             if args.text:
@@ -208,9 +212,9 @@ def main():
 
             for param_name, param_def in fn_def.args.items():
                 if args.text:
-                    _ = Node(param_name, parent=params_node, value=f"{param_def.data_type} {param_def.size}")
+                    _ = Node(param_name, parent=params_node, value=describe_type(param_def))
                 else:
-                    tree.insert(params_id, tk.END, text=param_name, values=(f"{param_def.data_type} {param_def.size}",))
+                    tree.insert(params_id, tk.END, text=param_name, values=(describe_type(param_def),))
 
             # generate and add function behavior
             if args.text:
@@ -218,7 +222,7 @@ def main():
             else:
                 context = TkTreeGenContext(tree, parent=fn_id)
             if args.operation:
-                fn_def.operation.generate(context)
+                treegen.generate(fn_def.operation, context)
 
         # group instructions by size
         instrs_by_size = defaultdict(dict)
@@ -290,7 +294,7 @@ def main():
                         else:
                             context = TkTreeGenContext(tree, parent=attr_id)
                         if args.operation:
-                            op.generate(context)
+                            treegen.generate(op, context)
 
                 # _ = Node("Behavior", parent=instr_node, value=instr_def.operation.statements)
                 # generate behavior
@@ -299,7 +303,7 @@ def main():
                 else:
                     context = TkTreeGenContext(tree, parent=instr_id)
                 if args.operation:
-                    instr_def.operation.generate(context)
+                    treegen.generate(instr_def.operation, context)
 
     if args.text:
         print("============================")

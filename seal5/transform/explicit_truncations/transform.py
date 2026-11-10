@@ -6,7 +6,7 @@
 # Chair of Electrical Design Automation
 # Technical University of Munich
 
-"""Remove (rd != 0) checks from M2-ISA-R/Seal5 metamodel."""
+"""Add explicit truncations to M2-ISA-R/Seal5 metamodel."""
 
 import sys
 import argparse
@@ -15,11 +15,9 @@ import pathlib
 
 import pandas as pd
 
-from m2isar.metamodel import patch_model
-
 from seal5.model_utils import load_model, dump_model
 
-from . import visitor
+from .visitor import ExplicitTruncationsVisitor
 
 from seal5.logging import Logger
 
@@ -61,13 +59,13 @@ def run(args):
     for _, set_def in model_obj.sets.items():
         metrics["n_sets"] += 1
         logger.debug("inserting explicit truncations for set %s", set_def.name)
-        patch_model(visitor)
+        visitor = ExplicitTruncationsVisitor()
         # TODO: handle RFS symbolically
         for _, instr_def in set_def.instructions.items():
             metrics["n_instructions"] += 1
             logger.debug("inserting explicit truncations for instr %s", instr_def.name)
             try:
-                instr_def.operation.generate(None)
+                visitor.generate(instr_def.operation, None)
                 metrics["n_success"] += 1
                 metrics["success_instructions"].append(instr_def.name)
             except Exception as ex:

@@ -12,6 +12,9 @@ from seal5.logging import Logger
 logger = Logger("model_utils")
 
 
+MIN_M2_METAMODEL_VERSION = 3
+
+
 def load_model(
     model_path: Union[str, Path], compat: bool = False, allow_missmatch: bool = False
 ) -> Union[Seal5Model, M2Model]:
@@ -22,6 +25,9 @@ def load_model(
         model_obj: Union[Seal5Model, M2Model] = pickle.load(f)
     if compat:
         assert isinstance(model_obj, M2Model), "Expected M2Model"
+        if model_obj.model_version < MIN_M2_METAMODEL_VERSION:
+            err_handler = logger.warning if allow_missmatch else RuntimeError
+            err_handler("Loaded model version mismatch")
     else:
         assert isinstance(model_obj, Seal5Model), "Expected Seal5Model"
     required_version = M2_METAMODEL_VERSION if compat else SEAL5_METAMODEL_VERSION
@@ -39,8 +45,9 @@ def dump_model(
         suffix = out_path.suffix
         required_suffix = ".m2isarmodel" if compat else ".seal5model"
         if suffix not in [".m2isarmodel", ".seal5model"]:
-            assert len(suffix) == 0, f"Invalid suffix: {suffix}"
-            out_path = out_path.parent / f"{out_path.stem}{required_suffix}"
+            # Transform passes pass extensionless model names, which may
+            # contain dots (for example XIsaac.splitted). Preserve the name.
+            out_path = out_path.with_name(out_path.name + required_suffix)
         else:
             assert suffix == required_suffix, f"Invalid suffix: {suffix}, Expected: {required_suffix}"
     logger.debug("dumping model: %s", out_path)

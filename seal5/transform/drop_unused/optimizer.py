@@ -13,11 +13,11 @@ import argparse
 import logging
 import pathlib
 
-from m2isar.metamodel import patch_model
+from m2isar.metamodel.attribute_info import RegisterAttribute
 
 from seal5.model_utils import load_model, dump_model
 
-from . import track_uses
+from .track_uses import TrackUsesVisitor
 
 from seal5.logging import Logger
 
@@ -62,30 +62,53 @@ def run(args):
 
     # preprocess model
     for _, set_def in model_obj.sets.items():
-        logger.debug("tracking use of constants for set %s", set_def.name)
-        context = DropUnusedContext(list(set_def.constants.keys()))
-        patch_model(track_uses)
+        logger.debug("tracking use of parameters for set %s", set_def.name)
+        context = DropUnusedContext(list(set_def.parameters.keys()))
+        visitor = TrackUsesVisitor()
         for _, instr_def in set_def.instructions.items():
-            logger.debug("tracking use of constants for instr %s", instr_def.name)
-            instr_def.operation.generate(context)
+            logger.debug("tracking use of parameters for instr %s", instr_def.name)
+            visitor.generate(instr_def.operation, context)
         if len(context.to_drop) > 0:
-            set_def.constants = {
+            set_def.parameters = {
                 const_name: const
-                for const_name, const in set_def.constants.items()
+                for const_name, const in set_def.parameters.items()
                 if const_name not in context.to_drop or const_name == "XLEN"
             }
-        context = DropUnusedContext(list(set_def.memories.keys()))
-        for _, instr_def in set_def.instructions.items():
-            logger.debug("tracking use of memories for instr %s", instr_def.name)
-            instr_def.operation.generate(context)
-        if len(context.to_drop) > 0:
-            set_def.memories = {
-                mem_name: mem for mem_name, mem in set_def.memories.items() if mem_name not in context.to_drop
-            }
+        temp = ["memories", "memory_aliases", "register_banks", "register_aliases"]
+        for kind in temp:
+            container = getattr(set_def, kind)
+            if kind == "register_banks":
+                required_names = {
+                    name
+                    for name, bank in container.items()
+                    if name in {"X", "F", "PC"}
+                    or RegisterAttribute.IS_MAIN_REG in getattr(bank, "attributes", {})
+                    or RegisterAttribute.IS_FLOAT_REG in getattr(bank, "attributes", {})
+                }
+                keep_names = [name for name in container.keys() if name in required_names]
+                context = DropUnusedContext([name for name in container.keys() if name not in required_names])
+            else:
+                context = DropUnusedContext(list(container.keys()))
+                keep_names = []
+            visitor = TrackUsesVisitor()
+            for _, instr_def in set_def.instructions.items():
+                logger.debug("tracking use of %s for instr %s", kind, instr_def.name)
+                visitor.generate(instr_def.operation, context)
+            if len(context.to_drop) > 0:
+                setattr(
+                    set_def,
+                    kind,
+                    {mem_name: mem for mem_name, mem in container.items() if mem_name not in context.to_drop},
+                )
+            if kind == "register_banks":
+                for name in keep_names:
+                    if name not in getattr(set_def, kind):
+                        getattr(set_def, kind)[name] = container[name]
         context = DropUnusedContext(list(set_def.functions.keys()))
+        visitor = TrackUsesVisitor()
         for _, instr_def in set_def.instructions.items():
             logger.debug("tracking use of functions for instr %s", instr_def.name)
-            instr_def.operation.generate(context)
+            visitor.generate(instr_def.operation, context)
         if len(context.to_drop) > 0:
             set_def.functions = {
                 func_name: func for func_name, func in set_def.functions.items() if func_name not in context.to_drop

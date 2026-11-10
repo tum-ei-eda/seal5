@@ -10,6 +10,7 @@ from seal5.types import PatchStage
 from seal5.settings import Seal5Settings, PatchSettings
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 from seal5.metrics import read_metrics
+from seal5.testgen_utils import collect_generated_test_files
 
 logger = Logger("pass_list")
 
@@ -218,6 +219,84 @@ def simplify_trivial_slices(
     if gen_metrics_file:
         metrics = read_metrics(metrics_file)
     return PassResult(metrics=metrics)
+
+
+def _explicit_names(input_model, settings, enabled, *, memory=False, registers=False):
+    """Apply an opt-in pattern-gen access normalization pass."""
+    if not enabled:
+        return PassResult(metrics={"enabled": False})
+    from seal5.model_utils import load_model, dump_model
+    from seal5.transform.explicit_names import ExplicitNames
+
+    path = settings.models_dir / f"{input_model}.seal5model"
+    model = load_model(path)
+    changed = 0
+    for set_def in model.sets.values():
+        visitor = ExplicitNames(set_def.xlen, memory=memory, registers=registers)
+        for instr in set_def.instructions.values():
+            instr.operation = visitor.generate(instr.operation)
+        changed += visitor.changed
+    dump_model(model, path)
+    return PassResult(metrics={"enabled": True, "rewritten": changed})
+
+
+def explicit_memory_names(input_model, settings=None, enabled=False, **_kwargs):
+    """Use MEM8/16/32/64/X for byte-addressed native memory accesses."""
+    return _explicit_names(input_model, settings, enabled, memory=True)
+
+
+def explicit_register_names(input_model, settings=None, enabled=False, **_kwargs):
+    """Use XW for the low word of an RV64 integer register."""
+    return _explicit_names(input_model, settings, enabled, registers=True)
+
+
+def normalize_subscripts(input_model, settings=None, enabled=False, **_kwargs):
+    """Normalize scalar slices and direction-sensitive array accesses."""
+    if not enabled:
+        return PassResult(metrics={"enabled": False})
+    from seal5.model_utils import load_model, dump_model
+    from seal5.transform.normalize_subscripts import NormalizeSubscripts
+
+    path = settings.models_dir / f"{input_model}.seal5model"
+    model = load_model(path)
+    # Honor the same global/model override precedence as the pass manager.
+    memory_options = (settings.passes.overrides or {}).get("explicit_memory_names", {})
+    model_settings = settings.models.get(input_model)
+    if model_settings is not None and model_settings.passes is not None:
+        overrides = model_settings.passes.overrides or {}
+        memory_options = {**memory_options, **overrides.get("explicit_memory_names", {})}
+    memory = memory_options.get("enabled", False)
+    changed = 0
+    for set_def in model.sets.values():
+        visitor = NormalizeSubscripts(set_def.xlen, memory=memory)
+        for instr in set_def.instructions.values():
+            instr.operation = visitor.generate(instr.operation)
+        changed += visitor.changed
+    dump_model(model, path)
+    return PassResult(metrics={"enabled": True, "rewritten": changed})
+
+
+def detect_branches(input_model, settings=None, enabled=False, **_kwargs):
+    """Lower recognized PC-relative conditional branches to a branch intrinsic."""
+    if not enabled:
+        return PassResult(metrics={"enabled": False})
+    from seal5.model_utils import load_model, dump_model
+    from seal5.model import Seal5InstrAttribute, Seal5OperandAttribute
+    from seal5.transform.detect_branches import detect_branch
+
+    path = settings.models_dir / f"{input_model}.seal5model"
+    model = load_model(path)
+    changed = 0
+    for set_def in model.sets.values():
+        for instr in set_def.instructions.values():
+            operation, offset_name = detect_branch(instr.operation, instr.operands)
+            if offset_name is not None:
+                instr.operation = operation
+                instr.operands[offset_name].attributes[Seal5OperandAttribute.IS_BRANCH_OFFS] = []
+                instr.attributes[Seal5InstrAttribute.IS_BRANCH] = []
+                changed += 1
+    dump_model(model, path)
+    return PassResult(metrics={"enabled": True, "rewritten": changed})
 
 
 def explicit_truncations(
@@ -611,7 +690,6 @@ def collect_operand_types(
             print_func=logger.info if verbose else logger.debug,
             live=verbose,
         )
-    # input("<")
 
 
 def collect_register_operands(
@@ -712,6 +790,7 @@ def eliminate_rd_cmp_zero(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "warning",
+    destination_names=None,
     **_kwargs,
 ):
     assert inplace
@@ -724,6 +803,8 @@ def eliminate_rd_cmp_zero(
         "--log",
         log_level if not verbose else "debug",
     ]
+    if destination_names is not None:
+        args.extend(["--destination-names", *destination_names])
     if not use_subprocess:
         from seal5.transform.eliminate_rd_cmp_zero import EliminateRdCmpZero
 
@@ -1026,7 +1107,10 @@ def convert_behav_to_tablegen(
     formats: bool = True,
     patterns: bool = True,
     parallel: bool = False,
+    gen_tests: bool = True,
     log_level: str = "warning",
+    added_complexity: int = 0,
+    gisel_table: bool = False,
     **_kwargs,
 ):
     assert split, "TODO"
@@ -1055,12 +1139,18 @@ def convert_behav_to_tablegen(
         args.append("--formats")
     if patterns:
         args.append("--patterns")
+    if gisel_table and patterns:
+        args.append("--gisel-table")
+    if added_complexity:
+        args.extend(["--added-complexity", str(added_complexity)])
     if gen_metrics_file:
         metrics_file = settings.temp_dir / (new_name + "_tblgen_patterns_metrics.csv")
         args.extend(["--metrics", metrics_file])
     if gen_index_file:
         index_file = settings.temp_dir / (new_name + "_tblgen_patterns_index.yml")
         args.extend(["--index", index_file])
+    if gen_tests:
+        args.append("--generate-tests")
     if parallel:
         import multiprocessing
 
@@ -1087,6 +1177,7 @@ def convert_behav_to_tablegen(
                 generated=True,
                 target="llvm",
             )
+            _ = collect_generated_test_files(index_file)
             settings.add_patch(patch_settings)
             settings.to_yaml_file(settings.settings_file)
         else:
@@ -1239,6 +1330,94 @@ def gen_riscv_isa_info_patch(
     if gen_metrics_file:
         metrics = read_metrics(metrics_file)
     return PassResult(metrics=metrics)
+
+
+def handle_auto_unroll_operands(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    # split: bool = False,
+    log_level: str = "warning",
+    ignore_failing: bool = False,
+    use_subprocess: bool = False,
+    **kwargs,
+):
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    # new_name = name.replace(".seal5model", "")
+    logger.info("Handle auto_unroll operands for %s", name)
+
+    settings.save()
+    args = [
+        settings.models_dir / name,
+        "--log",
+        log_level if not verbose else "debug",
+        # "--yaml",
+        # settings.settings_file,
+    ]
+    if ignore_failing:
+        args.append("--ignore-failing")
+    if not use_subprocess:
+        from seal5.transform.handle_auto_unroll_operands import HandleAutoUnrollOperands
+
+        args = sanitize_args(args)
+        HandleAutoUnrollOperands(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.handle_auto_unroll_operands.transform",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=verbose,
+        )
+    return PassResult(metrics={})
+
+
+def gen_auto_intrinsics(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    # split: bool = False,
+    log_level: str = "warning",
+    ignore_failing: bool = False,
+    use_subprocess: bool = False,
+    **kwargs,
+):
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    # new_name = name.replace(".seal5model", "")
+    logger.info("Generating auto-intrincics for %s", name)
+
+    settings.save()
+    args = [
+        settings.models_dir / name,
+        "--log",
+        log_level if not verbose else "debug",
+        # "--yaml",
+        # settings.settings_file,
+    ]
+    if ignore_failing:
+        args.append("--ignore-failing")
+    if not use_subprocess:
+        from seal5.transform.gen_auto_intrisics import GenAutoIntrinsics
+
+        args = sanitize_args(args)
+        GenAutoIntrinsics(args)
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.gen_auto_intrinsics.transform",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=verbose,
+        )
+    return PassResult(metrics={})
 
 
 def gen_riscv_intrinsics(
@@ -1978,6 +2157,46 @@ def detect_loops(
     return PassResult(metrics=metrics)
 
 
+def unroll_loops(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    inplace: bool = True,
+    use_subprocess: bool = False,
+    log_level: str = "warning",
+    max_trip_count: int = 32,
+    **_kwargs,
+):
+    assert inplace
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    metrics_file = settings.temp_dir / (input_file.name + "_unroll_loops_metrics.csv")
+    args = [
+        input_file,
+        "--log",
+        log_level if not verbose else "debug",
+        "--max-trip-count",
+        str(max_trip_count),
+        "--metrics",
+        metrics_file,
+    ]
+    if not use_subprocess:
+        from seal5.transform.unroll_loops import UnrollLoops
+
+        UnrollLoops(sanitize_args(args))
+    else:
+        utils.python(
+            "-m",
+            "seal5.transform.unroll_loops.transform",
+            *args,
+            env=env,
+            print_func=logger.info if verbose else logger.debug,
+            live=verbose,
+        )
+    return PassResult(metrics=read_metrics(metrics_file))
+
+
 def annotate_opcodes(
     input_model: str,
     settings: Optional[Seal5Settings] = None,
@@ -2031,6 +2250,8 @@ def check_pattern_support(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "warning",
+    allow_memory: bool = False,
+    allow_branches: bool = False,
     **_kwargs,
 ):
     assert inplace
@@ -2044,6 +2265,17 @@ def check_pattern_support(
         "--log",
         log_level if not verbose else "debug",
     ]
+    pattern_options = (settings.passes.overrides or {}).get("behav_to_pat", {})
+    model_settings = settings.models.get(input_model)
+    if model_settings is not None and model_settings.passes is not None:
+        overrides = model_settings.passes.overrides or {}
+        pattern_options = {**pattern_options, **overrides.get("behav_to_pat", {})}
+    if pattern_options.get("gisel_table", False):
+        args.append("--gisel-table")
+    if allow_memory:
+        args.append("--allow-memory")
+    if allow_branches:
+        args.append("--allow-branches")
     if gen_metrics_file:
         # TODO: move to .seal5/metrics
         metrics_file = settings.temp_dir / (name + "_check_pattern_support_metrics.csv")
@@ -2129,3 +2361,98 @@ def gen_riscv_field_types_patch(
     if gen_metrics_file:
         metrics = read_metrics(metrics_file)
     return PassResult(metrics=metrics)
+
+
+def gen_riscv_disass_patch(
+    input_model: str,
+    settings: Optional[Seal5Settings] = None,
+    env: Optional[dict] = None,
+    verbose: bool = False,
+    split: bool = False,
+    log_level: str = "warning",
+    gen_tests: bool = True,
+    **_kwargs,
+):
+    assert not split, "TODO"
+    # formats = True
+    gen_metrics_file = True
+    gen_index_file = True
+    input_file = settings.models_dir / f"{input_model}.seal5model"
+    assert input_file.is_file(), f"File not found: {input_file}"
+    name = input_file.name
+    new_name = name.replace(".seal5model", "")
+    logger.info("Writing RISCVDisassembler.cpp patch for %s", name)
+    out_dir = settings.patches_dir / new_name
+    out_dir.mkdir(exist_ok=True)
+
+    args = [
+        settings.models_dir / name,
+        "--log",
+        log_level if not verbose else "debug",
+        # "--output",
+        # out_dir / "riscv_disass.patch",
+    ]
+    if split:
+        args.append("--splitted")
+    if gen_metrics_file:
+        metrics_file = out_dir / ("riscv_disass_metrics.csv")
+        args.extend(["--metrics", metrics_file])
+    if gen_index_file:
+        index_file = out_dir / ("riscv_disass_index.yml")
+        args.extend(["--index", index_file])
+    if gen_tests:
+        args.append("--generate-tests")
+    utils.python(
+        "-m",
+        "seal5.backends.riscv_disass.writer",
+        *args,
+        env=env,
+        print_func=logger.info if verbose else logger.debug,
+        live=verbose,
+    )
+    if gen_index_file:
+        if index_file.is_file():
+            comment = f"Generated RISCVDisassembler.cpp patch for {input_file.name}"
+            if gen_tests:
+                comment += " + generated tests"
+            patch_name = f"riscv_disass_{input_file.stem}"
+            patch_settings = PatchSettings(
+                name=patch_name,
+                stage=int(PatchStage.PHASE_2),
+                comment=comment,
+                index=str(index_file),
+                generated=True,
+                target="llvm",
+            )
+            settings.add_patch(patch_settings)
+            settings.to_yaml_file(settings.settings_file)
+        else:
+            logger.warning("No patches found!")
+    metrics = {}
+    if gen_metrics_file:
+        metrics = read_metrics(metrics_file)
+    return PassResult(metrics=metrics)
+
+
+def gen_riscv_gnu_patch(_input_model, settings=None, env=None, **_kwargs):
+    """Generate one GNU patch covering all transformed models when configured."""
+    import json
+    import os
+
+    from seal5.backends.riscv_gnu.writer import generate_patch
+    from seal5.model_utils import load_model
+
+    options = settings.passes.overrides.get("riscv_gnu", {})
+    source = options.get("source") or (env or os.environ).get("SEAL5_GNU_SOURCE")
+    if not source:
+        logger.debug("GNU patch generation disabled; set SEAL5_GNU_SOURCE to enable")
+        return PassResult(metrics={"enabled": False})
+    models = [load_model(settings.models_dir / f"{name}.seal5model") for name in sorted(settings.model_names)]
+    patch, manifest = generate_patch(models, source)
+    output = settings.patches_dir / "binutils-gdb" / "seal5.patch"
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(patch)
+    manifest_file = output.with_suffix(".json")
+    manifest_file.write_text(json.dumps(manifest, indent=2) + "\n")
+    logger.info("Generated GNU binutils/GDB patch: %s", output)
+    return PassResult(metrics={"enabled": True, "instructions": len(manifest)}, outputs=[output, manifest_file])

@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 """Settings module for seal5."""
+
 import logging
 from pathlib import Path
 from dataclasses import dataclass, field, asdict, fields, replace
@@ -118,7 +119,7 @@ DEFAULT_SETTINGS = {
                     "LLVM_BUILD_TOOLS": True,
                     "LLVM_ENABLE_ASSERTIONS": False,
                     "LLVM_OPTIMIZED_TABLEGEN": True,
-                    "LLVM_ENABLE_PROJECTS": ["clang", "lld"],
+                    "LLVM_ENABLE_PROJECTS": ["clang", "lld", "lldb"],
                     "LLVM_TARGETS_TO_BUILD": ["RISCV"],
                 },
             },
@@ -128,7 +129,7 @@ DEFAULT_SETTINGS = {
                     "LLVM_BUILD_TOOLS": True,
                     "LLVM_ENABLE_ASSERTIONS": True,
                     "LLVM_OPTIMIZED_TABLEGEN": True,
-                    "LLVM_ENABLE_PROJECTS": ["clang", "lld"],
+                    "LLVM_ENABLE_PROJECTS": ["clang", "lld", "lldb"],
                     "LLVM_TARGETS_TO_BUILD": ["RISCV"],
                 },
             },
@@ -138,7 +139,7 @@ DEFAULT_SETTINGS = {
                     "LLVM_BUILD_TOOLS": True,
                     "LLVM_ENABLE_ASSERTIONS": True,
                     "LLVM_OPTIMIZED_TABLEGEN": True,
-                    "LLVM_ENABLE_PROJECTS": ["clang", "lld"],
+                    "LLVM_ENABLE_PROJECTS": ["clang", "lld", "lldb"],
                     "LLVM_TARGETS_TO_BUILD": ["RISCV"],
                 },
             },
@@ -256,7 +257,7 @@ class YAMLSettings:  # TODO: make abstract
                                             assert isinstance(v2[dict_key], YAMLSettings)
                                             v2[dict_key].merge(dict_val, overwrite=overwrite, inplace=True)
                                         elif isinstance(dict_val, dict):
-                                            v2[dict_key].update(dict_val)
+                                            v2[dict_key].update({**dict_val})
                                         else:
                                             v2[dict_key] = dict_val
                                     else:
@@ -437,6 +438,11 @@ class LoggingSettings(YAMLSettings):
 
     console: ConsoleLoggingSettings
     file: FileLoggingSettings
+    progress: Optional[str] = None  # None/"none" (default), "tqdm" or "rich" (mutually exclusive)
+
+    def __post_init__(self):
+        if self.progress is not None and self.progress not in ("none", "tqdm", "rich"):
+            raise ValueError(f"Invalid progress mode: {self.progress} (expected none, tqdm or rich)")
 
 
 @dataclass
@@ -547,6 +553,7 @@ class RISCVSettings(YAMLSettings):
 class ExtensionsSettings(YAMLSettings):
     """Seal5 extensions settings."""
 
+    # name: Optional[str] = None
     feature: Optional[str] = None
     predicate: Optional[str] = None
     arch: Optional[str] = None
@@ -555,12 +562,21 @@ class ExtensionsSettings(YAMLSettings):
     vendor: Optional[bool] = None
     description: Optional[str] = None
     requires: Optional[List[str]] = None
-    # implies: Optional[List[str]] = None
+    parent: Optional[str] = None
+    max_parent: Optional[str] = None
+    backend_features: Optional[List[str]] = None  # Non-ISA TableGen feature dependencies
     instructions: Optional[List[str]] = None
     riscv: Optional[RISCVSettings] = None
     passes: Optional[PassesSettings] = None
     required_imm_types: Optional[List[str]] = None
+    enc_sizes: Optional[List[int]] = None
     # patches
+
+    def get_decoder_namespace(self, name: Optional[str] = None):
+        if self.max_parent is not None:
+            return self.max_parent
+        else:
+            return name
 
     def get_version(self):
         """Get extension version."""
@@ -686,6 +702,7 @@ class Seal5Settings(YAMLSettings):
     directory: Optional[str] = None
     name: Optional[str] = None
     meta_dir: Optional[str] = None
+    build_dir: Optional[str] = None
     logging: Optional[LoggingSettings] = None
     filter: Optional[FilterSettings] = None
     llvm: Optional[LLVMSettings] = None
@@ -701,6 +718,7 @@ class Seal5Settings(YAMLSettings):
     tools: Optional[ToolsSettings] = None
     metrics: list = field(default_factory=list)
     intrinsics: Optional[IntrinsicsSettings] = None
+    lookup_paths: Optional[List[str]] = None
 
     def reset(self):
         """Reset Seal5 seetings."""
@@ -730,6 +748,7 @@ class Seal5Settings(YAMLSettings):
             legalization=None,
         )
         self.intrinsics = IntrinsicsSettings()
+        self.lookup_paths = []
 
     def save(self, dest: Optional[Path] = None):
         """Save Seal5 settings to file."""
@@ -738,28 +757,22 @@ class Seal5Settings(YAMLSettings):
         self.to_yaml_file(dest)
 
     def add_patch(self, patch_settings: PatchSettings, force: bool = False):
-        """Add patch to Seal5 seetings."""
-        patches = []
-        added = False
-        for ps in self.patches:
-            if ps.name == patch_settings.name:
-                if ps.weak:
-                    self.patches.append(patch_settings)
-                    added = True
-                    logger = get_logger()
-                    logger.info("Overriding weak patch '%s'", ps.name)
-                elif patch_settings.weak:
-                    logger = get_logger()
-                    logger.info("Skipping weak patch '%s'", ps.name)
-                else:
-                    raise RuntimeError(
-                        f"Duplicate patch '{ps.name}'. Either use force=True, clean patches or rename patch."
-                    )
-            else:
-                patches.append(ps)
-        if not added:
-            patches.append(patch_settings)
-        self.patches = patches
+        """Add a patch, retaining explicit settings over weak defaults."""
+        for index, existing in enumerate(self.patches):
+            if existing.name != patch_settings.name:
+                continue
+            logger = get_logger()
+            if not existing.weak and patch_settings.weak and not force:
+                logger.info("Skipping weak patch '%s'", existing.name)
+                return
+            if existing.weak or force:
+                self.patches[index] = patch_settings
+                logger.info("Overriding patch '%s'", existing.name)
+                return
+            raise RuntimeError(
+                f"Duplicate patch '{existing.name}'. Either use force=True, clean patches or rename patch."
+            )
+        self.patches.append(patch_settings)
 
     @property
     def model_names(self):
@@ -782,9 +795,11 @@ class Seal5Settings(YAMLSettings):
         return self._meta_dir / "deps"
 
     @property
-    def build_dir(self):
+    def _build_dir(self):
         """Seal5 build_dir getter."""
-        return self._meta_dir / "build"
+        if self.build_dir is None:
+            return self._meta_dir / "build"
+        return Path(self.build_dir)
 
     def get_llvm_build_dir(self, config: Optional[str] = None, fallback: bool = True, check: bool = False):
         if config is None:
@@ -794,12 +809,12 @@ class Seal5Settings(YAMLSettings):
 
         assert config is not None, "Could not resolve LLVM build dir"
 
-        llvm_build_dir = self.build_dir / config
+        llvm_build_dir = self._build_dir / config
 
         if not llvm_build_dir.is_dir():
             assert fallback, f"LLVM build dir {llvm_build_dir} does not exist and fallback is disabled."
             # Look for non-empty subdirs for .seal5/build
-            candidates = [f for f in self.build_dir.iterdir() if f.is_dir() and any(f.iterdir())]
+            candidates = [f for f in self._build_dir.iterdir() if f.is_dir() and any(f.iterdir())]
             if len(candidates) > 0:
                 llvm_build_dir = candidates[0]
         if check:
@@ -855,3 +870,12 @@ class Seal5Settings(YAMLSettings):
     def log_file_path(self):
         """Seal5 log_file_path getter."""
         return self.logs_dir / "seal5.log"
+
+    def get_extra_includes(self):
+        if self.lookup_paths is None:
+            return []
+        assert isinstance(self.lookup_paths, list)
+        return self.lookup_paths
+
+
+#  TODO: implement Seal5Settings.validate()

@@ -113,7 +113,15 @@ def ir_type_lookup_new(llvm_ty, signed: bool):
         }
         ret = lookup[sz]
     if ret is None:
-        raise NotImplementedError("Unhandled llvm type: {llvm_ty}")
+        raise NotImplementedError(f"Unhandled llvm type: {llvm_ty}")
+    type_mapping = {
+        "int8_t": "signed char",
+        "uint8_t": "unsigned char",
+        "int16_t": "signed short",
+        "uint16_t": "unsigned short",
+    }
+    # TODO: add const for imm args?
+    ret = type_mapping.get(ret, ret)
     return ret
 
 
@@ -362,7 +370,8 @@ def main():
             xlen = riscv_settings_.xlen
             assert xlen is not None
             for intrinsic in settings.intrinsics.intrinsics:
-                if intrinsic.set_name is not None and intrinsic.set_name != set_name:
+                assert intrinsic.set_name is not None, f"Undefined set_name for intrinsic: {intrinsic}"
+                if intrinsic.set_name != set_name:
                     continue
                 try:
                     arch_ = ext_settings.get_arch(name=set_name)
@@ -391,7 +400,7 @@ def main():
                     contents = f"// {arch_}\n{contents}\n"
                 elif id == "attr":
                     contents = f'let TargetPrefix = "riscv" in {{\n{contents}\n}}'
-                (root, ext) = os.path.splitext(out_path)
+                root, ext = os.path.splitext(out_path)
                 patch_path = root + "_" + id + ext
                 with open(patch_path, "w") as f:
                     f.write(contents.strip())

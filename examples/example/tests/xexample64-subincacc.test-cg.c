@@ -2,6 +2,6 @@
 // RUN: llvm-objdump --mattr=+i,+xexample --disassembler-options=numeric -d %t.o | FileCheck %s
 
 long test_subincacc(long a, long b, long c) {
-    // CHECK: 2b 36 b5 50 xexample64.subincacc x12, x10, x11
+    // CHECK: 50b5362b xexample64.subincacc x12, x10, x11
     return ((a + 1) - b) + c;
 }

@@ -9,22 +9,43 @@
 """Clean M2-ISA-R/Seal5 metamodel to .core_desc file."""
 
 import os
+import json
+import time
+import difflib
+from threading import Lock
+import re
 import argparse
 import logging
 import pathlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import pandas as pd
+import yaml
+
+from seal5.tools.pattern_metrics import instruction_metrics, aggregate, report_rows
 
 from seal5.tools import cdsl2llvm
-from seal5.index import write_index_yaml, File, NamedPatch
-from seal5.model import Seal5InstrAttribute
+from seal5.index import write_index_yaml, File, NamedPatch, TestFile
+from seal5.model import Seal5InstrAttribute, Seal5ImmOperand, Seal5OperandAttribute
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 from seal5.model_utils import load_model
 
 from seal5.logging import Logger
 
 logger = Logger("backends.patterngen_tablegen_writer")
+
+
+def require_packed_simd_feature(contents):
+    """Gate typed packed-register rules independently of the ISA extension."""
+    if not re.search(r"\bGPR32V[24]\b", contents):
+        return contents
+    predicates = re.search(r"let Predicates = \[(.*?)\] in \{", contents)
+    if predicates is None:
+        return "let Predicates = [HasGPR32V] in {\n" + contents + "\n}\n"
+    names = [name.strip() for name in predicates.group(1).split(",") if name.strip()]
+    if "HasGPR32V" not in names:
+        names.append("HasGPR32V")
+    return contents[: predicates.start(1)] + ", ".join(names) + contents[predicates.end(1) :]
 
 
 def main():
@@ -38,12 +59,17 @@ def main():
     parser.add_argument("--splitted", action="store_true", help="Split per set and instruction")
     parser.add_argument("--formats", action="store_true", help="Also generate instruction formats")
     parser.add_argument("--patterns", action="store_true", help="Also generate instruction patterns")
+    parser.add_argument("--gisel-table", action="store_true", help="Use the experimental direct GISel matcher backend")
+    parser.add_argument(
+        "--added-complexity", type=int, default=0, help="Extra selection priority for generated patterns"
+    )
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
     parser.add_argument("--index", default=None, help="Output index to file")
     parser.add_argument("--ext", type=str, default="td", help="Default file extension (if using --splitted)")
     parser.add_argument("--parallel", type=int, default=1, help="How many instructions should be processed in parallel")
     parser.add_argument("--compat", action="store_true")
     parser.add_argument("--verbose", action="store_true")
+    parser.add_argument("--generate-tests", action="store_true")
     # parser.add_argument("--xlen", type=int, default=32, help="RISC-V XLEN")
     args = parser.parse_args()
 
@@ -67,10 +93,15 @@ def main():
         "failed_instructions": [],
         "success_instructions": [],
     }
+    measurements = []
+    measurement_lock = Lock()
+    generation_started = time.perf_counter()
+    mode = "formats" if not args.patterns else "gisel_table" if args.gisel_table else "tablegen"
     # preprocess model
     # print("model", model)
     artifacts = {}
     artifacts[None] = []  # used for global artifacts
+    table_includes = []
     settings = model_obj.settings
     if args.splitted:
         # errs = []
@@ -111,9 +142,8 @@ def main():
 
             mattr = build_riscv_mattr(features, xlen)
 
-            def process_instrunction(instr_def, set_name, set_dir, mattr, predicate, xlen):
+            def process_instruction_impl(instr_def, set_name, set_dir, mattr, predicate, xlen):
                 includes_ = []
-                metrics["n_instructions"] += 1
                 input_file = out_path / set_name / f"{instr_def.name}.core_desc"
                 attrs = instr_def.attributes
                 skip = False
@@ -122,8 +152,6 @@ def main():
                 if not input_file.is_file():
                     skip = True
                 if skip:
-                    metrics["n_skipped"] += 1
-                    metrics["skipped_instructions"].append(instr_def.name)
                     return False, includes_
                 # if args.patterns:
                 out_name = f"{instr_def.name}.{args.ext}"
@@ -136,7 +164,7 @@ def main():
                 assert install_dir is not None
                 install_dir = pathlib.Path(install_dir)
                 try:
-                    cdsl2llvm.run_pattern_gen(
+                    test_files = cdsl2llvm.run_pattern_gen(
                         # install_dir / "llvm" / "build",
                         install_dir,
                         input_file,
@@ -147,10 +175,46 @@ def main():
                         mattr=mattr,
                         xlen=xlen,
                         verbose=args.verbose,
+                        mnemonic_override=instr_def.mnemonic,
+                        immediate_operands=[
+                            name for name, operand in instr_def.operands.items() if isinstance(operand, Seal5ImmOperand)
+                        ],
+                        has_register_output=any(
+                            Seal5OperandAttribute.OUT in operand.attributes
+                            or Seal5OperandAttribute.INOUT in operand.attributes
+                            for operand in instr_def.operands.values()
+                        ),
+                        num_register_outputs=sum(
+                            Seal5OperandAttribute.OUT in operand.attributes
+                            or Seal5OperandAttribute.INOUT in operand.attributes
+                            for operand in instr_def.operands.values()
+                        ),
+                        may_load=Seal5InstrAttribute.MAY_LOAD in attrs,
+                        gisel_table=args.gisel_table,
                     )
                     if output_file.is_file():
-                        metrics["n_success"] += 1
-                        metrics["success_instructions"].append(instr_def.name)
+                        if args.patterns:
+                            output_file.write_text(require_packed_simd_feature(output_file.read_text()))
+                        if args.patterns and args.added_complexity:
+                            contents = output_file.read_text()
+                            output_file.write_text(
+                                contents.replace(
+                                    "def : Pat<", f"let AddedComplexity = {args.added_complexity} in def : Pat<"
+                                )
+                            )
+                        if args.patterns and args.gisel_table:
+                            table = output_file.with_suffix(".inc")
+                            assert table.is_file() and table.read_text().strip(), f"Missing GISel matchers: {table}"
+                            if args.added_complexity:
+                                table.write_text(
+                                    table.read_text().replace(
+                                        "RuleMatcherScores[RM.getRuleID()] = 16;",
+                                        f"RuleMatcherScores[RM.getRuleID()] = {16 + args.added_complexity};",
+                                    )
+                                )
+                            table_path = f"seal5/{set_name}/{table.name}"
+                            artifacts[set_name].append(File(f"llvm/utils/TableGen/{table_path}", src_path=table))
+                            table_includes.append(f'#include "{table_path}"')
                         if args.formats:
                             file_artifact_fmt_dest = f"llvm/lib/Target/RISCV/seal5/{set_name}/{out_name_fmt}"
                             file_artifact_fmt = File(file_artifact_fmt_dest, src_path=output_file_fmt)
@@ -163,15 +227,71 @@ def main():
                             artifacts[set_name].append(file_artifact)
                             include_path = f"{set_name}/{out_name}"
                             includes_.append(include_path)
+                        if args.generate_tests:
+                            # for test_file, test_content in test_files.items():
+                            for test_file in test_files:
+                                test_artifact = TestFile(
+                                    f"llvm/test/CodeGen/RISCV/seal5/generated/{pathlib.Path(test_file).name}",
+                                    src_path=test_file,
+                                )
+                                artifacts[set_name].append(test_artifact)
                     else:
-                        metrics["n_failed"] += 1
-                        metrics["failed_instructions"].append(instr_def.name)
+                        return False, includes_
                 except AssertionError:
-                    metrics["n_failed"] += 1
-                    metrics["failed_instructions"].append(instr_def.name)
                     return False, includes_
                     # errs.append((insn_name, str(ex)))
                 return True, includes_
+
+            def process_instrunction(instr_def, set_name, set_dir, mattr, predicate, xlen):
+                output = set_dir / f"{instr_def.name}.{args.ext}"
+                skipped = (
+                    Seal5InstrAttribute.SKIP_PATTERN_GEN in instr_def.attributes
+                    or not (set_dir / f"{instr_def.name}.core_desc").is_file()
+                )
+                if not skipped:
+                    pathlib.Path(str(output) + ".stats").unlink(missing_ok=True)
+                status = "skipped" if skipped else "failed"
+                try:
+                    result = process_instruction_impl(instr_def, set_name, set_dir, mattr, predicate, xlen)
+                    if not skipped and result[0] and output.is_file():
+                        status = "success"
+                    return result
+                finally:
+                    stat_path = pathlib.Path(str(output) + ".stats")
+                    if not skipped and stat_path.is_file():
+                        data = yaml.safe_load(stat_path.read_text())
+                        measured = data.get("seal5", {})
+                        measured["tablegen_bytes"] = output.stat().st_size if output.is_file() else 0
+                        if args.formats:
+                            fmt_path = set_dir / f"{instr_def.name}InstrFormat.{args.ext}"
+                            measured["tablegen_bytes"] += fmt_path.stat().st_size if fmt_path.is_file() else 0
+                        table = output.with_suffix(".inc")
+                        if mode == "gisel_table" and status == "success" and table.is_file():
+                            target = f"llvm/utils/TableGen/seal5/{set_name}/{table.name}"
+                            patch = "".join(
+                                difflib.unified_diff(
+                                    [],
+                                    table.read_text().splitlines(keepends=True),
+                                    fromfile="/dev/null",
+                                    tofile=f"b/{target}",
+                                )
+                            )
+                            patch_path = table.with_suffix(".inc.patch")
+                            patch_path.write_text(patch, encoding="utf-8")
+                            measured["gisel_table_bytes"] = table.stat().st_size
+                            measured["gisel_table_patch_bytes"] = patch_path.stat().st_size
+                        data["seal5"] = measured
+                        stat_path.write_text(yaml.safe_dump(data), encoding="utf-8")
+                    row = {
+                        "model": model_name,
+                        "set": set_name,
+                        "instruction": instr_def.name,
+                        "mode": mode,
+                        "status": status,
+                        **instruction_metrics(output, mode, status),
+                    }
+                    with measurement_lock:
+                        measurements.append(row)
 
             includes = []
             with ThreadPoolExecutor(args.parallel) as executor:
@@ -210,6 +330,28 @@ def main():
         #         out_path_.parent.mkdir(exist_ok=True)
     else:
         raise NotImplementedError
+    if table_includes:
+        artifacts[None].append(
+            NamedPatch(
+                "llvm/utils/TableGen/GlobalISelEmitter.cpp",
+                key="gisel_table",
+                content="\n".join(sorted(table_includes)),
+            )
+        )
+    measurements.sort(key=lambda row: (row["set"], row["instruction"]))
+    metadata = {"model", "set", "instruction", "mode", "status"}
+    totals = aggregate([{k: v for k, v in row.items() if k not in metadata} for row in measurements])
+    metrics.update(totals)
+    metrics["n_processed_sets"] = len({row["set"] for row in measurements if row["n_processed_instructions"]})
+    metrics["generation_wall_time_s"] = time.perf_counter() - generation_started
+    for status in ("skipped", "failed", "success"):
+        metrics[f"{status}_instructions"] = [row["instruction"] for row in measurements if row["status"] == status]
+    manifest = out_path / "pattern_gen_manifest.json"
+    manifest.write_text(json.dumps({"schema_version": 1, "instructions": measurements}, indent=2) + "\n")
+    report = report_rows(measurements)
+    report[-1]["generation_wall_time_s"] = metrics["generation_wall_time_s"]
+    (out_path / "pattern_gen_report.json").write_text(json.dumps(report, indent=2) + "\n")
+    pd.DataFrame(report).to_csv(out_path / "pattern_gen_report.csv", index=False)
     if args.metrics:
         metrics_file = args.metrics
         metrics_df = pd.DataFrame({key: [val] for key, val in metrics.items()})

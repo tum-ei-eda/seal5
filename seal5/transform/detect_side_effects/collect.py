@@ -15,12 +15,10 @@ import pathlib
 
 import pandas as pd
 
-from m2isar.metamodel import patch_model
-
 import seal5.model
 from seal5.model_utils import load_model, dump_model
 
-from . import visitor
+from .visitor import DetectSideEffectsVisitor
 
 from seal5.logging import Logger
 
@@ -77,16 +75,12 @@ def run(args):
     for _, set_def in model_obj.sets.items():
         metrics["n_sets"] += 1
         logger.debug("collecting side effects for set %s", set_def.name)
-        patch_model(visitor)
         for _, instr_def in set_def.instructions.items():
             metrics["n_instructions"] += 1
             context = VisitorContext()
             logger.debug("collecting side effects for instr %s", instr_def.name)
             try:
-                instr_def.operation.generate(context)
-                # TODO:
-                # if arch.InstrAttribute.NO_CONT:
-                # if arch.InstrAttribute.COND:
+                DetectSideEffectsVisitor().generate(instr_def.operation, context)
                 num_ins = len(
                     [
                         op
@@ -105,7 +99,6 @@ def run(args):
                 if has_side_effects:
                     if seal5.model.Seal5InstrAttribute.HAS_SIDE_EFFECTS not in instr_def.attributes:
                         instr_def.attributes[seal5.model.Seal5InstrAttribute.HAS_SIDE_EFFECTS] = []
-                # TODO
                 metrics["n_success"] += 1
                 metrics["success_instructions"].append(instr_def.name)
             except Exception as ex:

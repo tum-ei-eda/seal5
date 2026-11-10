@@ -6,7 +6,7 @@
 # Chair of Electrical Design Automation
 # Technical University of Munich
 
-"""Clean M2-ISA-R/Seal5 metamodel by removing unused constants."""
+"""Collect raise constraints from M2-ISA-R/Seal5 metamodel."""
 
 import sys
 import argparse
@@ -15,12 +15,10 @@ import pathlib
 
 import pandas as pd
 
-from m2isar.metamodel import patch_model
-
 from seal5.model import Seal5Constraint
 from seal5.model_utils import load_model, dump_model
 
-from . import visitor
+from .visitor import CollectRaisesVisitor
 
 from seal5.logging import Logger
 
@@ -69,14 +67,14 @@ def run(args):
     for _, set_def in model_obj.sets.items():
         metrics["n_sets"] += 1
         logger.debug("collecting raises for set %s", set_def.name)
-        patch_model(visitor)
+        visitor = CollectRaisesVisitor()
         for _, instr_def in set_def.instructions.items():
             metrics["n_instructions"] += 1
             context = VisitorContext()
             logger.debug("collecting raises for instr %s", instr_def.name)
             try:
                 context = VisitorContext()
-                instr_def.operation.generate(context)
+                visitor.generate(instr_def.operation, context)
                 if len(instr_def.constraints) > 0:
                     raise NotImplementedError("Can not yet append existing constraints")
                 constraints = []

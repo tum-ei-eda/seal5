@@ -15,11 +15,9 @@ import pathlib
 
 import pandas as pd
 
-from m2isar.metamodel import patch_model
-
 from seal5.model_utils import load_model, dump_model
 
-from . import visitor
+from .visitor import CollectRegisterOperandsVisitor
 
 from seal5.logging import Logger
 
@@ -68,13 +66,13 @@ def run(args):
     for _, set_def in model_obj.sets.items():
         metrics["n_sets"] += 1
         logger.debug("collecting register operands for set %s", set_def.name)
-        patch_model(visitor)
+        visitor = CollectRegisterOperandsVisitor()
         for _, instr_def in set_def.instructions.items():
             metrics["n_instructions"] += 1
             context = VisitorContext(instr_def.operands)
             logger.debug("collecting register operands for instr %s", instr_def.name)
             try:
-                instr_def.operation.generate(context)
+                visitor.generate(instr_def.operation, context)
                 instr_def.operands = context.operands
                 # print("context.raises", context.raises)
                 # input("next?")

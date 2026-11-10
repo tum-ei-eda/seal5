@@ -23,7 +23,10 @@ filter:
     - 0b00000
     - OP-P
     - OP
+    - 48bit
+    - 48bit2
   encoding_sizes:
     keep:
+    - 48
     - 32
     - 16

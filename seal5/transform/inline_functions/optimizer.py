@@ -13,12 +13,12 @@ import argparse
 import logging
 import pathlib
 
-from m2isar.metamodel import arch, patch_model
+from m2isar.metamodel import arch
 
-from seal5.model import Seal5FunctionAttribute
+# from seal5.model import Seal5FunctionAttribute
 from seal5.model_utils import load_model, dump_model
 
-from . import visitor
+from .visitor import InlineFunctionsVisitor
 
 from seal5.logging import Logger
 
@@ -56,16 +56,17 @@ def run(args):
 
     for set_name, set_def in model_obj.sets.items():
         logger.debug("inline functions for set %s", set_def.name)
-        patch_model(visitor)
+        visitor = InlineFunctionsVisitor()
         context = InlineFunctionsContext(set_def.functions)
         for instr_name, instr_def in set_def.instructions.items():
             logger.debug("inline_functions for instr %s", instr_def.name)
-            instr_def.operation.generate(context)
-        set_def.functions = {
-            func_name: func_def
-            for func_name, func_def in set_def.functions.items()
-            if Seal5FunctionAttribute.INLINE not in func_def.attributes
-        }
+            visitor.generate(instr_def.operation, context)
+        # only drop if inline was successful and not used elsewhere -> run drop_unused after this
+        # set_def.functions = {
+        #     func_name: func_def
+        #     for func_name, func_def in set_def.functions.items()
+        #     if Seal5FunctionAttribute.INLINE not in func_def.attributes
+        # }
 
     dump_model(model_obj, out_path, compat=args.compat)
 

@@ -17,6 +17,9 @@
 # limitations under the License.
 #
 """Common Seal5 CLI code."""
+
+import os
+
 from seal5.logging import Logger
 
 logger = Logger("cli")
@@ -25,11 +28,19 @@ logger = Logger("cli")
 def handle_logging_flags(args):
     """Handler for logging-related flags."""
     logger.setLevel(args.log.upper())
+    if getattr(args, "progress", None) is not None:
+        os.environ["SEAL5_PROGRESS"] = args.progress  # overrides settings file and inherited env var
 
 
 def add_common_options(parser):
     """Defines options used by multiple cmdline parsers."""
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
+    parser.add_argument(
+        "--progress",
+        default=None,
+        choices=["none", "tqdm", "rich"],
+        help="Progress bar mode (overrides SEAL5_PROGRESS env var and settings file; default: none)",
+    )
     parser.add_argument(
         "-v",
         "--verbose",

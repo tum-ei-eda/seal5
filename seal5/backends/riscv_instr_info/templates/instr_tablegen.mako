@@ -1,9 +1,16 @@
 class RVInst_${name}<dag outs, dag ins> : Instruction, Sched<${sched_str}> {
     // General
     let Namespace = "RISCV";
+    % if decoder_namespace is not None:
+    let DecoderNamespace = "${decoder_namespace}";
+    %endif
     let Size = ${size // 8};
-    bits<32> SoftFail = 0;
+    bits<${size}> SoftFail = 0;
     bits<${size}> Inst;
+    % if format_str is not None:
+    InstFormat Format = ${format_str};
+    let TSFlags{4-0} = Format.Value;
+    % endif
 
     // Operands
     % for operand in operands:

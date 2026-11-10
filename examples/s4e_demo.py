@@ -17,12 +17,12 @@
 # limitations under the License.
 #
 """Demo script for the Seal5 Flow."""
+
 import os
 
 from pathlib import Path
 
 from seal5.wrapper import run_seal5_flow
-
 
 DEMO_NAME = os.environ.get("DEMO_NAME", "s4e")
 EXAMPLES_DIR = Path(os.path.dirname(os.path.realpath(__file__)))

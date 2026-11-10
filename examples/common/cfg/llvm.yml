@@ -1,3 +1,4 @@
+---
 llvm:
   ninja: true  # TODO: move to configs
   # num_threads: -1  # TODO: move to configs
@@ -10,6 +11,7 @@ llvm:
         LLVM_BUILD_TOOLS: true
         LLVM_ENABLE_ASSERTIONS: false
         LLVM_OPTIMIZED_TABLEGEN: true
+        # LLVM_ENABLE_PROJECTS: [clang, lld, lldb]
         LLVM_ENABLE_PROJECTS: [clang, lld]
         # LLVM_TARGETS_TO_BUILD: [X86, RISCV]
         LLVM_DEFAULT_TARGET_TRIPLE: "riscv32-unknown-elf"
@@ -20,6 +22,7 @@ llvm:
         LLVM_BUILD_TOOLS: true
         LLVM_ENABLE_ASSERTIONS: true
         LLVM_OPTIMIZED_TABLEGEN: true
+        # LLVM_ENABLE_PROJECTS: [clang, lld, lldb]
         LLVM_ENABLE_PROJECTS: [clang, lld]
         # LLVM_TARGETS_TO_BUILD: [X86, RISCV]
         LLVM_DEFAULT_TARGET_TRIPLE: "riscv32-unknown-elf"
@@ -31,6 +34,7 @@ llvm:
         LLVM_BUILD_TOOLS: true
         LLVM_ENABLE_ASSERTIONS: true
         LLVM_OPTIMIZED_TABLEGEN: true
+        # LLVM_ENABLE_PROJECTS: [clang, lld, lldb]
         LLVM_ENABLE_PROJECTS: [clang, lld]
         # LLVM_TARGETS_TO_BUILD: [X86, RISCV]
         LLVM_TARGETS_TO_BUILD: [RISCV]

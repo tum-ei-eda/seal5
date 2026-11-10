@@ -186,6 +186,9 @@ NAME                            # Label of the Seal5 flow (used in Git tags,...)
 
 Checkout [Seal5's ReadTheDocs Page](https://seal5.readthedocs.io/en/latest/?version=latest)!
 
+The optional [GNU binutils/GDB backend](docs/gnu-toolchain.rst) generates patches
+for custom instruction assembly, linking, objdump and GDB, with a minimal build guide.
+
 ## Limitations
 
 See [here](https://github.com/tum-ei-eda/seal5/blob/main/LIMITATIONS.md).

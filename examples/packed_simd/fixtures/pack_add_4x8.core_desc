@@ -1,0 +1,15 @@
+// Investigation fixture: ordinary TableGen patterns only.
+InstructionSet PackedSIMD extends RISCVBase {
+  instructions {
+    PACK_ADD_4X8 {
+      encoding: 7'd0 :: rs2[4:0] :: rs1[4:0] :: 3'd0 :: rd[4:0] :: 7'b0001011;
+      assembly: {"pack.add.4x8", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: if (rd != 0) {
+        X[rd][7:0] = (X[rs1][7:0] + X[rs2][7:0])[7:0];
+        X[rd][15:8] = (X[rs1][15:8] + X[rs2][15:8])[7:0];
+        X[rd][23:16] = (X[rs1][23:16] + X[rs2][23:16])[7:0];
+        X[rd][31:24] = (X[rs1][31:24] + X[rs2][31:24])[7:0];
+      }
+    }
+  }
+}

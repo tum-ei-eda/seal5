@@ -46,7 +46,7 @@ OPCODE_LOOKUP = {
     "OP-IMM": 0b00100,
     "AUIPC": 0b00101,
     "OP-IMM-32": 0b00110,
-    # "48bit": 0b00111,
+    "48bit": 0b00111,
     "STORE": 0b01000,
     "STORE-FP": 0b01001,
     "custom-1": 0b01010,
@@ -62,7 +62,7 @@ OPCODE_LOOKUP = {
     "OP-FP": 0b10100,
     "OP-V": 0b10101,
     "custom-2": 0b10110,  # rv128i
-    # "48bit2": 0b10111,
+    "48bit2": 0b10111,
     "BRANCH": 0b11000,
     "JALR": 0b11001,
     "reserved": 0b11010,
@@ -76,56 +76,23 @@ OPCODE_LOOKUP = {
 
 def detect_opcode(instr_def):  # TODO: move to transform and store as attr
     OPCODE_LOOKUP_REV = {v: k for k, v in OPCODE_LOOKUP.items()}
-    size = 0  # TODO: use instr_def.size
-    opcode = None
-    for e in reversed(instr_def.encoding):
-        # print("e", e, dir(e))
-        if isinstance(e, arch.BitVal):
-            length = e.length
-            if size == 0:
-                val = e.value
-                if length >= 7:
-                    val = val & 0b1111111
-                    opcode = val >> 2
-        elif isinstance(e, arch.BitField):
-            length = e.range.length
-        else:
-            assert False
-        size += length
-    if size != 32:  # TODO: support compressed opcodes
-        assert size == 16
-        return "COMPRESSED", opcode
-    assert opcode is not None
+    size = instr_def.size
+    if size == 16:
+        return "COMPRESSED", None
+    assert size in [32, 48], f"Unsupported encoding size: {size}"
+    assert instr_def.code is not None and instr_def.mask & 0x7F == 0x7F, "Opcode must be fixed"
+    # The generator can emit each fixed bit as a separate BitVal.
+    opcode = (instr_def.code & 0x7F) >> 2
     found = OPCODE_LOOKUP_REV.get(opcode, None)
     assert found is not None, f"Opcode not found: {bin(opcode)}"
     return found, opcode
 
 
 def detect_funct3_funct7(instr_def):
-    size = 0  # TODO: use instr_def.size
-    funct3 = None
-    funct7 = None
-    if size != 32:  # TODO: support compressed opcodes
+    if instr_def.size != 32:
         return None, None
-    for e in reversed(instr_def.encoding):
-        # print("e", e, dir(e))
-        if isinstance(e, arch.BitVal):
-            length = e.length
-            if size == 7 + 5:
-                val = e.value
-                if length == 3:
-                    funct3 = val
-            elif size == 7 + 5 + 3 + 5 + 5:
-                val = e.value
-                if length == 7:
-                    funct7 = val
-        elif isinstance(e, arch.BitField):
-            length = e.range.length
-        else:
-            assert False
-        size += length
-        assert size == 16
-        return "COMPRESSED"
+    funct3 = (instr_def.code >> 12) & 0x7 if instr_def.mask & 0x7000 == 0x7000 else None
+    funct7 = (instr_def.code >> 25) & 0x7F if instr_def.mask & 0xFE000000 == 0xFE000000 else None
     return funct3, funct7
 
 

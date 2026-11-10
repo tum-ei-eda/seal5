@@ -21,13 +21,14 @@
 from seal5.flow import Seal5Flow
 from seal5.logging import Logger
 
-
 logger = Logger("cli")
 
 
 def add_install_options(parser):
     """Setup parser for install argument group."""
     install_parser = parser.add_argument_group("install options")
+    install_parser.add_argument("--cmake-extra-args", default=None, help="Additional CMake arguments.")
+    install_parser.add_argument("--reduced", action="store_true", help="Build/install only ISAAC tools.")
     install_parser.add_argument(
         "--config",
         default=None,
@@ -61,4 +62,6 @@ def handle(args):
         config=args.config,
         verbose=args.verbose,
         enable_ccache=args.ccache,
+        cmake_extra_args=args.cmake_extra_args,
+        reduced=args.reduced,
     )

@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 """Templates for RISCVFeatures.td patches"""
+
 import pathlib
 
 template_dir = pathlib.Path(__file__).parent.resolve()

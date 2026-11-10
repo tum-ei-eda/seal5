@@ -19,25 +19,9 @@ from m2isar.metamodel import arch
 from seal5.model_utils import load_model, dump_model
 from seal5.riscv_utils import OPCODE_LOOKUP
 
-
 from seal5.logging import Logger
 
 logger = Logger("transform.filter_model")
-
-
-class DropUnusedContext:
-    def __init__(self, names: "list[str]"):
-        self.names = names
-        self.to_keep = set()
-
-    @property
-    def to_drop(self):
-        return set(name for name in self.names if name not in self.to_keep)
-
-    def track(self, name: str):
-        if name in self.names:
-            # logger.debug("Tracked use of %s", name)
-            self.to_keep.add(name)
 
 
 def get_parser():
@@ -161,7 +145,7 @@ def run(args):
             else:
                 assert False
             size += length
-        assert size in [16, 32, 64, 128], f"Invalid size: {size} (Instruction: {name})"
+        assert size in [16, 32, 48, 64, 128], f"Invalid size: {size} (Instruction: {name})"
         ret = True
         if drop2 and keep2:
             ret = size not in drop2 and size in keep2
@@ -181,12 +165,18 @@ def run(args):
             return opcode not in drop
         return True
 
+    before = len(model_obj.sets)
     model_obj.sets = {
         set_name: set_def
         for set_name, set_def in model_obj.sets.items()
         if check_filter_regex(set_name, keep_sets, drop_sets)
     }
+    after = len(model_obj.sets)
+    diff = before - after
+    if diff > 0:
+        logger.debug("Filtered %d sets", diff)
     for set_name, set_def in model_obj.sets.items():
+        before = len(set_def.instructions)
         set_def.instructions = {
             key: instr_def
             for key, instr_def in set_def.instructions.items()
@@ -195,6 +185,11 @@ def run(args):
                 instr_def.name, instr_def.encoding, keep_opcodes, drop_opcodes, keep_encoding_sizes, drop_encoding_sizes
             )
         }
+        after = len(set_def.instructions)
+        diff = before - after
+        if diff > 0:
+            logger.debug("Filtered %d instructions for set %s", diff, set_name)
+
         # for instr_name, instr_def in set_def.instructions.items():
     for set_name, set_def in model_obj.sets.items():
         set_def.extension = [

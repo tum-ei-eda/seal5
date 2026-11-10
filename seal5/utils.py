@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 """Seal5 utility functions."""
+
 import os
 import sys
 import shutil
@@ -97,10 +98,10 @@ def exec_getout(
         The command line output of the command
     """
 
+    logger = get_logger()  # instantiate here
+    logger.debug("- Executing: %s", str(args))
     if err_func is None:
-        logger = get_logger()  # instantiate here
         err_func = logger.error
-        logger.debug("- Executing: %s", str(args))
     else:
         err_func = print
 
@@ -185,7 +186,7 @@ def make(*args, target=None, threads=multiprocessing.cpu_count(), use_ninja=Fals
     # TODO: make sure that ninja is installed?
     extra_args = []
     if target:
-        extra_args.append(target)
+        extra_args.extend(target.split(",") if isinstance(target, str) else target)
     tool = "ninja" if use_ninja else "make"
     extra_args.append("-j" + str(threads))
     cmd = [tool] + extra_args + list(args)

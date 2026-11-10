@@ -1,0 +1,4 @@
+---
+tools:
+  pattern_gen:
+    ref: llvm-22.1.8-gisel-table-examples
