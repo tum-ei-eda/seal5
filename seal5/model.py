@@ -539,14 +539,16 @@ class Seal5Instruction(Instruction):
                 tokens.append(token)
                 break
             sep, pos = found
-            if expected:
+            if expected and sep != "!":
                 assert sep == expected, f"Found '{sep}', expected '{expected}'"
                 expected = None
             if sep == "(":
                 expected = ")"
             token = cur[:pos]
             cur = cur[pos + 1 :]
-            tokens.append(token)
+            if token:
+                tokens.append(token)
+        assert expected is None, f"Missing '{expected}' in asm string"
         unique_tokens = set(tokens)
         token_counts = {token: tokens.count(token) for token in unique_tokens}
         invalid_token_counts = {token: count for token, count in token_counts.items() if count > 1}

@@ -231,7 +231,7 @@ def build_attr(arch: str, intrinsic: IntrinsicDefn):
             ret += ", "
         ret += ir_type_to_pattern(arg.arg_type)
     ret += "],\n"
-    attrs = []
+    attrs = [f"ImmArg<ArgIndex<{index}>>" for index, arg in enumerate(intrinsic.args) if arg.immediate]
     no_mem = True  # TODO: expose
     if no_mem:
         attrs.append("IntrNoMem")

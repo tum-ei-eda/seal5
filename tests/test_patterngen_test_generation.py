@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from seal5.tools.cdsl2llvm import combine_test_fragments, run_pattern_gen
+from seal5.tools.cdsl2llvm import combine_test_fragments, run_pattern_gen, scalarize_register_inputs
 
 
 class PatternGenTestGenerationTests(unittest.TestCase):
@@ -54,6 +54,103 @@ class PatternGenTestGenerationTests(unittest.TestCase):
                 num_register_outputs=num_register_outputs,
             )
 
+    def test_skipped_constants_keep_tests_for_successful_specializations(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "bin").mkdir()
+            (root / "bin" / "pattern-gen").touch()
+            source = root / "test.core_desc"
+            source.touch()
+            source.with_suffix(".ll").write_text(
+                "define void @implTEST_0() {\n  ret void\n}\n" "define void @implTEST_2() {\n  ret void\n}\n"
+            )
+            destination = root / "test.td"
+
+            def execute(*_args, **_kwargs):
+                destination.write_text("def TEST_ : RVInst_TEST<(outs GPR:$rd), (ins GPR:$a)>;\n")
+                return (
+                    "Skipped constant specialization for TEST_0\n"
+                    "Pattern for TEST_2 [xtest]: (smax GPR:$a, (i32 0))\n"
+                    "Pattern for TEST_2 [xtest]: (select (setcc GPR:$a, 0, SETGT), GPR:$a, 0)\n"
+                )
+
+            with patch("seal5.tools.cdsl2llvm.utils.exec_getout", side_effect=execute):
+                files = run_pattern_gen(root, source, destination, xlen=32, mattr="+m", immediate_operands=["imm"])
+            self.assertEqual(len(files), 1)
+            contents = Path(files[0]).read_text()
+            self.assertIn("define void @implTEST_0", contents)
+            self.assertNotIn("MIR-LABEL: name: implTEST_0", contents)
+            self.assertIn("MIR-LABEL: name: implTEST_2", contents)
+
+    def test_constant_specializations_do_not_require_an_instruction_match(self):
+        with tempfile.TemporaryDirectory() as directory:
+            ir = Path(directory) / "test.ll"
+            ir.write_text("define void @implTEST_0() {\n  ret void\n}\n" "define void @implTEST_1() {\n  ret void\n}\n")
+            result = combine_test_fragments(
+                ir,
+                "TEST_1",
+                "; RUN: test",
+                "; CHECK-LABEL: implTEST_1",
+                "",
+                checked_functions={"TEST_1"},
+            )
+            self.assertIn("define void @implTEST_0()", result)
+            self.assertNotIn("; CHECK-LABEL: implTEST_0", result)
+            self.assertEqual(result.count("; CHECK-LABEL: implTEST_1"), 1)
+
+    def test_scalar_register_inputs_preserve_subregister_extraction(self):
+        ir = (
+            "define void @implTEST(ptr noalias writeonly %rd, ptr readonly align 4 %rs1) {\n"
+            "  %hi = getelementptr i8, ptr %rs1, i32 2\n"
+            "  %v = load i16, ptr %hi\n"
+            "  %w = sext i16 %v to i32\n"
+            "  store i32 %w, ptr %rd\n  ret void\n}\n"
+        )
+        with patch("seal5.tools.cdsl2llvm.subprocess.run") as optimize:
+            optimize.return_value.stdout = "optimized"
+            self.assertEqual(scalarize_register_inputs(ir, 32, Path("/tools/opt")), "optimized")
+            args, kwargs = optimize.call_args
+            self.assertIn("-passes=sroa,instcombine", args[0])
+            prepared = kwargs["input"]
+            self.assertIn("ptr noalias writeonly %rd, i32 %rs1.seal5_value", prepared)
+            self.assertIn("%rs1 = alloca i32, align 4", prepared)
+            self.assertIn("store i32 %rs1.seal5_value, ptr %rs1", prepared)
+            self.assertIn("%hi = getelementptr i8, ptr %rs1, i32 2", prepared)
+            self.assertIn("store i32 %w, ptr %rd", prepared)
+
+    def test_unrolled_functions_use_distinct_labels_and_the_real_target(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "bin").mkdir()
+            (root / "bin/pattern-gen").touch()
+            source = root / "test.core_desc"
+            source.touch()
+            destination = root / "test.td"
+            source.with_suffix(".ll").write_text(
+                "define void @implTEST_0() {\n  ret void\n}\n" "define void @implTEST_1() {\n  ret void\n}\n"
+            )
+
+            def execute(*_args, **_kwargs):
+                destination.write_text("def TEST_ : RVInst_TEST<(outs GPR:$rd), (ins GPR:$a)>;\n")
+                return (
+                    "Pattern for TEST_0 [xtest]: (mul GPR:$a, GPR:$b)\n"
+                    "Pattern for TEST_1 [xtest]: (sra (mul GPR:$a, GPR:$b), 1)\n"
+                    "source.core_desc: warning: example diagnostic\n"
+                    "=== Statistics Collected ===\n1 pattern-gen - Generated patterns\n"
+                )
+
+            with patch("seal5.tools.cdsl2llvm.utils.exec_getout", side_effect=execute):
+                files = run_pattern_gen(root, source, destination, xlen=32, mattr="+m", immediate_operands=["shift"])
+            contents = Path(files[0]).read_text()
+            for suffix in [0, 1]:
+                self.assertEqual(contents.count(f"RV32-MIR-LABEL: name: implTEST_{suffix}\n"), 1)
+                self.assertEqual(contents.count(f"RV32-ASM-LABEL: implTEST_{suffix}:\n"), 1)
+            self.assertEqual(contents.count("RV32-MIR: {{^ *[^;]*}} TEST_{{[ ,]}}\n"), 2)
+            self.assertNotIn("RV32-MIR: TEST_0\n", contents)
+            patterns = Path(str(destination) + ".pat").read_text()
+            self.assertNotIn("diagnostic", patterns)
+            self.assertNotIn("Statistics", patterns)
+
     def test_packed_result_allows_register_class_copy(self):
         with tempfile.TemporaryDirectory() as directory:
             files = self.generate(
@@ -74,7 +171,7 @@ class PatternGenTestGenerationTests(unittest.TestCase):
                 has_register_output=False,
             )
             contents = Path(files[0]).read_text()
-            self.assertIn("RV32-MIR: TEST\n  ; RV32-MIR-NEXT: PseudoRET", contents)
+            self.assertIn("RV32-MIR: {{^ *[^;]*}} TEST{{[ ,]}}\n  ; RV32-MIR-NEXT: PseudoRET", contents)
             self.assertIn("RV32-ASM: xtest\n  ; RV32-ASM-NEXT: ret", contents)
             self.assertNotIn("RV32-MIR-NEXT: SW", contents)
 

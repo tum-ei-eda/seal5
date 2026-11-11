@@ -1,0 +1,53 @@
+---
+tools:
+  pattern_gen:
+    ref: llvm-22.1.8-packed-simd
+models:
+  XCoreVBitmanip:
+    extensions:
+      XCoreVBitmanip:
+        backend_features: [FeatureSeal5Rotate32]
+passes:
+  overrides:
+    explicit_memory_names:
+      enabled: true
+    explicit_register_names:
+      enabled: true
+    normalize_subscripts:
+      enabled: true
+    detect_branches:
+      enabled: true
+    check_pattern_support:
+      allow_memory: true
+      allow_branches: true
+    behav_to_llvmir:
+      no_extend: false
+    behav_to_pat:
+      no_extend: false
+      parallel: false
+      added_complexity: 1000  # Exercise generated rules even when native rules also match.
+patches:
+  - name: corev_register_offset_asm
+    target: llvm
+    stage: 0
+    file: ../patches/llvm22-register-offset-asm.patch
+    comment: Parse generated register-offset memory operands
+  - name: corev_packed_capabilities
+    target: llvm
+    stage: 0
+    priority: 0  # Apply after PatternGen integration and insertion markers.
+    file: ../patches/llvm22-packed-capabilities.patch
+    comment: Supply packed operation capabilities until they reach the dependency branch
+    onlyif: "'FeatureGPR32VAdd' not in (settings.deps_dir / 'cdsl2llvm/llvm/lib/Target/RISCV/RISCVFeatures.td').read_text()"
+  - name: corev_rotate_capability
+    target: llvm
+    stage: 0
+    priority: 0
+    file: ../patches/llvm22-rotate-capability.patch
+    comment: Preserve RV32 rotate-right nodes for generated instruction patterns
+    onlyif: "'FeatureSeal5Rotate32' not in (settings.deps_dir / 'cdsl2llvm/llvm/lib/Target/RISCV/RISCVFeatures.td').read_text()"
+  - name: corev_mul_mask_cost
+    target: llvm
+    stage: 3  # The generated XCoreVMac subtarget feature must exist first.
+    file: ../patches/llvm22-mul-mask-cost.patch
+    comment: Keep low-half multiply masks visible for generated patterns

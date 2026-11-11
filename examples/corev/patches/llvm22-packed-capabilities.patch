@@ -1,0 +1,494 @@
+diff --git a/llvm/lib/Target/RISCV/RISCVISelLowering.cpp b/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
+index 0ad4d75b13e6..2fc992cb34c2 100644
+--- a/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
++++ b/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
+@@ -143,6 +143,34 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
+     // Memory still transfers one scalar word; the packed representation is a
+     // register view. This also retains the ordinary scalar alignment handling.
+     for (MVT VT : {MVT::v4i8, MVT::v2i16}) {
++      setOperationAction(ISD::ADD, VT, Subtarget.hasGPR32VAdd() ? Legal : Expand);
++      setOperationAction(ISD::SUB, VT, Subtarget.hasGPR32VSub() ? Legal : Expand);
++      // Only the generated packed arithmetic is selected directly. All other
++      // operations must have scalar expansion paths, never accidental RVV nodes.
++      for (unsigned Opc : {ISD::MUL, ISD::SHL, ISD::SRL, ISD::SRA,
++                           ISD::SDIV, ISD::UDIV, ISD::SREM, ISD::UREM,
++                           ISD::SMIN, ISD::SMAX, ISD::UMIN, ISD::UMAX,
++                           ISD::SETCC, ISD::VSELECT, ISD::SELECT,
++                           ISD::SIGN_EXTEND, ISD::ZERO_EXTEND, ISD::ANY_EXTEND,
++                           ISD::TRUNCATE, ISD::CONCAT_VECTORS,
++                           ISD::EXTRACT_SUBVECTOR, ISD::INSERT_SUBVECTOR})
++        setOperationAction(Opc, VT, Expand);
++      for (unsigned Opc : {ISD::AND, ISD::OR, ISD::XOR}) {
++        setOperationAction(Opc, VT, Promote);
++        AddPromotedToType(Opc, VT, MVT::i32);
++      }
++      for (unsigned Opc : {ISD::EXTRACT_VECTOR_ELT, ISD::INSERT_VECTOR_ELT,
++                           ISD::VECTOR_SHUFFLE, ISD::SCALAR_TO_VECTOR})
++        setOperationAction(Opc, VT, Custom);
++      setTruncStoreAction(VT, VT.changeVectorElementType(MVT::i1), Expand);
++      if (VT == MVT::v2i16) {
++        setTruncStoreAction(VT, MVT::v2i8, Expand);
++        for (unsigned Ext : {ISD::EXTLOAD, ISD::ZEXTLOAD, ISD::SEXTLOAD})
++          setLoadExtAction(Ext, VT, MVT::v2i8, Expand);
++      }
++      for (unsigned Ext : {ISD::EXTLOAD, ISD::ZEXTLOAD, ISD::SEXTLOAD})
++        setLoadExtAction(Ext, VT, VT.changeVectorElementType(MVT::i1), Expand);
++      setOperationAction(ISD::BUILD_VECTOR, VT, Custom);
+       setOperationAction(ISD::LOAD, VT, Promote);
+       AddPromotedToType(ISD::LOAD, VT, MVT::i32);
+       setOperationAction(ISD::STORE, VT, Promote);
+@@ -3007,6 +3035,8 @@ RISCVTargetLowering::decomposeSubvectorInsertExtractToSubRegs(
+ // Permit combining of mask vectors as BUILD_VECTOR never expands to scalar
+ // stores for those types.
+ bool RISCVTargetLowering::mergeStoresAfterLegalization(EVT VT) const {
++  if (Subtarget.hasGPR32V() && !Subtarget.hasVInstructions())
++    return false;
+   return !Subtarget.useRVVForFixedLengthVectors() ||
+          (VT.isFixedLengthVector() && VT.getVectorElementType() == MVT::i1);
+ }
+@@ -6739,6 +6769,8 @@ static SDValue lowerVECTOR_SHUFFLE(SDValue Op, SelectionDAG &DAG,
+ }
+ 
+ bool RISCVTargetLowering::isShuffleMaskLegal(ArrayRef<int> M, EVT VT) const {
++  if (Subtarget.hasGPR32V() && !Subtarget.hasVInstructions())
++    return VT == MVT::v4i8 || VT == MVT::v2i16;
+   // Only support legal VTs for other shuffles for now.
+   if (!isTypeLegal(VT))
+     return false;
+@@ -7770,6 +7802,84 @@ RISCVTargetLowering::lowerXAndesBfHCvtBFloat16Store(SDValue Op,
+ 
+ SDValue RISCVTargetLowering::LowerOperation(SDValue Op,
+                                             SelectionDAG &DAG) const {
++  if (Subtarget.hasGPR32V() && !Subtarget.is64Bit()) {
++    auto IsPacked = [](EVT VT) {
++      return VT == MVT::v4i8 || VT == MVT::v2i16;
++    };
++    SDLoc DL(Op);
++    if (Op.getOpcode() == ISD::EXTRACT_VECTOR_ELT &&
++        IsPacked(Op.getOperand(0).getValueType())) {
++      unsigned Bits = Op.getOperand(0).getValueType().getScalarSizeInBits();
++      SDValue Word = DAG.getBitcast(MVT::i32, Op.getOperand(0));
++      SDValue Index = DAG.getZExtOrTrunc(Op.getOperand(1), DL, MVT::i32);
++      SDValue Shift = DAG.getNode(ISD::MUL, DL, MVT::i32, Index,
++                                  DAG.getConstant(Bits, DL, MVT::i32));
++      Word = DAG.getNode(ISD::SRL, DL, MVT::i32, Word, Shift);
++      Word = DAG.getNode(ISD::AND, DL, MVT::i32, Word,
++                         DAG.getConstant((1U << Bits) - 1, DL, MVT::i32));
++      return DAG.getZExtOrTrunc(Word, DL, Op.getValueType());
++    }
++    if (IsPacked(Op.getValueType())) {
++      unsigned Bits = Op.getValueType().getScalarSizeInBits();
++      SDValue Mask = DAG.getConstant((1U << Bits) - 1, DL, MVT::i32);
++      if (Op.getOpcode() == ISD::SCALAR_TO_VECTOR) {
++        SDValue Lane = DAG.getZExtOrTrunc(Op.getOperand(0), DL, MVT::i32);
++        return DAG.getBitcast(Op.getValueType(),
++                             DAG.getNode(ISD::AND, DL, MVT::i32, Lane, Mask));
++      }
++      if (Op.getOpcode() == ISD::INSERT_VECTOR_ELT) {
++        SDValue Word = DAG.getBitcast(MVT::i32, Op.getOperand(0));
++        SDValue Lane = DAG.getZExtOrTrunc(Op.getOperand(1), DL, MVT::i32);
++        SDValue Index = DAG.getZExtOrTrunc(Op.getOperand(2), DL, MVT::i32);
++        SDValue Shift = DAG.getNode(ISD::MUL, DL, MVT::i32, Index,
++                                    DAG.getConstant(Bits, DL, MVT::i32));
++        Lane = DAG.getNode(ISD::AND, DL, MVT::i32, Lane, Mask);
++        Lane = DAG.getNode(ISD::SHL, DL, MVT::i32, Lane, Shift);
++        Mask = DAG.getNode(ISD::SHL, DL, MVT::i32, Mask, Shift);
++        Mask = DAG.getNode(ISD::XOR, DL, MVT::i32, Mask,
++                           DAG.getAllOnesConstant(DL, MVT::i32));
++        Word = DAG.getNode(ISD::AND, DL, MVT::i32, Word, Mask);
++        return DAG.getBitcast(Op.getValueType(),
++                             DAG.getNode(ISD::OR, DL, MVT::i32, Word, Lane));
++      }
++      if (Op.getOpcode() == ISD::VECTOR_SHUFFLE) {
++        auto *Shuffle = cast<ShuffleVectorSDNode>(Op);
++        unsigned Lanes = Op.getValueType().getVectorNumElements();
++        SmallVector<SDValue, 4> Elements;
++        for (int I : Shuffle->getMask()) {
++          if (I < 0) {
++            Elements.push_back(DAG.getUNDEF(MVT::i32));
++            continue;
++          }
++          Elements.push_back(DAG.getNode(
++              ISD::EXTRACT_VECTOR_ELT, DL, MVT::i32,
++              Op.getOperand(I / Lanes),
++              DAG.getConstant(I % Lanes, DL, MVT::i32)));
++        }
++        return DAG.getBuildVector(Op.getValueType(), DL, Elements);
++      }
++    }
++  }
++  if (Subtarget.hasGPR32V() && !Subtarget.is64Bit() &&
++      Op.getOpcode() == ISD::BUILD_VECTOR &&
++      (Op.getValueType() == MVT::v4i8 || Op.getValueType() == MVT::v2i16)) {
++    SDLoc DL(Op);
++    unsigned Bits = Op.getValueType().getScalarSizeInBits();
++    SDValue Packed = DAG.getConstant(0, DL, MVT::i32);
++    for (unsigned I = 0; I < Op.getNumOperands(); ++I) {
++      SDValue Lane = Op.getOperand(I);
++      if (Lane.isUndef())
++        continue;
++      Lane = DAG.getZExtOrTrunc(Lane, DL, MVT::i32);
++      Lane = DAG.getNode(ISD::AND, DL, MVT::i32, Lane,
++                         DAG.getConstant((1U << Bits) - 1, DL, MVT::i32));
++      Lane = DAG.getNode(ISD::SHL, DL, MVT::i32, Lane,
++                         DAG.getConstant(I * Bits, DL, MVT::i32));
++      Packed = DAG.getNode(ISD::OR, DL, MVT::i32, Packed, Lane);
++    }
++    return DAG.getBitcast(Op.getValueType(), Packed);
++  }
++
+   switch (Op.getOpcode()) {
+   default:
+     reportFatalInternalError(
+diff --git a/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp b/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
+index 2d2b3f9e3b24..c43bfe9a1efc 100644
+--- a/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
++++ b/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
+@@ -679,9 +679,9 @@ RISCVTTIImpl::getShuffleCost(TTI::ShuffleKind Kind, VectorType *DstTy,
+   Kind = improveShuffleKindFromMask(Kind, Mask, SrcTy, Index, SubTp);
+   std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(SrcTy);
+ 
+-  if (ST->hasGPR32V()) {
+-    return 1; // placeholder
+-  }
++  if (ST->hasGPR32V() && !ST->hasVInstructions())
++    return BaseT::getShuffleCost(Kind, DstTy, SrcTy, Mask, CostKind, Index,
++                                 SubTp, Args, CxtI);
+ 
+   // First, handle cases where having a fixed length vector enables us to
+   // give a more accurate cost than falling back to generic scalable codegen.
+@@ -2212,6 +2212,13 @@ InstructionCost RISCVTTIImpl::getMemoryOpCost(unsigned Opcode, Type *Src,
+                                               TTI::OperandValueInfo OpInfo,
+                                               const Instruction *I) const {
+   EVT VT = TLI->getValueType(DL, Src, true);
++  // Packed memory uses a scalar word. Account for splitting unaligned
++  // transfers when the scalar target cannot execute them directly.
++  if (ST->hasGPR32V() && !ST->hasVInstructions() &&
++      (VT == MVT::v4i8 || VT == MVT::v2i16) && Alignment < Align(4) &&
++      !ST->enableUnalignedScalarMem())
++    return Alignment >= Align(2) ? 3 : 7;
++
+   // Type legalization can't handle structs
+   if (VT == MVT::Other || ST->hasGPR32V())
+     return BaseT::getMemoryOpCost(Opcode, Src, Alignment, AddressSpace,
+@@ -2427,10 +2434,24 @@ InstructionCost RISCVTTIImpl::getVectorInstrCost(unsigned Opcode, Type *Val,
+                                                  const Value *Op1) const {
+   assert(Val->isVectorTy() && "This must be a vector type");
+ 
+-  // Packed GPR vectors do not have RVV vector lengths or slide instructions.
+-  // Use the generic extract/insert estimate rather than entering the RVV model.
+-  if (ST->hasGPR32V() && !ST->hasVInstructions() && isa<FixedVectorType>(Val))
++  // Estimate scalar packing/unpacking instructions; GPR32V has no RVV slides.
++  if (ST->hasGPR32V() && !ST->hasVInstructions() && isa<FixedVectorType>(Val)) {
++    auto *VT = cast<FixedVectorType>(Val);
++    if (VT->getPrimitiveSizeInBits() == 32 &&
++        (VT->getScalarSizeInBits() == 8 || VT->getScalarSizeInBits() == 16)) {
++      if (Opcode == Instruction::ExtractElement) {
++        if (Index == -1U)
++          return 4; // Compute shift, shift word, and isolate the lane.
++        unsigned Bits = VT->getScalarSizeInBits();
++        if (Index == VT->getNumElements() - 1)
++          return 1; // The top lane only needs a right shift.
++        return Bits == 8 && Index == 0 ? 1 : 2;
++      }
++      if (Opcode == Instruction::InsertElement)
++        return Index == -1U ? 10 : 6;
++    }
+     return BaseT::getVectorInstrCost(Opcode, Val, CostKind, Index, Op0, Op1);
++  }
+ 
+   // TODO: Add proper cost model for P extension fixed vectors (e.g., v4i16)
+   // For now, skip all fixed vector cost analysis when P extension is available
+diff --git a/llvm/tools/pattern-gen/LLVMOverride.cpp b/llvm/tools/pattern-gen/LLVMOverride.cpp
+index 177d38ca9944..fc2b10c000a2 100644
+--- a/llvm/tools/pattern-gen/LLVMOverride.cpp
++++ b/llvm/tools/pattern-gen/LLVMOverride.cpp
+@@ -508,6 +508,10 @@ std::unique_ptr<TargetMachine> getTargetMachine(bool Is64Bit,
+   TargetOptions Options = codegen::InitTargetOptionsFromCodeGenFlags(TheTriple);
+   std::string CPUStr = codegen::getCPUStr(),
+               FeaturesStr = codegen::getFeaturesStr() + Mattr;
++  // The analysis target models candidate instructions before their ISA exists.
++  // Final backends instead enable each operation through the generated feature.
++  if (FeaturesStr.find("+gpr32v") != std::string::npos)
++    FeaturesStr += ",+gpr32v-add,+gpr32v-sub";
+ 
+   auto MAttrs = codegen::getMAttrs();
+ 
+--- a/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
++++ b/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
+@@ -143,30 +143,34 @@
+ 
+   auto PtrVecTys = {nxv1p0, nxv2p0, nxv4p0, nxv8p0, nxv16p0};
+ 
+-  getActionDefinitionsBuilder({G_ADD, G_SUB})
+-          .legalFor({sXLen})
+-          .legalIf(typeIsLegalIntOrFPVec(0, IntOrFPVecTys, ST))
+-          .legalIf(all(
+-              typeInSet(0, XCVVecTys),
+-              LegalityPredicate([=, &ST](const LegalityQuery &Query) {
+-                return ST.hasGPR32V() && !ST.is64Bit();
+-              }
+-          )))
+-          .customFor(ST.is64Bit(), {s32})
+-          .widenScalarToNextPow2(0)
+-          .clampScalar(0, sXLen, sXLen);
++  auto PackedFallback = [&ST](unsigned Idx) -> LegalityPredicate {
++    return [Idx, &ST](const LegalityQuery &Q) {
++      return ST.hasGPR32V() && !ST.is64Bit() && !ST.hasVInstructions() &&
++             Q.Types[Idx].isVector() && !Q.Types[Idx].isScalable();
++    };
++  };
++
++  for (unsigned Op : {G_ADD, G_SUB}) {
++    bool HasPackedOp = Op == G_ADD ? ST.hasGPR32VAdd() : ST.hasGPR32VSub();
++    getActionDefinitionsBuilder(Op)
++        .legalFor({sXLen})
++        .legalIf(typeIsLegalIntOrFPVec(0, IntOrFPVecTys, ST))
++        .legalIf(all(PackedFallback(0), typeInSet(0, XCVVecTys),
++                     LegalityPredicate([HasPackedOp](const LegalityQuery &) { return HasPackedOp; })))
++        .scalarizeIf(PackedFallback(0), 0)
++        .customFor(ST.is64Bit(), {s32})
++        .widenScalarToNextPow2(0)
++        .clampScalar(0, sXLen, sXLen);
++  }
+ 
+   getActionDefinitionsBuilder({G_AND, G_OR, G_XOR})
+-          .legalFor({sXLen})
+-          .legalIf(typeIsLegalIntOrFPVec(0, IntOrFPVecTys, ST))
+-          .legalIf(all(
+-              typeInSet(0, XCVVecTys),
+-              LegalityPredicate([=, &ST](const LegalityQuery &Query) {
+-                return ST.hasGPR32V() && !ST.is64Bit();
+-              }
+-          )))
+-          .widenScalarToNextPow2(0)
+-          .clampScalar(0, sXLen, sXLen);
++      .legalFor({sXLen})
++      .legalIf(typeIsLegalIntOrFPVec(0, IntOrFPVecTys, ST))
++      .bitcastIf(all(PackedFallback(0), typeInSet(0, XCVVecTys)),
++                 changeTo(0, s32))
++      .scalarizeIf(PackedFallback(0), 0)
++      .widenScalarToNextPow2(0)
++      .clampScalar(0, sXLen, sXLen);
+ 
+   getActionDefinitionsBuilder(
+       {G_UADDE, G_UADDO, G_USUBE, G_USUBO, G_READ_REGISTER, G_WRITE_REGISTER})
+@@ -182,7 +186,8 @@
+       .lower();
+ 
+   auto &ShiftActions = getActionDefinitionsBuilder({G_SHL, G_ASHR, G_LSHR});
+-  ShiftActions.legalFor({{sXLen, sXLen}})
++  ShiftActions.scalarizeIf(PackedFallback(0), 0)
++              .legalFor({{sXLen, sXLen}})
+               .customFor(ST.is64Bit(), {{s32, s32}})
+               .widenScalarToNextPow2(0)
+               .clampScalar(1, sXLen, sXLen)
+@@ -194,6 +199,7 @@
+       .legalIf(all(typeIsLegalIntOrFPVec(0, IntOrFPVecTys, ST),
+                    typeIsLegalIntOrFPVec(1, IntOrFPVecTys, ST)))
+       .customIf(typeIsLegalBoolVec(1, BoolVecTys, ST))
++      .scalarizeIf(PackedFallback(0), 0)
+       .maxScalar(0, sXLen);
+ 
+   getActionDefinitionsBuilder(G_SEXT_INREG)
+@@ -209,6 +215,11 @@
+     if (XLen == 32 && ST.hasStdExtD()) {
+       MergeUnmergeActions.legalIf(
+           all(typeIs(BigTyIdx, s64), typeIs(LitTyIdx, s32)));
++    }
++    if (ST.hasGPR32V() && !ST.is64Bit() && !ST.hasVInstructions()) {
++      if (Op == G_UNMERGE_VALUES)
++        MergeUnmergeActions.lowerIf(typeInSet(BigTyIdx, XCVVecTys));
++      MergeUnmergeActions.scalarizeIf(PackedFallback(BigTyIdx), BigTyIdx);
+     }
+     MergeUnmergeActions.widenScalarToNextPow2(LitTyIdx, XLen)
+         .widenScalarToNextPow2(BigTyIdx, XLen)
+@@ -278,6 +289,7 @@
+       .legalFor(ST.is64Bit(), {s64})
+       .legalIf(typeIsLegalBoolVec(0, BoolVecTys, ST))
+       .legalIf(typeIsLegalIntOrFPVec(0, IntOrFPVecTys, ST))
++      .scalarizeIf(PackedFallback(0), 0)
+       .widenScalarToNextPow2(0)
+       .clampScalar(0, s16, sXLen);
+ 
+@@ -288,6 +300,7 @@
+       .legalFor({s32, sXLen, p0})
+       .legalIf(typeIsLegalBoolVec(0, BoolVecTys, ST))
+       .legalIf(typeIsLegalIntOrFPVec(0, IntOrFPVecTys, ST))
++      .scalarizeIf(PackedFallback(0), 0)
+       .widenScalarToNextPow2(0)
+       .clampScalar(0, s32, sXLen);
+ 
+@@ -295,6 +308,7 @@
+       .legalFor({{sXLen, sXLen}, {sXLen, p0}})
+       .legalIf(all(typeIsLegalBoolVec(0, BoolVecTys, ST),
+                    typeIsLegalIntOrFPVec(1, IntOrFPVecTys, ST)))
++      .scalarizeIf(PackedFallback(1), 1)
+       .widenScalarOrEltToNextPow2OrMinSize(1, 8)
+       .clampScalar(1, sXLen, sXLen)
+       .clampScalar(0, sXLen, sXLen);
+@@ -304,6 +318,7 @@
+       .legalIf(all(typeIsLegalIntOrFPVec(0, IntOrFPVecTys, ST),
+                    typeIsLegalBoolVec(1, BoolVecTys, ST)))
+       .legalFor(XLen == 64 || ST.hasStdExtD(), {{s64, sXLen}})
++      .scalarizeIf(PackedFallback(0), 0)
+       .widenScalarToNextPow2(0)
+       .clampScalar(0, s32, (XLen == 64 || ST.hasStdExtD()) ? s64 : s32)
+       .clampScalar(1, sXLen, sXLen);
+@@ -371,6 +386,12 @@
+             LegalityPredicates::typeIs(1, s32),
+             LegalityPredicates::typeInSet(0, XCVVecTys)));
+ 
++    getActionDefinitionsBuilder(G_BUILD_VECTOR)
++        .customIf(LegalityPredicates::typeInSet(0, XCVVecTys))
++        // Other vector builds are artifacts of scalarization. Their users
++        // unmerge them and the artifact combiner removes the temporary vector.
++        .legalIf(PackedFallback(0));
++
+     // Additional packed operations are enabled only as their selectors are tested.
+   }
+ 
+@@ -439,6 +460,9 @@
+     }
+   }
+ 
++  LoadActions.scalarizeIf(PackedFallback(0), 0);
++  StoreActions.scalarizeIf(PackedFallback(0), 0);
++
+   LoadActions.widenScalarToNextPow2(0, /* MinSize = */ 8)
+       .lowerIfMemSizeNotByteSizePow2()
+       .clampScalar(0, s16, sXLen)
+@@ -467,7 +491,9 @@
+   getActionDefinitionsBuilder(G_BRINDIRECT).legalFor({p0});
+ 
+   getActionDefinitionsBuilder(G_PHI)
++      .legalFor(ST.hasGPR32V() && !ST.is64Bit(), XCVVecTys)
+       .legalFor({p0, s32, sXLen})
++      .scalarizeIf(PackedFallback(0), 0)
+       .widenScalarToNextPow2(0)
+       .clampScalar(0, s32, sXLen);
+ 
+@@ -477,7 +503,8 @@
+   if (ST.hasStdExtZmmul()) {
+     getActionDefinitionsBuilder(G_MUL)
+         .legalFor({sXLen})
+-        .widenScalarToNextPow2(0)
++        .scalarizeIf(PackedFallback(0), 0)
++      .widenScalarToNextPow2(0)
+         .clampScalar(0, sXLen, sXLen);
+ 
+     // clang-format off
+@@ -490,7 +517,8 @@
+   } else {
+     getActionDefinitionsBuilder(G_MUL)
+         .libcallFor({sXLen, sDoubleXLen})
+-        .widenScalarToNextPow2(0)
++        .scalarizeIf(PackedFallback(0), 0)
++      .widenScalarToNextPow2(0)
+         .clampScalar(0, sXLen, sDoubleXLen);
+ 
+     getActionDefinitionsBuilder({G_SMULH, G_UMULH}).lowerFor({sXLen});
+@@ -539,6 +567,7 @@
+ 
+   getActionDefinitionsBuilder({G_UMAX, G_UMIN, G_SMAX, G_SMIN})
+       .legalFor(ST.hasStdExtZbb() || ST.hasVendorXCValu(), {sXLen})
++      .scalarizeIf(PackedFallback(0), 0)
+       .minScalar(ST.hasStdExtZbb(), 0, sXLen)
+       .lower();
+ 
+@@ -776,6 +805,28 @@
+                    InsertVectorEltPred, typeIs(2, sXLen)))
+       .legalIf(all(typeIsLegalBoolVec(0, BoolVecTys, ST), InsertVectorEltPred,
+                    typeIs(2, sXLen)));
++
++  getActionDefinitionsBuilder(G_TRUNC)
++      .scalarizeIf(PackedFallback(0), 0)
++      .legalIf([=](const LegalityQuery &Q) {
++        return Q.Types[0].isScalar() && Q.Types[1].isScalar();
++      });
++  getActionDefinitionsBuilder(G_CONCAT_VECTORS)
++      .customIf(all(PackedFallback(0), typeInSet(0, XCVVecTys)))
++      .legalIf(PackedFallback(0));
++  getActionDefinitionsBuilder(G_EXTRACT_VECTOR_ELT)
++      .bitcastIf(all(PackedFallback(1), typeInSet(1, XCVVecTys)),
++                 changeTo(1, s32))
++      .scalarizeIf(PackedFallback(1), 1);
++  getActionDefinitionsBuilder(G_INSERT_VECTOR_ELT)
++      .bitcastIf(all(PackedFallback(0), typeInSet(0, XCVVecTys)),
++                 changeTo(0, s32))
++      .scalarizeIf(PackedFallback(0), 0);
++  getActionDefinitionsBuilder(G_SHUFFLE_VECTOR)
++      .customIf(PackedFallback(0))
++      .unsupported();
++  getActionDefinitionsBuilder(G_BITCAST)
++      .lowerIf(LegalityPredicates::any(PackedFallback(0), PackedFallback(1)));
+ 
+   getLegacyLegalizerInfo().computeTables();
+   verify(*ST.getInstrInfo());
+@@ -1438,6 +1489,51 @@
+   MachineIRBuilder &MIRBuilder = Helper.MIRBuilder;
+   MachineRegisterInfo &MRI = *MIRBuilder.getMRI();
+   MachineFunction &MF = *MI.getParent()->getParent();
++  if (MI.getOpcode() == TargetOpcode::G_SHUFFLE_VECTOR) {
++    SmallVector<Register, 16> Inputs, Outputs;
++    LLT EltTy = MRI.getType(MI.getOperand(1).getReg()).getElementType();
++    for (unsigned I : {1U, 2U}) {
++      auto Parts = MIRBuilder.buildUnmerge(EltTy, MI.getOperand(I).getReg());
++      for (unsigned J = 0; J < Parts->getNumDefs(); ++J)
++        Inputs.push_back(Parts.getReg(J));
++    }
++    for (int I : MI.getOperand(3).getShuffleMask())
++      Outputs.push_back(I < 0 ? MIRBuilder.buildUndef(EltTy).getReg(0)
++                              : Inputs[I]);
++    MIRBuilder.buildBuildVector(MI.getOperand(0).getReg(), Outputs);
++    MI.eraseFromParent();
++    return true;
++  }
++  if (MI.getOpcode() == TargetOpcode::G_CONCAT_VECTORS) {
++    SmallVector<Register, 8> Elements;
++    for (unsigned I = 1; I < MI.getNumOperands(); ++I) {
++      Register Src = MI.getOperand(I).getReg();
++      auto Parts = MIRBuilder.buildUnmerge(MRI.getType(Src).getElementType(), Src);
++      for (unsigned J = 0; J < Parts->getNumDefs(); ++J)
++        Elements.push_back(Parts.getReg(J));
++    }
++    MIRBuilder.buildBuildVector(MI.getOperand(0).getReg(), Elements);
++    MI.eraseFromParent();
++    return true;
++  }
++  if (MI.getOpcode() == TargetOpcode::G_BUILD_VECTOR) {
++    Register Dst = MI.getOperand(0).getReg();
++    LLT Ty = MRI.getType(Dst);
++    unsigned Bits = Ty.getScalarSizeInBits();
++    LLT WordTy = LLT::scalar(32);
++    auto Packed = MIRBuilder.buildConstant(WordTy, 0);
++    for (unsigned I = 1; I < MI.getNumOperands(); ++I) {
++      auto Lane = MIRBuilder.buildZExtOrTrunc(WordTy, MI.getOperand(I).getReg());
++      auto Mask = MIRBuilder.buildConstant(WordTy, (1U << Bits) - 1);
++      Lane = MIRBuilder.buildAnd(WordTy, Lane, Mask);
++      auto Shift = MIRBuilder.buildConstant(WordTy, (I - 1) * Bits);
++      Lane = MIRBuilder.buildShl(WordTy, Lane, Shift);
++      Packed = MIRBuilder.buildOr(WordTy, Packed, Lane);
++    }
++    MIRBuilder.buildBitcast(Dst, Packed);
++    MI.eraseFromParent();
++    return true;
++  }
+   switch (MI.getOpcode()) {
+   default:
+     // No idea what to do.
+--- a/llvm/lib/Target/RISCV/RISCVFeatures.td
++++ b/llvm/lib/Target/RISCV/RISCVFeatures.td
+@@ -1038,6 +1038,12 @@
+    : Predicate<"Subtarget->hasGPR32V()">,
+      AssemblerPredicate<(any_of FeatureGPR32V),
+                         "'GPR32V' (Packed SIMD in 32-bit integer registers)">;
++
++def FeatureGPR32VAdd : SubtargetFeature<"gpr32v-add", "HasGPR32VAdd", "true",
++                                      "Packed byte/halfword addition">;
++
++def FeatureGPR32VSub : SubtargetFeature<"gpr32v-sub", "HasGPR32VSub", "true",
++                                      "Packed byte/halfword subtraction">;
+ 
+ def FeatureStdExtSvinval
+     : RISCVExtension<1, 0,

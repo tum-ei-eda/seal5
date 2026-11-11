@@ -1058,6 +1058,7 @@ def convert_behav_to_llvmir(
     verbose: bool = False,
     split: bool = True,
     log_level: str = "warning",
+    no_extend: bool = True,
     **_kwargs,
 ):
     assert split, "TODO"
@@ -1077,6 +1078,8 @@ def convert_behav_to_llvmir(
         "--output",
         settings.temp_dir / new_name,
     ]
+    if not no_extend:
+        args.append("--coredsl-typing")
     if split:
         (settings.temp_dir / new_name).mkdir(exist_ok=True)
         args.append("--splitted")
@@ -1109,6 +1112,7 @@ def convert_behav_to_tablegen(
     parallel: bool = False,
     gen_tests: bool = True,
     log_level: str = "warning",
+    no_extend: bool = True,
     added_complexity: int = 0,
     gisel_table: bool = False,
     **_kwargs,
@@ -1132,6 +1136,8 @@ def convert_behav_to_tablegen(
         "--output",
         settings.temp_dir / new_name,
     ]
+    if not no_extend:
+        args.append("--coredsl-typing")
     if split:
         (settings.temp_dir / new_name).mkdir(exist_ok=True)
         args.append("--splitted")

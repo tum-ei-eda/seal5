@@ -68,6 +68,7 @@ def main():
     parser.add_argument("--ext", type=str, default="td", help="Default file extension (if using --splitted)")
     parser.add_argument("--parallel", type=int, default=1, help="How many instructions should be processed in parallel")
     parser.add_argument("--compat", action="store_true")
+    parser.add_argument("--coredsl-typing", action="store_true", help="Preserve CoreDSL widening arithmetic rules")
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--generate-tests", action="store_true")
     # parser.add_argument("--xlen", type=int, default=32, help="RISC-V XLEN")
@@ -169,6 +170,7 @@ def main():
                         install_dir,
                         input_file,
                         output_file,
+                        no_extend=not args.coredsl_typing,
                         skip_patterns=not args.patterns,
                         skip_formats=not args.formats,
                         ext=predicate,
@@ -190,6 +192,7 @@ def main():
                             for operand in instr_def.operands.values()
                         ),
                         may_load=Seal5InstrAttribute.MAY_LOAD in attrs,
+                        may_store=Seal5InstrAttribute.MAY_STORE in attrs,
                         gisel_table=args.gisel_table,
                     )
                     if output_file.is_file():

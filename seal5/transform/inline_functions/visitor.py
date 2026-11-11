@@ -8,9 +8,10 @@
 
 """Inline functions within instructions in the M2-ISA-R metamodel."""
 
+from copy import deepcopy
 from functools import singledispatchmethod
 
-from m2isar.metamodel import arch, behav
+from m2isar.metamodel import behav
 from m2isar.metamodel.utils.ExprVisitor import ExprVisitor
 
 from seal5.model import Seal5FunctionAttribute
@@ -143,7 +144,7 @@ class InlineFunctionsVisitor(ExprVisitor):
         if isinstance(context, ReplaceContext):
             matched = context.mapping.get(expr.reference.name, None)
             if matched is not None:
-                return matched
+                return deepcopy(matched)
         return expr
 
     @generate.register
@@ -165,52 +166,46 @@ class InlineFunctionsVisitor(ExprVisitor):
 
     @generate.register
     def _(self, expr: behav.Callable, context):
-        # print("callable_", self, dir(self))
-        # print("self.ref_or_name", self.ref_or_name)
-        # print("context.functions", context.functions)
-        if isinstance(expr.ref_or_name, str):
-            function_def = context.functions.get(expr.ref_or_name)
-        else:
-            assert isinstance(expr.ref_or_name, arch.Function)
-            function_def = expr.ref_or_name
-        # Retrieve the function definition
-        # print("function_def", function_def)
-        # print("function_def.attributes", function_def.attributes)
+        # Substitute call arguments first; function lookup belongs to the outer context.
+        expr.args = [self.generate(arg, context) for arg in expr.args]
+        if isinstance(context, ReplaceContext):
+            return expr
+        function_def = (
+            context.functions.get(expr.ref_or_name) if isinstance(expr.ref_or_name, str) else expr.ref_or_name
+        )
+        if function_def is None or function_def.extern:
+            return expr
         if Seal5FunctionAttribute.INLINE not in function_def.attributes:
             return expr
-
-        # Check if the function is external or has early returns that prevent inlining
-        if function_def is None or function_def.extern:
-            return expr  # Cannot inline an external or undefined function
-
         if len(function_def.operation.statements) != 1:
             return expr
-
         statement = function_def.operation.statements[0]
-        ret_kind = function_def.ty.kind
-        ret_size = function_def.ty.size
-        statement = behav.TypeConv(ret_kind, ret_size, statement)
-        # print("statement", statement)
         while isinstance(statement, behav.Block):
-            # print("BLOCK", statement, dir(statement))
-            statements = statement.statements
-            if len(statements) != 1:
+            if len(statement.statements) != 1:
                 return expr
-            statement = statements[0]
-        # print("statement", statement, dir(statement))
-        # print("?", [isinstance(stmt, behav.Return) for stmt in function_def.operation.statements])
-        if not isinstance(statement, behav.Return):
+            statement = statement.statements[0]
+        if not isinstance(statement, behav.Return) or statement.expr is None:
             return expr
-        # return self  # Skip inlining if the function has a return statement
-        # Map the arguments of the function to the corresponding expressions
-        arg_map = {param_name: arg for param_name, arg in zip(function_def.args, expr.args)}
-        # print("arg_map", arg_map)
-        ret_expr = statement.expr
-        # print("ret_expr", ret_expr)
-        replace_context = ReplaceContext(mapping=arg_map)
-        ret_expr.generate(replace_context)
-        ret_expr.generate(context)
-        return ret_expr
+        if len(function_def.args) != len(expr.args):
+            return expr
+        active = getattr(context, "active_functions", set())
+        if function_def.name in active:
+            return expr
+        context.active_functions = active
+        active.add(function_def.name)
+        try:
+            # Each call needs its own tree; never rewrite the shared function body.
+            ret_expr = deepcopy(statement.expr)
+            mapping = {
+                name: behav.TypeConv(param.ty.kind, param.ty.size, deepcopy(arg))
+                for (name, param), arg in zip(function_def.args.items(), expr.args)
+            }
+            ret_expr = self.generate(ret_expr, ReplaceContext(mapping))
+            ret_expr = self.generate(ret_expr, context)
+            # Convert the value after unwrapping Return, preserving function return width.
+            return behav.TypeConv(function_def.ty.kind, function_def.ty.size, ret_expr)
+        finally:
+            active.remove(function_def.name)
 
     @generate.register
     def _(self, expr: behav.Group, context):
