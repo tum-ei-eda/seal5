@@ -11,11 +11,10 @@
 import argparse
 import logging
 import pathlib
+import re
 
 import pandas as pd
 from mako.template import Template
-
-from m2isar.metamodel import arch
 
 from seal5.index import NamedPatch, write_index_yaml
 from seal5.settings import ExtensionsSettings, LLVMVersion
@@ -45,7 +44,58 @@ def gen_riscv_isa_info_str(name: str, ext_settings: ExtensionsSettings, llvm_ver
     content_template = Template(template)
     content_text = content_template.render(arch=arch_, version_major=version_major, version_minor=version_minor)
     # content_text = content_text.rstrip("\n")
-    return arch, (content_text)
+    return arch_, content_text
+
+
+def gen_riscv_isa_info_metadata(model_sets, llvm_version: LLVMVersion):
+    """Generate custom implication and incompatibility checks for RISCVISAInfo."""
+    implications = set()
+    incompatible = set()
+
+    def get_arch(name):
+        if name not in model_sets or model_sets[name].settings is None:
+            raise ValueError(f"Unknown extension in RISCVISAInfo metadata: {name}")
+        arch = model_sets[name].settings.get_arch(name=name)
+        if re.fullmatch(r"[a-z][a-z0-9]*", arch) is None:
+            raise ValueError(f"Invalid RISCVISAInfo extension name: {arch}")
+        return arch
+
+    for name, set_def in model_sets.items():
+        ext_settings = set_def.settings
+        if ext_settings is None:
+            continue
+        if not ext_settings.implies and not ext_settings.incompatible:
+            continue
+        arch = get_arch(name)
+        for implied in ext_settings.implies or []:
+            implications.add((arch, get_arch(implied)))
+        for other in ext_settings.incompatible or []:
+            other_arch = get_arch(other)
+            if arch != other_arch:
+                incompatible.add(tuple(sorted((arch, other_arch))))
+
+    implies_text = ""
+    for arch, implied in sorted(implications):
+        if llvm_version.major < 18:
+            add_extension = f'addExtension("{implied}", Version->Major, Version->Minor);'
+        else:
+            add_extension = f'addExtension("{implied}", Version.value());'
+        implies_text += (
+            f'    if (ExtName == "{arch}" && !WorkList.count("{implied}") && !Exts.count("{implied}")) {{\n'
+            f'      auto Version = findDefaultVersion("{implied}");\n'
+            f"      {add_extension}\n"
+            f'      WorkList.insert("{implied}");\n'
+            "    }\n"
+        )
+
+    incompatible_text = ""
+    for first, second in sorted(incompatible):
+        incompatible_text += (
+            f'  if (Exts.count("{first}") && Exts.count("{second}"))\n'
+            "    return createStringError(errc::invalid_argument,\n"
+            f'                             "\'{first}\' and \'{second}\' extensions are incompatible");\n'
+        )
+    return implies_text, incompatible_text
 
 
 def main():
@@ -89,6 +139,8 @@ def main():
     if not args.splitted:
         # content = ""
         contents = []  # Extensions need to be sorted!
+        implications = ""
+        incompatible = ""
         # errs = []
         settings = model_obj.settings
         llvm_version = None
@@ -110,6 +162,7 @@ def main():
             metrics["success_sets"].append(set_name)
             key, new_content = gen_riscv_isa_info_str(set_name, ext_settings=ext_settings, llvm_version=llvm_version)
             contents.append((key, new_content))
+        implications, incompatible = gen_riscv_isa_info_metadata(model_obj.sets, llvm_version)
         contents = sorted(contents, key=lambda x: x[0])
         content = "\n".join([x[1] for x in contents])
         if len(content) > 0:
@@ -121,6 +174,16 @@ def main():
                 key = "riscv_isa_info"
             riscv_isa_info_patch = NamedPatch("llvm/lib/Support/RISCVISAInfo.cpp", key=key, src_path=out_path)
             artifacts[None].append(riscv_isa_info_patch)
+        for key, metadata in (
+            ("riscv_isa_info_implies", implications),
+            ("riscv_isa_info_incompatible", incompatible),
+        ):
+            if metadata:
+                metadata_path = out_path.with_name(f"{key}.patch")
+                metadata_path.write_text(metadata, encoding="utf-8")
+                artifacts[None].append(
+                    NamedPatch("llvm/lib/Support/RISCVISAInfo.cpp", key=key, src_path=metadata_path)
+                )
     else:
         raise NotImplementedError
     if args.metrics:

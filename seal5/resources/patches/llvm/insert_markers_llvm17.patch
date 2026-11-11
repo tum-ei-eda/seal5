@@ -58,6 +58,17 @@ diff --git a/llvm/lib/Support/RISCVISAInfo.cpp b/llvm/lib/Support/RISCVISAInfo.c
      {"zacas", RISCVExtensionVersion{1, 0}},
 
      {"zfa", RISCVExtensionVersion{0, 2}},
+@@ -894,1 +900,3 @@
+-Error RISCVISAInfo::checkDependency() {
++Error RISCVISAInfo::checkDependency() {
++// RISCVISAInfo.cpp - riscv_isa_info_incompatible - INSERTION_START
++// RISCVISAInfo.cpp - riscv_isa_info_incompatible - INSERTION_END
+@@ -1091,1 +1099,3 @@
+-    StringRef ExtName = WorkList.pop_back_val();
++    StringRef ExtName = WorkList.pop_back_val();
++// RISCVISAInfo.cpp - riscv_isa_info_implies - INSERTION_START
++// RISCVISAInfo.cpp - riscv_isa_info_implies - INSERTION_END
+
 diff --git a/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp b/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
 --- a/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
 +++ b/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
