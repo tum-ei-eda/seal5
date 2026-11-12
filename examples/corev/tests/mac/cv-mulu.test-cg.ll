@@ -5,6 +5,8 @@
 ; RUN: llc -O3 -mtriple=riscv32 -mattr=+m,+xcorevmac -global-isel=1 -global-isel-abort=1 -stop-before=instruction-select < %s | FileCheck %s --check-prefix=MASK
 ; RUN: llc -O3 -mtriple=riscv32 -mattr=+m -global-isel=1 -global-isel-abort=1 -stop-before=instruction-select < %s | FileCheck %s --check-prefix=BASE
 
+; At count zero, rounded and unrounded multiplies have identical semantics.
+
 
 define i32 @mulu(i32 %a, i32 %b) {
 ; CHECK-LABEL: mulu:
@@ -13,7 +15,7 @@ define i32 @mulu(i32 %a, i32 %b) {
 ; MASK: G_MUL
 ; BASE-LABEL: name: mulu
 ; BASE: G_CONSTANT_FOLD_BARRIER
-; CHECK: seal5.cv.mulun {{[^,]+}}, {{[^,]+}}, {{[^,]+}}, 0
+; CHECK: seal5.cv.mulu{{r?}}n {{[^,]+}}, {{[^,]+}}, {{[^,]+}}, 0
 ; CHECK: ret
   %1 = and i32 %a, 65535
   %2 = and i32 %b, 65535

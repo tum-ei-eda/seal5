@@ -2,10 +2,12 @@
 ; RUN: llc -O3 -mtriple=riscv32 -mattr=+m,+xcorevmac -verify-machineinstrs -global-isel=0 < %s | FileCheck %s
 ; RUN: llc -O0 -mtriple=riscv32 -mattr=+m,+xcorevmac -verify-machineinstrs -global-isel=1 -global-isel-abort=1 < %s | FileCheck %s
 ; RUN: llc -O3 -mtriple=riscv32 -mattr=+m,+xcorevmac -verify-machineinstrs -global-isel=1 -global-isel-abort=1 < %s | FileCheck %s
+; At count zero, rounded and unrounded multiplies have identical semantics.
+
 
 define i32 @muls(i32 %a, i32 %b) {
 ; CHECK-LABEL: muls:
-; CHECK: seal5.cv.mulsn {{[^,]+}}, {{[^,]+}}, {{[^,]+}}, 0
+; CHECK: seal5.cv.muls{{r?}}n {{[^,]+}}, {{[^,]+}}, {{[^,]+}}, 0
 ; CHECK: ret
   %1 = shl i32 %a, 16
   %2 = ashr i32 %1, 16

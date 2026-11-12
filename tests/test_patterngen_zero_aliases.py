@@ -13,7 +13,8 @@ class ZeroAliasTests(unittest.TestCase):
     def write(self, root, name, pattern, predicate="HasExample", flags="mayLoad = 0, mayStore = 0"):
         dest = root / f"{name}.td"
         dest.write_text(
-            f'let Predicates = [{predicate}] in {{\nlet hasSideEffects = 0, {flags}, isBranch = 0, isTerminator = 0, Constraints = "" in '
+            f'let Predicates = [{predicate}] in {{\nlet hasSideEffects = 0, {flags}, '
+            'isBranch = 0, isTerminator = 0, Constraints = "" in '
             f"def {name}_ : RVInst_{name}<(outs GPR:$rd), (ins GPR:$a)>;\n}}\n"
         )
         Path(str(dest) + ".out").write_text(f"Pattern for {name}_0 [test.{name}]: {pattern}\n")

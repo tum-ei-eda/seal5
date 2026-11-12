@@ -1,17 +1,482 @@
-; RUN: llc -O0 -mtriple=riscv32 -mattr=+m,+xcorevmac -verify-machineinstrs -global-isel=1 -global-isel-abort=1 < %s \
-; RUN:   | FileCheck %s
+; RUN: llc -O0 -mtriple=riscv32 -mattr=+m,+xcorevmac -verify-machineinstrs -global-isel=0 -global-isel-abort=1 < %s | FileCheck %s
+; RUN: llc -O3 -mtriple=riscv32 -mattr=+m,+xcorevmac -verify-machineinstrs -global-isel=0 -global-isel-abort=1 < %s | FileCheck %s
+; RUN: llc -O0 -mtriple=riscv32 -mattr=+m,+xcorevmac -verify-machineinstrs -global-isel=1 -global-isel-abort=1 < %s | FileCheck %s
+; RUN: llc -O3 -mtriple=riscv32 -mattr=+m,+xcorevmac -verify-machineinstrs -global-isel=1 -global-isel-abort=1 < %s | FileCheck %s
 
-define i32 @macsRN(i32 %a, i32 %b, i32 %c) {
-; CHECK-LABEL: macsRN:
-; CHECK: seal5.cv.macsrn
+define i32 @macsrn_0(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_0:
+; CHECK: seal5.cv.macs{{r?}}n {{.*}}, 0{{$}}
 ; CHECK: ret
-  %1 = shl i32 %a, 16
-  %2 = ashr i32 %1, 16
-  %3 = shl i32 %b, 16
-  %4 = ashr i32 %3, 16
-  %5 = mul i32 %2, %4
-  %6 = add i32 %5, %c
-  %7 = add i32 %6, 16
-  %8 = ashr i32 %7, 5
-  ret i32 %8
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  ret i32 %accumulated
+}
+
+define i32 @macsrn_1(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_1:
+; CHECK: seal5.cv.macsrn {{.*}}, 1{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 1
+  %result = ashr i32 %rounded, 1
+  ret i32 %result
+}
+
+define i32 @macsrn_2(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_2:
+; CHECK: seal5.cv.macsrn {{.*}}, 2{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 2
+  %result = ashr i32 %rounded, 2
+  ret i32 %result
+}
+
+define i32 @macsrn_3(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_3:
+; CHECK: seal5.cv.macsrn {{.*}}, 3{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 4
+  %result = ashr i32 %rounded, 3
+  ret i32 %result
+}
+
+define i32 @macsrn_4(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_4:
+; CHECK: seal5.cv.macsrn {{.*}}, 4{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 8
+  %result = ashr i32 %rounded, 4
+  ret i32 %result
+}
+
+define i32 @macsrn_5(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_5:
+; CHECK: seal5.cv.macsrn {{.*}}, 5{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 16
+  %result = ashr i32 %rounded, 5
+  ret i32 %result
+}
+
+define i32 @macsrn_6(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_6:
+; CHECK: seal5.cv.macsrn {{.*}}, 6{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 32
+  %result = ashr i32 %rounded, 6
+  ret i32 %result
+}
+
+define i32 @macsrn_7(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_7:
+; CHECK: seal5.cv.macsrn {{.*}}, 7{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 64
+  %result = ashr i32 %rounded, 7
+  ret i32 %result
+}
+
+define i32 @macsrn_8(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_8:
+; CHECK: seal5.cv.macsrn {{.*}}, 8{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 128
+  %result = ashr i32 %rounded, 8
+  ret i32 %result
+}
+
+define i32 @macsrn_9(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_9:
+; CHECK: seal5.cv.macsrn {{.*}}, 9{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 256
+  %result = ashr i32 %rounded, 9
+  ret i32 %result
+}
+
+define i32 @macsrn_10(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_10:
+; CHECK: seal5.cv.macsrn {{.*}}, 10{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 512
+  %result = ashr i32 %rounded, 10
+  ret i32 %result
+}
+
+define i32 @macsrn_11(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_11:
+; CHECK: seal5.cv.macsrn {{.*}}, 11{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 1024
+  %result = ashr i32 %rounded, 11
+  ret i32 %result
+}
+
+define i32 @macsrn_12(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_12:
+; CHECK: seal5.cv.macsrn {{.*}}, 12{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 2048
+  %result = ashr i32 %rounded, 12
+  ret i32 %result
+}
+
+define i32 @macsrn_13(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_13:
+; CHECK: seal5.cv.macsrn {{.*}}, 13{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 4096
+  %result = ashr i32 %rounded, 13
+  ret i32 %result
+}
+
+define i32 @macsrn_14(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_14:
+; CHECK: seal5.cv.macsrn {{.*}}, 14{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 8192
+  %result = ashr i32 %rounded, 14
+  ret i32 %result
+}
+
+define i32 @macsrn_15(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_15:
+; CHECK: seal5.cv.macsrn {{.*}}, 15{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 16384
+  %result = ashr i32 %rounded, 15
+  ret i32 %result
+}
+
+define i32 @macsrn_16(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_16:
+; CHECK: seal5.cv.macsrn {{.*}}, 16{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 32768
+  %result = ashr i32 %rounded, 16
+  ret i32 %result
+}
+
+define i32 @macsrn_17(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_17:
+; CHECK: seal5.cv.macsrn {{.*}}, 17{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 65536
+  %result = ashr i32 %rounded, 17
+  ret i32 %result
+}
+
+define i32 @macsrn_18(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_18:
+; CHECK: seal5.cv.macsrn {{.*}}, 18{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 131072
+  %result = ashr i32 %rounded, 18
+  ret i32 %result
+}
+
+define i32 @macsrn_19(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_19:
+; CHECK: seal5.cv.macsrn {{.*}}, 19{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 262144
+  %result = ashr i32 %rounded, 19
+  ret i32 %result
+}
+
+define i32 @macsrn_20(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_20:
+; CHECK: seal5.cv.macsrn {{.*}}, 20{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 524288
+  %result = ashr i32 %rounded, 20
+  ret i32 %result
+}
+
+define i32 @macsrn_21(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_21:
+; CHECK: seal5.cv.macsrn {{.*}}, 21{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 1048576
+  %result = ashr i32 %rounded, 21
+  ret i32 %result
+}
+
+define i32 @macsrn_22(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_22:
+; CHECK: seal5.cv.macsrn {{.*}}, 22{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 2097152
+  %result = ashr i32 %rounded, 22
+  ret i32 %result
+}
+
+define i32 @macsrn_23(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_23:
+; CHECK: seal5.cv.macsrn {{.*}}, 23{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 4194304
+  %result = ashr i32 %rounded, 23
+  ret i32 %result
+}
+
+define i32 @macsrn_24(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_24:
+; CHECK: seal5.cv.macsrn {{.*}}, 24{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 8388608
+  %result = ashr i32 %rounded, 24
+  ret i32 %result
+}
+
+define i32 @macsrn_25(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_25:
+; CHECK: seal5.cv.macsrn {{.*}}, 25{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 16777216
+  %result = ashr i32 %rounded, 25
+  ret i32 %result
+}
+
+define i32 @macsrn_26(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_26:
+; CHECK: seal5.cv.macsrn {{.*}}, 26{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 33554432
+  %result = ashr i32 %rounded, 26
+  ret i32 %result
+}
+
+define i32 @macsrn_27(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_27:
+; CHECK: seal5.cv.macsrn {{.*}}, 27{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 67108864
+  %result = ashr i32 %rounded, 27
+  ret i32 %result
+}
+
+define i32 @macsrn_28(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_28:
+; CHECK: seal5.cv.macsrn {{.*}}, 28{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 134217728
+  %result = ashr i32 %rounded, 28
+  ret i32 %result
+}
+
+define i32 @macsrn_29(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_29:
+; CHECK: seal5.cv.macsrn {{.*}}, 29{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 268435456
+  %result = ashr i32 %rounded, 29
+  ret i32 %result
+}
+
+define i32 @macsrn_30(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_30:
+; CHECK: seal5.cv.macsrn {{.*}}, 30{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 536870912
+  %result = ashr i32 %rounded, 30
+  ret i32 %result
+}
+
+define i32 @macsrn_31(i32 %a, i32 %b, i32 %acc) {
+; CHECK-LABEL: macsrn_31:
+; CHECK: seal5.cv.macsrn {{.*}}, 31{{$}}
+; CHECK: ret
+  %ashift = shl i32 %a, 16
+  %ahalf = ashr i32 %ashift, 16
+  %bshift = shl i32 %b, 16
+  %bhalf = ashr i32 %bshift, 16
+  %product = mul i32 %ahalf, %bhalf
+  %accumulated = add i32 %product, %acc
+  %rounded = add i32 %accumulated, 1073741824
+  %result = ashr i32 %rounded, 31
+  ret i32 %result
 }

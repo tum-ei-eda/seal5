@@ -63,19 +63,17 @@ no direct GISel table entries are enabled.
 | Checked-in assembler tests | 338 | 0 |
 | Checked-in intrinsic tests | 199 | 0 |
 | Checked-in builtin tests | 2 | 0 |
-| Checked-in codegen tests | 52 | 16 |
-| Generated pattern codegen tests | 52 | 55 |
+| Checked-in codegen tests | 68 | 0 |
+| Generated pattern codegen tests | 64 | 55 |
 
-The checked-in total is **591/607 passing**. Assembler tests cover all 311
+The checked-in total is **607/607 passing**. Assembler tests cover all 311
 instructions and compare each sample encoding with LLVM's native CORE-V
 assembler. The new codegen tests for both immediate branches, all eight
 ordinary register-offset loads/stores, and four packed add/sub operations
 pass. Those tests exercise both SelectionDAG and GlobalISel, with GlobalISel
 fallback disabled.
 
-The remaining checked-in failures concern rounded normalization. One obsolete
-unsigned multiply test used an arithmetic right shift; it now uses a logical
-right shift. Generated-test failures include equivalent-instruction choices
+All checked-in tests pass. Generated-test failures include equivalent-instruction choices
 (such as byte versus halfword bitwise operations) and genuine missing
 matches, including dot products and scalar-broadcast comparisons. A failed
 exact-instruction check therefore does not by itself prove incorrect code.
@@ -87,23 +85,23 @@ is not yet a fully passing pattern-selection suite.
 
 | Instruction set | Instructions | Extracted patterns | Failed extraction | Skipped |
 | --- | ---: | ---: | ---: | ---: |
-| ALU | 31 | 189 | 0 | 0 |
+| ALU | 31 | 379 | 0 | 0 |
 | Bit manipulation | 16 | 10 | 3 | 3 |
 | Immediate branches | 2 | 2 | 0 | 0 |
-| MAC | 18 | 142 | 0 | 0 |
+| MAC | 18 | 390 | 0 | 0 |
 | Memory | 24 | 8 | 0 | 16 |
 | SIMD | 220 | 96 | 124 | 0 |
-| Total | 311 | 447 | 127 | 19 |
+| Total | 311 | 885 | 127 | 19 |
 
 Extraction success does not establish importer acceptance or instruction
-selection. The generated TableGen pattern files total 173,725 bytes in this
+selection. The generated TableGen pattern files total 268,538 bytes in this
 run. Reports retain separate extraction, import, and match fields; unavailable
 validation counts remain unknown.
 
 MAC behavior follows the 32-bit truncation before normalization in the
 [CV32E40P multiplier RTL](https://github.com/openhwgroup/cv32e40p/blob/master/rtl/cv32e40p_mult.sv).
 The rounding term is zero for normalization amount zero. The extracted MAC
-IR passes 712 constant-folding checks, covering all 32 normalization amounts
+IR passes 3,216 constant-folding checks, covering all 32 normalization amounts
 for the specialized forms and shifts 0, 1, 5 and 31 for the other forms. Reproduce them after generation with:
 
 ```sh
@@ -150,8 +148,8 @@ Seal5 marks their 5-bit `Is3` operand for specialization, and PatternGen
 extracts 32 constant-folded patterns per instruction. This includes the
 normalization-zero case, where the shift disappears. The four descriptions
 therefore contribute 128 patterns instead of four; the ISA still contains
-311 instructions. Multiply specialization is limited to these four
-instructions; clip immediate specialization is described below.
+311 instructions. Rounded multiply/MAC and clip specialization are described
+below.
 
 The tests exercise all 128 instruction/count combinations with SelectionDAG
 and GlobalISel at `-O0` and `-O3`, with fallback disabled. The original four
@@ -177,8 +175,8 @@ Diagnostic output is captured separately so statistics cannot interrupt a
 pattern record.
 
 The pattern report counts all 32 extracted rules for each specialized multiply,
-while counting each instruction once. The MAC set contains 18 instructions and 142
-TableGen patterns; the global totals are 311 instructions and 447 patterns.
+while counting each instruction once. The MAC set now contains 18 instructions
+and 390 TableGen patterns; the global totals are 311 instructions and 885 patterns.
 Importer acceptance and codegen-match counts remain unknown without explicit
 per-pattern validation evidence; a passing wrapper file is not treated as
 proof that every extracted rule was imported or selected.
@@ -229,3 +227,45 @@ eight negative checks. The extracted clip rule counts are 66 (`CV_CLIP`),
 91 (`CV_CLIPU`), two (`CV_CLIPR`), and three (`CV_CLIPUR`); multiple equivalent
 source trees can select the same encoding. These totals count emitted rules,
 not just immediate values.
+
+
+## Rounded normalization
+
+The four immediate rounded add/subtract descriptions and eight rounded
+multiply/MAC descriptions use `[[auto_unroll_imm]]`. Each immediate value
+0–31 is extracted separately. The ALU descriptions express the rounding
+term as `(one << shift) >> 1`, with `one` declared `unsigned<32>`. This makes
+zero rounding explicit at count zero and keeps the intermediate word-sized
+when the count is a five-bit register slice. Arithmetic wraps to 32 bits
+before the final arithmetic or logical right shift.
+
+The CoreDSL writer preserves the declared type of literal shift operands.
+PatternGen also emits both wrapping rounded-subtraction trees,
+`((a + rounding) - b) >> shift` and `((a - b) + rounding) >> shift`, for
+specialized counts. This prevents missed matches when IR optimization moves
+the rounding addition across the subtraction. The new rules are ordinary
+TableGen patterns and are included in the extraction metrics.
+
+At count zero, some signed/unsigned and rounded/unrounded encodings have
+identical source patterns. Generated zero-count checks accept either encoding
+only when complete extracted trees, predicates, output constraints, and
+pure instruction flags agree. Nonzero checks still require the requested
+instruction. Both rules remain counted; no per-pattern import or match count
+is inferred from this equivalence. Assembler and intrinsic tests continue to
+check the individual encodings.
+
+The 16 rounded instruction files exercise all 32 immediate values for the
+12 immediate forms, both subtraction trees, and the four register-controlled
+forms with both selectors at `-O0` and `-O3`, with fallback disabled: 1,800
+function/configuration checks. Independent constant folding verifies 3,456
+rounded ALU cases and 3,216 MAC cases, including overflow, negative values,
+zero counts, count 31, and high bits in register-controlled counts.
+
+```sh
+python examples/corev/check_alu_normalization_semantics.py \
+  "$DEST/.seal5/temp/XCoreVAlu/XCoreVAlu" \
+  --opt "$DEST/.seal5/build/release_assertions/bin/opt"
+python examples/corev/check_mac_semantics.py \
+  "$DEST/.seal5/temp/XCoreVMac/XCoreVMac" \
+  --opt "$DEST/.seal5/build/release_assertions/bin/opt"
+```

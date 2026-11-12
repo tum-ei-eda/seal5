@@ -15,6 +15,10 @@ root = args.directory
 pieces = []
 checks = {}
 samples = [
+    (0, 0, 0),
+    (1, 1, 0xFFFFFFFF),
+    (0x7FFF7FFF, 0x00010001, 0x7FFFFFFF),
+    (0x80008000, 0xFFFFFFFF, 0x80000000),
     (0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF),
     (0x80008000, 0x80008000, 0x7FFFFFFF),
     (0x7FFF7FFF, 0x7FFF7FFF, 0xFFFFFFFF),
