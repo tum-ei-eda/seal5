@@ -63,17 +63,17 @@ no direct GISel table entries are enabled.
 | Checked-in assembler tests | 338 | 0 |
 | Checked-in intrinsic tests | 199 | 0 |
 | Checked-in builtin tests | 2 | 0 |
-| Checked-in codegen tests | 48 | 20 |
-| Generated pattern codegen tests | 50 | 55 |
+| Checked-in codegen tests | 52 | 16 |
+| Generated pattern codegen tests | 52 | 55 |
 
-The checked-in total is **587/607 passing**. Assembler tests cover all 311
+The checked-in total is **591/607 passing**. Assembler tests cover all 311
 instructions and compare each sample encoding with LLVM's native CORE-V
 assembler. The new codegen tests for both immediate branches, all eight
 ordinary register-offset loads/stores, and four packed add/sub operations
 pass. Those tests exercise both SelectionDAG and GlobalISel, with GlobalISel
 fallback disabled.
 
-The remaining checked-in failures concern rounded normalization and clipping. One obsolete
+The remaining checked-in failures concern rounded normalization. One obsolete
 unsigned multiply test used an arithmetic right shift; it now uses a logical
 right shift. Generated-test failures include equivalent-instruction choices
 (such as byte versus halfword bitwise operations) and genuine missing
@@ -87,16 +87,16 @@ is not yet a fully passing pattern-selection suite.
 
 | Instruction set | Instructions | Extracted patterns | Failed extraction | Skipped |
 | --- | ---: | ---: | ---: | ---: |
-| ALU | 31 | 31 | 0 | 0 |
+| ALU | 31 | 189 | 0 | 0 |
 | Bit manipulation | 16 | 10 | 3 | 3 |
 | Immediate branches | 2 | 2 | 0 | 0 |
 | MAC | 18 | 142 | 0 | 0 |
 | Memory | 24 | 8 | 0 | 16 |
 | SIMD | 220 | 96 | 124 | 0 |
-| Total | 311 | 289 | 127 | 19 |
+| Total | 311 | 447 | 127 | 19 |
 
 Extraction success does not establish importer acceptance or instruction
-selection. The generated TableGen pattern files total 155,130 bytes in this
+selection. The generated TableGen pattern files total 173,725 bytes in this
 run. Reports retain separate extraction, import, and match fields; unavailable
 validation counts remain unknown.
 
@@ -150,8 +150,8 @@ Seal5 marks their 5-bit `Is3` operand for specialization, and PatternGen
 extracts 32 constant-folded patterns per instruction. This includes the
 normalization-zero case, where the shift disappears. The four descriptions
 therefore contribute 128 patterns instead of four; the ISA still contains
-311 instructions. Specialization is intentionally limited to these four
-instructions rather than every small immediate in the example.
+311 instructions. Multiply specialization is limited to these four
+instructions; clip immediate specialization is described below.
 
 The tests exercise all 128 instruction/count combinations with SelectionDAG
 and GlobalISel at `-O0` and `-O3`, with fallback disabled. The original four
@@ -176,9 +176,56 @@ specialized function, and opcode checks cannot match function names.
 Diagnostic output is captured separately so statistics cannot interrupt a
 pattern record.
 
-The pattern report counts all 32 extracted rules for each instruction, while
-counting each instruction once. The MAC set contains 18 instructions and 142
-TableGen patterns; the global totals are 311 instructions and 289 patterns.
+The pattern report counts all 32 extracted rules for each specialized multiply,
+while counting each instruction once. The MAC set contains 18 instructions and 142
+TableGen patterns; the global totals are 311 instructions and 447 patterns.
 Importer acceptance and codegen-match counts remain unknown without explicit
 per-pattern validation evidence; a passing wrapper file is not treated as
 proof that every extracted rule was imported or selected.
+
+## Clip pattern selection
+
+`CV_CLIP` and `CV_CLIPU` specialize their five-bit immediate with
+`[[auto_unroll_imm]]`. The register forms mask the bound to 31 bits, as
+specified by the [CORE-V general ALU operations](https://docs.openhwfoundation.org/projects/cv32e40p-user-manual/en/latest/instruction_set_extensions.html#general-alu-operations).
+The previous unmasked expression describes a different operation when the
+bound's sign bit is set and must not select a clip instruction.
+
+The LLVM 22 min/max capability patch preserves scalar min/max nodes in both
+selectors when XCoreVAlu is enabled. PatternGen additionally emits equivalent
+clamp orders when it proves the bounds are ordered. This includes signed
+versus unsigned min for nonnegative operands, sign replication for the
+smallest signed clip, and the signed-positive predicate for a one-bit
+unsigned result. These extra TableGen rules are counted in PatternGen's
+statistics and the aggregated report. The rewrite is restricted to RV32
+register results and targets that preserve signed min/max operations.
+
+The unsigned immediate encodings 0 and 1 return zero for every input. LLVM
+eliminates their register operand, so they do not produce useful extracted
+instruction patterns. Semantic checks cover both encodings, and their
+codegen checks require a constant-zero result.
+
+Each clip instruction has its own codegen test file. The tests cover every
+immediate value, both clamp orders, and negative checks for the unmasked
+register expression. They run with SelectionDAG and GlobalISel at `-O0` and
+`-O3`, with fallback disabled. To check the extracted descriptions and the
+bounds proof independently:
+
+```sh
+python3 examples/corev/check_clip_semantics.py \
+  "$DEST/.seal5/temp/XCoreVAlu/XCoreVAlu" \
+  --opt "$DEST/.seal5/build/release_assertions/bin/opt" \
+  --pattern-gen "$DEST/.seal5/build/release_assertions/bin/pattern-gen"
+```
+
+The checker covers 723 boundary cases, two constant-specialization skips, and
+four bounds-proof extraction checks. For the latter checks it removes the
+bound mask in temporary copies and requires PatternGen to stop emitting the
+interchangeable clamp-order rules.
+
+The four clip files cover 132 functions across four selector/optimization
+configurations: 512 positive clip selections, eight constant-zero checks, and
+eight negative checks. The extracted clip rule counts are 66 (`CV_CLIP`),
+91 (`CV_CLIPU`), two (`CV_CLIPR`), and three (`CV_CLIPUR`); multiple equivalent
+source trees can select the same encoding. These totals count emitted rules,
+not just immediate values.

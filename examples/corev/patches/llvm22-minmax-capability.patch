@@ -1,0 +1,38 @@
+--- a/llvm/lib/Target/RISCV/RISCVFeatures.td
++++ b/llvm/lib/Target/RISCV/RISCVFeatures.td
+@@ -1048,6 +1048,10 @@
+ // Register rotate supplied by generated RV32 instruction patterns.
+ def FeatureSeal5Rotate32 : SubtargetFeature<"seal5-rotate32", "HasSeal5Rotate32",
+                                            "true", "Generated 32-bit rotate-right">;
++
++// Scalar min/max supplied by generated RV32 instruction patterns.
++def FeatureSeal5MinMax32 : SubtargetFeature<"seal5-minmax32", "HasSeal5MinMax32",
++                                           "true", "Generated 32-bit min/max">;
+
+ def FeatureStdExtSvinval
+     : RISCVExtension<1, 0,
+--- a/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
++++ b/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
+@@ -462,7 +462,8 @@
+   }
+
+   if (Subtarget.hasStdExtZbb() ||
+-      (Subtarget.hasVendorXCValu() && !Subtarget.is64Bit())) {
++      ((Subtarget.hasVendorXCValu() || Subtarget.hasSeal5MinMax32()) &&
++       !Subtarget.is64Bit())) {
+     setOperationAction({ISD::SMIN, ISD::SMAX, ISD::UMIN, ISD::UMAX}, XLenVT,
+                        Legal);
+   }
+--- a/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
++++ b/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
+@@ -572,7 +572,9 @@
+       .lower();
+
+   getActionDefinitionsBuilder({G_UMAX, G_UMIN, G_SMAX, G_SMIN})
+-      .legalFor(ST.hasStdExtZbb() || ST.hasVendorXCValu(), {sXLen})
++      .legalFor(ST.hasStdExtZbb() || ST.hasVendorXCValu() ||
++                    (!ST.is64Bit() && ST.hasSeal5MinMax32()),
++                {sXLen})
+       .scalarizeIf(PackedFallback(0), 0)
+       .minScalar(ST.hasStdExtZbb(), 0, sXLen)
+       .lower();
