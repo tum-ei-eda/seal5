@@ -148,6 +148,17 @@ def check(directory, config="release_assertions"):
             if "lshr i32 %rs1.v, %base" not in contents or "and i32" not in contents:
                 raise AssertionError(f"{ir}: dynamic extraction must shift by the actual bit offset")
         results.append({"instruction": instruction, "normalized": spelling})
+    # Attribute each selectable instruction to its own cg test in the test report.
+    codegen_tests = {}
+    for pattern in inputs.glob("XNormalize*/NORM_*.td"):
+        if "def : Pat<" not in pattern.read_text():
+            continue
+        test = meta / "tests" / f"{pattern.stem.lower()}.test-cg.ll"
+        if not test.is_file():
+            raise AssertionError(f"{pattern.stem}: missing per-instruction codegen test: {test}")
+        codegen_tests[pattern.stem] = test.name
+    for result in results:
+        result["codegen_test"] = codegen_tests[result["instruction"]]
     report = outputs / "results.json"
     report.write_text(json.dumps(results, indent=2) + "\n")
     print(f"Verified {len(results)} normalization cases; report: {report}")

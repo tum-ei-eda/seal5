@@ -20,17 +20,17 @@
 
 import difflib
 import re
+import time
 from pathlib import Path
 from typing import Optional, Union
-from collections import defaultdict
 
-import yaml
 
 from seal5.logging import Logger
 from seal5.settings import PatchSettings
 from seal5.types import PatchStage
 from seal5.index import File, Directory, AppendPatch, NamedPatch, write_index_yaml
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
+from seal5.tools.pattern_metrics import write_statistics
 from seal5 import utils
 
 logger = Logger("tools")
@@ -85,6 +85,13 @@ def get_pattern_gen_patches(
         src_path=f"{src}/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp",
     )
     artifacts.append(file_artifact)
+    graph_extractor = src / "llvm/lib/CodeGen/GlobalISel/PatternGenGISelTable.cpp"
+    has_gisel_table = graph_extractor.is_file()
+    if has_gisel_table:
+        path = "llvm/lib/CodeGen/GlobalISel/PatternGenGISelTable.cpp"
+        artifacts.append(File(path, src_path=str(src / path)))
+        tables = "llvm/utils/TableGen/PatternGenTables.inc"
+        artifacts.append(File(tables, src_path=str(src / tables)))
     file_artifact = AppendPatch(
         "llvm/include/llvm/IR/IntrinsicsRISCV.td",
         content="""
@@ -108,7 +115,7 @@ let TargetPrefix = "riscv" in {
     patch_artifact = NamedPatch(
         "llvm/lib/CodeGen/GlobalISel/CMakeLists.txt",
         key="gisel_cmake_srcs",
-        content="  PatternGen.cpp",
+        content="  PatternGen.cpp" + ("\n  PatternGenGISelTable.cpp" if has_gisel_table else ""),
     )
     artifacts.append(patch_artifact)
     patch_artifact = NamedPatch(
@@ -145,18 +152,58 @@ def get_pattern_gen_backend_patch(src: Path, llvm_dir: Path, temp_dir: Path):
     operand = re.search(r"def patterngen_btarget\s*:.*?^}\s*$", definitions, re.MULTILINE | re.DOTALL)
     if operand is None:
         return None
+    registers = src / target / "RISCVRegisterInfo.td"
+    register_text = registers.read_text() if registers.is_file() else ""
+    packed_classes = re.findall(r"^def GPR32V[24]\b.*?^}", register_text, re.MULTILINE | re.DOTALL)
+    has_packed_simd = len(packed_classes) == 2
     changes = []
-    for name in (
-        "GISel/RISCVInstructionSelector.cpp",
-        "RISCVInstrInfo.cpp",
-        "RISCVLateBranchOpt.cpp",
-        "RISCVRedundantCopyElimination.cpp",
-        "GISel/RISCVLegalizerInfo.cpp",
-        "RISCVInstrInfo.td",
-    ):
-        path = target / name
+    paths = [
+        (target / name, name)
+        for name in (
+            "GISel/RISCVInstructionSelector.cpp",
+            "RISCVInstrInfo.cpp",
+            "RISCVLateBranchOpt.cpp",
+            "RISCVRedundantCopyElimination.cpp",
+            "GISel/RISCVLegalizerInfo.cpp",
+            "RISCVInstrInfo.td",
+        )
+    ]
+    if has_packed_simd:
+        paths.extend(
+            (target / name, None)
+            for name in (
+                "RISCVISelLowering.cpp",
+                "RISCVTargetTransformInfo.cpp",
+                "RISCVTargetTransformInfo.h",
+                "RISCVRegisterInfo.cpp",
+                "GISel/RISCVRegisterBankInfo.cpp",
+                "GISel/RISCVRegisterBanks.td",
+                "Disassembler/RISCVDisassembler.cpp",
+            )
+        )
+        paths.extend(
+            [(target / "RISCVRegisterInfo.td", "packed_registers"), (target / "RISCVFeatures.td", "packed_features")]
+        )
+    if (src / "llvm/lib/CodeGen/GlobalISel/PatternGenGISelTable.cpp").is_file():
+        paths.extend(
+            (Path(path), None)
+            for path in (
+                "llvm/include/llvm/CodeGen/GlobalISel/GIMatchTableExecutor.h",
+                "llvm/include/llvm/CodeGen/GlobalISel/GIMatchTableExecutorImpl.h",
+                "llvm/lib/CodeGen/GlobalISel/GIMatchTableExecutor.cpp",
+                "llvm/lib/CodeGen/GlobalISel/InstructionSelect.cpp",
+                "llvm/utils/TableGen/GlobalISelEmitter.cpp",
+            )
+        )
+        # LLVM 23 split the matcher implementation out of GlobalISelMatchTable.
+        for suffix in ("h", "cpp"):
+            matcher = Path(f"llvm/utils/TableGen/Common/GlobalISel/GlobalISelMatchTable.{suffix}")
+            if not (src / matcher).is_file():
+                matcher = Path(f"llvm/utils/TableGen/Common/GlobalISel/MatchTable/Matchers.{suffix}")
+            paths.append((matcher, None))
+    for path, name in paths:
         original = (llvm_dir / path).read_text()
-        if name == "GISel/RISCVLegalizerInfo.cpp":
+        if name == "GISel/RISCVLegalizerInfo.cpp" and not has_packed_simd:
             # Retain the native legalizer; only the extraction marker is needed.
             updated = original.replace(
                 "  case Intrinsic::riscv_vsetvli:",
@@ -166,8 +213,46 @@ def get_pattern_gen_backend_patch(src: Path, llvm_dir: Path, temp_dir: Path):
         elif name == "RISCVInstrInfo.td":
             # Seal5 installs its own generated instruction includes.
             updated = original + "\n" + operand.group().rstrip() + "\n"
+            if has_packed_simd:
+                bridges = re.search(
+                    r"// PATTERNGEN_GPR32V_BRIDGES_BEGIN.*?// PATTERNGEN_GPR32V_BRIDGES_END",
+                    definitions,
+                    re.DOTALL,
+                )
+                assert bridges is not None, "Missing packed SIMD register-copy patterns"
+                updated += bridges.group() + "\n"
+        elif name == "packed_registers":
+            # Marker patches add an insertion site at EOF. Appending classes
+            # here would invalidate that hunk before the marker pass runs.
+            anchor = "let RegInfos = XLenRI in {"
+            assert original.count(anchor) == 1, "Missing packed-register import anchor"
+            updated = original.replace(anchor, "\n\n".join(packed_classes) + "\n\n" + anchor, 1)
+        elif name == "packed_features":
+            feature_text = (src / path).read_text()
+            features = []
+            for feature_name in ("FeatureGPR32V", "HasGPR32V", "FeatureGPR32VAdd", "FeatureGPR32VSub"):
+                feature = re.search(rf"^def {feature_name}\b.*?;", feature_text, re.MULTILINE | re.DOTALL)
+                if feature is None:
+                    assert feature_name not in ("FeatureGPR32V", "HasGPR32V"), f"Missing {feature_name}"
+                    continue
+                features.append(feature.group())
+            assert any("hasGPR32V()" in feature for feature in features), "Malformed packed SIMD predicate"
+            # TableGen requires these definitions before generated extensions
+            # reference them. Preserve the Svinval marker context and EOF too.
+            anchor = "def FeatureStdExtSvinval"
+            assert original.count(anchor) == 1, "Missing packed-feature import anchor"
+            updated = original.replace(anchor, "\n\n".join(features) + "\n\n" + anchor, 1)
         else:
             updated = (src / path).read_text()
+        if name == "GISel/RISCVLegalizerInfo.cpp" and has_packed_simd:
+            # Removing validation-only markers can leave an extra blank line in
+            # the source branch. Keep the native marker insertion context.
+            updated = re.sub(
+                r"(const LLT nxv16p0 = LLT::scalable_vector\(16, p0\);\n)\n+(?=  using namespace TargetOpcode;)",
+                r"\1\n",
+                updated,
+            )
+            updated = re.sub(r"(  using namespace TargetOpcode;\n)\n+(?=  auto BoolVecTys)", r"\1\n", updated)
         changes.extend(
             difflib.unified_diff(
                 original.splitlines(keepends=True),
@@ -181,13 +266,12 @@ def get_pattern_gen_backend_patch(src: Path, llvm_dir: Path, temp_dir: Path):
     return PatchSettings(
         name="pattern_gen_backend_support",
         stage=int(PatchStage.PHASE_0),
-        comment="Import PatternGen memory and branch backend support",
+        comment="Import PatternGen backend support",
         file=str(patch_file),
         generated=False,  # The diff is already materialized; no index is needed.
         target="llvm",
         priority=95,  # Before insertion markers (90).
     )
-
 
 
 def split_minmax_legalizer_actions(source: str) -> str:
@@ -196,8 +280,10 @@ def split_minmax_legalizer_actions(source: str) -> str:
     Seal5 extends these rules per instruction. LLVM19 uses a named shared
     builder; newer releases use a chained builder with conditional actions.
     """
-    pattern = (r"(?m)^  (?:auto &(?P<variable>\w+)\s*=\s*)?"
-               r"getActionDefinitionsBuilder\(\{G_UMAX, G_UMIN, G_SMAX, G_SMIN\}\)")
+    pattern = (
+        r"(?m)^  (?:auto &(?P<variable>\w+)\s*=\s*)?"
+        r"getActionDefinitionsBuilder\(\{G_UMAX, G_UMIN, G_SMAX, G_SMIN\}\)"
+    )
     match = re.search(pattern, source)
     if match is None:
         raise ValueError("Cannot find the shared RISC-V min/max legality rules; source preserved")
@@ -207,15 +293,16 @@ def split_minmax_legalizer_actions(source: str) -> str:
     if end < 0:
         raise ValueError("Cannot find the end of the RISC-V min/max legality rules")
     end += len(terminator)
-    original = source[match.start():end]
+    original = source[match.start() : end]
     single = original.replace(
         "getActionDefinitionsBuilder({G_UMAX, G_UMIN, G_SMAX, G_SMIN})",
-        "getActionDefinitionsBuilder(Opcode)", 1,
+        "getActionDefinitionsBuilder(Opcode)",
+        1,
     )
     replacement = "  for (unsigned Opcode : {G_UMAX, G_UMIN, G_SMAX, G_SMIN}) {\n"
     replacement += "\n".join("  " + line if line else line for line in single.splitlines())
     replacement += "\n  }"
-    return source[:match.start()] + replacement + source[end:]
+    return source[: match.start()] + replacement + source[end:]
 
 
 def get_legalizer_split_patch(llvm_dir: Path, temp_dir: Path) -> Path:
@@ -224,10 +311,16 @@ def get_legalizer_split_patch(llvm_dir: Path, temp_dir: Path) -> Path:
     original = (llvm_dir / path).read_text()
     updated = split_minmax_legalizer_actions(original)
     output = temp_dir / "legalizer_split_selected_llvm.patch"
-    output.write_text("".join(difflib.unified_diff(
-        original.splitlines(keepends=True), updated.splitlines(keepends=True),
-        fromfile="a/" + path, tofile="b/" + path,
-    )))
+    output.write_text(
+        "".join(
+            difflib.unified_diff(
+                original.splitlines(keepends=True),
+                updated.splitlines(keepends=True),
+                fromfile="a/" + path,
+                tofile="b/" + path,
+            )
+        )
+    )
     return output
 
 
@@ -263,9 +356,30 @@ def combine_test_fragments(
     test_asm_checks: str,
     return_output=False,
     scalar_inputs=False,
+    register_writebacks=0,
 ):
     with open(ll_file, "r") as f:
         contents = f.read()
+    if register_writebacks > 1:
+        # PatternGen models register outputs as stores through synthetic noalias
+        # pointers. Group their writebacks after the computations, as register
+        # results are simultaneous and an early store otherwise blocks fusion.
+        stores = list(re.finditer(r"(?m)^  store i\d+ [^,\n]+, ptr (%[\w.]+)[^\n]*\n", contents))
+        assert len(stores) == register_writebacks, "Unexpected register-result stores"
+        destinations = [store.group(1) for store in stores]
+        assert len(set(destinations)) == register_writebacks, "Repeated output pointer"
+        header = next(line for line in contents.splitlines() if line.startswith("define "))
+        for store, destination in zip(stores, destinations):
+            pointer = re.escape(destination)
+            assert re.search(r"ptr noalias (?:(?!ptr |%).)*" + pointer + r"(?=[,)])", header), "Output must be noalias"
+            assert not re.search(
+                r"load [^\n]*ptr " + pointer + r"(?=[,\s])", contents[store.end() :]
+            ), "Output read after its writeback"
+        writebacks = "".join(store.group() for store in stores)
+        for store in reversed(stores):
+            contents = contents[: store.start()] + contents[store.end() :]
+        assert contents.count("  ret void") == 1, "Expected a single register wrapper"
+        contents = contents.replace("  ret void", writebacks + "  ret void", 1)
     if return_output:
         # Return the synthetic register result so a competing store-data rule
         # cannot absorb the arithmetic we intend to test as part of a load.
@@ -303,19 +417,17 @@ def scalarize_test_inputs(contents):
     if signature is None:
         raise ValueError("Missing test function signature")
     header = signature.group()
-    loads = list(re.finditer(
-        r"(?m)^  (%[\w.]+) = load (i\d+), ptr (%[\w.]+),[^\n]+\n", contents
-    ))
+    loads = list(re.finditer(r"(?m)^  (%[\w.]+) = load (i\d+), ptr (%[\w.]+),[^\n]+\n", contents))
     for load in reversed(loads):
         value, ty, pointer = load.groups()
         parameter = r"ptr\b[^,%]*" + re.escape(pointer) + r"(?![\w.])"
         if not re.search(parameter, header):
             continue
         header = re.sub(parameter, ty + " " + pointer, header)
-        contents = contents[:load.start()] + contents[load.end():]
+        contents = contents[: load.start()] + contents[load.end() :]
         contents = re.sub(re.escape(value) + r"(?![\w.])", pointer, contents)
     # Edits above only affect the body, so signature offsets remain stable.
-    return contents[:signature.start()] + header + contents[signature.end():]
+    return contents[: signature.start()] + header + contents[signature.end() :]
 
 
 def run_pattern_gen(
@@ -337,11 +449,17 @@ def run_pattern_gen(
     may_load=False,
     dag_only=False,
     memory_instruction=False,
+    gisel_table=False,
+    num_register_outputs=None,
 ):
     """Excute pattern-gen executable."""
     if not isinstance(build_dir, Path):
         build_dir = Path(build_dir)
+    if num_register_outputs is None:
+        num_register_outputs = int(has_register_output)
     pattern_gen_args = [src]
+    if gisel_table:
+        pattern_gen_args.append("--gisel-table")
     # pattern_gen_args.extend(["-custom-legalizer-settings=foo", "-disable-gisel-legality-check"])
 
     if dest:
@@ -391,7 +509,13 @@ def run_pattern_gen(
     break_on_err = False
 
     # TODO: dump gmir?
+    returncode = None
+    captured_output = ""
+
     def handle_exit(code=None, out=None):
+        nonlocal returncode, captured_output
+        returncode = code
+        captured_output = out or ""
         if code is not None and code != 0:
             err_file = str(dest) + ".err"
             with open(err_file, "w", encoding="utf-8") as f:
@@ -408,6 +532,16 @@ def run_pattern_gen(
     cmd_file = str(dest) + ".cmd"
     with open(cmd_file, "w", encoding="utf-8") as f:
         f.write(cmd_str)
+    # Remove artifacts from a previous invocation before measuring this one.
+    for suffix in (".stats", ".pat", ".err", ".out"):
+        Path(str(dest) + suffix).unlink(missing_ok=True)
+    dest.unlink(missing_ok=True)
+    dest.with_name(dest.stem + "InstrFormat" + dest.suffix).unlink(missing_ok=True)
+    dest.with_suffix(".inc.patch").unlink(missing_ok=True)
+    if gisel_table:
+        dest.with_suffix(".inc").unlink(missing_ok=True)
+    started = time.perf_counter()
+    out = ""
     try:
         out = utils.exec_getout(
             pattern_gen_exe,
@@ -426,6 +560,16 @@ def run_pattern_gen(
             if len(content) == 0:
                 dest.unlink()
         raise e
+    finally:
+        write_statistics(
+            dest,
+            out or captured_output,
+            time.perf_counter() - started,
+            gisel_table,
+            skip_patterns,
+            returncode,
+            skip_formats=skip_formats,
+        )
     if not skip_patterns:
         # errs = None
         # opt_ll = None
@@ -434,8 +578,6 @@ def run_pattern_gen(
         # reason = None
         # rest = []
         num_err = 0
-        has_stats = False
-        all_stats = defaultdict(dict)
         instr = None
         mnemonic = None
 
@@ -502,30 +644,11 @@ def run_pattern_gen(
                 #     mnemonic = "TODO"
                 #     pat = [line.split(":", 1)[1]]
                 #     # found_pattern = True
-            if has_stats:
-                parsed = re.compile(r"^\s*(\d+)\s([^\s]+)\s+-\s(.*)$").findall(line)
-                if len(parsed) > 0:
-                    assert len(parsed) == 1
-                    assert len(parsed[0]) == 3
-                    stat_count, stat_type, stat_descr = parsed[0]
-                    stat_count = int(stat_count)
-                    if stat_type not in ["pattern-gen"]:
-                        continue
-                    new_stats = {stat_descr: stat_count}
-                    all_stats[stat_type].update(new_stats)
-            else:
-                if "Statistics Collected" in line:
-                    has_stats = True
         if found_pattern:
             pattern = "\n".join(pat)
             patterns.append(pattern)
             pat = []
             found_pattern = False
-        if len(all_stats) > 0:
-            all_stats = dict(all_stats)
-            stat_file = str(dest) + ".stats"
-            with open(stat_file, "w", encoding="utf-8") as f:
-                yaml.dump(all_stats, f)
         ll_files = []
         has_imm = False
         # print("pat", pat, len(pat))
@@ -584,6 +707,7 @@ def run_pattern_gen(
                 xlens = [32, 64]
             else:
                 xlens = [xlen]
+            packed_register_output = bool(re.search(r"\(outs\s+GPR32V[24]:", dest.read_text()))
             test_header = ""
             test_mir_checks = ""
             test_asm_checks = ""
@@ -613,14 +737,16 @@ def run_pattern_gen(
                 # test_mir_checks += f"  ; RV{xlen}-MIR: LW\n"  # TODO: once per reg input operand
                 test_mir_checks += f"  ; RV{xlen}-MIR: {llvm_instr}\n"
                 if has_register_output and not may_load:
-                    test_mir_checks += f"  ; RV{xlen}-MIR-NEXT: {store_mir}\n"
+                    # Packed results may cross a register-class COPY before the scalar writeback.
+                    store_check = "MIR" if packed_register_output else "MIR-NEXT"
+                    test_mir_checks += f"  ; RV{xlen}-{store_check}: {store_mir}\n" * num_register_outputs
                 ret_check = "MIR" if may_load and has_register_output else "MIR-NEXT"
                 test_mir_checks += f"  ; RV{xlen}-{ret_check}: PseudoRET\n"
                 test_asm_checks += f"  ; RV{xlen}-ASM-LABEL: impl{instr}:\n"
                 # test_asm_checks += f"  ; RV{xlen}-ASM: lw\n"  # TODO: once per reg input operand
                 test_asm_checks += f"  ; RV{xlen}-ASM: {mnemonic}\n"
                 if has_register_output and not may_load:
-                    test_asm_checks += f"  ; RV{xlen}-ASM-NEXT: {store_asm}\n"
+                    test_asm_checks += f"  ; RV{xlen}-ASM-NEXT: {store_asm}\n" * num_register_outputs
                 ret_check = "ASM" if may_load and has_register_output else "ASM-NEXT"
                 test_asm_checks += f"  ; RV{xlen}-{ret_check}: ret\n"
             # print("test_header", test_header)
@@ -636,6 +762,7 @@ def run_pattern_gen(
                 test_asm_checks,
                 return_output=may_load and has_register_output,
                 scalar_inputs=memory_instruction,
+                register_writebacks=num_register_outputs if gisel_table else 0,
             )
             # print("test_content", test_content)
             test_file = ll_file.replace(".ll", ".test-cg.ll")
@@ -714,43 +841,44 @@ def lower_branch_patterns_to_riscv(contents):
     before DAG selection, including swapping greater-than comparisons. Keep
     these rules out of the GlobalISel importer.
     """
+
     def arguments(text):
         depth, start, result = 0, 0, []
         for index, char in enumerate(text):
-            depth += (char == '(') - (char == ')')
-            if char == ',' and depth == 0:
+            depth += (char == "(") - (char == ")")
+            if char == "," and depth == 0:
                 result.append(text[start:index].strip())
                 start = index + 1
         result.append(text[start:].strip())
         return result
 
     def untype(text):
-        match = re.fullmatch(r'\(i(?:32|64)\s+(.*)\)', text, re.S)
+        match = re.fullmatch(r"\(i(?:32|64)\s+(.*)\)", text, re.S)
         return match.group(1).strip() if match else text
 
     offset = 0
     while True:
-        match = re.search(r'\(brcond\s+', contents[offset:])
+        match = re.search(r"\(brcond\s+", contents[offset:])
         if match is None:
             break
         start = offset + match.start()
         depth, end = 1, start + 1
         while end < len(contents) and depth:
-            depth += (contents[end] == '(') - (contents[end] == ')')
+            depth += (contents[end] == "(") - (contents[end] == ")")
             end += 1
         if depth:
-            raise ValueError('Unbalanced branch TableGen pattern')
-        condition, target = arguments(contents[start + len('(brcond'):end - 1])
+            raise ValueError("Unbalanced branch TableGen pattern")
+        condition, target = arguments(contents[start + len("(brcond") : end - 1])
         condition = untype(condition)
-        if not condition.startswith('(setcc ') or not condition.endswith(')'):
-            raise ValueError('Expected a setcc condition in a generated branch pattern')
-        lhs, rhs, cc = arguments(condition[len('(setcc '):-1])
-        swaps = {'SETGT': 'SETLT', 'SETLE': 'SETGE', 'SETUGT': 'SETULT', 'SETULE': 'SETUGE'}
+        if not condition.startswith("(setcc ") or not condition.endswith(")"):
+            raise ValueError("Expected a setcc condition in a generated branch pattern")
+        lhs, rhs, cc = arguments(condition[len("(setcc ") : -1])
+        swaps = {"SETGT": "SETLT", "SETLE": "SETGE", "SETUGT": "SETULT", "SETULE": "SETUGE"}
         if cc in swaps:
             lhs, rhs, cc = rhs, lhs, swaps[cc]
-        if cc not in ('SETEQ', 'SETNE', 'SETLT', 'SETGE', 'SETULT', 'SETUGE'):
-            raise ValueError(f'Unsupported branch condition {cc}')
-        replacement = f'(riscv_brcc {lhs}, {rhs}, {cc}, {target})'
+        if cc not in ("SETEQ", "SETNE", "SETLT", "SETGE", "SETULT", "SETUGE"):
+            raise ValueError(f"Unsupported branch condition {cc}")
+        replacement = f"(riscv_brcc {lhs}, {rhs}, {cc}, {target})"
         contents = contents[:start] + replacement + contents[end:]
         offset = start + len(replacement)
     return ignore_gisel_patterns(contents)
@@ -758,5 +886,4 @@ def lower_branch_patterns_to_riscv(contents):
 
 def ignore_gisel_patterns(contents):
     """Scope the importer exclusion to Pattern records, preserving helpers."""
-    return re.sub(r'(?m)^([ \t]*)def\s*:\s*Pat\s*<',
-                  r'\1let GISelShouldIgnore = 1 in def : Pat<', contents)
+    return re.sub(r"(?m)^([ \t]*)def\s*:\s*Pat\s*<", r"\1let GISelShouldIgnore = 1 in def : Pat<", contents)

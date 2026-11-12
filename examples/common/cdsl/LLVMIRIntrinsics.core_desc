@@ -1,0 +1,79 @@
+InstructionSet LLVMIRIntrinsics {
+    functions {
+        // declare iN @llvm.abs.iN(iN, i1)
+        extern unsigned<64> llvm_abs_i64(unsigned<64> src, unsigned<1> is_int_min_poison);
+        extern unsigned<32> llvm_abs_i32(unsigned<32> src, unsigned<1> is_int_min_poison);
+        extern unsigned<16> llvm_abs_i16(unsigned<16> src, unsigned<1> is_int_min_poison);
+        extern unsigned<8> llvm_abs_i8(unsigned<8> src, unsigned<1> is_int_min_poison);
+
+        // declare iN @llvm.smax.iN(iN, iN)
+        // declare iN @llvm.smin.iN(iN, iN)
+        // declare iN @llvm.umax.iN(iN, iN)
+        // declare iN @llvm.umin.iN(iN, iN)
+        extern unsigned<64> llvm_smax_i64(unsigned<64> lhs, unsigned<64> rhs);
+        extern unsigned<32> llvm_smax_i32(unsigned<32> lhs, unsigned<32> rhs);
+        extern unsigned<16> llvm_smax_i16(unsigned<16> lhs, unsigned<16> rhs);
+        extern unsigned<8> llvm_smax_i8(unsigned<8> lhs, unsigned<8> rhs);
+        extern unsigned<64> llvm_smin_i64(unsigned<64> lhs, unsigned<64> rhs);
+        extern unsigned<32> llvm_smin_i32(unsigned<32> lhs, unsigned<32> rhs);
+        extern unsigned<16> llvm_smin_i16(unsigned<16> lhs, unsigned<16> rhs);
+        extern unsigned<8> llvm_smin_i8(unsigned<8> lhs, unsigned<8> rhs);
+        extern unsigned<64> llvm_umax_i64(unsigned<64> lhs, unsigned<64> rhs);
+        extern unsigned<32> llvm_umax_i32(unsigned<32> lhs, unsigned<32> rhs);
+        extern unsigned<16> llvm_umax_i16(unsigned<16> lhs, unsigned<16> rhs);
+        extern unsigned<8> llvm_umax_i8(unsigned<8> lhs, unsigned<8> rhs);
+        extern unsigned<64> llvm_umin_i64(unsigned<64> lhs, unsigned<64> rhs);
+        extern unsigned<32> llvm_umin_i32(unsigned<32> lhs, unsigned<32> rhs);
+        extern unsigned<16> llvm_umin_i16(unsigned<16> lhs, unsigned<16> rhs);
+        extern unsigned<8> llvm_umin_i8(unsigned<8> lhs, unsigned<8> rhs);
+
+        // declare i32 @llvm.scmp.iN(iN, iN)
+        // declare i32 @llvm.ucmp.iN(iN, iN)
+        extern unsigned<32> llvm_scmp_i64(unsigned<64> lhs, unsigned<64> rhs);
+        extern unsigned<32> llvm_scmp_i32(unsigned<32> lhs, unsigned<32> rhs);
+        extern unsigned<32> llvm_scmp_i16(unsigned<16> lhs, unsigned<16> rhs);
+        extern unsigned<32> llvm_scmp_i8(unsigned<8> lhs, unsigned<8> rhs);
+        extern unsigned<32> llvm_ucmp_i64(unsigned<64> lhs, unsigned<64> rhs);
+        extern unsigned<32> llvm_ucmp_i32(unsigned<32> lhs, unsigned<32> rhs);
+        extern unsigned<32> llvm_ucmp_i16(unsigned<16> lhs, unsigned<16> rhs);
+        extern unsigned<32> llvm_ucmp_i8(unsigned<8> lhs, unsigned<8> rhs);
+
+        // declare iN @llvm.bitreverse.iN(iN)
+        // declare iN @llvm.bswap.iN(iN)
+        // declare iN @llvm.ctpop.iN(iN)
+        extern unsigned<64> llvm_bitreverse_i64(unsigned<64> src);
+        extern unsigned<32> llvm_bitreverse_i32(unsigned<32> src);
+        extern unsigned<16> llvm_bitreverse_i16(unsigned<16> src);
+        extern unsigned<8> llvm_bitreverse_i8(unsigned<8> src);
+        extern unsigned<64> llvm_bswap_i64(unsigned<64> src);
+        extern unsigned<32> llvm_bswap_i32(unsigned<32> src);
+        extern unsigned<16> llvm_bswap_i16(unsigned<16> src);
+        extern unsigned<8> llvm_bswap_i8(unsigned<8> src);
+        extern unsigned<64> llvm_ctpop_i64(unsigned<64> src);
+        extern unsigned<32> llvm_ctpop_i32(unsigned<32> src);
+        extern unsigned<16> llvm_ctpop_i16(unsigned<16> src);
+        extern unsigned<8> llvm_ctpop_i8(unsigned<8> src);
+
+        // declare iN @llvm.ctlz.iN(iN, i1)
+        // declare iN @llvm.cttz.iN(iN, i1)
+        extern unsigned<64> llvm_ctlz_i64(unsigned<64> src, unsigned<1> is_zero_undef);
+        extern unsigned<32> llvm_ctlz_i32(unsigned<32> src, unsigned<1> is_zero_undef);
+        extern unsigned<16> llvm_ctlz_i16(unsigned<16> src, unsigned<1> is_zero_undef);
+        extern unsigned<8> llvm_ctlz_i8(unsigned<8> src, unsigned<1> is_zero_undef);
+        extern unsigned<64> llvm_cttz_i64(unsigned<64> src, unsigned<1> is_zero_undef);
+        extern unsigned<32> llvm_cttz_i32(unsigned<32> src, unsigned<1> is_zero_undef);
+        extern unsigned<16> llvm_cttz_i16(unsigned<16> src, unsigned<1> is_zero_undef);
+        extern unsigned<8> llvm_cttz_i8(unsigned<8> src, unsigned<1> is_zero_undef);
+
+        // declare iN @llvm.fshl.iN(iN, iN, iN)
+        // declare iN @llvm.fshr.iN(iN, iN, iN)
+        extern unsigned<64> llvm_fshl_i64(unsigned<64> a, unsigned<64> b, unsigned<64> shift);
+        extern unsigned<32> llvm_fshl_i32(unsigned<32> a, unsigned<32> b, unsigned<32> shift);
+        extern unsigned<16> llvm_fshl_i16(unsigned<16> a, unsigned<16> b, unsigned<16> shift);
+        extern unsigned<8> llvm_fshl_i8(unsigned<8> a, unsigned<8> b, unsigned<8> shift);
+        extern unsigned<64> llvm_fshr_i64(unsigned<64> a, unsigned<64> b, unsigned<64> shift);
+        extern unsigned<32> llvm_fshr_i32(unsigned<32> a, unsigned<32> b, unsigned<32> shift);
+        extern unsigned<16> llvm_fshr_i16(unsigned<16> a, unsigned<16> b, unsigned<16> shift);
+        extern unsigned<8> llvm_fshr_i8(unsigned<8> a, unsigned<8> b, unsigned<8> shift);
+    }
+}

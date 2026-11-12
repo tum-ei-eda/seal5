@@ -205,6 +205,16 @@ class Seal5Alias:
     pass
 
 
+class Seal5InstSetAttribute(Enum):
+    KEEP = auto()
+    DROP = auto()
+    FEATURE = auto()
+    ARCH = auto()
+    VER = auto()
+    VERSION = auto()
+    EXPERIMENTAL = auto()
+
+
 class Seal5InstrAttribute(Enum):
     HAS_SIDE_EFFECTS = auto()
     MAY_LOAD = auto()
@@ -229,6 +239,8 @@ class Seal5InstrAttribute(Enum):
     ENC_MATCH = auto()
     AUTO_UNROLL_IMM = auto()
     AUTO_INTRIN = auto()
+    KEEP = auto()
+    DROP = auto()
 
 
 class Seal5FunctionAttribute(Enum):
@@ -713,14 +725,17 @@ class Seal5Instruction(Instruction):
             if Seal5OperandAttribute.IS_REG in op.attributes:
                 assert Seal5OperandAttribute.REG_CLASS in op.attributes
                 cls = op.attributes[Seal5OperandAttribute.REG_CLASS]
-                assert cls in ["GPR", "GPRC", "FPR"], f"Unhandled reg class: {cls}"
+                if cls == "CSR":
+                    pre = "csr_sysreg"
+                else:
+                    assert cls in ["GPR", "GPRC", "FPR"], f"Unhandled reg class: {cls}"
+                    pre = cls
                 if cls == "FPR":
                     assert Seal5OperandAttribute.REG_TYPE in op.attributes
                     reg_type = op.attributes[Seal5OperandAttribute.REG_TYPE]
                     assert reg_type[0] == "f"
                     flen = int(reg_type[1:])
-                    cls = f"FPR{flen}"
-                pre = cls
+                    pre = f"FPR{flen}"
             elif Seal5OperandAttribute.IS_IMM in op.attributes:
                 if branch_offset:
                     pre = "patterngen_btarget"

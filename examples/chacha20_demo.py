@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 """Demo script for Seal5 Python API, building a toolchain including chacha20 custom instructions."""
+
 import os
 
 # import logging

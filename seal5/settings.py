@@ -438,6 +438,11 @@ class LoggingSettings(YAMLSettings):
 
     console: ConsoleLoggingSettings
     file: FileLoggingSettings
+    progress: Optional[str] = None  # None/"none" (default), "tqdm" or "rich" (mutually exclusive)
+
+    def __post_init__(self):
+        if self.progress is not None and self.progress not in ("none", "tqdm", "rich"):
+            raise ValueError(f"Invalid progress mode: {self.progress} (expected none, tqdm or rich)")
 
 
 @dataclass
@@ -559,7 +564,7 @@ class ExtensionsSettings(YAMLSettings):
     requires: Optional[List[str]] = None
     parent: Optional[str] = None
     max_parent: Optional[str] = None
-    # implies: Optional[List[str]] = None
+    backend_features: Optional[List[str]] = None  # Non-ISA TableGen feature dependencies
     instructions: Optional[List[str]] = None
     riscv: Optional[RISCVSettings] = None
     passes: Optional[PassesSettings] = None

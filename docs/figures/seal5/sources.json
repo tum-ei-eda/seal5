@@ -1,0 +1,15 @@
+{
+  "source_files": {
+    "seal5/flow.py": "9b6dc7b0333f0763cfef5a3e21af6109d05fab47b2e05f0c4c09c05677fd7f6f",
+    "seal5/passes.py": "048c412fa6ee88069f469271d5c7ba0f7baaf0b91abb9367969b3a9fb7f4691e",
+    "seal5/pass_list.py": "7c7c4ea30f0e220d0411223109b9b85ee77fb9a0b6fbed3da08f31c28da31322",
+    "seal5/types.py": "43d83a4597bcef3a32027698bd937080f8df64ecd0a5281560ca318ccb342bc7",
+    "seal5/wrapper.py": "3d8fe40a936b89b4bd257b5c1228d1ea3da946694969cd0e853fe93d3b38ed59"
+  },
+  "counts": {
+    "transforms": 38,
+    "generators": 12,
+    "nested_pattern_gen": 4
+  },
+  "scope_note": "Scopes extracted/checked against Seal5Flow.create_passes; not output file granularity."
+}

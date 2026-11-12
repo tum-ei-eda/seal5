@@ -24,6 +24,7 @@ import time
 import glob
 import tarfile
 import atexit
+import subprocess
 from pathlib import Path
 from typing import Optional, List, Dict, Tuple, Union
 
@@ -909,6 +910,39 @@ class Seal5Flow:
             return ret.resolve()
         raise RuntimeError(f"Patch file {path} not found!")
 
+    def _apply_and_stage_patch(self, repo, file, force):
+        dirty = repo.is_dirty(untracked_files=True)
+        if dirty and not llvm.check_llvm_repo(self.directory):
+            if force:
+                repo.git.reset(".")
+                repo.git.restore(".")
+            else:
+                raise RuntimeError("LLVM repository is not clean!")
+        if dirty:
+            repo.git.apply(file)
+            repo.git.add(A=True)
+        else:
+            repo.git.apply("--index", file)
+            # Unlike git add -A, git apply --index stages newly created ignored files.
+            added = repo.git.diff(
+                "--cached", "--no-renames", "--name-only", "--diff-filter=A", "-z", stdout_as_string=False
+            )
+            if added:
+                result = subprocess.run(
+                    [git.Git.GIT_PYTHON_GIT_EXECUTABLE, "check-ignore", "--no-index", "-z", "--stdin"],
+                    cwd=repo.working_tree_dir,
+                    input=added,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    check=False,
+                )
+                if result.returncode not in (0, 1):
+                    result.check_returncode()
+                if result.stdout:
+                    paths = [os.fsdecode(path) for path in result.stdout.split(b"\0") if path]
+                    with repo.git.custom_environment(GIT_LITERAL_PATHSPECS="1"):
+                        repo.git.reset("-q", "HEAD", "--", *paths)
+
     def apply_patch(self, patch: PatchSettings, force: bool = False):
         """Apply Seal5 patch."""
         name = patch.name
@@ -946,24 +980,20 @@ class Seal5Flow:
         else:
             file = self.resolve_patch_file(patch.file)
             builtin_split = Path(__file__).parent / "resources/patches/llvm/legalizer_split.patch"
-            if (patch.name == "legalizer_split" and file == builtin_split.resolve()
-                    and self.settings.llvm.state.version.major >= 20):
+            if (
+                patch.name == "legalizer_split"
+                and file == builtin_split.resolve()
+                and self.settings.llvm.state.version.major >= 20
+            ):
                 file = cdsl2llvm.get_legalizer_split_patch(self.directory, self.settings.temp_dir)
                 patch.file = str(file)
         dest = None
         if target == "llvm":
             dest = self.directory
             repo = git.Repo(dest)
-            if not llvm.check_llvm_repo(dest):
-                if force:
-                    repo.git.reset(".")
-                    repo.git.restore(".")
-                else:
-                    raise RuntimeError("LLVM repository is not clean!")
         if dest is None:
             raise RuntimeError(f"Unsupported patch target: {target}")
-        # TODO: check if clean
-        repo.git.apply(file)
+        self._apply_and_stage_patch(repo, file, force)
         author = self.settings.git.author
         mail = self.settings.git.mail
         actor = git.Actor(author, mail)
@@ -973,7 +1003,6 @@ class Seal5Flow:
             msg = f"Apply patch: {patch.name}"
         if prefix:
             msg = prefix + " " + msg
-        repo.git.add(A=True)
         repo.index.commit(msg, author=actor)
         patch.applied = True
         self.settings.save()
@@ -1028,13 +1057,7 @@ class Seal5Flow:
                     self.logger.info("Applying combined patch '%s'", name)
                     dest = self.directory
                     repo = git.Repo(dest)
-                    if not llvm.check_llvm_repo(dest):
-                        if force:
-                            repo.git.reset(".")
-                            repo.git.restore(".")
-                        else:
-                            raise RuntimeError("LLVM repository is not clean!")
-                    repo.git.apply(combined_file)
+                    self._apply_and_stage_patch(repo, combined_file, force)
                     author = self.settings.git.author
                     mail = self.settings.git.mail
                     actor = git.Actor(author, mail)
@@ -1042,7 +1065,6 @@ class Seal5Flow:
                     msg = f"Combined {stage_name} patches"
                     if prefix:
                         msg = prefix + " " + msg
-                    repo.git.add(A=True)
                     repo.index.commit(msg, author=actor)
                 else:
                     logger.warning("No combined patch found for stage %s.", stage_name)
@@ -1154,6 +1176,93 @@ class Seal5Flow:
         self.settings.metrics.append({"test": metrics})
         self.settings.save()
         self.logger.info("Completed test of Seal5 LLVM")
+
+    def report(self, dest: Optional[Union[str, Path]] = None, verbose: bool = False):
+        """Generate Seal5 reports."""
+        self.logger.info("Generating Seal5 reports")
+        if dest is None:
+            dest = self.meta_dir / "reports"
+        elif not isinstance(dest, Path):
+            dest = Path(dest)
+        dest.mkdir(parents=True, exist_ok=True)
+
+        model_files = sorted(self.settings.models_dir.glob("*.seal5model"))
+        if not model_files:
+            raise RuntimeError(f"No Seal5 models found in {self.settings.models_dir}")
+        model_args = [str(path) for path in model_files]
+        yaml_args = ["--yaml", str(self.settings.settings_file)]
+
+        def run_writer(module, *args):
+            utils.python(
+                "-m",
+                f"seal5.backends.report.{module}.writer",
+                *args,
+                print_func=self.logger.info if verbose else self.logger.debug,
+                live=verbose,
+            )
+
+        def output_args(name):
+            return ["--output", str(dest / name)]
+
+        run_writer("properties", *model_args, *output_args("properties.csv"))
+        run_writer("properties", *model_args, *output_args("properties.md"))
+
+        run_writer("status", *model_args, *yaml_args, *output_args("status.csv"))
+        run_writer("status", *model_args, *yaml_args, "--compact", *output_args("status_compact.csv"))
+        run_writer("status", *model_args, *yaml_args, *output_args("status.md"), "--markdown-icons")
+        run_writer(
+            "status", *model_args, *yaml_args, "--compact", *output_args("status_compact.md"), "--markdown-icons"
+        )
+
+        run_writer("pattern_gen", *yaml_args, *output_args("pattern_gen.csv"))
+        run_writer("pattern_gen", *yaml_args, "--agg", *output_args("pattern_gen_agg.csv"))
+        run_writer("pattern_gen", *yaml_args, *output_args("pattern_gen.md"))
+        run_writer("pattern_gen", *yaml_args, "--agg", *output_args("pattern_gen_agg.md"))
+
+        run_writer(
+            "test_results",
+            *model_args,
+            *yaml_args,
+            *output_args("test_results.csv"),
+            "--coverage",
+            str(dest / "test_coverage.csv"),
+        )
+        run_writer(
+            "test_results",
+            *model_args,
+            *yaml_args,
+            "--compact",
+            *output_args("test_results_compact.csv"),
+            "--coverage",
+            str(dest / "test_coverage_compact.csv"),
+        )
+        run_writer(
+            "test_results",
+            *model_args,
+            *yaml_args,
+            *output_args("test_results.md"),
+            "--coverage",
+            str(dest / "test_coverage.md"),
+            "--markdown-icons",
+        )
+        run_writer(
+            "test_results",
+            *model_args,
+            *yaml_args,
+            "--compact",
+            *output_args("test_results_compact.md"),
+            "--coverage",
+            str(dest / "test_coverage_compact.md"),
+            "--markdown-icons",
+        )
+
+        run_writer("diff", *yaml_args, *output_args("diff.csv"))
+        run_writer("diff", *yaml_args, *output_args("diff.md"))
+
+        run_writer("times", *yaml_args, "--pass-times", *output_args("stage_times.csv"), "--sum-level", "2")
+        run_writer("times", *yaml_args, "--pass-times", *output_args("stage_times.md"), "--sum-level", "2")
+        run_writer("times", *yaml_args, "--pass-times", *output_args("stage_times.mermaid"), "--sum-level", "2")
+        self.logger.info("Completed generation of Seal5 reports")
 
     def deploy(self, dest: Path, verbose: bool = False, stage: PatchStage = PatchStage.PHASE_5):
         """Deploy Seal5 LLVM."""

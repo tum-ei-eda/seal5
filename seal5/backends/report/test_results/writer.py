@@ -24,7 +24,6 @@ from seal5.logging import Logger
 logger = Logger("backends.test_results_writer")
 
 
-
 def latest_test_metrics(metrics):
     """Report the latest attempt when a saved build is tested again."""
     for stages_metrics in reversed(metrics):

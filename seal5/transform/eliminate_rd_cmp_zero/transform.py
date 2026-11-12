@@ -29,6 +29,7 @@ def get_parser():
     parser.add_argument("--log", default="info", choices=["critical", "error", "warning", "info", "debug"])
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--compat", action="store_true")
+    parser.add_argument("--destination-names", nargs="+", default=["rd"])
     return parser
 
 
@@ -45,7 +46,7 @@ def run(args):
 
     for _, set_def in model_obj.sets.items():
         logger.debug("eliminating rd != 0 for set %s", set_def.name)
-        visitor = EliminateRdCmpZeroVisitor()
+        visitor = EliminateRdCmpZeroVisitor(args.destination_names)
         for _, instr_def in set_def.instructions.items():
             logger.debug("eliminating rd != 0 for instr %s", instr_def.name)
             visitor.generate(instr_def.operation, None)

@@ -1,0 +1,24 @@
+; RUN: llc -O2 -mtriple=riscv64 -mattr=+xnormalize64 -verify-machineinstrs -global-isel=1 -global-isel-abort=1 < %s | FileCheck %s
+; RUN: llc -O2 -mtriple=riscv64 -mattr=+xnormalize64 -verify-machineinstrs -global-isel=1 -global-isel-abort=1 -filetype=obj < %s -o %t.o
+; RUN: llvm-objdump -d --mattr=+xnormalize64 %t.o | FileCheck %s --check-prefix=OBJ
+
+@branch_fall = external global i8
+@branch_taken = external global i8
+
+define void @band(i64 %a, i64 %b) {
+; CHECK-LABEL: band:
+; CHECK-NOT: and a
+; CHECK: xnormalize64.band
+; OBJ-LABEL: <band>:
+; OBJ: xnormalize64.band
+
+  %v = and i64 %a, %b
+  %c = icmp ne i64 %v, 0
+  br i1 %c, label %taken, label %fall
+fall:
+  store volatile i8 1, ptr @branch_fall
+  ret void
+taken:
+  store volatile i8 2, ptr @branch_taken
+  ret void
+}
