@@ -8,5 +8,6 @@ seal5.backends.report.test\_results.writer
 
    .. autosummary::
    
+      latest_test_metrics
       main
    

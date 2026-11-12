@@ -12,7 +12,12 @@ seal5.tools.cdsl2llvm
       build_pattern_gen
       combine_test_fragments
       convert_ll_to_gmir
+      get_legalizer_split_patch
       get_pattern_gen_backend_patch
       get_pattern_gen_patches
+      ignore_gisel_patterns
+      lower_branch_patterns_to_riscv
       run_pattern_gen
+      scalarize_test_inputs
+      split_minmax_legalizer_actions
    
