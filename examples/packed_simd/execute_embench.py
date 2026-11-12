@@ -4,6 +4,7 @@
 
 Spike's CPI=1 model reports instruction counts, not hardware cycle performance.
 """
+
 import argparse
 from collections import defaultdict
 import json

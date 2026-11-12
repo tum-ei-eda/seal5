@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 """Prepare and validate ordinary TableGen packed-SIMD patterns (RV32)."""
+
 import argparse
 import re
 from pathlib import Path

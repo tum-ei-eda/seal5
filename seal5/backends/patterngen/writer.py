@@ -58,6 +58,7 @@ def main():
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--splitted", action="store_true", help="Split per set and instruction")
     parser.add_argument("--formats", action="store_true", help="Also generate instruction formats")
+    parser.add_argument("--dag-only-memory", action="store_true", help="Exclude memory patterns from GlobalISel import")
     parser.add_argument("--patterns", action="store_true", help="Also generate instruction patterns")
     parser.add_argument("--gisel-table", action="store_true", help="Use the experimental direct GISel matcher backend")
     parser.add_argument(
@@ -190,11 +191,24 @@ def main():
                             for operand in instr_def.operands.values()
                         ),
                         may_load=Seal5InstrAttribute.MAY_LOAD in attrs,
+                        memory_instruction=(
+                            Seal5InstrAttribute.MAY_LOAD in attrs or Seal5InstrAttribute.MAY_STORE in attrs
+                        ),
+                        dag_only=args.dag_only_memory
+                        and (Seal5InstrAttribute.MAY_LOAD in attrs or Seal5InstrAttribute.MAY_STORE in attrs),
                         gisel_table=args.gisel_table,
                     )
                     if output_file.is_file():
                         if args.patterns:
-                            output_file.write_text(require_packed_simd_feature(output_file.read_text()))
+                            contents = require_packed_simd_feature(output_file.read_text())
+                            if Seal5InstrAttribute.IS_BRANCH in attrs:
+                                # Imported DAG patterns must never enter the GlobalISel tables.
+                                contents = cdsl2llvm.lower_branch_patterns_to_riscv(contents)
+                            if args.dag_only_memory and (
+                                Seal5InstrAttribute.MAY_LOAD in attrs or Seal5InstrAttribute.MAY_STORE in attrs
+                            ):
+                                contents = cdsl2llvm.ignore_gisel_patterns(contents)
+                            output_file.write_text(contents)
                         if args.patterns and args.added_complexity:
                             contents = output_file.read_text()
                             output_file.write_text(

@@ -5,6 +5,7 @@
 This is an investigation tool, not a passing codegen regression suite. A process
 returning zero is not sufficient: extraction must contain a vector-typed Pat.
 """
+
 import argparse
 from collections import Counter
 import json

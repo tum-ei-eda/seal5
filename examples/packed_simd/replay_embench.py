@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 """Retest previously vectorized Embench IR without rerunning the optimizer."""
+
 import argparse
 import hashlib
 import json

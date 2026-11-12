@@ -188,6 +188,9 @@ def make(*args, target=None, threads=multiprocessing.cpu_count(), use_ninja=Fals
     if target:
         extra_args.extend(target.split(",") if isinstance(target, str) else target)
     tool = "ninja" if use_ninja else "make"
+    threads = int(os.environ.get("SEAL5_BUILD_THREADS", threads))
+    if threads < 1:
+        raise ValueError("SEAL5_BUILD_THREADS must be positive")
     extra_args.append("-j" + str(threads))
     cmd = [tool] + extra_args + list(args)
     return exec_getout(*cmd, cwd=cwd, **kwargs)

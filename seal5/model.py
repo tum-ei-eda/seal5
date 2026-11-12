@@ -911,6 +911,9 @@ class Seal5Instruction(Instruction):
             attrs["isTerminator"] = 1
         else:
             attrs["isTerminator"] = 0
+        if Seal5InstrAttribute.IS_BRANCH in self.attributes:
+            attrs["isBranch"] = 1
+            attrs["isTerminator"] = 1
         uses = self.attributes.get(Seal5InstrAttribute.USES, [])
         if uses:
             attrs["Uses"] = "[" + ", ".join(uses) + "]"

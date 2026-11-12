@@ -278,7 +278,9 @@ def build_llvm(
         else:
             target = "install/strip" if do_strip else "install"
     elif reduced and target in (None, "all"):
-        target = reduced_tools
+        # LLVM's lit configuration requires these even for a single test.
+        # They are build-tree utilities, not part of the installed tool subset.
+        target = reduced_tools + ["count", "not"]
     utils.make(
         target=target, cwd=dest, print_func=logger.info if verbose else logger.debug, live=True, use_ninja=use_ninja
     )
@@ -316,7 +318,9 @@ def test_llvm(base: Path, build_dir: Path, test_paths: Optional[List[str]] = Non
                 assert test_file.is_file()
         out = utils.exec_getout(
             lit_exe,
-            *(["--verbose"] if verbose else []),
+            # PASS records are required to populate test results even when
+            # console logging is quiet. The logger still controls display.
+            "--verbose",
             test_file,
             print_func=logger.info if verbose else logger.debug,
             live=True,
@@ -329,6 +333,8 @@ def test_llvm(base: Path, build_dir: Path, test_paths: Optional[List[str]] = Non
         passed = re.compile(r"PASS: LLVM :: (.*) \(").findall(out)
         if len(passed) > 0:
             passed_tests.extend(passed)
+        if not passed and not failing:
+            raise RuntimeError(f"lit produced no PASS/FAIL results for {test_file}:\n{out}")
 
     return passed_tests, failing_tests
 
