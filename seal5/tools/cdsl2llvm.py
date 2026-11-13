@@ -174,6 +174,7 @@ def get_pattern_gen_backend_patch(src: Path, llvm_dir: Path, temp_dir: Path):
             (target / name, None)
             for name in (
                 "RISCVISelLowering.cpp",
+                "RISCVISelDAGToDAG.cpp",
                 "RISCVTargetTransformInfo.cpp",
                 "RISCVTargetTransformInfo.h",
                 "RISCVRegisterInfo.cpp",
@@ -231,7 +232,13 @@ def get_pattern_gen_backend_patch(src: Path, llvm_dir: Path, temp_dir: Path):
         elif name == "packed_features":
             feature_text = (src / path).read_text()
             features = []
-            for feature_name in ("FeatureGPR32V", "HasGPR32V", "FeatureGPR32VAdd", "FeatureGPR32VSub"):
+            for feature_name in (
+                "FeatureGPR32V",
+                "HasGPR32V",
+                "FeatureGPR32VAdd",
+                "FeatureGPR32VSub",
+                "FeatureGPR32VCmp",
+            ):
                 feature = re.search(rf"^def {feature_name}\b.*?;", feature_text, re.MULTILINE | re.DOTALL)
                 if feature is None:
                     assert feature_name not in ("FeatureGPR32V", "HasGPR32V"), f"Missing {feature_name}"

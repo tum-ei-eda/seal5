@@ -21,6 +21,7 @@ class PackedSIMDImportTests(unittest.TestCase):
             "GISel/RISCVLegalizerInfo.cpp",
             "RISCVInstrInfo.td",
             "RISCVISelLowering.cpp",
+            "RISCVISelDAGToDAG.cpp",
             "RISCVTargetTransformInfo.cpp",
             "RISCVTargetTransformInfo.h",
             "RISCVRegisterInfo.cpp",
@@ -60,6 +61,7 @@ class PackedSIMDImportTests(unittest.TestCase):
                 'def HasGPR32V : Predicate<"Subtarget->hasGPR32V()">;\n\n'
                 'def FeatureGPR32VAdd : SubtargetFeature<"gpr32v-add", "HasGPR32VAdd", "true", "Add">;\n\n'
                 'def FeatureGPR32VSub : SubtargetFeature<"gpr32v-sub", "HasGPR32VSub", "true", "Sub">;\n\n'
+                'def FeatureGPR32VCmp : SubtargetFeature<"gpr32v-cmp", "HasGPR32VCmp", "true", "Cmp">;\n\n'
             )
         patch = get_pattern_gen_backend_patch(source, native, root)
         return Path(patch.file).read_text()
@@ -71,6 +73,7 @@ class PackedSIMDImportTests(unittest.TestCase):
                 "RISCVRegisterInfo.td",
                 "RISCVFeatures.td",
                 "RISCVISelLowering.cpp",
+                "RISCVISelDAGToDAG.cpp",
                 "GISel/RISCVRegisterBanks.td",
                 "GISel/RISCVRegisterBankInfo.cpp",
             ):
@@ -124,7 +127,7 @@ class PackedSIMDImportTests(unittest.TestCase):
             )
             text = (native / "llvm/lib/Target/RISCV/RISCVFeatures.td").read_text()
             site = text.index("def FeatureStdExtSvinval")
-            for name in ("FeatureGPR32V", "HasGPR32V", "FeatureGPR32VAdd", "FeatureGPR32VSub"):
+            for name in ("FeatureGPR32V", "HasGPR32V", "FeatureGPR32VAdd", "FeatureGPR32VSub", "FeatureGPR32VCmp"):
                 self.assertLess(text.index("def " + name + " "), site)
 
     def test_packed_legalizer_marker_whitespace(self):
