@@ -300,15 +300,30 @@ rules contribute to the pattern statistics.
 
 The cost model assigns one instruction to a legal packed comparison and zero
 additional cost to its sign extension into an all-ones/zero lane mask.
-Autovectorization still depends on the existing packing and broadcast cost
-estimates. SelectionDAG preprocessing keeps these broadcasts out of RVV lowering.
+The packed-vector/i32 register views and insertion into lane zero of poison
+cost zero. A lane-zero broadcast used only by a comparison and full-lane mask
+extension costs zero; a standalone or shared byte/halfword broadcast costs
+seven/three scalar instructions, matching the shift/OR fallback. Queries without
+an instruction context retain this standalone estimate. Other shuffles and
+packing retain conservative costs. These are instruction-count estimates, not
+measured cycle costs, and the comparison-specific costs require `gpr32v-cmp`.
+SelectionDAG preprocessing keeps these broadcasts out of RVV lowering.
 The generic machine verifier now accepts fixed-vector splats and retains its
 checks for invalid destinations, vector sources, and undersized scalar sources.
 
 The 40 per-instruction codegen files cover register and scalar-broadcast
 comparisons with both selectors. Scalar-broadcast checks require selection at
 both `-O0` and `-O3`, with GlobalISel fallback disabled. Additional checks cover
-standalone broadcasts, disabling the capability, and comparison/mask costs.
+standalone/shared broadcasts, disabling the capability, and comparison/mask
+costs. Four C array-threshold tests additionally run the normal `-O3` vectorizer
+without forced widths. Signed/unsigned bytes vectorize at width four and
+halfwords at width two, with scalar tails. `restrict` and explicit four-byte
+alignment are caller contracts; these tests do not assume unaligned word loads.
+Both selectors emit packed comparisons: GlobalISel selects scalar-broadcast
+forms, while SelectionDAG currently hoists the broadcast and selects an
+equivalent register comparison. The latter still pays the broadcast setup cost.
+The loops demonstrate compiler decisions and selection, not a measured speedup
+or execution on CORE-V hardware.
 Independent evaluation checks all 120 extracted comparison rules against lane
 semantics: 87,760 cases, including every six-bit immediate encoding. Another
 5,940 scalar comparison cases verify register-lane offsets with the capability

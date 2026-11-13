@@ -68,5 +68,6 @@ FILES = [
 ]
 if LLVM_REF.startswith("llvmorg-22."):
     FILES.append(EXAMPLES_DIR / "corev" / "cfg" / "llvm22.yml")
+    FILES.append(EXAMPLES_DIR / "corev" / "tests" / "simd" / "*.c")
 
 run_seal5_flow(FILES, name="corev", dest=DEST, lookup_paths=[EXAMPLES_DIR / "common/cdsl/rv_base"])
