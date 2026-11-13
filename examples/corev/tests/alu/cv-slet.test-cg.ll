@@ -3,7 +3,7 @@
 
 define i1 @slet(i32 %a, i32 %b) {
 ; CHECK-LABEL: slet:
-; CHECK: seal5.cv.slet
+; CHECK: seal5.cv.sle
 ; CHECK: ret
   %1 = icmp sle i32 %a, %b
   ret i1 %1

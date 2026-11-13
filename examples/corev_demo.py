@@ -32,7 +32,7 @@ FILES = [
     # CoreDSL inputs
     EXAMPLES_DIR / "corev" / "cdsl" / "XCoreVMac.core_desc",
     EXAMPLES_DIR / "corev" / "cdsl" / "XCoreVAlu.core_desc",
-    EXAMPLES_DIR / "corev" / "cdsl" / "XCoreVBitmanip.core_desc",
+    EXAMPLES_DIR / "corev" / "inputs" / "XCoreVBitmanip.core_desc",
     EXAMPLES_DIR / "corev" / "cdsl" / "XCoreVSimd.core_desc",
     EXAMPLES_DIR / "corev" / "cdsl" / "XCoreVMem.core_desc",
     EXAMPLES_DIR / "corev" / "cdsl" / "XCoreVBranchImmediate.core_desc",

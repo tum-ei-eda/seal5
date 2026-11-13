@@ -4,7 +4,7 @@ declare i32 @llvm.riscv.xcorevalu.alu.slet(i32, i32)
 
 define i32 @cv_slet_0(i32 %a0, i32 %a1) {
 ; CHECK-LABEL: cv_slet_0:
-; CHECK: seal5.cv.slet
+; CHECK: seal5.cv.sle
   %result = call i32 @llvm.riscv.xcorevalu.alu.slet(i32 %a0, i32 %a1)
   ret i32 %result
 }

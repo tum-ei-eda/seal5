@@ -3,7 +3,7 @@
 
 define i1 @sletu(i32 %a, i32 %b) {
 ; CHECK-LABEL: sletu:
-; CHECK: seal5.cv.sletu
+; CHECK: seal5.cv.sleu
 ; CHECK: ret
   %1 = icmp ule i32 %a, %b
   ret i1 %1

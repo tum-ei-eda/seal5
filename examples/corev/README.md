@@ -1,5 +1,47 @@
 # Full CORE-V example (LLVM 22)
 
+## Embench execution
+
+The [CDSL review and regeneration notes](review/README.md) describe the tested
+integration of `fixes-2026` with `restore-xcorev-llvm22`, simulator corrections,
+and the remaining merge requirements. Saved measurements are in
+[results](results/).
+
+`benchmark_embench.py` compares RV32IM with the generated full CORE-V target
+using the same LLVM 22 frontend, `-O3` pipeline, and GlobalISel backend.
+GlobalISel fallback is disabled. Both variants use normal vectorization
+profitability, strict alignment, ILP32, and identical baseline GCC startup,
+support routines and Newlib. The Embench C sources are unchanged.
+
+```sh
+python examples/corev/benchmark_embench.py \
+  --source /path/to/embench-iot \
+  --llvm-bin /path/to/corev-llvm22/build/bin \
+  --gcc /path/to/riscv64-unknown-elf-gcc \
+  --etiss-prefix /path/to/etiss/install \
+  --etiss-examples /path/to/etiss_riscv_examples \
+  --output /tmp/seal5-corev-embench --repetitions 3 --jobs 2
+```
+
+ETISS must include the matching `RV32IMACFDXCoreV` model and GCCJIT. The GCC
+installation must provide RV32IM Newlib and `libsemihost`. The examples tree
+supplies `riscv_crt0` and `etiss.ld.in`. Add `--benchmarks crc32 edn` for a
+pilot. Compilation failures, linking failures, timeouts and failed Embench
+verification remain explicit in `results.json`; only verified pairs enter
+the instruction-count comparison.
+
+The host counter instruments each executed instruction between two marker
+symbols around `benchmark()`. Initialization, one warmup and verification
+are outside that region; marker/call overhead is included. A self-test
+requires exactly 31 instructions, including ten custom instructions.
+The runner does not use ETISS's cycle-derived `instret` CSR. Model cycles
+are recorded separately and do not establish hardware speedups. The
+linked text size includes the common runtime and libraries. Commands,
+diagnostics, IR, disassembly and per-repetition counts remain in the output
+directory, alongside `results.json` and `report.md`.
+
+## Building the example
+
 Run from the repository root with the Python environment activated:
 
 ```sh

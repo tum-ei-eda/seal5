@@ -55,7 +55,7 @@ intrinsics:
     - arg_name: rs2
       arg_type: i32
       signed: true
-    instr_name: SEAL5_CV_SLET
+    instr_name: SEAL5_CV_SLE
     intrinsic_name: alu_slet
     ret_signed: true
     ret_type: i32
@@ -67,7 +67,7 @@ intrinsics:
     - arg_name: rs2
       arg_type: i32
       signed: false
-    instr_name: SEAL5_CV_SLETU
+    instr_name: SEAL5_CV_SLEU
     intrinsic_name: alu_sletu
     ret_signed: false
     ret_type: i32

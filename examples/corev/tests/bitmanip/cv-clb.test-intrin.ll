@@ -1,3 +1,5 @@
+; UNSUPPORTED: true
+; CLB is disabled in the merged upstream CoreDSL description.
 ; RUN: llc -mtriple=riscv32 -mattr=+m,+xcorevbitmanip -verify-machineinstrs %s -o - | FileCheck %s
 
 declare i32 @llvm.riscv.xcorevbitmanip.bitmanip.clb(i32)
