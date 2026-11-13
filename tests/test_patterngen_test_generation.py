@@ -98,6 +98,18 @@ class PatternGenTestGenerationTests(unittest.TestCase):
             self.assertNotIn("; CHECK-LABEL: implTEST_0", result)
             self.assertEqual(result.count("; CHECK-LABEL: implTEST_1"), 1)
 
+    def test_single_rule_uses_register_abi_but_memory_keeps_pointers(self):
+        for may_load in (False, True):
+            with self.subTest(may_load=may_load), tempfile.TemporaryDirectory() as directory:
+                with patch("seal5.tools.cdsl2llvm.scalarize_register_inputs", side_effect=lambda ir, *_: ir) as scalarize:
+                    self.generate(directory, xlen=32, pattern="(add GPR:$a, GPR:$b)",
+                                  immediates=[], may_load=may_load)
+                if may_load:
+                    scalarize.assert_not_called()
+                else:
+                    scalarize.assert_called_once()
+                    self.assertEqual(scalarize.call_args.args[1], 32)
+
     def test_scalar_register_inputs_preserve_subregister_extraction(self):
         ir = (
             "define void @implTEST(ptr noalias writeonly %rd, ptr readonly align 4 %rs1) {\n"

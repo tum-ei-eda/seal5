@@ -747,7 +747,7 @@ def run_pattern_gen(
                 checked_functions=pattern_functions,
                 scalar_inputs=(
                     (xlen, build_dir / "bin" / "opt")
-                    if num_patterns > 1 and not may_load and not may_store and xlen is not None
+                    if not may_load and not may_store and xlen is not None
                     else None
                 ),
             )

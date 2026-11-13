@@ -100,3 +100,10 @@ patches:
     file: ../patches/llvm22-packed-compare-capability.patch
     comment: Preserve packed comparison vectors and scalar broadcasts during legalization
     onlyif: "'FeatureGPR32VCmp' not in (settings.deps_dir / 'cdsl2llvm/llvm/lib/Target/RISCV/RISCVFeatures.td').read_text()"
+  - name: corev_packed_lane_combines
+    target: llvm
+    stage: 0
+    priority: 0
+    file: ../patches/llvm22-packed-lane-combines.patch
+    comment: Canonicalize legal scalar packed lanes and redundant product extensions
+    onlyif: "'matchPackedLaneCombine' not in (settings.deps_dir / 'cdsl2llvm/llvm/lib/Target/RISCV/GISel/RISCVPostLegalizerCombiner.cpp').read_text()"

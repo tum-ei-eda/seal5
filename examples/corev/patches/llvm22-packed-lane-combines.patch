@@ -1,0 +1,151 @@
+diff --git a/llvm/lib/Target/RISCV/GISel/RISCVPostLegalizerCombiner.cpp b/llvm/lib/Target/RISCV/GISel/RISCVPostLegalizerCombiner.cpp
+index f2b216be1db1..93126ec31a19 100644
+--- a/llvm/lib/Target/RISCV/GISel/RISCVPostLegalizerCombiner.cpp
++++ b/llvm/lib/Target/RISCV/GISel/RISCVPostLegalizerCombiner.cpp
+@@ -24,6 +24,7 @@
+ #include "llvm/CodeGen/GlobalISel/GIMatchTableExecutorImpl.h"
+ #include "llvm/CodeGen/GlobalISel/GISelValueTracking.h"
+ #include "llvm/CodeGen/GlobalISel/MachineIRBuilder.h"
++#include "llvm/CodeGen/GlobalISel/Utils.h"
+ #include "llvm/CodeGen/MachineDominators.h"
+ #include "llvm/CodeGen/MachineFunctionPass.h"
+ #include "llvm/CodeGen/TargetPassConfig.h"
+@@ -93,6 +94,113 @@ void applyFoldFPZeroStore(MachineInstr &MI, MachineRegisterInfo &MRI,
+ #endif
+ }
+ 
++// Keep legal scalar lane extractions in the same form as extracted patterns.
++// Legalizing narrow products can leave redundant truncation/sign-extension
++// pairs, even though both factors prove that the product fits the narrow type.
++struct PackedLaneCombine {
++  enum Kind { Copy, SignedExtract, UnsignedExtract } Op;
++  Register Src;
++  unsigned Left = 0;
++  unsigned Right = 0;
++  uint64_t Mask = 0;
++};
++
++static bool matchPackedLaneCombine(MachineInstr &MI, MachineRegisterInfo &MRI,
++                                   GISelValueTracking &VT,
++                                   const RISCVSubtarget &STI,
++                                   PackedLaneCombine &Info) {
++  if (!STI.hasGPR32V() || STI.is64Bit() || STI.hasVInstructions() ||
++      MRI.getType(MI.getOperand(0).getReg()) != LLT::scalar(32))
++    return false;
++  auto Shift = getIConstantVRegValWithLookThrough(MI.getOperand(2).getReg(), MRI);
++  if (!Shift || Shift->Value.uge(32) || Shift->Value.isZero())
++    return false;
++  unsigned Amount = Shift->Value.getZExtValue();
++  Register Src = MI.getOperand(1).getReg();
++  MachineInstr *Def = MRI.getVRegDef(Src);
++  if (MI.getOpcode() == TargetOpcode::G_LSHR) {
++    if (Def->getOpcode() != TargetOpcode::G_AND)
++      return false;
++    auto Mask = getIConstantVRegValWithLookThrough(Def->getOperand(2).getReg(), MRI);
++    if (!Mask || !Mask->Value.isMask())
++      return false;
++    uint64_t NewMask = Mask->Value.lshr(Amount).getZExtValue();
++    if (!NewMask || NewMask > 2047)
++      return false;
++    Info = {PackedLaneCombine::UnsignedExtract, Def->getOperand(1).getReg(),
++            0, Amount, NewMask};
++    return true;
++  }
++  if (MI.getOpcode() != TargetOpcode::G_ASHR ||
++      Def->getOpcode() != TargetOpcode::G_SHL)
++    return false;
++  auto Left = getIConstantVRegValWithLookThrough(Def->getOperand(2).getReg(), MRI);
++  if (!Left || Left->Value != Shift->Value)
++    return false;
++  Src = Def->getOperand(1).getReg();
++  MachineInstr *Value = MRI.getVRegDef(Src);
++  if (VT.computeNumSignBits(Src) > Amount) {
++    Info = {PackedLaneCombine::Copy, Src};
++    return true;
++  }
++  if (Value->getOpcode() == TargetOpcode::G_MUL) {
++    auto SignedRange = [&](Register Reg) {
++      unsigned Bits = 33 - VT.computeNumSignBits(Reg);
++      APInt Min = APInt::getSignedMinValue(Bits).sext(64);
++      APInt Max = APInt::getSignedMaxValue(Bits).sext(64);
++      KnownBits Known = VT.getKnownBits(Reg);
++      APInt KnownMin = Known.getSignedMinValue().sext(64);
++      APInt KnownMax = Known.getSignedMaxValue().sext(64);
++      if (KnownMin.sgt(Min))
++        Min = KnownMin;
++      if (KnownMax.slt(Max))
++        Max = KnownMax;
++      return std::make_pair(Min, Max);
++    };
++    auto L = SignedRange(Value->getOperand(1).getReg());
++    auto R = SignedRange(Value->getOperand(2).getReg());
++    // Combine sign-bit and known-bit bounds: neither alone captures both
++    // signed bytes and unsigned bytes. Check all endpoints in twice the
++    // operand width so the proof itself cannot overflow.
++    bool Fits = true;
++    for (const APInt &LV : {L.first, L.second})
++      for (const APInt &RV : {R.first, R.second})
++        Fits &= (LV * RV).isSignedIntN(32 - Amount);
++    if (Fits) {
++      Info = {PackedLaneCombine::Copy, Src};
++      return true;
++    }
++  }
++  if (Value->getOpcode() != TargetOpcode::G_LSHR)
++    return false;
++  auto Right = getIConstantVRegValWithLookThrough(Value->getOperand(2).getReg(), MRI);
++  if (!Right || Right->Value.ugt(Amount))
++    return false;
++  Info = {PackedLaneCombine::SignedExtract, Value->getOperand(1).getReg(),
++          Amount - unsigned(Right->Value.getZExtValue()), Amount};
++  return true;
++}
++
++static void applyPackedLaneCombine(MachineInstr &MI, MachineIRBuilder &B,
++                                   PackedLaneCombine &Info,
++                                   const CombinerHelper &Helper,
++                                   MachineRegisterInfo &MRI) {
++  Register Dst = MI.getOperand(0).getReg();
++  const LLT Ty = LLT::scalar(32);
++  if (Info.Op == PackedLaneCombine::Copy) {
++    Helper.replaceRegWith(MRI, Dst, Info.Src);
++  } else if (Info.Op == PackedLaneCombine::SignedExtract) {
++    Register Src = Info.Src;
++    if (Info.Left)
++      Src = B.buildShl(Ty, Src, B.buildConstant(Ty, Info.Left)).getReg(0);
++    B.buildAShr(Dst, Src, B.buildConstant(Ty, Info.Right));
++  } else {
++    auto Shifted = B.buildLShr(Ty, Info.Src, B.buildConstant(Ty, Info.Right));
++    B.buildAnd(Dst, Shifted, B.buildConstant(Ty, Info.Mask));
++  }
++  MI.eraseFromParent();
++}
++
+ class RISCVPostLegalizerCombinerImpl : public Combiner {
+ protected:
+   const CombinerHelper Helper;
+diff --git a/llvm/lib/Target/RISCV/RISCVCombine.td b/llvm/lib/Target/RISCV/RISCVCombine.td
+index a06b60d8cce0..8eff0bdfcc5c 100644
+--- a/llvm/lib/Target/RISCV/RISCVCombine.td
++++ b/llvm/lib/Target/RISCV/RISCVCombine.td
+@@ -27,6 +27,13 @@ def fold_fp_zero_store : GICombineRule<
+          [{ return matchFoldFPZeroStore(*${root}, MRI, STI, ${matchinfo}); }]),
+   (apply [{ applyFoldFPZeroStore(*${root}, MRI, B, STI, ${matchinfo}); }])>;
+ 
++def packed_lane_matchdata : GIDefMatchData<"PackedLaneCombine">;
++def packed_lane_combine : GICombineRule<
++  (defs root:$root, packed_lane_matchdata:$info),
++  (match (wip_match_opcode G_ASHR, G_LSHR):$root,
++         [{ return matchPackedLaneCombine(*${root}, MRI, *VT, STI, ${info}); }]),
++  (apply [{ applyPackedLaneCombine(*${root}, B, ${info}, Helper, MRI); }])>;
++
+ // Post-legalization combines which are primarily optimizations.
+ // TODO: Add more combines.
+ def RISCVPostLegalizerCombiner
+@@ -34,5 +41,5 @@ def RISCVPostLegalizerCombiner
+                  [sub_to_add, combines_for_extload, redundant_and,
+                   identity_combines, shift_immed_chain,
+                   commute_constant_to_rhs, simplify_neg_minmax,
+-                  fold_fp_zero_store]> {
++                  fold_fp_zero_store, packed_lane_combine]> {
+ }

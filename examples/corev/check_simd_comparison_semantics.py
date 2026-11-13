@@ -78,6 +78,7 @@ def evaluate(node, inputs, vector_type=None):
         "and": operator.and_,
         "xor": operator.xor,
         "add": operator.add,
+        "mul": operator.mul,
         "sub": operator.sub,
         "shl": operator.lshift,
         "srl": operator.rshift,
