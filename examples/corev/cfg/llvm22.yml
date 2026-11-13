@@ -76,3 +76,10 @@ patches:
     file: ../patches/llvm22-rounded-pattern-variants.patch
     comment: Match equivalent wrapping rounded-subtraction trees
     onlyif: "'roundedArithmeticPatternVariants' not in (settings.deps_dir / 'cdsl2llvm/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp').read_text()"
+  - name: corev_narrow_register_offsets
+    target: llvm
+    stage: 0
+    priority: 0
+    file: ../patches/llvm22-narrow-register-offsets.patch
+    comment: Preserve byte offsets in widened synthetic register loads
+    onlyif: "'Widened any-extending loads still read the addressed register lane' not in (settings.deps_dir / 'cdsl2llvm/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp').read_text()"
