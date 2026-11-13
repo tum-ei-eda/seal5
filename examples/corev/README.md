@@ -63,19 +63,25 @@ no direct GISel table entries are enabled.
 | Checked-in assembler tests | 338 | 0 |
 | Checked-in intrinsic tests | 199 | 0 |
 | Checked-in builtin tests | 2 | 0 |
-| Checked-in codegen tests | 68 | 0 |
-| Generated pattern codegen tests | 64 | 55 |
+| Checked-in codegen tests | 108 | 0 |
+| Generated pattern codegen tests | 96 | 43 |
 
-The checked-in total is **607/607 passing**. Assembler tests cover all 311
+The checked-in total is **647/647 passing**. Assembler tests cover all 311
 instructions and compare each sample encoding with LLVM's native CORE-V
 assembler. The new codegen tests for both immediate branches, all eight
-ordinary register-offset loads/stores, and four packed add/sub operations
-pass. Those tests exercise both SelectionDAG and GlobalISel, with GlobalISel
+ordinary register-offset loads/stores, four packed add/sub operations,
+and 40 packed comparison forms pass. Those tests exercise both SelectionDAG and GlobalISel, with GlobalISel
 fallback disabled.
 
 All checked-in tests pass. Generated-test failures include equivalent-instruction choices
 (such as byte versus halfword bitwise operations) and genuine missing
-matches, including dot products and scalar-broadcast comparisons. A failed
+matches, including dot products. All 20 formerly failing scalar-broadcast
+comparison files now pass. The 20 newly generated register-comparison files
+include eight exact-opcode failures: LLVM selects the equivalent swapped
+GT/GE encoding for LT/LE. The checked-in tests validate both the opcode and
+operand order for those equivalent encodings. The remaining 35 generated
+failures are the previously known dot-product, average, bitwise, extension,
+and extraction cases. A failed
 exact-instruction check therefore does not by itself prove incorrect code.
 All failing checks remain enabled, without XFAIL annotations.
 
@@ -90,11 +96,11 @@ is not yet a fully passing pattern-selection suite.
 | Immediate branches | 2 | 2 | 0 | 0 |
 | MAC | 18 | 390 | 0 | 0 |
 | Memory | 24 | 8 | 0 | 16 |
-| SIMD | 220 | 96 | 124 | 0 |
-| Total | 311 | 885 | 127 | 19 |
+| SIMD | 220 | 176 | 104 | 0 |
+| Total | 311 | 965 | 107 | 19 |
 
 Extraction success does not establish importer acceptance or instruction
-selection. The generated TableGen pattern files total 268,538 bytes in this
+selection. The generated TableGen pattern files total 262,272 bytes in this
 run. Reports retain separate extraction, import, and match fields; unavailable
 validation counts remain unknown.
 
@@ -176,7 +182,7 @@ pattern record.
 
 The pattern report counts all 32 extracted rules for each specialized multiply,
 while counting each instruction once. The MAC set now contains 18 instructions
-and 390 TableGen patterns; the global totals are 311 instructions and 885 patterns.
+and 390 TableGen patterns; the global totals are 311 instructions and 965 patterns.
 Importer acceptance and codegen-match counts remain unknown without explicit
 per-pattern validation evidence; a passing wrapper file is not treated as
 proof that every extracted rule was imported or selected.
@@ -268,4 +274,49 @@ python examples/corev/check_alu_normalization_semantics.py \
 python examples/corev/check_mac_semantics.py \
   "$DEST/.seal5/temp/XCoreVMac/XCoreVMac" \
   --opt "$DEST/.seal5/build/release_assertions/bin/opt"
+```
+
+## Packed comparison patterns
+
+The LLVM 22 configuration enables `FeatureGPR32VCmp` through the generated
+XCoreVSimd feature. Its `gpr32v-cmp` switch preserves byte and halfword integer
+comparisons during legalization. Disable it explicitly to use scalar expansion:
+`-mattr=+m,+xcorevsimd,-gpr32v-cmp`. LLVM 23 remains a separate follow-up.
+
+All 60 register, scalar-broadcast, and immediate-broadcast comparison forms now
+extract vector patterns. Byte rules use `v4i8` and `GPR32V4`; halfword rules use
+`v2i16` and `GPR32V2`. A broadcast operand remains a scalar GPR or immediate
+inside `splat_vector`, allowing the complete comparison to select one CORE-V
+instruction. These packed values occupy ordinary 32-bit integer registers.
+Standalone broadcasts have a scalar shift/OR fallback.
+
+PatternGen reconstructs a vector comparison when SLP has packed only the
+scalar boolean results. It combines contiguous nonvolatile, nonatomic lane
+loads only when no intervening side effect can change the reads, and recognizes
+uniform broadcast operands. GlobalISel preserves comparisons whose boolean
+results are sign-extended to full lane masks; other mask uses retain scalar
+fallbacks. Both operand orders receive an equivalent TableGen rule, and both
+rules contribute to the pattern statistics.
+
+The cost model assigns one instruction to a legal packed comparison and zero
+additional cost to its sign extension into an all-ones/zero lane mask.
+Autovectorization still depends on the existing packing and broadcast cost
+estimates. SelectionDAG preprocessing keeps these broadcasts out of RVV lowering.
+The generic machine verifier now accepts fixed-vector splats and retains its
+checks for invalid destinations, vector sources, and undersized scalar sources.
+
+The 40 per-instruction codegen files cover register and scalar-broadcast
+comparisons with both selectors. Scalar-broadcast checks require selection at
+both `-O0` and `-O3`, with GlobalISel fallback disabled. Additional checks cover
+standalone broadcasts, disabling the capability, and comparison/mask costs.
+Independent evaluation checks all 120 extracted comparison rules against lane
+semantics: 87,760 cases, including every six-bit immediate encoding. Another
+5,940 scalar comparison cases verify register-lane offsets with the capability
+disabled. Widened plain register loads previously lost nonzero byte offsets,
+which could incorrectly reuse lane zero in signed expressions.
+
+```sh
+python examples/corev/check_simd_comparison_semantics.py \
+  "$DEST/.seal5/temp/XCoreVSimd/XCoreVSimd" \
+  --pattern-gen "$DEST/.seal5/build/release_assertions/bin/pattern-gen"
 ```
