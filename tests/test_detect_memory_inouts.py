@@ -8,6 +8,20 @@ from seal5.transform.detect_inouts.visitor import DetectInoutsVisitor
 
 
 class MemoryInoutsTests(unittest.TestCase):
+    def test_variable_lane_insert_reads_old_destination(self):
+        kind = type_info.TypeKind.UINT
+        registers = arch.RegisterBank("X", 32, kind, 32, {})
+        rd = behav.NamedReference(arch.BitFieldDescr("rd", 5, kind))
+        rs = behav.NamedReference(arch.BitFieldDescr("rs", 5, kind))
+        offset = behav.NamedReference(arch.BitFieldDescr("offset", 2, kind))
+        upper = behav.BinaryOperation(offset, behav.Operator("+"), behav.Literal(7))
+        target = behav.SliceOperation(behav.IndexedReference(registers, rd), upper, offset)
+        source = behav.SliceOperation(behav.IndexedReference(registers, rs), behav.Literal(7), behav.Literal(0))
+        context = VisitorContext()
+        DetectInoutsVisitor().generate(behav.Assignment(target, source), context)
+        self.assertEqual(context.reads, {"rd", "rs", "offset"})
+        self.assertEqual(context.writes, {"rd"})
+
     def test_indexed_store_reads_address_and_data(self):
         kind = type_info.TypeKind.UINT
         registers = arch.RegisterBank("X", 32, kind, 32, {})

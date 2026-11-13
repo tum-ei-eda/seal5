@@ -112,6 +112,10 @@ def detect_branch(operation, operands):
         and pure_condition(body.conds[0])
     ):
         trap = statements(body.stmts[0])
+        if isinstance(trap, list) and not trap:
+            # Constraint collection may already have removed the trap call.
+            # Keep its conditional guard around the branch intrinsic.
+            guarded = True
         if isinstance(trap, behav.ProcedureCall):
             trap_name = trap.ref_or_name if isinstance(trap.ref_or_name, str) else trap.ref_or_name.name
             if trap_name == "raise":

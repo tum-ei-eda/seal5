@@ -50,9 +50,15 @@ BUILD_CONFIG=release_assertions IGNORE_ERROR=1 TEST=1 INSTALL=0 DEPLOY=0 EXPORT=
 DEST=/tmp/seal5_llvm_corev_llvm22 python examples/corev_demo.py
 ```
 
-The example includes all 311 instructions from XCoreVAlu, XCoreVBitmanip,
+The example includes 310 instruction descriptions from XCoreVAlu, XCoreVBitmanip,
 XCoreVMac, XCoreVSimd, XCoreVMem and XCoreVBranchImmediate. Hardware loops
-are not included. The LLVM 22 configuration selects the packed-SIMD
+are not included. Upstream currently disables `CV_CLB`; its intrinsic mapping
+and assembly/intrinsic checks are disabled here as well. The `alu_slet` and
+`alu_sletu` intrinsic names remain compatible while their instruction mappings
+use the upstream `CV_SLE` and `CV_SLEU` names and mnemonics.
+
+The bit manipulation input wrapper supplies the missing standalone `RVI`
+import without modifying the pinned upstream descriptions. The LLVM 22 configuration selects the packed-SIMD
 PatternGen branch and enables memory normalization and immediate-branch
 patterns. It uses ordinary TableGen patterns, without direct GISel tables.
 
