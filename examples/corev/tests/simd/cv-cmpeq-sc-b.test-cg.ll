@@ -8,7 +8,13 @@
 ; FALLBACK: .file
 ; FALLBACK-NOT: seal5.cv.cmp
 ; RUN: opt -mtriple=riscv32 -mattr=+gpr32v-cmp -passes='print<cost-model>' -disable-output %s 2>&1 | FileCheck --check-prefix=COST %s
+; RUN: opt -mtriple=riscv32 -mattr=+gpr32v,-gpr32v-cmp -passes='print<cost-model>' -disable-output %s 2>&1 | FileCheck --check-prefix=DISABLED-COST %s
+; DISABLED-COST-LABEL: for function 'packed_cmpeq_sc_b':
+; DISABLED-COST: estimated cost of 25 for instruction: {{%.*}} = shufflevector
 ; COST-LABEL: for function 'packed_cmpeq_sc_b':
+; COST: estimated cost of 0 for instruction: {{%.*}} = bitcast i32
+; COST: estimated cost of 0 for instruction: {{%.*}} = insertelement
+; COST: estimated cost of 0 for instruction: {{%.*}} = shufflevector
 ; COST: estimated cost of 1 for instruction: {{%.*}} = icmp eq <4 x i8>
 ; COST: estimated cost of 0 for instruction: {{%.*}} = sext <4 x i1>
 
@@ -47,5 +53,36 @@ define i32 @standalone_splat_8(i32 %b) {
   %b0 = insertelement <4 x i8> poison, i8 %bt, i32 0
   %bv = shufflevector <4 x i8> %b0, <4 x i8> poison, <4 x i32> zeroinitializer
   %ret = bitcast <4 x i8> %bv to i32
+  ret i32 %ret
+}
+
+; COST-LABEL: for function 'standalone_splat_8':
+; COST: estimated cost of 7 for instruction: {{%.*}} = shufflevector
+; COST: estimated cost of 0 for instruction: {{%.*}} = bitcast <4 x i8>
+
+; COST-LABEL: for function 'shared_splat_8':
+; COST: estimated cost of 7 for instruction: {{%.*}} = shufflevector
+define i32 @shared_splat_8(i32 %a, i32 %b, ptr %out) {
+  %av = bitcast i32 %a to <4 x i8>
+  %bt = trunc i32 %b to i8
+  %b0 = insertelement <4 x i8> poison, i8 %bt, i32 0
+  %bv = shufflevector <4 x i8> %b0, <4 x i8> poison, <4 x i32> zeroinitializer
+  store <4 x i8> %bv, ptr %out, align 4
+  %c = icmp eq <4 x i8> %av, %bv
+  %r = sext <4 x i1> %c to <4 x i8>
+  %ret = bitcast <4 x i8> %r to i32
+  ret i32 %ret
+}
+
+; Broadcasting another packed lane needs extraction; it cannot fold for free.
+; COST-LABEL: for function 'nonzero_lane_splat':
+; COST: estimated cost of {{[1-9][0-9]*}} for instruction: {{%.*}} = shufflevector
+define i32 @nonzero_lane_splat(i32 %a, i32 %b) {
+  %av = bitcast i32 %a to <4 x i8>
+  %bv = bitcast i32 %b to <4 x i8>
+  %splat = shufflevector <4 x i8> %bv, <4 x i8> poison, <4 x i32> <i32 1, i32 1, i32 1, i32 1>
+  %c = icmp eq <4 x i8> %av, %splat
+  %r = sext <4 x i1> %c to <4 x i8>
+  %ret = bitcast <4 x i8> %r to i32
   ret i32 %ret
 }

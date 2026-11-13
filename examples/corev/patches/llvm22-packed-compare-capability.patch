@@ -295,10 +295,48 @@ diff --git a/llvm/lib/Target/RISCV/RISCVInstrInfo.td b/llvm/lib/Target/RISCV/RIS
 diff --git a/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp b/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
 --- a/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
 +++ b/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
-@@ -1730,6 +1730,16 @@
+@@ -691,6 +691,24 @@
+
+   Kind = improveShuffleKindFromMask(Kind, Mask, SrcTy, Index, SubTp);
+   std::pair<InstructionCost, MVT> LT = getTypeLegalizationCost(SrcTy);
++
++  // Packed splats either fold into a scalar-broadcast comparison or use
++  // the scalar shift/or fallback. Do not make unrelated shuffles cheap.
++  if (ST->hasGPR32VCmp() && !ST->is64Bit() &&
++      !ST->hasVInstructions() && Kind == TTI::SK_Broadcast && Index == 0 &&
++      DstTy == SrcTy && DstTy->getPrimitiveSizeInBits() == 32 &&
++      (DstTy->getScalarSizeInBits() == 8 ||
++       DstTy->getScalarSizeInBits() == 16)) {
++    if (CxtI && CxtI->hasOneUse()) {
++      auto *Cmp = dyn_cast<ICmpInst>(*CxtI->user_begin());
++      if (Cmp && Cmp->hasOneUse()) {
++        auto *Ext = dyn_cast<SExtInst>(*Cmp->user_begin());
++        if (Ext && Ext->getType() == DstTy)
++          return 0;
++      }
++    }
++    return DstTy->getScalarSizeInBits() == 8 ? 7 : 3;
++  }
+
+   if (ST->hasGPR32V() && !ST->hasVInstructions())
+     return BaseT::getShuffleCost(Kind, DstTy, SrcTy, Mask, CostKind, Index,
+@@ -1730,6 +1748,29 @@
                                                 TTI::CastContextHint CCH,
                                                 TTI::TargetCostKind CostKind,
                                                 const Instruction *I) const {
++  // A packed vector and i32 occupy the same physical register.
++  if (Opcode == Instruction::BitCast && ST->hasGPR32V() &&
++      !ST->is64Bit() && !ST->hasVInstructions()) {
++    auto IsPacked = [](Type *Ty) {
++      auto *VT = dyn_cast<FixedVectorType>(Ty);
++      return VT && VT->getPrimitiveSizeInBits() == 32 &&
++             (VT->getScalarSizeInBits() == 8 ||
++              VT->getScalarSizeInBits() == 16);
++    };
++    if ((Src->isIntegerTy(32) && IsPacked(Dst)) ||
++        (Dst->isIntegerTy(32) && IsPacked(Src)))
++      return 0;
++  }
 +  if (Opcode == Instruction::SExt && ST->hasGPR32VCmp() &&
 +      !ST->is64Bit() && !ST->hasVInstructions() && I &&
 +      isa<ICmpInst>(I->getOperand(0))) {
@@ -312,7 +350,7 @@ diff --git a/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp b/llvm/lib/Targe
    bool IsVectorType = isa<VectorType>(Dst) && isa<VectorType>(Src);
    if (!IsVectorType)
      return BaseT::getCastInstrCost(Opcode, Dst, Src, CCH, CostKind, I);
-@@ -2275,6 +2285,13 @@
+@@ -2275,6 +2316,13 @@
      unsigned Opcode, Type *ValTy, Type *CondTy, CmpInst::Predicate VecPred,
      TTI::TargetCostKind CostKind, TTI::OperandValueInfo Op1Info,
      TTI::OperandValueInfo Op2Info, const Instruction *I) const {
@@ -326,6 +364,18 @@ diff --git a/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp b/llvm/lib/Targe
    if (CostKind != TTI::TCK_RecipThroughput)
      return BaseT::getCmpSelInstrCost(Opcode, ValTy, CondTy, VecPred, CostKind,
                                       Op1Info, Op2Info, I);
+@@ -2460,6 +2508,11 @@
+           return 1; // The top lane only needs a right shift.
+         return Bits == 8 && Index == 0 ? 1 : 2;
+       }
++      // Inserting into lane zero of poison only exposes the scalar low bits;
++      // the other lanes impose no constraints and need no masking/merging.
++      if (Opcode == Instruction::InsertElement && Index == 0 && Op0 &&
++          isa<PoisonValue>(Op0) && !ST->is64Bit())
++        return 0;
+       if (Opcode == Instruction::InsertElement)
+         return Index == -1U ? 10 : 6;
+     }
 diff --git a/llvm/tools/pattern-gen/LLVMOverride.cpp b/llvm/tools/pattern-gen/LLVMOverride.cpp
 --- a/llvm/tools/pattern-gen/LLVMOverride.cpp
 +++ b/llvm/tools/pattern-gen/LLVMOverride.cpp
