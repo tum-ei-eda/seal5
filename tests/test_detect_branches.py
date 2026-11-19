@@ -8,7 +8,7 @@ from m2isar.metamodel import behav
 from test_explicit_names import symbol
 from test_normalize_subscripts import render
 from seal5.model import DataType, Seal5ImmOperand, Seal5Type
-from seal5.transform.detect_branches import BranchIntrinsic, detect_branch
+from seal5.transform.detect_branches import BranchIntrinsic, detect_branch, pattern_branch_operation
 
 
 def branch_tree(operator="=="):
@@ -97,6 +97,17 @@ class BranchTests(unittest.TestCase):
         lowered_guard = lowered.statements[0].stmts[0].statements[0]
         self.assertIs(lowered_guard.conds[0], misaligned)
         self.assertIsInstance(lowered_guard.stmts[1].statements[0], BranchIntrinsic)
+
+        from seal5.model import Seal5Constraint
+
+        self.assertIs(pattern_branch_operation(lowered, []), lowered)
+        unrelated = behav.BinaryOperation(offset, behav.Operator("%"), behav.Literal(8))
+        constraint = Seal5Constraint([behav.UnaryOperation(behav.Operator("!"), unrelated)])
+        self.assertIs(pattern_branch_operation(lowered, [constraint]), lowered)
+        constraint = Seal5Constraint([behav.UnaryOperation(behav.Operator("!"), misaligned)])
+        reduced = pattern_branch_operation(lowered, [constraint])
+        self.assertIsInstance(reduced.statements[0], BranchIntrinsic)
+        self.assertIs(lowered.statements[0].stmts[0].statements[0], lowered_guard)
 
     def test_alignment_guard_is_preserved(self):
         original, operands, condition, offset = branch_tree()

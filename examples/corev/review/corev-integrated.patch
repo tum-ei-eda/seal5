@@ -1,0 +1,1873 @@
+diff --git a/XCoreV.core_desc b/XCoreV.core_desc
+index d0eb197..30f3fcc 100644
+--- a/XCoreV.core_desc
++++ b/XCoreV.core_desc
+@@ -7,5 +7,4 @@ import "XCoreVSimd.core_desc"
+ // import "XCoreVHwlp.core_desc"
+ 
+ // InstructionSet XCoreV extends XCoreVMac, XCoreVMem, XCoreVBranchImmediate, XCoreVAlu, XCoreVBitmanip, XCoreVSimd, XCoreVHwlp {
+-InstructionSet XCoreV extends XCoreVMac, XCoreVMem, XCoreVBranchImmediate, XCoreVAlu, XCoreVBitmanip, XCoreVSimd {
+-}
++InstructionSet XCoreV combines XCoreVMac, XCoreVMem, XCoreVBranchImmediate, XCoreVAlu, XCoreVBitmanip, XCoreVSimd;
+diff --git a/XCoreVAlu.core_desc b/XCoreVAlu.core_desc
+index f2503be..b53740e 100644
+--- a/XCoreVAlu.core_desc
++++ b/XCoreVAlu.core_desc
+@@ -10,22 +10,22 @@ InstructionSet XCoreVAlu extends RV32I {
+             assembly: {"cv.abs", "{name(rd)}, {name(rs1)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd] = ((signed)X[rs1] < 0) ? (-X[rs1])[32-1:0] : X[rs1];
++                    X[rd] = (unsigned<32>)(((signed)X[rs1] < 0) ? (-X[rs1])[32-1:0] : X[rs1]);
+                 }
+             }
+         }
+-        CV_SLET {
++        CV_SLE {
+             encoding: 7'b0101001 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+-            assembly: {"cv.slet", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
++            assembly: {"cv.sle", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+                     X[rd] = (unsigned<1>)((signed)X[rs1] <= (signed)X[rs2]);
+                 }
+             }
+         }
+-        CV_SLETU {
++        CV_SLEU {
+             encoding: 7'b0101010 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+-            assembly: {"cv.sletu", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
++            assembly: {"cv.sleu", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+                     X[rd] = (unsigned<1>)((unsigned)X[rs1] <= (unsigned)X[rs2]);
+@@ -37,7 +37,7 @@ InstructionSet XCoreVAlu extends RV32I {
+             assembly: {"cv.min", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd] = ((signed)X[rs1] < (signed)X[rs2]) ? X[rs1] : X[rs2];
++                    X[rd] = (unsigned<32>)(((signed)X[rs1] < (signed)X[rs2]) ? X[rs1] : X[rs2]);
+                 }
+             }
+         }
+@@ -46,7 +46,7 @@ InstructionSet XCoreVAlu extends RV32I {
+             assembly: {"cv.minu", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd] = ((unsigned)X[rs1] < (unsigned)X[rs2]) ? X[rs1] : X[rs2];
++                    X[rd] = (unsigned<32>)(((unsigned)X[rs1] < (unsigned)X[rs2]) ? X[rs1] : X[rs2]);
+                 }
+             }
+         }
+@@ -55,7 +55,7 @@ InstructionSet XCoreVAlu extends RV32I {
+             assembly: {"cv.max", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd] = ((signed)X[rs1] > (signed)X[rs2]) ? X[rs1] : X[rs2];
++                    X[rd] = (unsigned<32>)(((signed)X[rs1] > (signed)X[rs2]) ? X[rs1] : X[rs2]);
+                 }
+             }
+         }
+@@ -64,7 +64,7 @@ InstructionSet XCoreVAlu extends RV32I {
+             assembly: {"cv.maxu", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd] = ((unsigned)X[rs1] > (unsigned)X[rs2]) ? X[rs1] : X[rs2];
++                    X[rd] = (unsigned<32>)(((unsigned)X[rs1] > (unsigned)X[rs2]) ? X[rs1] : X[rs2]);
+                 }
+             }
+         }
+@@ -73,7 +73,7 @@ InstructionSet XCoreVAlu extends RV32I {
+             assembly: {"cv.exths", "{name(rd)}, {name(rs1)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd] = (signed)X[rs1][15:0];
++                    X[rd] = (unsigned<32>)((signed)X[rs1][15:0]);
+                 }
+             }
+         }
+@@ -91,7 +91,7 @@ InstructionSet XCoreVAlu extends RV32I {
+             assembly: {"cv.extbs", "{name(rd)}, {name(rs1)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd] = (signed)X[rs1][7:0];
++                    X[rd] = (unsigned<32>)((signed)X[rs1][7:0]);
+                 }
+             }
+         }
+@@ -110,10 +110,10 @@ InstructionSet XCoreVAlu extends RV32I {
+             assembly: {"cv.clip", "{name(rd)}, {name(rs1)}, {Iuimm5}" };
+             behavior: {
+                 if (rd != 0) {
+-                    signed<32> a = (Iuimm5) ? -((unsigned<32>)1 << (Iuimm5 - 1)) : -1;
+-                    signed<32> b = (Iuimm5) ? (((unsigned<32>)1 << (Iuimm5 - 1)) - 1) : 0;
++                    signed<32> a = (signed<32>)((Iuimm5) ? -((unsigned<32>)1 << (Iuimm5 - 1)) : -1);
++                    signed<32> b = (signed<32>)((Iuimm5) ? (((unsigned<32>)1 << (Iuimm5 - 1)) - 1) : 0);
+                     signed<32> value = ((signed)X[rs1] < a) ? a : (signed)X[rs1];
+-                    X[rd] = (value > b) ? b : value;
++                    X[rd] = (unsigned<32>)((value > b) ? b : value);
+                 }
+             }
+         }
+@@ -123,9 +123,9 @@ InstructionSet XCoreVAlu extends RV32I {
+             behavior: {
+                 if (rd != 0) {
+                     signed<32> a = 0;
+-                    signed<32> b = (Iuimm5) ? (((unsigned<32>)1 << (Iuimm5 - 1)) - 1) : 0;
++                    signed<32> b = (signed<32>)((Iuimm5) ? (((unsigned<32>)1 << (Iuimm5 - 1)) - 1) : 0);
+                     signed<32> value = ((signed)X[rs1] < a) ? a : (signed)X[rs1];
+-                    X[rd] = (value > b) ? b : value;
++                    X[rd] = (unsigned<32>)((value > b) ? b : value);
+                 }
+             }
+         }
+@@ -138,7 +138,7 @@ InstructionSet XCoreVAlu extends RV32I {
+                     signed<32> b = (unsigned<31>)X[rs2][30:0];
+                     signed<32> a = ~b;
+                     signed<32> value = ((signed)X[rs1] < a) ? a : (signed)X[rs1];
+-                    X[rd] = (value > b) ? b : value;
++                    X[rd] = (unsigned<32>)((value > b) ? b : value);
+                 }
+             }
+         }
+@@ -151,7 +151,7 @@ InstructionSet XCoreVAlu extends RV32I {
+                     // CORE-V ignores the bound register sign bit.
+                     signed<32> b = (unsigned<31>)X[rs2][30:0];
+                     signed<32> value = ((signed)X[rs1] < a) ? a : (signed)X[rs1];
+-                    X[rd] = (value > b) ? b : value;
++                    X[rd] = (unsigned<32>)((value > b) ? b : value);
+                 }
+             }
+         }
+@@ -161,7 +161,7 @@ InstructionSet XCoreVAlu extends RV32I {
+             assembly: {"cv.addN", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Luimm5}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd] = (signed<32>)(X[rs1] + X[rs2]) >> Luimm5;
++                    X[rd] = (unsigned<32>)((signed<32>)(X[rs1] + X[rs2]) >> Luimm5);
+                 }
+             }
+         }
+@@ -180,7 +180,7 @@ InstructionSet XCoreVAlu extends RV32I {
+             behavior: {
+                 if (rd != 0) {
+                     unsigned<32> one = 1;
+-                    X[rd] = (signed<32>)((signed<32>)(X[rs1] + X[rs2]) + ((one << Luimm5) >> 1)) >> Luimm5;
++                    X[rd] = (unsigned<32>)((signed<32>)((signed<32>)(X[rs1] + X[rs2]) + ((one << Luimm5) >> 1)) >> Luimm5);
+                 }
+             }
+         }
+@@ -199,7 +199,7 @@ InstructionSet XCoreVAlu extends RV32I {
+             assembly: {"cv.subN", "{name(rd)}, {name(rs1)}, {name(rs2)}, {Luimm5}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd] = (signed<32>)(X[rs1] - X[rs2]) >> Luimm5;
++                    X[rd] = (unsigned<32>)((signed<32>)(X[rs1] - X[rs2]) >> Luimm5);
+                 }
+             }
+         }
+@@ -218,7 +218,7 @@ InstructionSet XCoreVAlu extends RV32I {
+             behavior: {
+                 if (rd != 0) {
+                     unsigned<32> one = 1;
+-                    X[rd] = (signed<32>)((signed<32>)(X[rs1] - X[rs2]) + ((one << Luimm5) >> 1)) >> Luimm5;
++                    X[rd] = (unsigned<32>)((signed<32>)((signed<32>)(X[rs1] - X[rs2]) + ((one << Luimm5) >> 1)) >> Luimm5);
+                 }
+             }
+         }
+@@ -238,7 +238,7 @@ InstructionSet XCoreVAlu extends RV32I {
+             assembly: {"cv.addNr", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd] = (signed<32>)(X[rd] + X[rs1]) >> X[rs2][4:0];
++                    X[rd] = (unsigned<32>)((signed<32>)(X[rd] + X[rs1]) >> X[rs2][4:0]);
+                 }
+             }
+         }
+@@ -257,7 +257,7 @@ InstructionSet XCoreVAlu extends RV32I {
+             behavior: {
+                 if (rd != 0) {
+                     unsigned<32> one = 1;
+-                    X[rd] = (signed<32>)((signed<32>)(X[rd] + X[rs1]) + ((one << X[rs2][4:0]) >> 1)) >> X[rs2][4:0];
++                    X[rd] = (unsigned<32>)((signed<32>)((signed<32>)(X[rd] + X[rs1]) + ((one << X[rs2][4:0]) >> 1)) >> X[rs2][4:0]);
+                 }
+             }
+         }
+@@ -276,7 +276,7 @@ InstructionSet XCoreVAlu extends RV32I {
+             assembly: {"cv.subNr", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd] = (signed<32>)(X[rd] - X[rs1]) >> X[rs2][4:0];
++                    X[rd] = (unsigned<32>)((signed<32>)(X[rd] - X[rs1]) >> X[rs2][4:0]);
+                 }
+             }
+         }
+@@ -295,7 +295,7 @@ InstructionSet XCoreVAlu extends RV32I {
+             behavior: {
+                 if (rd != 0) {
+                     unsigned<32> one = 1;
+-                    X[rd] = (signed<32>)((signed<32>)(X[rd] - X[rs1]) + ((one << X[rs2][4:0]) >> 1)) >> X[rs2][4:0];
++                    X[rd] = (unsigned<32>)((signed<32>)((signed<32>)(X[rd] - X[rs1]) + ((one << X[rs2][4:0]) >> 1)) >> X[rs2][4:0]);
+                 }
+             }
+         }
+diff --git a/XCoreVBitmanip.core_desc b/XCoreVBitmanip.core_desc
+index 29e9842..7337466 100644
+--- a/XCoreVBitmanip.core_desc
++++ b/XCoreVBitmanip.core_desc
+@@ -1,17 +1,4 @@
+-// import "../rv_base/RISCVBase.core_desc"
+-import "RVI.core_desc"
+-
+-// InstructionSet XCoreVBitmanip extends RISCVBase {
+ InstructionSet XCoreVBitmanip extends RV32I {
+-    functions {
+-        // Rotate counts use their low five bits; both shifts stay in 0..31.
+-        unsigned<32> rotl32(unsigned<32> x, unsigned<32> n) [[inline]] {
+-            return (x << (n & 31)) | (x >> ((32 - n) & 31));
+-        }
+-        unsigned<32> rotr32(unsigned<32> x, unsigned<32> n) [[inline]] {
+-            return (x >> (n & 31)) | (x << ((32 - n) & 31));
+-        }
+-    }
+     instructions {
+         // SOURCE FILE: instr_srcs/XCoreVALU_BitmanipI.txt
+         CV_EXTRACT {
+@@ -19,37 +6,85 @@ InstructionSet XCoreVBitmanip extends RV32I {
+             assembly: {"cv.extract", "{name(rd)}, {name(rs1)}, {Luimm5}, {Iuimm5}" };
+             behavior: {
+                 if (rd != 0) {
+-                    // TODO: add assert
+-                    X[rd] = (signed<32>)((signed)((X[rs1] >> Iuimm5) & (((unsigned<32>)2 << Luimm5) - 1)));
++                    X[rd] = (unsigned<32>)((signed<32>)(((X[rs1] >> Iuimm5) & ((2 << Luimm5) - 1)) << (31 - Luimm5)) >> (31 - Luimm5));
+                 }
+             }
+         }
++        // TODO: switch impl?
++        // CV_EXTRACT {
++        //     encoding: 2'b00 :: Luimm5[4:0] :: Iuimm5[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1011011;
++        //     assembly: {"cv.extract", "{name(rd)}, {name(rs1)}, {Luimm5}, {Iuimm5}" };
++        //     behavior: {
++        //         if (rd != 0) {
++        //             unsigned<6> width = Luimm5 + 1;
++        //             unsigned<32> value = X[rs1] >> Iuimm5;
++        //             unsigned<32> mask = 0;
++        //             unsigned<6> i = 0;
++        //             if (width > (32 - Iuimm5)) {
++        //                 width = 32 - Iuimm5;
++        //             }
++        //             while (i < width) {
++        //                 mask = mask | (1 << i);
++        //                 i = i + 1;
++        //             }
++        //             value = value & mask;
++        //             if (((value >> (width - 1)) & 1) != 0) {
++        //                 value = value | ~mask;
++        //             }
++        //             X[rd] = value;
++        //         }
++        //     }
++        // }
+         CV_EXTRACTU {
+             encoding: 2'b01 :: Luimm5[4:0] :: Iuimm5[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1011011;
+             assembly: {"cv.extractu", "{name(rd)}, {name(rs1)}, {Luimm5}, {Iuimm5}" };
+             behavior: {
+                 if (rd != 0) {
+-                    // TODO: add assert
+-                    X[rd] = (unsigned<32>)((unsigned)((X[rs1] >> Iuimm5) & (((unsigned<32>)2 << Luimm5) - 1)));
++                    X[rd] = (unsigned)((X[rs1] >> Iuimm5) & ((2 << Luimm5) - 1));
+                 }
+             }
+         }
++        // TODO: switch impl?
++        // CV_EXTRACTU {
++        //     encoding: 2'b01 :: Luimm5[4:0] :: Iuimm5[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1011011;
++        //     assembly: {"cv.extractu", "{name(rd)}, {name(rs1)}, {Luimm5}, {Iuimm5}" };
++        //     behavior: {
++        //         if (rd != 0) {
++        //             unsigned<6> width = Luimm5 + 1;
++        //             unsigned<32> mask = 0;
++        //             unsigned<6> i = 0;
++        //             if (width > (32 - Iuimm5)) {
++        //                 width = 32 - Iuimm5;
++        //             }
++        //             while (i < width) {
++        //                 mask = mask | (1 << i);
++        //                 i = i + 1;
++        //             }
++        //             X[rd] = (X[rs1] >> Iuimm5) & mask;
++        //         }
++        //     }
++        // }
+         CV_INSERT {
+             encoding: 2'b10 :: Luimm5[4:0] :: Iuimm5[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1011011;
+             assembly: {"cv.insert", "{name(rd)}, {name(rs1)}, {Luimm5}, {Iuimm5}" };
+             behavior: {
++                // Warning: UNTESTED
+                 if (rd != 0) {
+-                    unsigned<32> rs1_val = X[rs1];
+-                    unsigned<5> base = Iuimm5;
+-                    unsigned<5> offset = Luimm5;
+-                    unsigned<5> temp = base + offset > 31 ? base + offset : 31;
+-                    unsigned<5> num = offset - temp - 31;
+-                    unsigned<5> offset2 = base + offset < 32 ? offset : 31 - base;
+-                    unsigned<32> mask = (((unsigned<32>)1<<(offset)) - 1) << base;
+-                    unsigned<32> mask2 = (((unsigned<32>)1<<(num)) - 1);
+-                    unsigned<32> temp2 = (rs1_val & mask2) << base;
+-                    unsigned<32> rd_val = (rd_val & ~mask) | temp2;
+-                    X[rd] = rd_val;
++                    unsigned<32> mask = 0;
++                    unsigned<6> i = 0;
++                    unsigned<6> width = Luimm5 + 1;
++
++                    if (width > (32 - Iuimm5)) {
++                        width = (unsigned<6>)(32 - Iuimm5);
++                    }
++
++                    while (i < width) {
++                        mask = mask | (1 << (Iuimm5 + i));
++                        i = (unsigned<6>)(i + 1);
++                    }
++
++                    X[rd] = (X[rd] & ~mask) |
++                            ((X[rs1] << Iuimm5) & mask);
+                 }
+             }
+         }
+@@ -57,14 +92,22 @@ InstructionSet XCoreVBitmanip extends RV32I {
+             encoding: 2'b00 :: Luimm5[4:0] :: Iuimm5[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1011011;
+             assembly: {"cv.bclr", "{name(rd)}, {name(rs1)}, {Luimm5}, {Iuimm5}" };
+             behavior: {
++                // Warning: UNTESTED
+                 if (rd != 0) {
+-                    unsigned<32> rs1_val = X[rs1];
+-                    unsigned<5> base = Iuimm5;
+-                    unsigned<5> offset = Luimm5;
+-                    unsigned<5> offset2 = base + offset < 32 ? offset : 31 - base;
+-                    unsigned<32> mask = (((unsigned<32>)1<<(offset)) - 1) << base;
+-                    unsigned<32> rd_val = rs1_val & ~mask;
+-                    X[rd] = rd_val;
++                    unsigned<32> mask = 0;
++                    unsigned<6> i = 0;
++                    unsigned<6> width = Luimm5 + 1;
++
++                    if (width > (32 - Iuimm5)) {
++                        width = (unsigned<6>)(32 - Iuimm5);
++                    }
++
++                    while (i < width) {
++                        mask = mask | (1 << (Iuimm5 + i));
++                        i = (unsigned<6>)(i + 1);
++                    }
++
++                    X[rd] = X[rs1] & ~mask;
+                 }
+             }
+         }
+@@ -72,39 +115,74 @@ InstructionSet XCoreVBitmanip extends RV32I {
+             encoding: 2'b01 :: Luimm5[4:0] :: Iuimm5[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1011011;
+             assembly: {"cv.bset", "{name(rd)}, {name(rs1)}, {Luimm5}, {Iuimm5}" };
+             behavior: {
++                // Warning: UNTESTED
+                 if (rd != 0) {
+-                    unsigned<32> rs1_val = X[rs1];
+-                    unsigned<5> base = Iuimm5;
+-                    unsigned<5> offset = Luimm5;
+-                    unsigned<5> offset2 = base + offset < 32 ? offset : 31 - base;
+-                    unsigned<32> mask = (((unsigned<32>)1<<(offset)) - 1) << base;
+-                    unsigned<32> rd_val = rs1_val | mask;
+-                    X[rd] = rd_val;
++                    unsigned<32> mask = 0;
++                    unsigned<6> i = 0;
++                    unsigned<6> width = Luimm5 + 1;
++
++                    if (width > (32 - Iuimm5)) {
++                        width = (unsigned<6>)(32 - Iuimm5);
++                    }
++
++                    while (i < width) {
++                        mask = mask | (1 << (Iuimm5 + i));
++                        i = (unsigned<6>)(i + 1);
++                    }
++
++                    X[rd] = X[rs1] | mask;
+                 }
+             }
+         }
+         CV_BITREV {
+-            encoding: 2'b11 :: Luimm5[4:0] :: Iuimm5[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1011011;
+-            assembly: {"cv.bitrev", "{name(rd)}, {name(rs1)}, {Luimm5}, {Iuimm5}" };
++            // Bits 29:27 must be zero; only bits 26:25 encode Is3.
++            encoding: 2'b11 :: 3'b000 :: Luimm2[1:0] :: Iuimm5[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1011011;
++            assembly: {"cv.bitrev", "{name(rd)}, {name(rs1)}, {Luimm2}, {Iuimm5}" };
+             behavior: {
++                // Warning: UNTESTED
+                 if (rd != 0) {
+-                    // This is NOT: X[rd] = llvm.bitreverse.i32(X[rs1])
+-                    unsigned<32> rs1_val = X[rs1];
+-                    unsigned<32> shifted = rs1_val << Iuimm5;
+-                    if (Luimm5 == 0 || Luimm5 == 3) {  // radix-2
+-                        // TODO: for loop instead?
+-                        // TODO: would shifted[0:31] work?
+-                        unsigned<32> rd_val = shifted[0] :: shifted[1] :: shifted[2] :: shifted[3] :: shifted[4] :: shifted[5] :: shifted[6] :: shifted[7] :: shifted[8] :: shifted[9] :: shifted[10] :: shifted[11] :: shifted[12] :: shifted[13] :: shifted[14] :: shifted[15] :: shifted[16] :: shifted[17] :: shifted[18] :: shifted[19] :: shifted[20] :: shifted[21] :: shifted[22] :: shifted[23] :: shifted[24] :: shifted[25] :: shifted[26] :: shifted[27] :: shifted[28] :: shifted[92] :: shifted[30] :: shifted[31];
+-                        X[rd] = rd_val;
+-                    } else if (Luimm5 == 1) {  // radix-4
+-                        unsigned<32> rd_val = shifted[1:0] :: shifted[3:2] :: shifted[5:4] :: shifted[7:6] :: shifted[9:8] :: shifted[11:10] :: shifted[13:12] :: shifted[15:14] :: shifted[17:16] :: shifted[19:18] :: shifted[21:20] :: shifted[23:22] :: shifted[25:24] :: shifted[27:26] :: shifted[29:28] :: shifted[31:30];
+-                        X[rd] = rd_val;
+-                    } else if (Luimm5 == 2) {  // radix-8
+-                        unsigned<32> rd_val = shifted[3:0] :: shifted[7:4] :: shifted[11:8] :: shifted[15:12] :: shifted[19:16] :: shifted[23:20] :: shifted[27:24] :: shifted[31:28];
+-                        X[rd] = rd_val;
+-                    } else {
+-                        raise(0,2);
++                    unsigned<32> source = X[rs1] << Iuimm5;
++                    unsigned<32> result = 0;
++
++                    unsigned<3> groupWidth = 1;
++                    unsigned<3> firstWidth = 1;
++                    unsigned<6> sourceBase = 0;
++                    unsigned<6> destinationBase = 0;
++                    unsigned<6> chunkWidth = 0;
++                    unsigned<6> i = 0;
++
++                    // Is3 == 3 behaves like Is3 == 0.
++                    if (Luimm2 == 1) {
++                        groupWidth = 2;
++                    } else if (Luimm2 == 2) {
++                        groupWidth = 3;
+                     }
++
++                    firstWidth = 32 % groupWidth;
++                    if (firstWidth == 0) {
++                        firstWidth = groupWidth;
++                    }
++
++                    chunkWidth = firstWidth;
++
++                    while (sourceBase < 32) {
++                        destinationBase = (unsigned<6>)(32 - sourceBase - chunkWidth);
++                        i = 0;
++
++                        // Preserve the bit order within each group.
++                        while (i < chunkWidth) {
++                            if (((source >> (sourceBase + i)) & 1) != 0) {
++                                result = result |
++                                         (1 << (destinationBase + i));
++                            }
++                            i = (unsigned<6>)(i + 1);
++                        }
++
++                        sourceBase = (unsigned<6>)(sourceBase + chunkWidth);
++                        chunkWidth = groupWidth;
++                    }
++
++                    X[rd] = result;
+                 }
+             }
+         }
+@@ -114,37 +192,88 @@ InstructionSet XCoreVBitmanip extends RV32I {
+             assembly: {"cv.extractr", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    // TODO: add assert
+-                    X[rd] = (signed<32>)((signed)((X[rs1] >> X[rs2][4:0]) & (((unsigned<32>)2 << X[rs2][9:5]) - 1)));
++                    X[rd] = (unsigned<32>)((signed<32>)(((X[rs1] >> X[rs2][31: 0][4:0]) & ((2 << X[rs2][31: 0][9:5]) - 1)) << (31 - X[rs2][31: 0][9:5])) >> (31 - X[rs2][31: 0][9:5]));
+                 }
+             }
+         }
++        // TODO: switch impl?
++        // CV_EXTRACTR {
++        //     encoding: 7'b0011000 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
++        //     assembly: {"cv.extractr", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
++        //     behavior: {
++        //         if (rd != 0) {
++        //             unsigned<5> offset = X[rs2][4:0];
++        //             unsigned<6> width = X[rs2][9:5] + 1;
++        //             unsigned<32> value = X[rs1] >> offset;
++        //             unsigned<32> mask = 0;
++        //             unsigned<6> i = 0;
++        //             if (width > (32 - offset)) {
++        //                 width = 32 - offset;
++        //             }
++        //             while (i < width) {
++        //                 mask = mask | (1 << i);
++        //                 i = i + 1;
++        //             }
++        //             value = value & mask;
++        //             if (((value >> (width - 1)) & 1) != 0) {
++        //                 value = value | ~mask;
++        //             }
++        //             X[rd] = value;
++        //         }
++        //     }
++        // }
+         CV_EXTRACTUR {
+             encoding: 7'b0011001 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+             assembly: {"cv.extractur", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    // TODO: add assert
+-                    X[rd] = (unsigned<32>)((unsigned)((X[rs1] >> X[rs2][4:0]) & (((unsigned<32>)2 << X[rs2][9:5]) - 1)));
++                    X[rd] = (unsigned)((X[rs1] >> X[rs2][31: 0][4:0]) & ((2 << X[rs2][31: 0][9:5]) - 1));
+                 }
+             }
+         }
++        // TODO: switch impl?
++        // CV_EXTRACTUR {
++        //     encoding: 7'b0011001 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
++        //     assembly: {"cv.extractur", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
++        //     behavior: {
++        //         if (rd != 0) {
++        //             unsigned<5> offset = X[rs2][4:0];
++        //             unsigned<6> width = X[rs2][9:5] + 1;
++        //             unsigned<32> mask = 0;
++        //             unsigned<6> i = 0;
++        //             if (width > (32 - offset)) {
++        //                 width = 32 - offset;
++        //             }
++        //             while (i < width) {
++        //                 mask = mask | (1 << i);
++        //                 i = i + 1;
++        //             }
++        //             X[rd] = (X[rs1] >> offset) & mask;
++        //         }
++        //     }
++        // }
+         CV_INSERTR {
+             encoding: 7'b0011010 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+             assembly: {"cv.insertr", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
++                // Warning: UNTESTED
+                 if (rd != 0) {
+-                    unsigned<32> rs1_val = X[rs1];
+-                    unsigned<5> base = X[rs2][4:0];
+-                    unsigned<5> offset = X[rs2][9:5];
+-                    unsigned<5> temp = base + offset > 31 ? base + offset : 31;
+-                    unsigned<5> num = offset - temp - 31;
+-                    unsigned<5> offset2 = base + offset < 32 ? offset : 31 - base;
+-                    unsigned<32> mask = (((unsigned<32>)1<<(offset)) - 1) << base;
+-                    unsigned<32> mask2 = (((unsigned<32>)1<<(num)) - 1);
+-                    unsigned<32> temp2 = (rs1_val & mask2) << base;
+-                    unsigned<32> rd_val = (rd_val & ~mask) | temp2;
+-                    X[rd]= rd_val;
++                    unsigned<5> offset = X[rs2][4:0];
++                    unsigned<6> width = X[rs2][9:5] + 1;
++                    unsigned<32> mask = 0;
++                    unsigned<6> i = 0;
++
++                    if (width > (32 - offset)) {
++                        width = (unsigned<6>)(32 - offset);
++                    }
++
++                    while (i < width) {
++                        mask = mask | (1 << (offset + i));
++                        i = (unsigned<6>)(i + 1);
++                    }
++
++                    X[rd] = (X[rd] & ~mask) |
++                            ((X[rs1] << offset) & mask);
+                 }
+             }
+         }
+@@ -152,14 +281,23 @@ InstructionSet XCoreVBitmanip extends RV32I {
+             encoding: 7'b0011100 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+             assembly: {"cv.bclrr", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
++                // Warning: UNTESTED
+                 if (rd != 0) {
+-                    unsigned<32> rs1_val = X[rs1];
+-                    unsigned<5> base = X[rs2][4:0];
+-                    unsigned<5> offset = X[rs2][9:5];
+-                    unsigned<5> offset2 = base + offset < 32 ? offset : 31 - base;
+-                    unsigned<32> mask = (((unsigned<32>)1<<(offset)) - 1) << base;
+-                    unsigned<32> rd_val = rs1_val & ~mask;
+-                    X[rd] = rd_val;
++                    unsigned<5> offset = X[rs2][4:0];
++                    unsigned<6> width = X[rs2][9:5] + 1;
++                    unsigned<32> mask = 0;
++                    unsigned<6> i = 0;
++
++                    if (width > (32 - offset)) {
++                        width = (unsigned<6>)(32 - offset);
++                    }
++
++                    while (i < width) {
++                        mask = mask | (1 << (offset + i));
++                        i = (unsigned<6>)(i + 1);
++                    }
++
++                    X[rd] = X[rs1] & ~mask;
+                 }
+             }
+         }
+@@ -167,94 +305,125 @@ InstructionSet XCoreVBitmanip extends RV32I {
+             encoding: 7'b0011101 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+             assembly: {"cv.bsetr", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
++                // Warning: UNTESTED
+                 if (rd != 0) {
+-                    unsigned<32> rs1_val = X[rs1];
+-                    unsigned<5> base = X[rs2][4:0];
+-                    unsigned<5> offset = X[rs2][9:5];
+-                    unsigned<5> offset2 = base + offset < 32 ? offset : 31 - base;
+-                    unsigned<32> mask = (((unsigned<32>)1<<(offset)) - 1) << base;
+-                    unsigned<32> rd_val = rs1_val | mask;
+-                    X[rd] = rd_val;
++                    unsigned<5> offset = X[rs2][4:0];
++                    unsigned<6> width = X[rs2][9:5] + 1;
++                    unsigned<32> mask = 0;
++                    unsigned<6> i = 0;
++
++                    if (width > (32 - offset)) {
++                        width = (unsigned<6>)(32 - offset);
++                    }
++
++                    while (i < width) {
++                        mask = mask | (1 << (offset + i));
++                        i = (unsigned<6>)(i + 1);
++                    }
++
++                    X[rd] = X[rs1] | mask;
+                 }
+             }
+         }
+         CV_ROR {
+             encoding: 7'b0100000 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+             assembly: {"cv.ror", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+-            behavior: if (rd != 0) X[rd] = rotr32(X[rs1], X[rs2]);
+-        }
+-        CV_FF1 {
+-            encoding: 7'b0100001 :: 5'b00000 :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+-            assembly: {"cv.ff1", "{name(rd)}, {name(rs1)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    if (X[rs1] == 0) {
+-                        X[rd] = 32;
+-                    } else if (X[rs1][0]) {
+-                        X[rd] = 0;
+-                    } else if (X[rs1] == 32'h80000000) {
+-                        X[rd] = 31;
++                    unsigned<5> shift = X[rs2][4:0];
++
++                    if (shift == 0) {
++                        X[rd] = X[rs1];
+                     } else {
+-                        unsigned<5> pos = 0;
+-                        while (!X[rs1][pos] && pos < 32) {
+-                            pos = pos + 1;
+-                        }
+-                        X[rd] = pos;
++                        X[rd] = (X[rs1] >> shift) |
++                                (X[rs1] << (32 - shift));
+                     }
+                 }
+             }
+         }
+-        CV_FL1 {
+-            encoding: 7'b0100010 :: 5'b00000 :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+-            assembly: {"cv.fl1", "{name(rd)}, {name(rs1)}" };
++        CV_FF1 {
++            encoding: 7'b0100001 :: 5'b00000 :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
++            assembly: {"cv.ff1", "{name(rd)}, {name(rs1)}" };
+             behavior: {
++                // Warning: UNTESTED
+                 if (rd != 0) {
+-                    if (X[rs1] == 0) {
+-                        X[rd] = 32;
+-                    } else if (X[rs1][31]) {
+-                        X[rd] = 31;
+-                    } else if (X[rs1] == 32'b1) {
+-                        X[rd] = 0;
+-                    } else {
+-                        unsigned<5> pos = 31;
+-                        while (!X[rs1][pos] && pos >= 0) {
+-                            pos = pos - 1;
++                    unsigned<6> result = 32;
++                    unsigned<6> i = 0;
++
++                    while (i < 32) {
++                        if ((result == 32) &&
++                            (((X[rs1] >> i) & 1) != 0)) {
++                            result = i;
+                         }
+-                        X[rd] = pos;
++                        i = (unsigned<6>)(i + 1);
+                     }
++
++                    X[rd] = result;
+                 }
+             }
+         }
+-        CV_CLB {
+-            encoding: 7'b0100011 :: 5'b00000 :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+-            assembly: {"cv.clb", "{name(rd)}, {name(rs1)}" };
++        CV_FL1 {
++            encoding: 7'b0100010 :: 5'b00000 :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
++            assembly: {"cv.fl1", "{name(rd)}, {name(rs1)}" };
+             behavior: {
++                // Warning: UNTESTED
+                 if (rd != 0) {
+-                    // X[rd] = X[rs1][31] == 0 ? llvm.ctlz.i32(X[rs1]) : llvm.ctlz.i32(~X[rs1]):
+-                    if (X[rs1] != 0) {
+-                        X[rd] = 0;
+-                    } else {
+-                        unsigned<5> cnt = 0;
+-                        while (X[rs1][31 - cnt] == X[rs1][31] && cnt < 32) {
+-                            cnt = cnt + 1;
++                    unsigned<6> result = 32;
++                    unsigned<6> i = 0;
++
++                    while (i < 32) {
++                        if (((X[rs1] >> i) & 1) != 0) {
++                            result = i;
+                         }
+-                        X[rd] = cnt - 1;
++                        i = (unsigned<6>)(i + 1);
+                     }
++
++                    X[rd] = result;
+                 }
+             }
+         }
++        // CV_CLB {
++        //     encoding: 7'b0100011 :: 5'b00000 :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
++        //     assembly: {"cv.clb", "{name(rd)}, {name(rs1)}" };
++        //     behavior: {
++        //         // Warning: UNTESTED
++        //         if (rd != 0) {
++        //             unsigned<6> result = 0;
++        //             unsigned<6> i = 1;
++        //             unsigned<1> leadingBit = X[rs1][31];
++        //             unsigned<1> scanning = 1;
++        //             if (X[rs1] != 0) {
++        //                 while (i < 32) {
++        //                     // Warning: Broken M2-ISA-R type inference?
++        //                     if (scanning &&
++        //                         (X[rs1][31 - i] == leadingBit)) {
++        //                         result = result + 1;
++        //                     } else {
++        //                         scanning = 0;
++        //                     }
++        //                     i = i + 1;
++        //                 }
++        //             }
++        //             X[rd] = result;
++        //         }
++        //     }
++        // }
+         CV_CNT {
+             encoding: 7'b0100100 :: 5'b00000 :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+             assembly: {"cv.cnt", "{name(rd)}, {name(rs1)}" };
+             behavior: {
++                // Warning: UNTESTED
+                 if (rd != 0) {
+-                    // X[rd] = llvm.ctpop.i32(X[rs1])
+-                    // See: https://stackoverflow.com/questions/109023/count-the-number-of-set-bits-in-a-32-bit-integer
+-                    unsigned<32> temp = X[rs1] - ((X[rs1] >> 1) & 0x55555555);        // add pairs of bits
+-                    temp = (temp & 0x33333333) + ((temp >> 2) & 0x33333333);  // quads
+-                    temp = (temp + (temp >> 4)) & 0x0F0F0F0F;        // groups of 8
+-                    temp *= 0x01010101;                        // horizontal sum of bytes
+-                    X[rd] = temp >> 24;               // return just that top byte (after truncating to 32-bit even when int is wider than uint32_t)
++                    unsigned<6> result = 0;
++                    unsigned<6> i = 0;
++
++                    while (i < 32) {
++                        result = (unsigned<6>)(result +
++                                 ((X[rs1] >> i) & 1));
++                        i = (unsigned<6>)(i + 1);
++                    }
++
++                    X[rd] = result;
+                 }
+             }
+         }
+diff --git a/XCoreVBranchImmediate.core_desc b/XCoreVBranchImmediate.core_desc
+index 9767513..c322d11 100644
+--- a/XCoreVBranchImmediate.core_desc
++++ b/XCoreVBranchImmediate.core_desc
+@@ -11,8 +11,8 @@ InstructionSet XCoreVBranchImmediate extends RV32I {
+                 if(imm % INSTR_ALIGNMENT) {
+                     raise(0, 0);
+                 }
+-                if (X[rs1 % RFS] == (signed)simm5) {
+-                    PC = PC + (signed)imm;
++                if ((signed<XLEN>)X[rs1 % RFS] == (signed<XLEN>)(signed<5>)simm5) {
++                    PC = (unsigned<32>)(PC + (signed)imm);
+                 }
+             }
+         }
+@@ -25,8 +25,8 @@ InstructionSet XCoreVBranchImmediate extends RV32I {
+                 if(imm % INSTR_ALIGNMENT) {
+                     raise(0, 0);
+                 }
+-                if (X[rs1 % RFS] != (signed)simm5) {
+-                    PC = PC + (signed)imm;
++                if ((signed<XLEN>)X[rs1 % RFS] != (signed<XLEN>)(signed<5>)simm5) {
++                    PC = (unsigned<32>)(PC + (signed)imm);
+                 }
+             }
+         }
+diff --git a/XCoreVMem.core_desc b/XCoreVMem.core_desc
+index f265957..ae32b8e 100644
+--- a/XCoreVMem.core_desc
++++ b/XCoreVMem.core_desc
+@@ -12,7 +12,7 @@ InstructionSet XCoreVMem extends RV32I {
+                 unsigned<XLEN> load_address = X[rs1];
+                 signed<8> res = (signed<8>)MEM[load_address];
+                 if (rd != 0) X[rd] = (unsigned<XLEN>)res;
+-                X[rs1] += (signed)imm12;
++                X[rs1] = (unsigned<32>)(X[rs1] + ((signed)imm12));
+             }
+         }
+         CV_LBU_ri_inc {
+@@ -22,7 +22,7 @@ InstructionSet XCoreVMem extends RV32I {
+                 unsigned<XLEN> load_address = X[rs1];
+                 unsigned<8> res = (unsigned<8>)MEM[load_address];
+                 if (rd != 0) X[rd] = (unsigned<XLEN>)res;
+-                X[rs1] += (signed)imm12;
++                X[rs1] = (unsigned<32>)(X[rs1] + ((signed)imm12));
+             }
+         }
+         CV_LH_ri_inc {
+@@ -32,7 +32,7 @@ InstructionSet XCoreVMem extends RV32I {
+                 unsigned<XLEN> load_address = X[rs1];
+                 signed<16> res = (signed<16>)MEM[load_address + 1:load_address];
+                 if (rd != 0) X[rd] = (unsigned<XLEN>)res;
+-                X[rs1] += (signed)imm12;
++                X[rs1] = (unsigned<32>)(X[rs1] + ((signed)imm12));
+             }
+         }
+         CV_LHU_ri_inc {
+@@ -42,7 +42,7 @@ InstructionSet XCoreVMem extends RV32I {
+                 unsigned<XLEN> load_address = X[rs1];
+                 unsigned<16> res = (unsigned<16>)MEM[load_address + 1:load_address];
+                 if (rd != 0) X[rd] = (unsigned<XLEN>)res;
+-                X[rs1] += (signed)imm12;
++                X[rs1] = (unsigned<32>)(X[rs1] + ((signed)imm12));
+             }
+         }
+         CV_LW_ri_inc {
+@@ -52,7 +52,7 @@ InstructionSet XCoreVMem extends RV32I {
+                 unsigned<XLEN> load_address = X[rs1];
+                 signed<32> res = (signed<32>)MEM[load_address + 3:load_address];
+                 if (rd != 0) X[rd] = (unsigned<XLEN>)res;
+-                X[rs1] += (signed)imm12;
++                X[rs1] = (unsigned<32>)(X[rs1] + ((signed)imm12));
+             }
+         }
+         CV_LB_rr_inc {
+@@ -62,7 +62,7 @@ InstructionSet XCoreVMem extends RV32I {
+                 unsigned<XLEN> load_address = X[rs1];  // TODO: signed?
+                 signed<8> res = (signed<8>)MEM[load_address];
+                 if(rd != 0) X[rd] = (unsigned<XLEN>)res;
+-                X[rs1] += (signed)X[rs2];
++                X[rs1] = (unsigned<32>)(X[rs1] + ((signed)X[rs2]));
+             }
+         }
+         CV_LBU_rr_inc {
+@@ -72,7 +72,7 @@ InstructionSet XCoreVMem extends RV32I {
+                 unsigned<XLEN> load_address = X[rs1];  // TODO: signed?
+                 unsigned<8> res = (unsigned<8>)MEM[load_address];
+                 if(rd != 0) X[rd] = (unsigned<XLEN>)res;
+-                X[rs1] += (signed)X[rs2];
++                X[rs1] = (unsigned<32>)(X[rs1] + ((signed)X[rs2]));
+             }
+         }
+         CV_LH_rr_inc {
+@@ -82,7 +82,7 @@ InstructionSet XCoreVMem extends RV32I {
+                 unsigned<XLEN> load_address = X[rs1];  // TODO: signed?
+                 signed<16> res = (signed<16>)MEM[load_address + 1:load_address];
+                 if(rd != 0) X[rd] = (unsigned<XLEN>)res;
+-                X[rs1] += (signed)X[rs2];
++                X[rs1] = (unsigned<32>)(X[rs1] + ((signed)X[rs2]));
+             }
+         }
+         CV_LHU_rr_inc {
+@@ -92,7 +92,7 @@ InstructionSet XCoreVMem extends RV32I {
+                 unsigned<XLEN> load_address = X[rs1];  // TODO: signed?
+                 unsigned<16> res = (unsigned<16>)MEM[load_address + 1:load_address];
+                 if(rd != 0) X[rd] = (unsigned<XLEN>)res;
+-                X[rs1] += (signed)X[rs2];
++                X[rs1] = (unsigned<32>)(X[rs1] + ((signed)X[rs2]));
+             }
+         }
+         CV_LW_rr_inc {
+@@ -102,14 +102,14 @@ InstructionSet XCoreVMem extends RV32I {
+                 unsigned<XLEN> load_address = X[rs1];  // TODO: signed?
+                 signed<32> res = (signed<32>)MEM[load_address + 3:load_address];
+                 if(rd != 0) X[rd] = (unsigned<XLEN>)res;
+-                X[rs1] += (signed)X[rs2];
++                X[rs1] = (unsigned<32>)(X[rs1] + ((signed)X[rs2]));
+             }
+         }
+         CV_LB_rr {
+             encoding: 7'b0000100 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+             assembly: {"cv.lb", "{name(rd)}, {name(rs2)}({name(rs1)})"};
+             behavior: {
+-                unsigned<XLEN> load_address = X[rs1] + X[rs2];  // TODO: signed?
++                unsigned<XLEN> load_address = (unsigned<32>)(X[rs1] + X[rs2]);  // TODO: signed?
+                 signed<8> res = (signed<8>)MEM[load_address];
+                 if(rd != 0) X[rd] = (unsigned<XLEN>)res;
+             }
+@@ -118,7 +118,7 @@ InstructionSet XCoreVMem extends RV32I {
+             encoding: 7'b0001100 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+             assembly: {"cv.lbu", "{name(rd)}, {name(rs2)}({name(rs1)})"};
+             behavior: {
+-                unsigned<XLEN> load_address = X[rs1] + X[rs2];  // TODO: signed?
++                unsigned<XLEN> load_address = (unsigned<32>)(X[rs1] + X[rs2]);  // TODO: signed?
+                 unsigned<8> res = (unsigned<8>)MEM[load_address];
+                 if(rd != 0) X[rd] = (unsigned<XLEN>)res;
+             }
+@@ -127,7 +127,7 @@ InstructionSet XCoreVMem extends RV32I {
+             encoding: 7'b0000101 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+             assembly: {"cv.lh", "{name(rd)}, {name(rs2)}({name(rs1)})"};
+             behavior: {
+-                unsigned<XLEN> load_address = X[rs1] + X[rs2];  // TODO: signed?
++                unsigned<XLEN> load_address = (unsigned<32>)(X[rs1] + X[rs2]);  // TODO: signed?
+                 signed<16> res = (signed<16>)MEM[load_address + 1:load_address];
+                 if(rd != 0) X[rd] = (unsigned<XLEN>)res;
+             }
+@@ -136,7 +136,7 @@ InstructionSet XCoreVMem extends RV32I {
+             encoding: 7'b0001101 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+             assembly: {"cv.lhu", "{name(rd)}, {name(rs2)}({name(rs1)})"};
+             behavior: {
+-                unsigned<XLEN> load_address = X[rs1] + X[rs2];  // TODO: signed?
++                unsigned<XLEN> load_address = (unsigned<32>)(X[rs1] + X[rs2]);  // TODO: signed?
+                 unsigned<16> res = (unsigned<16>)MEM[load_address + 1:load_address];
+                 if(rd != 0) X[rd] = (unsigned<XLEN>)res;
+             }
+@@ -145,7 +145,7 @@ InstructionSet XCoreVMem extends RV32I {
+             encoding: 7'b0000110 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
+             assembly: {"cv.lw", "{name(rd)}, {name(rs2)}({name(rs1)})"};
+             behavior: {
+-                unsigned<XLEN> load_address = X[rs1] + X[rs2];  // TODO: signed?
++                unsigned<XLEN> load_address = (unsigned<32>)(X[rs1] + X[rs2]);  // TODO: signed?
+                 signed<32> res = (signed<32>)MEM[load_address + 3:load_address];
+                 if(rd != 0) X[rd] = (unsigned<XLEN>)res;
+             }
+@@ -156,7 +156,7 @@ InstructionSet XCoreVMem extends RV32I {
+             behavior: {
+                 unsigned<XLEN> store_address = X[rs1];
+                 MEM[store_address] = (signed<8>)X[rs2];
+-                X[rs1] += (signed)imm12;
++                X[rs1] = (unsigned<32>)(X[rs1] + ((signed)imm12));
+             }
+         }
+         CV_SH_ri_inc {
+@@ -164,8 +164,8 @@ InstructionSet XCoreVMem extends RV32I {
+             assembly: {"cv.sh", "{name(rs2)}, ({name(rs1)}), {imm12}"};
+             behavior: {
+                 unsigned<XLEN> store_address = X[rs1];
+-                MEM[store_address + 1:store_address] = (signed<16>)X[rs2];
+-                X[rs1] += (signed)imm12;
++                MEM[store_address + 1:store_address] = (unsigned<16>)((signed<16>)X[rs2]);
++                X[rs1] = (unsigned<32>)(X[rs1] + ((signed)imm12));
+             }
+         }
+         CV_SW_ri_inc {
+@@ -173,8 +173,8 @@ InstructionSet XCoreVMem extends RV32I {
+             assembly: {"cv.sw", "{name(rs2)}, ({name(rs1)}), {imm12}"};
+             behavior: {
+                 unsigned<XLEN> store_address = X[rs1];
+-                MEM[store_address + 3:store_address] = (signed<32>)X[rs2];
+-                X[rs1] += (signed)imm12;
++                MEM[store_address + 3:store_address] = (unsigned<32>)((signed<32>)X[rs2]);
++                X[rs1] = (unsigned<32>)(X[rs1] + ((signed)imm12));
+             }
+         }
+         CV_SB_rr_inc {
+@@ -183,7 +183,7 @@ InstructionSet XCoreVMem extends RV32I {
+             behavior: {
+                 unsigned<XLEN> store_address = X[rs1];  // TODO: signed?
+                 MEM[store_address] = (signed<8>)X[rs2];
+-                X[rs1] += (signed)X[rs3];
++                X[rs1] = (unsigned<32>)(X[rs1] + ((signed)X[rs3]));
+             }
+         }
+         CV_SH_rr_inc {
+@@ -191,8 +191,8 @@ InstructionSet XCoreVMem extends RV32I {
+             assembly: {"cv.sh", "{name(rs2)}, ({name(rs1)}), {name(rs3)}"};
+             behavior: {
+                 unsigned<XLEN> store_address = X[rs1];  // TODO: signed?
+-                MEM[store_address + 1:store_address] = (signed<16>)X[rs2];
+-                X[rs1] += (signed)X[rs3];
++                MEM[store_address + 1:store_address] = (unsigned<16>)((signed<16>)X[rs2]);
++                X[rs1] = (unsigned<32>)(X[rs1] + ((signed)X[rs3]));
+             }
+         }
+         CV_SW_rr_inc {
+@@ -200,15 +200,15 @@ InstructionSet XCoreVMem extends RV32I {
+             assembly: {"cv.sw", "{name(rs2)}, ({name(rs1)}), {name(rs3)}"};
+             behavior: {
+                 unsigned<XLEN> store_address = X[rs1];  // TODO: signed?
+-                MEM[store_address + 3:store_address] = (signed<32>)X[rs2];
+-                X[rs1] += (signed)X[rs3];
++                MEM[store_address + 3:store_address] = (unsigned<32>)((signed<32>)X[rs2]);
++                X[rs1] = (unsigned<32>)(X[rs1] + ((signed)X[rs3]));
+             }
+         }
+         CV_SB_rr {
+             encoding: 7'b0010100 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rs3[4:0] :: 7'b0101011;
+             assembly: {"cv.sb", "{name(rs2)}, {name(rs3)}({name(rs1)})"};
+             behavior: {
+-                unsigned<XLEN> store_address = X[rs1] + X[rs3];  // TODO: signed?
++                unsigned<XLEN> store_address = (unsigned<32>)(X[rs1] + X[rs3]);  // TODO: signed?
+                 MEM[store_address] = (signed<8>)X[rs2];
+             }
+         }
+@@ -216,16 +216,16 @@ InstructionSet XCoreVMem extends RV32I {
+             encoding: 7'b0010101 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rs3[4:0] :: 7'b0101011;
+             assembly: {"cv.sh", "{name(rs2)}, {name(rs3)}({name(rs1)})"};
+             behavior: {
+-                unsigned<XLEN> store_address = X[rs1] + X[rs3];  // TODO: signed?
+-                MEM[store_address + 1:store_address] = (signed<16>)X[rs2];
++                unsigned<XLEN> store_address = (unsigned<32>)(X[rs1] + X[rs3]);  // TODO: signed?
++                MEM[store_address + 1:store_address] = (unsigned<16>)((signed<16>)X[rs2]);
+             }
+         }
+         CV_SW_rr {
+             encoding: 7'b0010110 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rs3[4:0] :: 7'b0101011;
+             assembly: {"cv.sw", "{name(rs2)}, {name(rs3)}({name(rs1)})"};
+             behavior: {
+-                unsigned<XLEN> store_address = X[rs1] + X[rs3];  // TODO: signed?
+-                MEM[store_address + 3:store_address] = (signed<32>)X[rs2];
++                unsigned<XLEN> store_address = (unsigned<32>)(X[rs1] + X[rs3]);  // TODO: signed?
++                MEM[store_address + 3:store_address] = (unsigned<32>)((signed<32>)X[rs2]);
+             }
+         }
+     }
+diff --git a/XCoreVSimd.core_desc b/XCoreVSimd.core_desc
+index 80f94e1..c505145 100644
+--- a/XCoreVSimd.core_desc
++++ b/XCoreVSimd.core_desc
+@@ -281,8 +281,8 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.min.h", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][15: 0] = ((signed)X[rs1][15: 0] < (signed)X[rs2][15: 0]) ? X[rs1][15: 0] : X[rs2][15: 0];
+-                    X[rd][31:16] = ((signed)X[rs1][31:16] < (signed)X[rs2][31:16]) ? X[rs1][31:16] : X[rs2][31:16];
++                    X[rd][15: 0] = (unsigned<16>)(((signed)X[rs1][15: 0] < (signed)X[rs2][15: 0]) ? X[rs1][15: 0] : X[rs2][15: 0]);
++                    X[rd][31:16] = (unsigned<16>)(((signed)X[rs1][31:16] < (signed)X[rs2][31:16]) ? X[rs1][31:16] : X[rs2][31:16]);
+                 }
+             }
+         }
+@@ -291,8 +291,8 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.min.sc.h", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][15: 0] = ((signed)X[rs1][15: 0] < (signed)X[rs2][15:0]) ? X[rs1][15: 0] : X[rs2][15:0];
+-                    X[rd][31:16] = ((signed)X[rs1][31:16] < (signed)X[rs2][15:0]) ? X[rs1][31:16] : X[rs2][15:0];
++                    X[rd][15: 0] = (unsigned<16>)(((signed)X[rs1][15: 0] < (signed)X[rs2][15:0]) ? X[rs1][15: 0] : X[rs2][15:0]);
++                    X[rd][31:16] = (unsigned<16>)(((signed)X[rs1][31:16] < (signed)X[rs2][15:0]) ? X[rs1][31:16] : X[rs2][15:0]);
+                 }
+             }
+         }
+@@ -301,8 +301,8 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.min.sci.h", "{name(rd)}, {name(rs1)}, {Imm6}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][15: 0] = ((signed)X[rs1][15: 0] < (signed)((unsigned<16>)((signed)Imm6))) ? X[rs1][15: 0] : ((unsigned<16>)((signed)Imm6));
+-                    X[rd][31:16] = ((signed)X[rs1][31:16] < (signed)((unsigned<16>)((signed)Imm6))) ? X[rs1][31:16] : ((unsigned<16>)((signed)Imm6));
++                    X[rd][15: 0] = (unsigned<16>)(((signed)X[rs1][15: 0] < (signed)((unsigned<16>)((signed)Imm6))) ? X[rs1][15: 0] : ((unsigned<16>)((signed)Imm6)));
++                    X[rd][31:16] = (unsigned<16>)(((signed)X[rs1][31:16] < (signed)((unsigned<16>)((signed)Imm6))) ? X[rs1][31:16] : ((unsigned<16>)((signed)Imm6)));
+                 }
+             }
+         }
+@@ -311,10 +311,10 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.min.b", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][ 7: 0] = ((signed)X[rs1][ 7: 0] < (signed)X[rs2][ 7: 0]) ? X[rs1][ 7: 0] : X[rs2][ 7: 0];
+-                    X[rd][15: 8] = ((signed)X[rs1][15: 8] < (signed)X[rs2][15: 8]) ? X[rs1][15: 8] : X[rs2][15: 8];
+-                    X[rd][23:16] = ((signed)X[rs1][23:16] < (signed)X[rs2][23:16]) ? X[rs1][23:16] : X[rs2][23:16];
+-                    X[rd][31:24] = ((signed)X[rs1][31:24] < (signed)X[rs2][31:24]) ? X[rs1][31:24] : X[rs2][31:24];
++                    X[rd][ 7: 0] = (unsigned<8>)(((signed)X[rs1][ 7: 0] < (signed)X[rs2][ 7: 0]) ? X[rs1][ 7: 0] : X[rs2][ 7: 0]);
++                    X[rd][15: 8] = (unsigned<8>)(((signed)X[rs1][15: 8] < (signed)X[rs2][15: 8]) ? X[rs1][15: 8] : X[rs2][15: 8]);
++                    X[rd][23:16] = (unsigned<8>)(((signed)X[rs1][23:16] < (signed)X[rs2][23:16]) ? X[rs1][23:16] : X[rs2][23:16]);
++                    X[rd][31:24] = (unsigned<8>)(((signed)X[rs1][31:24] < (signed)X[rs2][31:24]) ? X[rs1][31:24] : X[rs2][31:24]);
+                 }
+             }
+         }
+@@ -323,10 +323,10 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.min.sc.b", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][ 7: 0] = ((signed)X[rs1][ 7: 0] < (signed)X[rs2][7:0]) ? X[rs1][ 7: 0] : X[rs2][7:0];
+-                    X[rd][15: 8] = ((signed)X[rs1][15: 8] < (signed)X[rs2][7:0]) ? X[rs1][15: 8] : X[rs2][7:0];
+-                    X[rd][23:16] = ((signed)X[rs1][23:16] < (signed)X[rs2][7:0]) ? X[rs1][23:16] : X[rs2][7:0];
+-                    X[rd][31:24] = ((signed)X[rs1][31:24] < (signed)X[rs2][7:0]) ? X[rs1][31:24] : X[rs2][7:0];
++                    X[rd][ 7: 0] = (unsigned<8>)(((signed)X[rs1][ 7: 0] < (signed)X[rs2][7:0]) ? X[rs1][ 7: 0] : X[rs2][7:0]);
++                    X[rd][15: 8] = (unsigned<8>)(((signed)X[rs1][15: 8] < (signed)X[rs2][7:0]) ? X[rs1][15: 8] : X[rs2][7:0]);
++                    X[rd][23:16] = (unsigned<8>)(((signed)X[rs1][23:16] < (signed)X[rs2][7:0]) ? X[rs1][23:16] : X[rs2][7:0]);
++                    X[rd][31:24] = (unsigned<8>)(((signed)X[rs1][31:24] < (signed)X[rs2][7:0]) ? X[rs1][31:24] : X[rs2][7:0]);
+                 }
+             }
+         }
+@@ -335,10 +335,10 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.min.sci.b", "{name(rd)}, {name(rs1)}, {Imm6}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][ 7: 0] = ((signed)X[rs1][ 7: 0] < (signed)((unsigned<8>)((signed)Imm6))) ? X[rs1][ 7: 0] : ((unsigned<8>)((signed)Imm6));
+-                    X[rd][15: 8] = ((signed)X[rs1][15: 8] < (signed)((unsigned<8>)((signed)Imm6))) ? X[rs1][15: 8] : ((unsigned<8>)((signed)Imm6));
+-                    X[rd][23:16] = ((signed)X[rs1][23:16] < (signed)((unsigned<8>)((signed)Imm6))) ? X[rs1][23:16] : ((unsigned<8>)((signed)Imm6));
+-                    X[rd][31:24] = ((signed)X[rs1][31:24] < (signed)((unsigned<8>)((signed)Imm6))) ? X[rs1][31:24] : ((unsigned<8>)((signed)Imm6));
++                    X[rd][ 7: 0] = (unsigned<8>)(((signed)X[rs1][ 7: 0] < (signed)((unsigned<8>)((signed)Imm6))) ? X[rs1][ 7: 0] : ((unsigned<8>)((signed)Imm6)));
++                    X[rd][15: 8] = (unsigned<8>)(((signed)X[rs1][15: 8] < (signed)((unsigned<8>)((signed)Imm6))) ? X[rs1][15: 8] : ((unsigned<8>)((signed)Imm6)));
++                    X[rd][23:16] = (unsigned<8>)(((signed)X[rs1][23:16] < (signed)((unsigned<8>)((signed)Imm6))) ? X[rs1][23:16] : ((unsigned<8>)((signed)Imm6)));
++                    X[rd][31:24] = (unsigned<8>)(((signed)X[rs1][31:24] < (signed)((unsigned<8>)((signed)Imm6))) ? X[rs1][31:24] : ((unsigned<8>)((signed)Imm6)));
+                 }
+             }
+         }
+@@ -347,8 +347,8 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.minu.h", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][15: 0] = ((unsigned)X[rs1][15: 0] < (unsigned)X[rs2][15: 0]) ? X[rs1][15: 0] : X[rs2][15: 0];
+-                    X[rd][31:16] = ((unsigned)X[rs1][31:16] < (unsigned)X[rs2][31:16]) ? X[rs1][31:16] : X[rs2][31:16];
++                    X[rd][15: 0] = (unsigned<16>)(((unsigned)X[rs1][15: 0] < (unsigned)X[rs2][15: 0]) ? X[rs1][15: 0] : X[rs2][15: 0]);
++                    X[rd][31:16] = (unsigned<16>)(((unsigned)X[rs1][31:16] < (unsigned)X[rs2][31:16]) ? X[rs1][31:16] : X[rs2][31:16]);
+                 }
+             }
+         }
+@@ -357,8 +357,8 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.minu.sc.h", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][15: 0] = ((unsigned)X[rs1][15: 0] < (unsigned)X[rs2][15:0]) ? X[rs1][15: 0] : X[rs2][15:0];
+-                    X[rd][31:16] = ((unsigned)X[rs1][31:16] < (unsigned)X[rs2][15:0]) ? X[rs1][31:16] : X[rs2][15:0];
++                    X[rd][15: 0] = (unsigned<16>)(((unsigned)X[rs1][15: 0] < (unsigned)X[rs2][15:0]) ? X[rs1][15: 0] : X[rs2][15:0]);
++                    X[rd][31:16] = (unsigned<16>)(((unsigned)X[rs1][31:16] < (unsigned)X[rs2][15:0]) ? X[rs1][31:16] : X[rs2][15:0]);
+                 }
+             }
+         }
+@@ -367,8 +367,8 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.minu.sci.h", "{name(rd)}, {name(rs1)}, {Imm6}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][15: 0] = ((unsigned)X[rs1][15: 0] < (unsigned)((unsigned<16>)Imm6)) ? X[rs1][15: 0] : ((unsigned<16>)Imm6);
+-                    X[rd][31:16] = ((unsigned)X[rs1][31:16] < (unsigned)((unsigned<16>)Imm6)) ? X[rs1][31:16] : ((unsigned<16>)Imm6);
++                    X[rd][15: 0] = (unsigned<16>)(((unsigned)X[rs1][15: 0] < (unsigned)((unsigned<16>)Imm6)) ? X[rs1][15: 0] : ((unsigned<16>)Imm6));
++                    X[rd][31:16] = (unsigned<16>)(((unsigned)X[rs1][31:16] < (unsigned)((unsigned<16>)Imm6)) ? X[rs1][31:16] : ((unsigned<16>)Imm6));
+                 }
+             }
+         }
+@@ -377,10 +377,10 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.minu.b", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][ 7: 0] = ((unsigned)X[rs1][ 7: 0] < (unsigned)X[rs2][ 7: 0]) ? X[rs1][ 7: 0] : X[rs2][ 7: 0];
+-                    X[rd][15: 8] = ((unsigned)X[rs1][15: 8] < (unsigned)X[rs2][15: 8]) ? X[rs1][15: 8] : X[rs2][15: 8];
+-                    X[rd][23:16] = ((unsigned)X[rs1][23:16] < (unsigned)X[rs2][23:16]) ? X[rs1][23:16] : X[rs2][23:16];
+-                    X[rd][31:24] = ((unsigned)X[rs1][31:24] < (unsigned)X[rs2][31:24]) ? X[rs1][31:24] : X[rs2][31:24];
++                    X[rd][ 7: 0] = (unsigned<8>)(((unsigned)X[rs1][ 7: 0] < (unsigned)X[rs2][ 7: 0]) ? X[rs1][ 7: 0] : X[rs2][ 7: 0]);
++                    X[rd][15: 8] = (unsigned<8>)(((unsigned)X[rs1][15: 8] < (unsigned)X[rs2][15: 8]) ? X[rs1][15: 8] : X[rs2][15: 8]);
++                    X[rd][23:16] = (unsigned<8>)(((unsigned)X[rs1][23:16] < (unsigned)X[rs2][23:16]) ? X[rs1][23:16] : X[rs2][23:16]);
++                    X[rd][31:24] = (unsigned<8>)(((unsigned)X[rs1][31:24] < (unsigned)X[rs2][31:24]) ? X[rs1][31:24] : X[rs2][31:24]);
+                 }
+             }
+         }
+@@ -389,10 +389,10 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.minu.sc.b", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][ 7: 0] = ((unsigned)X[rs1][ 7: 0] < (unsigned)X[rs2][7:0]) ? X[rs1][ 7: 0] : X[rs2][7:0];
+-                    X[rd][15: 8] = ((unsigned)X[rs1][15: 8] < (unsigned)X[rs2][7:0]) ? X[rs1][15: 8] : X[rs2][7:0];
+-                    X[rd][23:16] = ((unsigned)X[rs1][23:16] < (unsigned)X[rs2][7:0]) ? X[rs1][23:16] : X[rs2][7:0];
+-                    X[rd][31:24] = ((unsigned)X[rs1][31:24] < (unsigned)X[rs2][7:0]) ? X[rs1][31:24] : X[rs2][7:0];
++                    X[rd][ 7: 0] = (unsigned<8>)(((unsigned)X[rs1][ 7: 0] < (unsigned)X[rs2][7:0]) ? X[rs1][ 7: 0] : X[rs2][7:0]);
++                    X[rd][15: 8] = (unsigned<8>)(((unsigned)X[rs1][15: 8] < (unsigned)X[rs2][7:0]) ? X[rs1][15: 8] : X[rs2][7:0]);
++                    X[rd][23:16] = (unsigned<8>)(((unsigned)X[rs1][23:16] < (unsigned)X[rs2][7:0]) ? X[rs1][23:16] : X[rs2][7:0]);
++                    X[rd][31:24] = (unsigned<8>)(((unsigned)X[rs1][31:24] < (unsigned)X[rs2][7:0]) ? X[rs1][31:24] : X[rs2][7:0]);
+                 }
+             }
+         }
+@@ -401,10 +401,10 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.minu.sci.b", "{name(rd)}, {name(rs1)}, {Imm6}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][ 7: 0] = ((unsigned)X[rs1][ 7: 0] < (unsigned)((unsigned<8>)Imm6)) ? X[rs1][ 7: 0] : ((unsigned<8>)Imm6);
+-                    X[rd][15: 8] = ((unsigned)X[rs1][15: 8] < (unsigned)((unsigned<8>)Imm6)) ? X[rs1][15: 8] : ((unsigned<8>)Imm6);
+-                    X[rd][23:16] = ((unsigned)X[rs1][23:16] < (unsigned)((unsigned<8>)Imm6)) ? X[rs1][23:16] : ((unsigned<8>)Imm6);
+-                    X[rd][31:24] = ((unsigned)X[rs1][31:24] < (unsigned)((unsigned<8>)Imm6)) ? X[rs1][31:24] : ((unsigned<8>)Imm6);
++                    X[rd][ 7: 0] = (unsigned<8>)(((unsigned)X[rs1][ 7: 0] < (unsigned)((unsigned<8>)Imm6)) ? X[rs1][ 7: 0] : ((unsigned<8>)Imm6));
++                    X[rd][15: 8] = (unsigned<8>)(((unsigned)X[rs1][15: 8] < (unsigned)((unsigned<8>)Imm6)) ? X[rs1][15: 8] : ((unsigned<8>)Imm6));
++                    X[rd][23:16] = (unsigned<8>)(((unsigned)X[rs1][23:16] < (unsigned)((unsigned<8>)Imm6)) ? X[rs1][23:16] : ((unsigned<8>)Imm6));
++                    X[rd][31:24] = (unsigned<8>)(((unsigned)X[rs1][31:24] < (unsigned)((unsigned<8>)Imm6)) ? X[rs1][31:24] : ((unsigned<8>)Imm6));
+                 }
+             }
+         }
+@@ -413,8 +413,8 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.max.h", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][15: 0] = ((signed)X[rs1][15: 0] > (signed)X[rs2][15: 0]) ? X[rs1][15: 0] : X[rs2][15: 0];
+-                    X[rd][31:16] = ((signed)X[rs1][31:16] > (signed)X[rs2][31:16]) ? X[rs1][31:16] : X[rs2][31:16];
++                    X[rd][15: 0] = (unsigned<16>)(((signed)X[rs1][15: 0] > (signed)X[rs2][15: 0]) ? X[rs1][15: 0] : X[rs2][15: 0]);
++                    X[rd][31:16] = (unsigned<16>)(((signed)X[rs1][31:16] > (signed)X[rs2][31:16]) ? X[rs1][31:16] : X[rs2][31:16]);
+                 }
+             }
+         }
+@@ -423,8 +423,8 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.max.sc.h", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][15: 0] = ((signed)X[rs1][15: 0] > (signed)X[rs2][15:0]) ? X[rs1][15: 0] : X[rs2][15:0];
+-                    X[rd][31:16] = ((signed)X[rs1][31:16] > (signed)X[rs2][15:0]) ? X[rs1][31:16] : X[rs2][15:0];
++                    X[rd][15: 0] = (unsigned<16>)(((signed)X[rs1][15: 0] > (signed)X[rs2][15:0]) ? X[rs1][15: 0] : X[rs2][15:0]);
++                    X[rd][31:16] = (unsigned<16>)(((signed)X[rs1][31:16] > (signed)X[rs2][15:0]) ? X[rs1][31:16] : X[rs2][15:0]);
+                 }
+             }
+         }
+@@ -433,8 +433,8 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.max.sci.h", "{name(rd)}, {name(rs1)}, {Imm6}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][15: 0] = ((signed)X[rs1][15: 0] > (signed)((unsigned<16>)((signed)Imm6))) ? X[rs1][15: 0] : ((unsigned<16>)((signed)Imm6));
+-                    X[rd][31:16] = ((signed)X[rs1][31:16] > (signed)((unsigned<16>)((signed)Imm6))) ? X[rs1][31:16] : ((unsigned<16>)((signed)Imm6));
++                    X[rd][15: 0] = (unsigned<16>)(((signed)X[rs1][15: 0] > (signed)((unsigned<16>)((signed)Imm6))) ? X[rs1][15: 0] : ((unsigned<16>)((signed)Imm6)));
++                    X[rd][31:16] = (unsigned<16>)(((signed)X[rs1][31:16] > (signed)((unsigned<16>)((signed)Imm6))) ? X[rs1][31:16] : ((unsigned<16>)((signed)Imm6)));
+                 }
+             }
+         }
+@@ -443,10 +443,10 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.max.b", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][ 7: 0] = ((signed)X[rs1][ 7: 0] > (signed)X[rs2][ 7: 0]) ? X[rs1][ 7: 0] : X[rs2][ 7: 0];
+-                    X[rd][15: 8] = ((signed)X[rs1][15: 8] > (signed)X[rs2][15: 8]) ? X[rs1][15: 8] : X[rs2][15: 8];
+-                    X[rd][23:16] = ((signed)X[rs1][23:16] > (signed)X[rs2][23:16]) ? X[rs1][23:16] : X[rs2][23:16];
+-                    X[rd][31:24] = ((signed)X[rs1][31:24] > (signed)X[rs2][31:24]) ? X[rs1][31:24] : X[rs2][31:24];
++                    X[rd][ 7: 0] = (unsigned<8>)(((signed)X[rs1][ 7: 0] > (signed)X[rs2][ 7: 0]) ? X[rs1][ 7: 0] : X[rs2][ 7: 0]);
++                    X[rd][15: 8] = (unsigned<8>)(((signed)X[rs1][15: 8] > (signed)X[rs2][15: 8]) ? X[rs1][15: 8] : X[rs2][15: 8]);
++                    X[rd][23:16] = (unsigned<8>)(((signed)X[rs1][23:16] > (signed)X[rs2][23:16]) ? X[rs1][23:16] : X[rs2][23:16]);
++                    X[rd][31:24] = (unsigned<8>)(((signed)X[rs1][31:24] > (signed)X[rs2][31:24]) ? X[rs1][31:24] : X[rs2][31:24]);
+                 }
+             }
+         }
+@@ -455,10 +455,10 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.max.sc.b", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][ 7: 0] = ((signed)X[rs1][ 7: 0] > (signed)X[rs2][7:0]) ? X[rs1][ 7: 0] : X[rs2][7:0];
+-                    X[rd][15: 8] = ((signed)X[rs1][15: 8] > (signed)X[rs2][7:0]) ? X[rs1][15: 8] : X[rs2][7:0];
+-                    X[rd][23:16] = ((signed)X[rs1][23:16] > (signed)X[rs2][7:0]) ? X[rs1][23:16] : X[rs2][7:0];
+-                    X[rd][31:24] = ((signed)X[rs1][31:24] > (signed)X[rs2][7:0]) ? X[rs1][31:24] : X[rs2][7:0];
++                    X[rd][ 7: 0] = (unsigned<8>)(((signed)X[rs1][ 7: 0] > (signed)X[rs2][7:0]) ? X[rs1][ 7: 0] : X[rs2][7:0]);
++                    X[rd][15: 8] = (unsigned<8>)(((signed)X[rs1][15: 8] > (signed)X[rs2][7:0]) ? X[rs1][15: 8] : X[rs2][7:0]);
++                    X[rd][23:16] = (unsigned<8>)(((signed)X[rs1][23:16] > (signed)X[rs2][7:0]) ? X[rs1][23:16] : X[rs2][7:0]);
++                    X[rd][31:24] = (unsigned<8>)(((signed)X[rs1][31:24] > (signed)X[rs2][7:0]) ? X[rs1][31:24] : X[rs2][7:0]);
+                 }
+             }
+         }
+@@ -467,10 +467,10 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.max.sci.b", "{name(rd)}, {name(rs1)}, {Imm6}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][ 7: 0] = ((signed)X[rs1][ 7: 0] > (signed)((unsigned<8>)((signed)Imm6))) ? X[rs1][ 7: 0] : ((unsigned<8>)((signed)Imm6));
+-                    X[rd][15: 8] = ((signed)X[rs1][15: 8] > (signed)((unsigned<8>)((signed)Imm6))) ? X[rs1][15: 8] : ((unsigned<8>)((signed)Imm6));
+-                    X[rd][23:16] = ((signed)X[rs1][23:16] > (signed)((unsigned<8>)((signed)Imm6))) ? X[rs1][23:16] : ((unsigned<8>)((signed)Imm6));
+-                    X[rd][31:24] = ((signed)X[rs1][31:24] > (signed)((unsigned<8>)((signed)Imm6))) ? X[rs1][31:24] : ((unsigned<8>)((signed)Imm6));
++                    X[rd][ 7: 0] = (unsigned<8>)(((signed)X[rs1][ 7: 0] > (signed)((unsigned<8>)((signed)Imm6))) ? X[rs1][ 7: 0] : ((unsigned<8>)((signed)Imm6)));
++                    X[rd][15: 8] = (unsigned<8>)(((signed)X[rs1][15: 8] > (signed)((unsigned<8>)((signed)Imm6))) ? X[rs1][15: 8] : ((unsigned<8>)((signed)Imm6)));
++                    X[rd][23:16] = (unsigned<8>)(((signed)X[rs1][23:16] > (signed)((unsigned<8>)((signed)Imm6))) ? X[rs1][23:16] : ((unsigned<8>)((signed)Imm6)));
++                    X[rd][31:24] = (unsigned<8>)(((signed)X[rs1][31:24] > (signed)((unsigned<8>)((signed)Imm6))) ? X[rs1][31:24] : ((unsigned<8>)((signed)Imm6)));
+                 }
+             }
+         }
+@@ -479,8 +479,8 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.maxu.h", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][15: 0] = ((unsigned)X[rs1][15: 0] > (unsigned)X[rs2][15: 0]) ? X[rs1][15: 0] : X[rs2][15: 0];
+-                    X[rd][31:16] = ((unsigned)X[rs1][31:16] > (unsigned)X[rs2][31:16]) ? X[rs1][31:16] : X[rs2][31:16];
++                    X[rd][15: 0] = (unsigned<16>)(((unsigned)X[rs1][15: 0] > (unsigned)X[rs2][15: 0]) ? X[rs1][15: 0] : X[rs2][15: 0]);
++                    X[rd][31:16] = (unsigned<16>)(((unsigned)X[rs1][31:16] > (unsigned)X[rs2][31:16]) ? X[rs1][31:16] : X[rs2][31:16]);
+                 }
+             }
+         }
+@@ -489,8 +489,8 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.maxu.sc.h", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][15: 0] = ((unsigned)X[rs1][15: 0] > (unsigned)X[rs2][15:0]) ? X[rs1][15: 0] : X[rs2][15:0];
+-                    X[rd][31:16] = ((unsigned)X[rs1][31:16] > (unsigned)X[rs2][15:0]) ? X[rs1][31:16] : X[rs2][15:0];
++                    X[rd][15: 0] = (unsigned<16>)(((unsigned)X[rs1][15: 0] > (unsigned)X[rs2][15:0]) ? X[rs1][15: 0] : X[rs2][15:0]);
++                    X[rd][31:16] = (unsigned<16>)(((unsigned)X[rs1][31:16] > (unsigned)X[rs2][15:0]) ? X[rs1][31:16] : X[rs2][15:0]);
+                 }
+             }
+         }
+@@ -499,8 +499,8 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.maxu.sci.h", "{name(rd)}, {name(rs1)}, {Imm6}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][15: 0] = ((unsigned)X[rs1][15: 0] > (unsigned)((unsigned<16>)Imm6)) ? X[rs1][15: 0] : ((unsigned<16>)Imm6);
+-                    X[rd][31:16] = ((unsigned)X[rs1][31:16] > (unsigned)((unsigned<16>)Imm6)) ? X[rs1][31:16] : ((unsigned<16>)Imm6);
++                    X[rd][15: 0] = (unsigned<16>)(((unsigned)X[rs1][15: 0] > (unsigned)((unsigned<16>)Imm6)) ? X[rs1][15: 0] : ((unsigned<16>)Imm6));
++                    X[rd][31:16] = (unsigned<16>)(((unsigned)X[rs1][31:16] > (unsigned)((unsigned<16>)Imm6)) ? X[rs1][31:16] : ((unsigned<16>)Imm6));
+                 }
+             }
+         }
+@@ -509,10 +509,10 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.maxu.b", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][ 7: 0] = ((unsigned)X[rs1][ 7: 0] > (unsigned)X[rs2][ 7: 0]) ? X[rs1][ 7: 0] : X[rs2][ 7: 0];
+-                    X[rd][15: 8] = ((unsigned)X[rs1][15: 8] > (unsigned)X[rs2][15: 8]) ? X[rs1][15: 8] : X[rs2][15: 8];
+-                    X[rd][23:16] = ((unsigned)X[rs1][23:16] > (unsigned)X[rs2][23:16]) ? X[rs1][23:16] : X[rs2][23:16];
+-                    X[rd][31:24] = ((unsigned)X[rs1][31:24] > (unsigned)X[rs2][31:24]) ? X[rs1][31:24] : X[rs2][31:24];
++                    X[rd][ 7: 0] = (unsigned<8>)(((unsigned)X[rs1][ 7: 0] > (unsigned)X[rs2][ 7: 0]) ? X[rs1][ 7: 0] : X[rs2][ 7: 0]);
++                    X[rd][15: 8] = (unsigned<8>)(((unsigned)X[rs1][15: 8] > (unsigned)X[rs2][15: 8]) ? X[rs1][15: 8] : X[rs2][15: 8]);
++                    X[rd][23:16] = (unsigned<8>)(((unsigned)X[rs1][23:16] > (unsigned)X[rs2][23:16]) ? X[rs1][23:16] : X[rs2][23:16]);
++                    X[rd][31:24] = (unsigned<8>)(((unsigned)X[rs1][31:24] > (unsigned)X[rs2][31:24]) ? X[rs1][31:24] : X[rs2][31:24]);
+                 }
+             }
+         }
+@@ -521,10 +521,10 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.maxu.sc.b", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][ 7: 0] = ((unsigned)X[rs1][ 7: 0] > (unsigned)X[rs2][7:0]) ? X[rs1][ 7: 0] : X[rs2][7:0];
+-                    X[rd][15: 8] = ((unsigned)X[rs1][15: 8] > (unsigned)X[rs2][7:0]) ? X[rs1][15: 8] : X[rs2][7:0];
+-                    X[rd][23:16] = ((unsigned)X[rs1][23:16] > (unsigned)X[rs2][7:0]) ? X[rs1][23:16] : X[rs2][7:0];
+-                    X[rd][31:24] = ((unsigned)X[rs1][31:24] > (unsigned)X[rs2][7:0]) ? X[rs1][31:24] : X[rs2][7:0];
++                    X[rd][ 7: 0] = (unsigned<8>)(((unsigned)X[rs1][ 7: 0] > (unsigned)X[rs2][7:0]) ? X[rs1][ 7: 0] : X[rs2][7:0]);
++                    X[rd][15: 8] = (unsigned<8>)(((unsigned)X[rs1][15: 8] > (unsigned)X[rs2][7:0]) ? X[rs1][15: 8] : X[rs2][7:0]);
++                    X[rd][23:16] = (unsigned<8>)(((unsigned)X[rs1][23:16] > (unsigned)X[rs2][7:0]) ? X[rs1][23:16] : X[rs2][7:0]);
++                    X[rd][31:24] = (unsigned<8>)(((unsigned)X[rs1][31:24] > (unsigned)X[rs2][7:0]) ? X[rs1][31:24] : X[rs2][7:0]);
+                 }
+             }
+         }
+@@ -533,10 +533,10 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.maxu.sci.b", "{name(rd)}, {name(rs1)}, {Imm6}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][ 7: 0] = ((unsigned)X[rs1][ 7: 0] > (unsigned)((unsigned<8>)Imm6)) ? X[rs1][ 7: 0] : ((unsigned<8>)Imm6);
+-                    X[rd][15: 8] = ((unsigned)X[rs1][15: 8] > (unsigned)((unsigned<8>)Imm6)) ? X[rs1][15: 8] : ((unsigned<8>)Imm6);
+-                    X[rd][23:16] = ((unsigned)X[rs1][23:16] > (unsigned)((unsigned<8>)Imm6)) ? X[rs1][23:16] : ((unsigned<8>)Imm6);
+-                    X[rd][31:24] = ((unsigned)X[rs1][31:24] > (unsigned)((unsigned<8>)Imm6)) ? X[rs1][31:24] : ((unsigned<8>)Imm6);
++                    X[rd][ 7: 0] = (unsigned<8>)(((unsigned)X[rs1][ 7: 0] > (unsigned)((unsigned<8>)Imm6)) ? X[rs1][ 7: 0] : ((unsigned<8>)Imm6));
++                    X[rd][15: 8] = (unsigned<8>)(((unsigned)X[rs1][15: 8] > (unsigned)((unsigned<8>)Imm6)) ? X[rs1][15: 8] : ((unsigned<8>)Imm6));
++                    X[rd][23:16] = (unsigned<8>)(((unsigned)X[rs1][23:16] > (unsigned)((unsigned<8>)Imm6)) ? X[rs1][23:16] : ((unsigned<8>)Imm6));
++                    X[rd][31:24] = (unsigned<8>)(((unsigned)X[rs1][31:24] > (unsigned)((unsigned<8>)Imm6)) ? X[rs1][31:24] : ((unsigned<8>)Imm6));
+                 }
+             }
+         }
+@@ -611,8 +611,8 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.sra.h", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][15: 0] = (signed)X[rs1][15: 0] >> (X[rs2][15: 0]);
+-                    X[rd][31:16] = (signed)X[rs1][31:16] >> (X[rs2][31:16]);
++                    X[rd][15: 0] = (unsigned<16>)((signed)X[rs1][15: 0] >> (X[rs2][15: 0]));
++                    X[rd][31:16] = (unsigned<16>)((signed)X[rs1][31:16] >> (X[rs2][31:16]));
+                 }
+             }
+         }
+@@ -621,8 +621,8 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.sra.sc.h", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][15: 0] = (signed)X[rs1][15: 0] >> (X[rs2][15:0]);
+-                    X[rd][31:16] = (signed)X[rs1][31:16] >> (X[rs2][15:0]);
++                    X[rd][15: 0] = (unsigned<16>)((signed)X[rs1][15: 0] >> (X[rs2][15:0]));
++                    X[rd][31:16] = (unsigned<16>)((signed)X[rs1][31:16] >> (X[rs2][15:0]));
+                 }
+             }
+         }
+@@ -631,8 +631,8 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.sra.sci.h", "{name(rd)}, {name(rs1)}, {Imm6}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][15: 0] = (signed)X[rs1][15: 0] >> (((unsigned<16>)Imm6));
+-                    X[rd][31:16] = (signed)X[rs1][31:16] >> (((unsigned<16>)Imm6));
++                    X[rd][15: 0] = (unsigned<16>)((signed)X[rs1][15: 0] >> (((unsigned<16>)Imm6)));
++                    X[rd][31:16] = (unsigned<16>)((signed)X[rs1][31:16] >> (((unsigned<16>)Imm6)));
+                 }
+             }
+         }
+@@ -641,10 +641,10 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.sra.b", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][ 7: 0] = (signed)X[rs1][ 7: 0] >> (X[rs2][ 7: 0]);
+-                    X[rd][15: 8] = (signed)X[rs1][15: 8] >> (X[rs2][15: 8]);
+-                    X[rd][23:16] = (signed)X[rs1][23:16] >> (X[rs2][23:16]);
+-                    X[rd][31:24] = (signed)X[rs1][31:24] >> (X[rs2][31:24]);
++                    X[rd][ 7: 0] = (unsigned<8>)((signed)X[rs1][ 7: 0] >> (X[rs2][ 7: 0]));
++                    X[rd][15: 8] = (unsigned<8>)((signed)X[rs1][15: 8] >> (X[rs2][15: 8]));
++                    X[rd][23:16] = (unsigned<8>)((signed)X[rs1][23:16] >> (X[rs2][23:16]));
++                    X[rd][31:24] = (unsigned<8>)((signed)X[rs1][31:24] >> (X[rs2][31:24]));
+                 }
+             }
+         }
+@@ -653,10 +653,10 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.sra.sc.b", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][ 7: 0] = (signed)X[rs1][ 7: 0] >> (X[rs2][7:0]);
+-                    X[rd][15: 8] = (signed)X[rs1][15: 8] >> (X[rs2][7:0]);
+-                    X[rd][23:16] = (signed)X[rs1][23:16] >> (X[rs2][7:0]);
+-                    X[rd][31:24] = (signed)X[rs1][31:24] >> (X[rs2][7:0]);
++                    X[rd][ 7: 0] = (unsigned<8>)((signed)X[rs1][ 7: 0] >> (X[rs2][7:0]));
++                    X[rd][15: 8] = (unsigned<8>)((signed)X[rs1][15: 8] >> (X[rs2][7:0]));
++                    X[rd][23:16] = (unsigned<8>)((signed)X[rs1][23:16] >> (X[rs2][7:0]));
++                    X[rd][31:24] = (unsigned<8>)((signed)X[rs1][31:24] >> (X[rs2][7:0]));
+                 }
+             }
+         }
+@@ -665,10 +665,10 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.sra.sci.b", "{name(rd)}, {name(rs1)}, {Imm6}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][ 7: 0] = (signed)X[rs1][ 7: 0] >> (((unsigned<8>)Imm6));
+-                    X[rd][15: 8] = (signed)X[rs1][15: 8] >> (((unsigned<8>)Imm6));
+-                    X[rd][23:16] = (signed)X[rs1][23:16] >> (((unsigned<8>)Imm6));
+-                    X[rd][31:24] = (signed)X[rs1][31:24] >> (((unsigned<8>)Imm6));
++                    X[rd][ 7: 0] = (unsigned<8>)((signed)X[rs1][ 7: 0] >> (((unsigned<8>)Imm6)));
++                    X[rd][15: 8] = (unsigned<8>)((signed)X[rs1][15: 8] >> (((unsigned<8>)Imm6)));
++                    X[rd][23:16] = (unsigned<8>)((signed)X[rs1][23:16] >> (((unsigned<8>)Imm6)));
++                    X[rd][31:24] = (unsigned<8>)((signed)X[rs1][31:24] >> (((unsigned<8>)Imm6)));
+                 }
+             }
+         }
+@@ -941,8 +941,8 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.abs.h", "{name(rd)}, {name(rs1)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][15: 0] = ((signed)X[rs1][15: 0] < 0) ? (-X[rs1][15: 0])[16-1:0] : X[rs1][15: 0];
+-                    X[rd][31:16] = ((signed)X[rs1][31:16] < 0) ? (-X[rs1][31:16])[16-1:0] : X[rs1][31:16];
++                    X[rd][15: 0] = (unsigned<16>)(((signed)X[rs1][15: 0] < 0) ? (-X[rs1][15: 0])[16-1:0] : X[rs1][15: 0]);
++                    X[rd][31:16] = (unsigned<16>)(((signed)X[rs1][31:16] < 0) ? (-X[rs1][31:16])[16-1:0] : X[rs1][31:16]);
+                 }
+             }
+         }
+@@ -951,66 +951,70 @@ InstructionSet XCoreVSimd extends RV32I {
+             assembly: {"cv.abs.b", "{name(rd)}, {name(rs1)}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd][ 7: 0] = ((signed)X[rs1][ 7: 0] < 0) ? (-X[rs1][ 7: 0])[8-1:0] : X[rs1][ 7: 0];
+-                    X[rd][15: 8] = ((signed)X[rs1][15: 8] < 0) ? (-X[rs1][15: 8])[8-1:0] : X[rs1][15: 8];
+-                    X[rd][23:16] = ((signed)X[rs1][23:16] < 0) ? (-X[rs1][23:16])[8-1:0] : X[rs1][23:16];
+-                    X[rd][31:24] = ((signed)X[rs1][31:24] < 0) ? (-X[rs1][31:24])[8-1:0] : X[rs1][31:24];
++                    X[rd][ 7: 0] = (unsigned<8>)(((signed)X[rs1][ 7: 0] < 0) ? (-X[rs1][ 7: 0])[8-1:0] : X[rs1][ 7: 0]);
++                    X[rd][15: 8] = (unsigned<8>)(((signed)X[rs1][15: 8] < 0) ? (-X[rs1][15: 8])[8-1:0] : X[rs1][15: 8]);
++                    X[rd][23:16] = (unsigned<8>)(((signed)X[rs1][23:16] < 0) ? (-X[rs1][23:16])[8-1:0] : X[rs1][23:16]);
++                    X[rd][31:24] = (unsigned<8>)(((signed)X[rs1][31:24] < 0) ? (-X[rs1][31:24])[8-1:0] : X[rs1][31:24]);
+                 }
+             }
+         }
+         CV_EXTRACT_H {
+-            encoding: 5'b10111 :: 1'b0 :: Imm6[0:0] :: Imm6[5:1] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
++            encoding: 5'b10111 :: 1'b0 :: Imm6[0:0] :: 5'b00000 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.extract.h", "{name(rd)}, {name(rs1)}, {Imm6}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd] = (unsigned<32>)((signed)X[rs1][Imm6[0]*16 + 15 : Imm6[0]*16 ]);
++                    unsigned<5> base = (unsigned<5>)(Imm6[0] * 16);
++                    X[rd] = (unsigned<32>)((signed)X[rs1][base + 15 : base]);
+                 }
+             }
+         }
+         CV_EXTRACT_B {
+-            encoding: 5'b10111 :: 1'b0 :: Imm6[0:0] :: Imm6[5:1] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1111011;
++            encoding: 5'b10111 :: 1'b0 :: Imm6[0:0] :: 4'b0000 :: Imm6[1:1] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.extract.b", "{name(rd)}, {name(rs1)}, {Imm6}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd] = (unsigned<32>)((signed)X[rs1][Imm6[1:0]*8 + 7 : Imm6[1:0]*8 ]);
++                    unsigned<5> base = (unsigned<5>)(Imm6[1:0] * 8);
++                    X[rd] = (unsigned<32>)((signed)X[rs1][base + 7 : base]);
+                 }
+             }
+         }
+         CV_EXTRACTU_H {
+-            encoding: 5'b10111 :: 1'b0 :: Imm6[0:0] :: Imm6[5:1] :: rs1[4:0] :: 3'b010 :: rd[4:0] :: 7'b1111011;
++            encoding: 5'b10111 :: 1'b0 :: Imm6[0:0] :: 5'b00000 :: rs1[4:0] :: 3'b010 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.extractu.h", "{name(rd)}, {name(rs1)}, {Imm6}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd] = (unsigned<32>)(X[rs1][Imm6[0]*16 + 15 : Imm6[0]*16 ]);
++                    unsigned<5> base = (unsigned<5>)(Imm6[0] * 16);
++                    X[rd] = (unsigned<32>)(X[rs1][base + 15 : base]);
+                 }
+             }
+         }
+         CV_EXTRACTU_B {
+-            encoding: 5'b10111 :: 1'b0 :: Imm6[0:0] :: Imm6[5:1] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b1111011;
++            encoding: 5'b10111 :: 1'b0 :: Imm6[0:0] :: 4'b0000 :: Imm6[1:1] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.extractu.b", "{name(rd)}, {name(rs1)}, {Imm6}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd] = (unsigned<32>)(X[rs1][Imm6[1:0]*8 + 7 : Imm6[1:0]*8 ]);
++                    unsigned<5> base = (unsigned<5>)(Imm6[1:0] * 8);
++                    X[rd] = (unsigned<32>)(X[rs1][base + 7 : base]);
+                 }
+             }
+         }
+         CV_INSERT_H {
+-            encoding: 5'b10111 :: 1'b0 :: Imm6[0:0] :: Imm6[5:1] :: rs1[4:0] :: 3'b100 :: rd[4:0] :: 7'b1111011;
++            encoding: 5'b10111 :: 1'b0 :: Imm6[0:0] :: 5'b00000 :: rs1[4:0] :: 3'b100 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.insert.h", "{name(rd)}, {name(rs1)}, {Imm6}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd] = X[rd];  // explicit copy to detect inout properly
+-                    X[rd][Imm6[0]*16 + 15 : Imm6[0]*16 ] = X[rs1][15: 0];
++                    unsigned<5> base = (unsigned<5>)(Imm6[0] * 16);
++                    X[rd][base + 15 : base] = X[rs1][15: 0];
+                 }
+             }
+         }
+         CV_INSERT_B {
+-            encoding: 5'b10111 :: 1'b0 :: Imm6[0:0] :: Imm6[5:1] :: rs1[4:0] :: 3'b101 :: rd[4:0] :: 7'b1111011;
++            encoding: 5'b10111 :: 1'b0 :: Imm6[0:0] :: 4'b0000 :: Imm6[1:1] :: rs1[4:0] :: 3'b101 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.insert.b", "{name(rd)}, {name(rs1)}, {Imm6}" };
+             behavior: {
+                 if (rd != 0) {
+-                    X[rd] = X[rd];  // explicit copy to detect inout properly
+-                    X[rd][Imm6[1:0]*8 + 7 : Imm6[1:0]*8 ] = X[rs1][ 7: 0];
++                    unsigned<5> base = (unsigned<5>)(Imm6[1:0] * 8);
++                    X[rd][base + 7 : base] = X[rs1][ 7: 0];
+                 }
+             }
+         }
+@@ -1254,8 +1258,8 @@ InstructionSet XCoreVSimd extends RV32I {
+             behavior: {
+                 unsigned<8> scalar = (unsigned<8>)((signed)Imm6);
+                 // Share the scalar multiply instead of expanding four commutable products.
+-                unsigned<10> lanes = (unsigned)X[rs1][7:0] + (unsigned)X[rs1][15:8]
+-                    + (unsigned)X[rs1][23:16] + (unsigned)X[rs1][31:24];
++                unsigned<10> lanes = (unsigned<10>)((unsigned)X[rs1][7:0] + (unsigned)X[rs1][15:8]
++                    + (unsigned)X[rs1][23:16] + (unsigned)X[rs1][31:24]);
+                 if (rd != 0) X[rd] = (unsigned<32>)(X[rd] + scalar * lanes);
+             }
+         }
+@@ -1395,9 +1399,13 @@ InstructionSet XCoreVSimd extends RV32I {
+             encoding: 5'b11000 :: 1'b0 :: 1'b0 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.shuffle.h", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
++                unsigned<32> seal5_src1 = X[rs1];
++                unsigned<32> seal5_src2 = X[rs2];
+                 if (rd != 0) {
+-                    X[rd][15: 0] = X[rs1][(X[rs2][15: 0][0]*16) + 15 : (X[rs2][15: 0][0]*16) ];
+-                    X[rd][31:16] = X[rs1][(X[rs2][31:16][0]*16) + 15 : (X[rs2][31:16][0]*16) ];
++                    unsigned<5> base_lo = (unsigned<5>)(seal5_src2[ 0] * 16);
++                    unsigned<5> base_hi = (unsigned<5>)(seal5_src2[16] * 16);
++                    X[rd][15: 0] = seal5_src1[base_lo + 15 : base_lo];
++                    X[rd][31:16] = seal5_src1[base_hi + 15 : base_hi];
+                 }
+             }
+         }
+@@ -1405,9 +1413,12 @@ InstructionSet XCoreVSimd extends RV32I {
+             encoding: 5'b11000 :: 1'b0 :: Imm6[0:0] :: Imm6[5:1] :: rs1[4:0] :: 3'b110 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.shuffle.sci.h", "{name(rd)}, {name(rs1)}, {Imm6}" };
+             behavior: {
++                unsigned<32> seal5_src1 = X[rs1];
+                 if (rd != 0) {
+-                    X[rd][15: 0] = X[rs1][(Imm6[0]*16) + 15 : (Imm6[0]*16) ];
+-                    X[rd][31:16] = X[rs1][(Imm6[1]*16) + 15 : (Imm6[1]*16) ];
++                    unsigned<5> base_lo = (unsigned<5>)(Imm6[ 0] * 16);
++                    unsigned<5> base_hi = (unsigned<5>)(Imm6[1] * 16);
++                    X[rd][15: 0] = seal5_src1[base_lo + 15 : base_lo];
++                    X[rd][31:16] = seal5_src1[base_hi + 15 : base_hi];
+                 }
+             }
+         }
+@@ -1415,11 +1426,17 @@ InstructionSet XCoreVSimd extends RV32I {
+             encoding: 5'b11000 :: 1'b0 :: 1'b0 :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.shuffle.b", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
++                unsigned<32> seal5_src1 = X[rs1];
++                unsigned<32> seal5_src2 = X[rs2];
+                 if (rd != 0) {
+-                    X[rd][ 7: 0] = X[rs1][(X[rs2][ 7: 0][1:0]*8) + 7 : (X[rs2][ 7: 0][1:0]*8) ];
+-                    X[rd][15: 8] = X[rs1][(X[rs2][15: 8][1:0]*8) + 7 : (X[rs2][15: 8][1:0]*8) ];
+-                    X[rd][23:16] = X[rs1][(X[rs2][23:16][1:0]*8) + 7 : (X[rs2][23:16][1:0]*8) ];
+-                    X[rd][31:24] = X[rs1][(X[rs2][31:24][1:0]*8) + 7 : (X[rs2][31:24][1:0]*8) ];
++                    unsigned<5> base0 = (unsigned<5>)(seal5_src2[ 1: 0] * 8);
++                    unsigned<5> base1 = (unsigned<5>)(seal5_src2[ 9: 8] * 8);
++                    unsigned<5> base2 = (unsigned<5>)(seal5_src2[17:16] * 8);
++                    unsigned<5> base3 = (unsigned<5>)(seal5_src2[25:24] * 8);
++                    X[rd][ 7: 0] = seal5_src1[base0 + 7 : base0];
++                    X[rd][15: 8] = seal5_src1[base1 + 7 : base1];
++                    X[rd][23:16] = seal5_src1[base2 + 7 : base2];
++                    X[rd][31:24] = seal5_src1[base3 + 7 : base3];
+                 }
+             }
+         }
+@@ -1427,11 +1444,15 @@ InstructionSet XCoreVSimd extends RV32I {
+             encoding: 5'b11000 :: 1'b0 :: Imm6[0:0] :: Imm6[5:1] :: rs1[4:0] :: 3'b111 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.shuffleI0.sci.b", "{name(rd)}, {name(rs1)}, {Imm6}" };
+             behavior: {
++                unsigned<32> seal5_src1 = X[rs1];
+                 if (rd != 0) {
+-                    X[rd][ 7: 0] = X[rs1][Imm6[1:0]*8 + 7 : Imm6[1:0]*8 ];
+-                    X[rd][15: 8] = X[rs1][Imm6[3:2]*8 + 7 : Imm6[3:2]*8 ];
+-                    X[rd][23:16] = X[rs1][Imm6[5:4]*8 + 7 : Imm6[5:4]*8 ];
+-                    X[rd][31:24] = X[rs1][ 7: 0];
++                    unsigned<5> base0 = (unsigned<5>)(Imm6[1:0] * 8);
++                    unsigned<5> base1 = (unsigned<5>)(Imm6[3:2] * 8);
++                    unsigned<5> base2 = (unsigned<5>)(Imm6[5:4] * 8);
++                    X[rd][ 7: 0] = seal5_src1[base0 + 7 : base0];
++                    X[rd][15: 8] = seal5_src1[base1 + 7 : base1];
++                    X[rd][23:16] = seal5_src1[base2 + 7 : base2];
++                    X[rd][31:24] = seal5_src1[ 7: 0];
+                 }
+             }
+         }
+@@ -1439,11 +1460,15 @@ InstructionSet XCoreVSimd extends RV32I {
+             encoding: 5'b11001 :: 1'b0 :: Imm6[0:0] :: Imm6[5:1] :: rs1[4:0] :: 3'b111 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.shuffleI1.sci.b", "{name(rd)}, {name(rs1)}, {Imm6}" };
+             behavior: {
++                unsigned<32> seal5_src1 = X[rs1];
+                 if (rd != 0) {
+-                    X[rd][ 7: 0] = X[rs1][Imm6[1:0]*8 + 7 : Imm6[1:0]*8 ];
+-                    X[rd][15: 8] = X[rs1][Imm6[3:2]*8 + 7 : Imm6[3:2]*8 ];
+-                    X[rd][23:16] = X[rs1][Imm6[5:4]*8 + 7 : Imm6[5:4]*8 ];
+-                    X[rd][31:24] = X[rs1][15: 8];
++                    unsigned<5> base0 = (unsigned<5>)(Imm6[1:0] * 8);
++                    unsigned<5> base1 = (unsigned<5>)(Imm6[3:2] * 8);
++                    unsigned<5> base2 = (unsigned<5>)(Imm6[5:4] * 8);
++                    X[rd][ 7: 0] = seal5_src1[base0 + 7 : base0];
++                    X[rd][15: 8] = seal5_src1[base1 + 7 : base1];
++                    X[rd][23:16] = seal5_src1[base2 + 7 : base2];
++                    X[rd][31:24] = seal5_src1[15: 8];
+                 }
+             }
+         }
+@@ -1451,11 +1476,15 @@ InstructionSet XCoreVSimd extends RV32I {
+             encoding: 5'b11010 :: 1'b0 :: Imm6[0:0] :: Imm6[5:1] :: rs1[4:0] :: 3'b111 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.shuffleI2.sci.b", "{name(rd)}, {name(rs1)}, {Imm6}" };
+             behavior: {
++                unsigned<32> seal5_src1 = X[rs1];
+                 if (rd != 0) {
+-                    X[rd][ 7: 0] = X[rs1][Imm6[1:0]*8 + 7 : Imm6[1:0]*8 ];
+-                    X[rd][15: 8] = X[rs1][Imm6[3:2]*8 + 7 : Imm6[3:2]*8 ];
+-                    X[rd][23:16] = X[rs1][Imm6[5:4]*8 + 7 : Imm6[5:4]*8 ];
+-                    X[rd][31:24] = X[rs1][23:16];
++                    unsigned<5> base0 = (unsigned<5>)(Imm6[1:0] * 8);
++                    unsigned<5> base1 = (unsigned<5>)(Imm6[3:2] * 8);
++                    unsigned<5> base2 = (unsigned<5>)(Imm6[5:4] * 8);
++                    X[rd][ 7: 0] = seal5_src1[base0 + 7 : base0];
++                    X[rd][15: 8] = seal5_src1[base1 + 7 : base1];
++                    X[rd][23:16] = seal5_src1[base2 + 7 : base2];
++                    X[rd][31:24] = seal5_src1[23:16];
+                 }
+             }
+         }
+@@ -1463,11 +1492,15 @@ InstructionSet XCoreVSimd extends RV32I {
+             encoding: 5'b11011 :: 1'b0 :: Imm6[0:0] :: Imm6[5:1] :: rs1[4:0] :: 3'b111 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.shuffleI3.sci.b", "{name(rd)}, {name(rs1)}, {Imm6}" };
+             behavior: {
++                unsigned<32> seal5_src1 = X[rs1];
+                 if (rd != 0) {
+-                    X[rd][ 7: 0] = X[rs1][Imm6[1:0]*8 + 7 : Imm6[1:0]*8 ];
+-                    X[rd][15: 8] = X[rs1][Imm6[3:2]*8 + 7 : Imm6[3:2]*8 ];
+-                    X[rd][23:16] = X[rs1][Imm6[5:4]*8 + 7 : Imm6[5:4]*8 ];
+-                    X[rd][31:24] = X[rs1][31:24];
++                    unsigned<5> base0 = (unsigned<5>)(Imm6[1:0] * 8);
++                    unsigned<5> base1 = (unsigned<5>)(Imm6[3:2] * 8);
++                    unsigned<5> base2 = (unsigned<5>)(Imm6[5:4] * 8);
++                    X[rd][ 7: 0] = seal5_src1[base0 + 7 : base0];
++                    X[rd][15: 8] = seal5_src1[base1 + 7 : base1];
++                    X[rd][23:16] = seal5_src1[base2 + 7 : base2];
++                    X[rd][31:24] = seal5_src1[31:24];
+                 }
+             }
+         }
+@@ -1475,9 +1508,16 @@ InstructionSet XCoreVSimd extends RV32I {
+             encoding: 5'b11100 :: 1'b0 :: 1'b0 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.shuffle2.h", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
++                unsigned<32> seal5_src1 = X[rs1];
++                unsigned<32> seal5_src2 = X[rs2];
++                unsigned<32> seal5_old_rd = X[rd];
+                 if (rd != 0) {
+-                    X[rd][15: 0] = (X[rs2][15: 0][1] ? X[rs1] : X[rd])[(X[rs2][15: 0][0]*16) + 15 : (X[rs2][15: 0][0]*16) ];
+-                    X[rd][31:16] = (X[rs2][31:16][1] ? X[rs1] : X[rd])[(X[rs2][31:16][0]*16) + 15 : (X[rs2][31:16][0]*16) ];
++                    unsigned<5> select_lo = seal5_src2[ 1];
++                    unsigned<5> select_hi = seal5_src2[17];
++                    unsigned<5> base_lo = (unsigned<5>)(seal5_src2[ 0] * 16);
++                    unsigned<5> base_hi = (unsigned<5>)(seal5_src2[16] * 16);
++                    X[rd][15: 0] = (select_lo ? seal5_src1 : seal5_old_rd)[base_lo + 15 : base_lo];
++                    X[rd][31:16] = (select_hi ? seal5_src1 : seal5_old_rd)[base_hi + 15 : base_hi];
+                 }
+             }
+         }
+@@ -1485,11 +1525,22 @@ InstructionSet XCoreVSimd extends RV32I {
+             encoding: 5'b11100 :: 1'b0 :: 1'b0 :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.shuffle2.b", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
++                unsigned<32> seal5_src1 = X[rs1];
++                unsigned<32> seal5_src2 = X[rs2];
++                unsigned<32> seal5_old_rd = X[rd];
+                 if (rd != 0) {
+-                    X[rd][ 7: 0] = (X[rs2][ 7: 0][2] ? X[rs1] : X[rd])[(X[rs2][ 7: 0][1:0]*8) + 7 : (X[rs2][ 7: 0][1:0]*8) ];
+-                    X[rd][15: 8] = (X[rs2][15: 8][2] ? X[rs1] : X[rd])[(X[rs2][15: 8][1:0]*8) + 7 : (X[rs2][15: 8][1:0]*8) ];
+-                    X[rd][23:16] = (X[rs2][23:16][2] ? X[rs1] : X[rd])[(X[rs2][23:16][1:0]*8) + 7 : (X[rs2][23:16][1:0]*8) ];
+-                    X[rd][31:24] = (X[rs2][31:24][2] ? X[rs1] : X[rd])[(X[rs2][31:24][1:0]*8) + 7 : (X[rs2][31:24][1:0]*8) ];
++                    unsigned<5> select0 = seal5_src2[ 2];
++                    unsigned<5> select1 = seal5_src2[10];
++                    unsigned<5> select2 = seal5_src2[18];
++                    unsigned<5> select3 = seal5_src2[26];
++                    unsigned<5> base0 = (unsigned<5>)(seal5_src2[ 1: 0] * 8);
++                    unsigned<5> base1 = (unsigned<5>)(seal5_src2[ 9: 8] * 8);
++                    unsigned<5> base2 = (unsigned<5>)(seal5_src2[17:16] * 8);
++                    unsigned<5> base3 = (unsigned<5>)(seal5_src2[25:24] * 8);
++                    X[rd][ 7: 0] = (select0 ? seal5_src1 : seal5_old_rd)[base0 + 7 : base0];
++                    X[rd][15: 8] = (select1 ? seal5_src1 : seal5_old_rd)[base1 + 7 : base1];
++                    X[rd][23:16] = (select2 ? seal5_src1 : seal5_old_rd)[base2 + 7 : base2];
++                    X[rd][31:24] = (select3 ? seal5_src1 : seal5_old_rd)[base3 + 7 : base3];
+                 }
+             }
+         }
+@@ -1497,9 +1548,11 @@ InstructionSet XCoreVSimd extends RV32I {
+             encoding: 5'b11110 :: 1'b0 :: 1'b0 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.pack", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
++                unsigned<32> seal5_src1 = X[rs1];
++                unsigned<32> seal5_src2 = X[rs2];
+                 if (rd != 0) {
+-                    X[rd][31:16] = X[rs1][15: 0];
+-                    X[rd][15: 0] = X[rs2][15: 0];
++                    X[rd][31:16] = seal5_src1[15: 0];
++                    X[rd][15: 0] = seal5_src2[15: 0];
+                 }
+             }
+         }
+@@ -1507,9 +1560,11 @@ InstructionSet XCoreVSimd extends RV32I {
+             encoding: 5'b11110 :: 1'b0 :: 1'b1 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.pack.h", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
++                unsigned<32> seal5_src1 = X[rs1];
++                unsigned<32> seal5_src2 = X[rs2];
+                 if (rd != 0) {
+-                    X[rd][31:16] = X[rs1][31:16];
+-                    X[rd][15: 0] = X[rs2][31:16];
++                    X[rd][31:16] = seal5_src1[31:16];
++                    X[rd][15: 0] = seal5_src2[31:16];
+                 }
+             }
+         }
+@@ -1517,10 +1572,13 @@ InstructionSet XCoreVSimd extends RV32I {
+             encoding: 5'b11111 :: 1'b0 :: 1'b1 :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.packhi.b", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
++                unsigned<32> seal5_src1 = X[rs1];
++                unsigned<32> seal5_src2 = X[rs2];
++                unsigned<32> seal5_old_rd = X[rd];
+                 if (rd != 0) {
+-                    X[rd][31:24] = X[rs1][ 7: 0];
+-                    X[rd][23:16] = X[rs2][ 7: 0];
+-                    X[rd][15:0] = X[rd][15:0];  // explicit copy to detect inout properly
++                    X[rd][31:24] = seal5_src1[ 7: 0];
++                    X[rd][23:16] = seal5_src2[ 7: 0];
++                    X[rd][15:0] = seal5_old_rd[15:0];  // explicit copy to detect inout properly
+                 }
+             }
+         }
+@@ -1528,10 +1586,13 @@ InstructionSet XCoreVSimd extends RV32I {
+             encoding: 5'b11111 :: 1'b0 :: 1'b0 :: rs2[4:0] :: rs1[4:0] :: 3'b001 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.packlo.b", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
++                unsigned<32> seal5_src1 = X[rs1];
++                unsigned<32> seal5_src2 = X[rs2];
++                unsigned<32> seal5_old_rd = X[rd];
+                 if (rd != 0) {
+-                    X[rd][31:16] = X[rd][31:16];  // explicit copy to detect inout properly
+-                    X[rd][15: 8] = X[rs1][ 7: 0];
+-                    X[rd][ 7: 0] = X[rs2][ 7: 0];
++                    X[rd][31:16] = seal5_old_rd[31:16];  // explicit copy to detect inout properly
++                    X[rd][15: 8] = seal5_src1[ 7: 0];
++                    X[rd][ 7: 0] = seal5_src2[ 7: 0];
+                 }
+             }
+         }
+@@ -2291,8 +2352,10 @@ InstructionSet XCoreVSimd extends RV32I {
+             encoding: 5'b01100 :: 1'b1 :: 1'b0 :: rs2[4:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.subrotmj", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
++                unsigned<32> seal5_src1 = X[rs1];
++                unsigned<32> seal5_src2 = X[rs2];
+                 if (rd != 0) {
+-                    X[rd][31:16] = (X[rs2][15: 0] - X[rs1][31:16])[15:0];
++                    X[rd][31:16] = (seal5_src2[15: 0] - seal5_src1[31:16])[15:0];
+                 }
+             }
+         }
+@@ -2300,8 +2363,10 @@ InstructionSet XCoreVSimd extends RV32I {
+             encoding: 5'b01100 :: 1'b1 :: 1'b0 :: rs2[4:0] :: rs1[4:0] :: 3'b010 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.subrotmj.div2", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
++                unsigned<32> seal5_src1 = X[rs1];
++                unsigned<32> seal5_src2 = X[rs2];
+                 if (rd != 0) {
+-                    X[rd][31:16] = ((signed)((X[rs2][15: 0] - X[rs1][31:16])[15:0]) >> 1)[15:0];
++                    X[rd][31:16] = ((signed)((seal5_src2[15: 0] - seal5_src1[31:16])[15:0]) >> 1)[15:0];
+                 }
+             }
+         }
+@@ -2309,8 +2374,10 @@ InstructionSet XCoreVSimd extends RV32I {
+             encoding: 5'b01100 :: 1'b1 :: 1'b0 :: rs2[4:0] :: rs1[4:0] :: 3'b100 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.subrotmj.div4", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
++                unsigned<32> seal5_src1 = X[rs1];
++                unsigned<32> seal5_src2 = X[rs2];
+                 if (rd != 0) {
+-                    X[rd][31:16] = ((signed)((X[rs2][15: 0] - X[rs1][31:16])[15:0]) >> 2)[15:0];
++                    X[rd][31:16] = ((signed)((seal5_src2[15: 0] - seal5_src1[31:16])[15:0]) >> 2)[15:0];
+                 }
+             }
+         }
+@@ -2318,8 +2385,10 @@ InstructionSet XCoreVSimd extends RV32I {
+             encoding: 5'b01100 :: 1'b1 :: 1'b0 :: rs2[4:0] :: rs1[4:0] :: 3'b110 :: rd[4:0] :: 7'b1111011;
+             assembly: {"cv.subrotmj.div8", "{name(rd)}, {name(rs1)}, {name(rs2)}" };
+             behavior: {
++                unsigned<32> seal5_src1 = X[rs1];
++                unsigned<32> seal5_src2 = X[rs2];
+                 if (rd != 0) {
+-                    X[rd][31:16] = ((signed)((X[rs2][15: 0] - X[rs1][31:16])[15:0]) >> 3)[15:0];
++                    X[rd][31:16] = ((signed)((seal5_src2[15: 0] - seal5_src1[31:16])[15:0]) >> 3)[15:0];
+                 }
+             }
+         }
+diff --git a/tum_xcorevmac.core_desc b/tum_xcorevmac.core_desc
+new file mode 100644
+index 0000000..d7de364
+--- /dev/null
++++ b/tum_xcorevmac.core_desc
+@@ -0,0 +1,36 @@
++import "XCoreVMac.core_desc"
++
++InstructionSet tum_xcorevmac extends XCoreVMac {
++    functions {
++        signed<32> cv_mac(signed<32> x, signed<32> y, signed<32> acc) {
++            signed<65> result = acc + (x * y);
++            return (signed<32>)result;
++        }
++
++        signed<32> cv_msu(signed<32> x, signed<32> y, signed<32> acc) {
++            signed<65> result = acc - (x * y);
++            return (signed<32>)result;
++        }
++    }
++
++    instructions {
++        CV_MAC {
++            encoding: 7'b1001000 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
++            assembly: {"cv.mac", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
++            behavior: {
++                if ((rd % RFS) != 0) {
++                    X[rd % RFS] = cv_mac((signed)X[rs1 % RFS], (signed)X[rs2 % RFS], (signed)X[rd % RFS]);
++                }
++            }
++        }
++        CV_MSU {
++            encoding: 7'b1001001 :: rs2[4:0] :: rs1[4:0] :: 3'b011 :: rd[4:0] :: 7'b0101011;
++            assembly:"{name(rd)}, {name(rs1)}, {name(rs2)}";
++            behavior: {
++                if ((rd % RFS) != 0) {
++                    X[rd % RFS] = cv_msu((signed)X[rs1 % RFS], (signed)X[rs2 % RFS], (signed)X[rd % RFS]);
++                }
++            }
++        }
++    }
++}

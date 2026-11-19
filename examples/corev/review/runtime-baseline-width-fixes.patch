@@ -1,0 +1,22 @@
+--- a/rv_base/RVI.core_desc
++++ b/rv_base/RVI.core_desc
+@@ -35,7 +35,7 @@
+             encoding: imm[11:0] :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1100111;
+             assembly: "{name(rd)}, {name(rs1)}, {imm:#0x}";
+             behavior: {
+-                unsigned<XLEN> new_pc = (unsigned<XLEN>)((X[rs1 % RFS] + (signed)imm) & ~0x1);
++                unsigned<XLEN> new_pc = (unsigned<XLEN>)((X[rs1 % RFS] + (signed)imm) & ~(unsigned<XLEN>)1);
+                 if (new_pc % INSTR_ALIGNMENT) {
+                     raise(0, RV_CAUSE_MISALIGNED_FETCH);
+                 } else {
+--- a/tum_rva.core_desc
++++ b/tum_rva.core_desc
+@@ -2,7 +2,7 @@
+ 
+ InstructionSet tum_rva extends RV32A {
+     architectural_state {
+-        register unsigned<XLEN> RES_ADDR = (128'h1 << XLEN) - 1;
++        register unsigned<XLEN> RES_ADDR = (unsigned<XLEN>)((128'h1 << XLEN) - 1);
+     }
+ 
+     instructions {

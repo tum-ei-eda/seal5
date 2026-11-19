@@ -35,6 +35,13 @@ passes:
       parallel: false
       added_complexity: 1000  # Exercise generated rules even when native rules also match.
 patches:
+  - name: corev_bitwise_pattern_types
+    target: llvm
+    stage: 0
+    priority: 0
+    file: ../patches/llvm22-bitwise-pattern-types.patch
+    comment: Reject scalar bitwise patterns with erased vector bitcasts before TableGen
+    onlyif: "'Erasing a non-register bitcast must not produce a scalar bitwise' not in (settings.deps_dir / 'cdsl2llvm/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp').read_text()"
   - name: corev_register_offset_asm
     target: llvm
     stage: 0
@@ -80,6 +87,13 @@ patches:
     file: ../patches/llvm22-rounded-pattern-variants.patch
     comment: Match equivalent wrapping rounded-subtraction trees
     onlyif: "'roundedArithmeticPatternVariants' not in (settings.deps_dir / 'cdsl2llvm/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp').read_text()"
+  - name: corev_rotate_pattern_variants
+    target: llvm
+    stage: 0
+    priority: 0
+    file: ../patches/llvm22-rotate-pattern-variants.patch
+    comment: Match plain rotates when a proven zero-count guard is redundant
+    onlyif: "'rotatePatternVariants' not in (settings.deps_dir / 'cdsl2llvm/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp').read_text()"
   - name: corev_narrow_register_offsets
     target: llvm
     stage: 0

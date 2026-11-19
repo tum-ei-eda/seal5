@@ -1,0 +1,81 @@
+{
+  "corev_commit": "56b66cfea193b28cd88ea89a684469ef76fa31cc",
+  "python_tests": {
+    "passed": 113
+  },
+  "source_codegen": {
+    "passed": 651,
+    "unsupported": 2,
+    "failed": 0
+  },
+  "generated_codegen": {
+    "passed": 124,
+    "failed": 14,
+    "equivalent_reversed_comparisons": [
+      "CMPLEU_B",
+      "CMPLEU_H",
+      "CMPLE_B",
+      "CMPLE_H",
+      "CMPLTU_B",
+      "CMPLTU_H",
+      "CMPLT_B",
+      "CMPLT_H"
+    ],
+    "missed_selections": [
+      "AND_H",
+      "OR_H",
+      "XOR_H",
+      "AVG_B",
+      "AVG_H",
+      "AVGU_H"
+    ]
+  },
+  "native_instruction_checks": {
+    "checks": 4592,
+    "failures": 0
+  },
+  "semantic_checks": {
+    "dot_product": 40800,
+    "packed_comparison": 87760,
+    "scalar_comparison": 5940,
+    "clip": 723,
+    "clip_bounds_proofs": 4,
+    "clip_constant_specialization_skips": 2,
+    "rounded_alu": 3456,
+    "mac": 3216
+  },
+  "rotate_pattern_checks": {
+    "valid_identity": true,
+    "reject_wrong_guard": true,
+    "reject_wrong_value": true
+  },
+  "extraction": {
+    "descriptions": 310,
+    "successful": 183,
+    "skipped": 26,
+    "failed": 101
+  },
+  "limitations": [
+    "CLB disabled upstream",
+    "Signed immediate EXTRACT pattern needs s33 sign-extension legalization",
+    "Malformed scalar bitwise patterns with vector operands are rejected",
+    "Extraction success does not imply all optimized forms select the custom opcode"
+  ],
+  "instruction_counter_selftest": {
+    "instructions": 31,
+    "custom_adds": 10,
+    "passed": true
+  },
+  "embench": {
+    "verified_program_pairs": 21,
+    "verified_executions": 126,
+    "repetitions": 3,
+    "deterministic_instruction_counts": true,
+    "same_counts_as_reviewed_run": true,
+    "compile_failures": [
+      "cubic/baseline",
+      "cubic/corev"
+    ],
+    "instruction_ratio_geomean": 1.0584767402647053
+  }
+}
