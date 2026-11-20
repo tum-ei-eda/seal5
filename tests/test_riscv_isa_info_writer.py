@@ -2,8 +2,14 @@
 """Tests for RISCVISAInfo patch generation."""
 
 import unittest
+import tempfile
 from types import SimpleNamespace
+from pathlib import Path
+from unittest.mock import patch
 
+import yaml
+
+from seal5.backends.riscv_isa_info import writer
 from seal5.backends.riscv_isa_info.writer import gen_riscv_isa_info_metadata, gen_riscv_isa_info_str
 from seal5.settings import ExtensionsSettings, LLVMVersion
 
@@ -47,6 +53,54 @@ class RISCVISAInfoWriterTests(unittest.TestCase):
         implications, _ = gen_riscv_isa_info_metadata(model_sets, LLVMVersion(major=18))
 
         self.assertIn('addExtension("xsecond", Version.value());', implications)
+
+    def test_uses_modern_llvm_api_for_versions_19_to_23(self):
+        model_sets = {
+            "First": SimpleNamespace(
+                settings=ExtensionsSettings(arch="xfirst", implies=["Second"], incompatible=["Third"])
+            ),
+            "Second": SimpleNamespace(settings=ExtensionsSettings(arch="xsecond")),
+            "Third": SimpleNamespace(settings=ExtensionsSettings(arch="xthird")),
+        }
+
+        for major in range(19, 24):
+            with self.subTest(llvm_major=major):
+                implications, incompatible = gen_riscv_isa_info_metadata(model_sets, LLVMVersion(major=major))
+
+                self.assertIn('Exts["xsecond"] = *Version;', implications)
+                self.assertIn('WorkList.push_back("xsecond");', implications)
+                self.assertNotIn("WorkList.count", implications)
+                self.assertIn('return getError("\'xfirst\' and \'xthird\' extensions are incompatible");', incompatible)
+
+    def test_modern_llvm_main_emits_only_relation_patches(self):
+        model_sets = {
+            "First": SimpleNamespace(
+                settings=ExtensionsSettings(arch="xfirst", implies=["Second"], incompatible=["Third"])
+            ),
+            "Second": SimpleNamespace(settings=ExtensionsSettings(arch="xsecond")),
+            "Third": SimpleNamespace(settings=ExtensionsSettings(arch="xthird")),
+        }
+        model = SimpleNamespace(
+            settings=SimpleNamespace(llvm=SimpleNamespace(state=SimpleNamespace(version=LLVMVersion(major=19)))),
+            sets=model_sets,
+        )
+
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "riscv_isa_info.patch"
+            index = Path(directory) / "index.yml"
+            with patch("sys.argv", ["writer", "model.seal5model", "--output", str(output), "--index", str(index)]):
+                with patch.object(writer, "load_model", return_value=model):
+                    writer.main()
+
+            artifacts = yaml.safe_load(index.read_text())["artifacts"]
+            self.assertEqual(
+                {artifact["key"] for artifact in artifacts},
+                {"riscv_isa_info_implies", "riscv_isa_info_incompatible"},
+            )
+            self.assertTrue(
+                all(artifact["dest_path"] == "llvm/lib/TargetParser/RISCVISAInfo.cpp" for artifact in artifacts)
+            )
+            self.assertFalse(output.exists())
 
     def test_parses_implication_and_incompatibility_settings(self):
         settings = ExtensionsSettings.from_dict({"implies": ["Second"], "incompatible": ["Third"]})

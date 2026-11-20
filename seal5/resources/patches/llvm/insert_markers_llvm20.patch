@@ -232,3 +232,18 @@ diff --git a/llvm/lib/Target/RISCV/RISCVRegisterInfo.td b/llvm/lib/Target/RISCV/
 +
 +// RISCVRegisterInfo.td - riscv_register_info - INSERTION_START
 +// RISCVRegisterInfo.td - riscv_register_info - INSERTION_END
+diff --git a/llvm/lib/TargetParser/RISCVISAInfo.cpp b/llvm/lib/TargetParser/RISCVISAInfo.cpp
+--- a/llvm/lib/TargetParser/RISCVISAInfo.cpp
++++ b/llvm/lib/TargetParser/RISCVISAInfo.cpp
+@@ -743,3 +743,5 @@
+ Error RISCVISAInfo::checkDependency() {
++// RISCVISAInfo.cpp - riscv_isa_info_incompatible - INSERTION_START
++// RISCVISAInfo.cpp - riscv_isa_info_incompatible - INSERTION_END
+   bool HasE = Exts.count("e") != 0;
+   bool HasI = Exts.count("i") != 0;
+@@ -856,3 +858,5 @@
+   while (!WorkList.empty()) {
+     StringRef ExtName = WorkList.pop_back_val();
++// RISCVISAInfo.cpp - riscv_isa_info_implies - INSERTION_START
++// RISCVISAInfo.cpp - riscv_isa_info_implies - INSERTION_END
+     auto Range = std::equal_range(std::begin(ImpliedExts),

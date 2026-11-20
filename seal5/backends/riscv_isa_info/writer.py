@@ -78,23 +78,46 @@ def gen_riscv_isa_info_metadata(model_sets, llvm_version: LLVMVersion):
     for arch, implied in sorted(implications):
         if llvm_version.major < 18:
             add_extension = f'addExtension("{implied}", Version->Major, Version->Minor);'
-        else:
+            check_worklist = f' && !WorkList.count("{implied}")'
+            version_and_insert = (
+                f'      auto Version = findDefaultVersion("{implied}");\n'
+                f"      {add_extension}\n"
+                f'      WorkList.insert("{implied}");\n'
+            )
+        elif llvm_version.major < 19:
             add_extension = f'addExtension("{implied}", Version.value());'
+            check_worklist = f' && !WorkList.count("{implied}")'
+            version_and_insert = (
+                f'      auto Version = findDefaultVersion("{implied}");\n'
+                f"      {add_extension}\n"
+                f'      WorkList.insert("{implied}");\n'
+            )
+        else:
+            check_worklist = ""
+            version_and_insert = (
+                f'      auto Version = findDefaultVersion("{implied}");\n'
+                f'      Exts["{implied}"] = *Version;\n'
+                f'      WorkList.push_back("{implied}");\n'
+            )
         implies_text += (
-            f'    if (ExtName == "{arch}" && !WorkList.count("{implied}") && !Exts.count("{implied}")) {{\n'
-            f'      auto Version = findDefaultVersion("{implied}");\n'
-            f"      {add_extension}\n"
-            f'      WorkList.insert("{implied}");\n'
+            f'    if (ExtName == "{arch}"{check_worklist} && !Exts.count("{implied}")) {{\n'
+            f"{version_and_insert}"
             "    }\n"
         )
 
     incompatible_text = ""
     for first, second in sorted(incompatible):
-        incompatible_text += (
-            f'  if (Exts.count("{first}") && Exts.count("{second}"))\n'
-            "    return createStringError(errc::invalid_argument,\n"
-            f'                             "\'{first}\' and \'{second}\' extensions are incompatible");\n'
-        )
+        if llvm_version.major >= 19:
+            incompatible_text += (
+                f'  if (Exts.count("{first}") && Exts.count("{second}"))\n'
+                f'    return getError("\'{first}\' and \'{second}\' extensions are incompatible");\n'
+            )
+        else:
+            incompatible_text += (
+                f'  if (Exts.count("{first}") && Exts.count("{second}"))\n'
+                "    return createStringError(errc::invalid_argument,\n"
+                f'                             "\'{first}\' and \'{second}\' extensions are incompatible");\n'
+            )
     return implies_text, incompatible_text
 
 
@@ -160,8 +183,11 @@ def main():
                 continue
             metrics["n_success"] += 1
             metrics["success_sets"].append(set_name)
-            key, new_content = gen_riscv_isa_info_str(set_name, ext_settings=ext_settings, llvm_version=llvm_version)
-            contents.append((key, new_content))
+            if llvm_version.major < 19:
+                key, new_content = gen_riscv_isa_info_str(
+                    set_name, ext_settings=ext_settings, llvm_version=llvm_version
+                )
+                contents.append((key, new_content))
         implications, incompatible = gen_riscv_isa_info_metadata(model_obj.sets, llvm_version)
         contents = sorted(contents, key=lambda x: x[0])
         content = "\n".join([x[1] for x in contents])
@@ -181,8 +207,13 @@ def main():
             if metadata:
                 metadata_path = out_path.with_name(f"{key}.patch")
                 metadata_path.write_text(metadata, encoding="utf-8")
+                dest_path = (
+                    "llvm/lib/Support/RISCVISAInfo.cpp"
+                    if llvm_version.major < 19
+                    else "llvm/lib/TargetParser/RISCVISAInfo.cpp"
+                )
                 artifacts[None].append(
-                    NamedPatch("llvm/lib/Support/RISCVISAInfo.cpp", key=key, src_path=metadata_path)
+                    NamedPatch(dest_path, key=key, src_path=metadata_path)
                 )
     else:
         raise NotImplementedError
