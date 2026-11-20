@@ -329,7 +329,7 @@ def scalarize_register_inputs(contents, xlen, opt):
             )
             return f"i{xlen} {scalar}"
 
-        header = re.sub(r"ptr readonly [^,%]*?(%[\w.]+)(?=[,)])", argument, header)
+        header = re.sub(r"ptr (?=[^,%]*\breadonly\b)[^,%]*?(%[\w.]+)(?=[,)])", argument, header)
         return header + "\n" + "\n".join(slots)
 
     original = contents

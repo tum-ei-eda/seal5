@@ -85,7 +85,9 @@ class PatternGenTestGenerationTests(unittest.TestCase):
     def test_constant_specializations_do_not_require_an_instruction_match(self):
         with tempfile.TemporaryDirectory() as directory:
             ir = Path(directory) / "test.ll"
-            ir.write_text("define void @implTEST_0() {\n  ret void\n}\n" "define void @implTEST_1() {\n  ret void\n}\n")
+            ir.write_text(
+                "define void @implTEST_0() {\n  ret void\n}\n" "define void @implTEST_1() {\n  ret void\n}\n"
+            )
             result = combine_test_fragments(
                 ir,
                 "TEST_1",
@@ -101,9 +103,10 @@ class PatternGenTestGenerationTests(unittest.TestCase):
     def test_single_rule_uses_register_abi_but_memory_keeps_pointers(self):
         for may_load in (False, True):
             with self.subTest(may_load=may_load), tempfile.TemporaryDirectory() as directory:
-                with patch("seal5.tools.cdsl2llvm.scalarize_register_inputs", side_effect=lambda ir, *_: ir) as scalarize:
-                    self.generate(directory, xlen=32, pattern="(add GPR:$a, GPR:$b)",
-                                  immediates=[], may_load=may_load)
+                with patch(
+                    "seal5.tools.cdsl2llvm.scalarize_register_inputs", side_effect=lambda ir, *_: ir
+                ) as scalarize:
+                    self.generate(directory, xlen=32, pattern="(add GPR:$a, GPR:$b)", immediates=[], may_load=may_load)
                 if may_load:
                     scalarize.assert_not_called()
                 else:
@@ -111,24 +114,25 @@ class PatternGenTestGenerationTests(unittest.TestCase):
                     self.assertEqual(scalarize.call_args.args[1], 32)
 
     def test_scalar_register_inputs_preserve_subregister_extraction(self):
-        ir = (
-            "define void @implTEST(ptr noalias writeonly %rd, ptr readonly align 4 %rs1) {\n"
-            "  %hi = getelementptr i8, ptr %rs1, i32 2\n"
-            "  %v = load i16, ptr %hi\n"
-            "  %w = sext i16 %v to i32\n"
-            "  store i32 %w, ptr %rd\n  ret void\n}\n"
-        )
-        with patch("seal5.tools.cdsl2llvm.subprocess.run") as optimize:
-            optimize.return_value.stdout = "optimized"
-            self.assertEqual(scalarize_register_inputs(ir, 32, Path("/tools/opt")), "optimized")
-            args, kwargs = optimize.call_args
-            self.assertIn("-passes=sroa,instcombine", args[0])
-            prepared = kwargs["input"]
-            self.assertIn("ptr noalias writeonly %rd, i32 %rs1.seal5_value", prepared)
-            self.assertIn("%rs1 = alloca i32, align 4", prepared)
-            self.assertIn("store i32 %rs1.seal5_value, ptr %rs1", prepared)
-            self.assertIn("%hi = getelementptr i8, ptr %rs1, i32 2", prepared)
-            self.assertIn("store i32 %w, ptr %rd", prepared)
+        for attributes in ("readonly align 4", "nofree readonly align 4 captures(none)", "readonly nofree align 4"):
+            ir = (
+                f"define void @implTEST(ptr noalias writeonly %rd, ptr {attributes} %rs1) {{\n"
+                "  %hi = getelementptr i8, ptr %rs1, i32 2\n"
+                "  %v = load i16, ptr %hi\n"
+                "  %w = sext i16 %v to i32\n"
+                "  store i32 %w, ptr %rd\n  ret void\n}\n"
+            )
+            with self.subTest(attributes=attributes), patch("seal5.tools.cdsl2llvm.subprocess.run") as optimize:
+                optimize.return_value.stdout = "optimized"
+                self.assertEqual(scalarize_register_inputs(ir, 32, Path("/tools/opt")), "optimized")
+                args, kwargs = optimize.call_args
+                self.assertIn("-passes=sroa,instcombine", args[0])
+                prepared = kwargs["input"]
+                self.assertIn("ptr noalias writeonly %rd, i32 %rs1.seal5_value", prepared)
+                self.assertIn("%rs1 = alloca i32, align 4", prepared)
+                self.assertIn("store i32 %rs1.seal5_value, ptr %rs1", prepared)
+                self.assertIn("%hi = getelementptr i8, ptr %rs1, i32 2", prepared)
+                self.assertIn("store i32 %w, ptr %rd", prepared)
 
     def test_unrolled_functions_use_distinct_labels_and_the_real_target(self):
         with tempfile.TemporaryDirectory() as directory:
