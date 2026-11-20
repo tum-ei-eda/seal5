@@ -9,6 +9,7 @@
 """Clean M2-ISA-R/Seal5 metamodel to .core_desc file."""
 
 import argparse
+from copy import deepcopy
 import pathlib
 
 from m2isar.logging import add_logging_args, handle_logging_args
@@ -16,6 +17,8 @@ from m2isar.metrics import add_metrics_args, init_metrics, handle_metrics
 from m2isar.backends.coredsl2.writer import write_cdsl_splitted, write_cdsl_default
 
 from seal5.model_utils import load_model
+from seal5.model import Seal5OperandAttribute
+from seal5.transform.normalize_register_pairs import NormalizeRegisterPairs
 from seal5.logging import Logger
 
 from .utils import Seal5CoreDSL2Writer
@@ -71,6 +74,15 @@ def main():
         for set_def in model_obj.sets.values():
             for instr in set_def.instructions.values():
                 instr.operation = pattern_branch_operation(instr.operation, instr.constraints)
+                pairs = [
+                    name
+                    for name, operand in instr.operands.items()
+                    if operand.attributes.get(Seal5OperandAttribute.REG_CLASS) == "GPRPair"
+                ]
+                if pairs:
+                    if set_def.xlen != 32:
+                        raise ValueError("XP emission requires RV32")
+                    instr.operation = NormalizeRegisterPairs(pairs).generate(deepcopy(instr.operation))
 
     metrics = init_metrics()
     allowed_attrs = ALLOWED_SEAL5_ATTRS

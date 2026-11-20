@@ -1,0 +1,335 @@
+--- a/llvm/include/llvm/CodeGen/GlobalISel/PatternGen.h
++++ b/llvm/include/llvm/CodeGen/GlobalISel/PatternGen.h
+@@ -43,6 +43,8 @@
+   void getAnalysisUsage(AnalysisUsage &AU) const override;
+ 
+   MachineFunctionProperties getRequiredProperties() const override {
++    if (PairPreLegalize)
++      return MachineFunctionProperties().set(MachineFunctionProperties::Property::IsSSA);
+     return MachineFunctionProperties()
+         .set(MachineFunctionProperties::Property::IsSSA)
+         .set(MachineFunctionProperties::Property::Legalized)
+@@ -51,10 +53,12 @@
+ 
+   PatternGen(CodeGenOptLevel OL);
+   PatternGen();
++  explicit PatternGen(bool PairPreLegalize);
+ 
+   bool runOnMachineFunction(MachineFunction &MF) override;
+ 
+ protected:
++  bool PairPreLegalize = false;
+   bool runGISelTable(MachineFunction &MF);
+   StringSet<> EmittedInstructionDefs;
+   BlockFrequencyInfo *BFI = nullptr;
+--- a/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp
++++ b/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp
+@@ -135,6 +135,9 @@
+ PatternGen::PatternGen()
+     : MachineFunctionPass(ID), OptLevel(CodeGenOptLevel::Default) {}
+ 
++PatternGen::PatternGen(bool Early)
++    : MachineFunctionPass(ID), PairPreLegalize(Early), OptLevel(CodeGenOptLevel::Default) {}
++
+ void PatternGen::getAnalysisUsage(AnalysisUsage &AU) const {
+   AU.addRequired<TargetPassConfig>();
+   AU.addRequired<GISelValueTrackingAnalysisLegacy>();
+@@ -444,6 +447,11 @@
+         Right(std::move(Right)) {}
+ 
+   std::string patternString() override {
++    if (XLen == 32 && Type == LLT::scalar(64) &&
++        (Op == TargetOpcode::G_ADD || Op == TargetOpcode::G_SUB))
++      return std::string(Op == TargetOpcode::G_ADD ? "(riscv_seal5_add64 "
++                                                   : "(riscv_seal5_sub64 ") +
++             Left->patternString() + ", " + Right->patternString() + ")";
+     static const std::unordered_map<int, std::string> BinopStr = {
+         {TargetOpcode::G_ADD, "add"},
+         {TargetOpcode::G_PTR_ADD, "ptradd"},
+@@ -713,6 +721,9 @@
+         pre = llvm_type;
+       return ("(" + RegT + " ") + pre + ":$" + std::string(Name) + ")";
+     }
++
++    if (llvm_type == "GPRPair")
++      return "GPRPair:$" + std::string(Name);
+ 
+     // Vector Types (currently rv32 only)
+     if (Type.isFixedVector()) {
+@@ -1210,7 +1221,8 @@
+ 
+   auto Type = MRI.getType(Cur.getOperand(0).getReg());
+   PatternArgs[Idx].Llt = Type;
+-  PatternArgs[Idx].ArgTypeStr = lltToRegTypeStr(PatternArgs[Idx].Llt);
++  PatternArgs[Idx].ArgTypeStr = Field->llvm_type == "GPRPair" ? "GPRPairRV32" :
++      lltToRegTypeStr(PatternArgs[Idx].Llt);
+   PatternArgs[Idx].In = true;
+ 
+   assert(Cur.getOperand(0).isReg() && "expected register");
+@@ -1370,7 +1382,7 @@
+       assert(Cur.getOperand(0).isReg() && "expected register");
+       AsRegNode->Type = MRI.getType(Cur.getOperand(0).getReg());
+       PatternArgs[AsRegNode->RegIdx].ArgTypeStr =
+-          lltToRegTypeStr(AsRegNode->Type);
++          AsRegNode->llvm_type == "GPRPair" ? "GPRPairRV32" : lltToRegTypeStr(AsRegNode->Type);
+     }
+ 
+     return std::make_pair(SUCCESS, std::move(Node));
+@@ -1554,7 +1566,7 @@
+ 
+   PatternArgs[Idx].Out = true;
+   PatternArgs[Idx].Llt = Type;
+-  PatternArgs[Idx].ArgTypeStr = lltToRegTypeStr(Type);
++  PatternArgs[Idx].ArgTypeStr = CurInstr->fields[Idx].llvm_type == "GPRPair" ? "GPRPairRV32" : lltToRegTypeStr(Type);
+ 
+   return traverse(MRI, Root);
+ }
+@@ -1621,7 +1633,9 @@
+   if (AddrI->getOpcode() == TargetOpcode::COPY) {
+     auto Idx = getArgIdx(MRI, AddrI->getOperand(1).getReg());
+     if (Idx != -1) {
+-      if (MMO->getSizeInBits() != XLen && MMO->getSizeInBits() != 32)
++      if (MMO->getSizeInBits() != XLen && MMO->getSizeInBits() != 32 &&
++          !(CurInstr->fields[Idx].llvm_type == "GPRPair" &&
++            MMO->getSizeInBits() == 64))
+         return pError(FORMAT_STORE, &Store);
+       return traverseRegStore(Idx, MRI, *ValueI);
+     }
+@@ -1701,7 +1715,10 @@
+ }
+ 
+ bool PatternGen::runOnMachineFunction(MachineFunction &MF) {
+-  if (PatternGenArgs::Args.GISelTableBackend)
++  bool IsPair = MF.getFunction().hasFnAttribute("seal5-regpairs");
++  if (PairPreLegalize != IsPair)
++    return false;
++  if (PatternGenArgs::Args.GISelTableBackend && !IsPair)
+     return runGISelTable(MF);
+ 
+   bool Generated = false;
+@@ -1714,6 +1731,14 @@
+       MBB.clear();
+   });
+ 
++  if (PatternGenArgs::Args.GISelTableBackend) {
++    errs() << "Pair extraction currently supports SelectionDAG patterns only\n";
++    ++PatternGenNumInstructionsProcessed;
++    ++PatternGenNumInstructionsFailing;
++    ++PatternGenNumPatternsFailing;
++    return true;
++  }
++
+   // for convenience
+   XLen = PatternGenArgs::Args.Is64Bit ? 64 : 32;
+   RegT = PatternGenArgs::Args.Is64Bit ? "i64" : "i32";
+@@ -1758,6 +1783,19 @@
+       llvm::errs() << "Match failure occurred here:\n";
+       llvm::errs() << *Err.Inst << "\n";
+     }
++    ++PatternGenNumInstructionsFailing;
++    ++PatternGenNumPatternsFailing;
++    return true;
++  }
++
++  if (IsPair && Node->Type == LLT::scalar(64) &&
++      (!isa<BinopNode>(Node.get()) ||
++       (cast<BinopNode>(*Node).Op != TargetOpcode::G_ADD &&
++        cast<BinopNode>(*Node).Op != TargetOpcode::G_SUB) ||
++       !isa<RegisterNode>(cast<BinopNode>(*Node).Left.get()) ||
++       !isa<RegisterNode>(cast<BinopNode>(*Node).Right.get()))) {
++    errs() << "Pattern Generation failed for " << MF.getName()
++           << ": unsupported scalar pair expression\n";
+     ++PatternGenNumInstructionsFailing;
+     ++PatternGenNumPatternsFailing;
+     return true;
+@@ -1937,7 +1975,9 @@
+   }
+   std::string Code = "def : Pat<\n\t";
+ 
+-  if (OutType.isValid())
++  if (IsPair && OutType == LLT::scalar(64))
++    Code += PatternStr + ",\n\t(" + TargetDefName + " ";
++  else if (OutType.isValid())
+     Code += "(" + lltToString(OutType) + " " + PatternStr + "),\n\t(" +
+             TargetDefName + " ";
+   else
+--- a/llvm/tools/pattern-gen/LLVMOverride.cpp
++++ b/llvm/tools/pattern-gen/LLVMOverride.cpp
+@@ -193,6 +193,10 @@
+   bool addLegalizeMachineIR() override;
+   void addPreRegBankSelect() override;
+   bool addRegBankSelect() override;
++  void addPreLegalizeMachineIR() override;
++  bool addLegalizeMachineIR() override;
++  void addPreRegBankSelect() override;
++  bool addRegBankSelect() override;
+   bool addGlobalInstructionSelect() override;
+   void addPreEmitPass() override;
+   void addPreEmitPass2() override;
+@@ -458,6 +462,140 @@
+   }
+ };
+ 
++// Recover a vector operation from the optimized XP bit-container expression.
++// Only a complete two-lane arithmetic operation with matching inputs is
++// accepted.
++static bool combinePairArithmeticLanes(Module &M) {
++  bool Changed = false;
++  for (Function &F : M) {
++    if (!F.hasFnAttribute("seal5-regpairs"))
++      continue;
++    SmallVector<StoreInst *, 4> Stores;
++    for (auto &BB : F)
++      for (auto &I : BB)
++        if (auto *S = dyn_cast<StoreInst>(&I))
++          Stores.push_back(S);
++    for (auto *S : Stores) {
++      if (S->isVolatile() || S->isAtomic())
++        continue;
++      auto *Join = dyn_cast<BinaryOperator>(S->getValueOperand());
++      if (!Join || Join->getOpcode() != Instruction::Or ||
++          !Join->getType()->isIntegerTy(64))
++        continue;
++      // InstCombine lifts modulo-32 multiplication into i64 masks. Recognize
++      // the complete low product and high product, including operand swaps.
++      auto Masked = [](Value *V, uint64_t Mask) -> Value * {
++        auto *And = dyn_cast<BinaryOperator>(V);
++        if (!And || And->getOpcode() != Instruction::And)
++          return nullptr;
++        for (unsigned I = 0; I != 2; ++I)
++          if (auto *C = dyn_cast<ConstantInt>(And->getOperand(I));
++              C && C->equalsInt(Mask))
++            return And->getOperand(1 - I);
++        return nullptr;
++      };
++      auto ShiftedHigh = [](Value *V) -> Value * {
++        auto *Shift = dyn_cast<BinaryOperator>(V);
++        auto *C = Shift ? dyn_cast<ConstantInt>(Shift->getOperand(1)) : nullptr;
++        return Shift && Shift->getOpcode() == Instruction::LShr && C &&
++                       C->equalsInt(32)
++                   ? Shift->getOperand(0)
++                   : nullptr;
++      };
++      bool FoldedMul = false;
++      for (unsigned Side = 0; Side != 2 && !FoldedMul; ++Side) {
++        auto *LowMul = dyn_cast_or_null<BinaryOperator>(
++            Masked(Join->getOperand(Side), UINT64_C(0xffffffff)));
++        auto *HighMul = dyn_cast<BinaryOperator>(Join->getOperand(1 - Side));
++        if (!LowMul || !HighMul || LowMul->getOpcode() != Instruction::Mul ||
++            HighMul->getOpcode() != Instruction::Mul)
++          continue;
++        for (unsigned I = 0; I != 2 && !FoldedMul; ++I) {
++          Value *A =
++              Masked(HighMul->getOperand(I), UINT64_C(0xffffffff00000000));
++          Value *B = ShiftedHigh(HighMul->getOperand(1 - I));
++          if (!A || !B ||
++              !((A == LowMul->getOperand(0) && B == LowMul->getOperand(1)) ||
++                (B == LowMul->getOperand(0) && A == LowMul->getOperand(1))))
++            continue;
++          IRBuilder<> Builder(S);
++          auto *VT = FixedVectorType::get(Builder.getInt32Ty(), 2);
++          Value *Result = Builder.CreateMul(Builder.CreateBitCast(A, VT),
++                                            Builder.CreateBitCast(B, VT));
++          auto *NewStore = Builder.CreateAlignedStore(
++              Result, S->getPointerOperand(), S->getAlign());
++          NewStore->setDebugLoc(S->getDebugLoc());
++          S->eraseFromParent();
++          Changed = FoldedMul = true;
++        }
++      }
++      if (FoldedMul)
++        continue;
++      auto GetLaneOp = [](Value *V, bool High) -> BinaryOperator * {
++        if (High) {
++          auto *Shift = dyn_cast<BinaryOperator>(V);
++          auto *C =
++              Shift ? dyn_cast<ConstantInt>(Shift->getOperand(1)) : nullptr;
++          if (!Shift || Shift->getOpcode() != Instruction::Shl || !C ||
++              C->getZExtValue() != 32)
++            return nullptr;
++          V = Shift->getOperand(0);
++        }
++        auto *Ext = dyn_cast<ZExtInst>(V);
++        auto *Add =
++            Ext ? dyn_cast<BinaryOperator>(Ext->getOperand(0)) : nullptr;
++        return Add &&
++                       (Add->getOpcode() == Instruction::Add ||
++                        Add->getOpcode() == Instruction::Sub ||
++                        Add->getOpcode() == Instruction::Mul) &&
++                       Add->getType()->isIntegerTy(32)
++                   ? Add
++                   : nullptr;
++      };
++      BinaryOperator *Low = GetLaneOp(Join->getOperand(0), false),
++                     *High = GetLaneOp(Join->getOperand(1), true);
++      if (!Low || !High) {
++        Low = GetLaneOp(Join->getOperand(1), false);
++        High = GetLaneOp(Join->getOperand(0), true);
++      }
++      if (!Low || !High || Low->getOpcode() != High->getOpcode())
++        continue;
++      auto GetInput = [](Value *V, bool High) -> Value * {
++        auto *Trunc = dyn_cast<TruncInst>(V);
++        if (!Trunc || !Trunc->getSrcTy()->isIntegerTy(64))
++          return nullptr;
++        V = Trunc->getOperand(0);
++        if (!High)
++          return V;
++        auto *Shift = dyn_cast<BinaryOperator>(V);
++        auto *C = Shift ? dyn_cast<ConstantInt>(Shift->getOperand(1)) : nullptr;
++        if (!Shift || Shift->getOpcode() != Instruction::LShr || !C ||
++            C->getZExtValue() != 32)
++          return nullptr;
++        return Shift->getOperand(0);
++      };
++      Value *A = GetInput(Low->getOperand(0), false),
++            *B = GetInput(Low->getOperand(1), false);
++      Value *C = GetInput(High->getOperand(0), true),
++            *D = GetInput(High->getOperand(1), true);
++      if (!A || !B || !C || !D ||
++          !((A == C && B == D) || (Low->isCommutative() && A == D && B == C)))
++        continue;
++      IRBuilder<> Builder(S);
++      auto *VT = FixedVectorType::get(Builder.getInt32Ty(), 2);
++      Value *Result =
++          Builder.CreateBinOp(Low->getOpcode(), Builder.CreateBitCast(A, VT),
++                              Builder.CreateBitCast(B, VT));
++      auto *NewStore = Builder.CreateAlignedStore(
++          Result, S->getPointerOperand(), S->getAlign());
++      NewStore->setDebugLoc(S->getDebugLoc());
++      S->eraseFromParent();
++      Changed = true;
++    }
++  }
++  return Changed;
++}
++
+ void optimizeModule(llvm::TargetMachine *Machine, llvm::Module *Mod,
+                     llvm::CodeGenOptLevel OptLevel) {
+   Mod->setTargetTriple(Machine->getTargetTriple());
+@@ -491,6 +629,11 @@
+ 
+   // Optimize the IR!
+   MPM.run(*Mod, MAM);
++  if (combinePairArithmeticLanes(*Mod)) {
++    MAM.invalidate(*Mod, PreservedAnalyses::none());
++    auto Cleanup = PB.buildPerModuleDefaultPipeline(llvm::OptimizationLevel::O3);
++    Cleanup.run(*Mod, MAM);
++  }
+ }
+ 
+ static void setOptions() {
+--- a/llvm/tools/pattern-gen/lib/Parser.cpp
++++ b/llvm/tools/pattern-gen/lib/Parser.cpp
+@@ -1598,6 +1598,11 @@
+   for (size_t i = 0; i < argNames.size(); i++)
+     func->getArg(i)->setName(argNames[i]);
+ 
++  if (llvm::any_of(instr.fields, [](const auto &F) {
++        return (F.type & CDSLInstr::REG) && F.llvm_type == "GPRPair";
++      }))
++    func->addFnAttr("seal5-regpairs");
++
+   // For vectorization to work, we must assume that
+   // the destination does not overlap with sources.
+   // For simulators using this generated code, this means
