@@ -163,7 +163,12 @@ class CollectRegisterOperandsVisitor(ExprVisitor):
                     op = context.operands[op_name]
                     reg_ty_ = model.DataType.U
                     if mem_name in ("X", "XW"):
-                        if offset == 0:
+                        if op_name in context.register_pairs:
+                            if mem_size != 32 or offset not in (0, 1):
+                                raise ValueError("RV32 pairs require X[operand] or X[operand + 1]")
+                            reg_class = model.Seal5RegisterClass.GPRPair
+                            mem_size = 64
+                        elif offset == 0:
                             reg_class = model.Seal5RegisterClass.GPR
                         elif offset == 8:
                             reg_class = model.Seal5RegisterClass.GPRC
@@ -182,6 +187,9 @@ class CollectRegisterOperandsVisitor(ExprVisitor):
                         reg_class = model.Seal5RegisterClass.UNKNOWN
                     if not isinstance(op, model.Seal5RegOperand):
                         op = model.Seal5RegOperand(op.name, op.ty, op.attributes, op.constraints, reg_class=reg_class)
+                    if op_name in context.register_pairs:
+                        op.reg_class = reg_class
+                        op.attributes[model.Seal5OperandAttribute.REG_CLASS] = reg_class.name
                     reg_ty = model.Seal5Type(reg_ty_, mem_size, mem_lanes)
                     op.reg_ty = reg_ty
                     context.operands[op_name] = op

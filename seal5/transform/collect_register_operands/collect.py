@@ -9,6 +9,7 @@
 """Infer types of instruction operands from behavior."""
 
 import sys
+import json
 import argparse
 import logging
 import pathlib
@@ -25,8 +26,9 @@ logger = Logger("transform.collect_register_operands")
 
 
 class VisitorContext:
-    def __init__(self, operands):
+    def __init__(self, operands, register_pairs=()):
         self.operands = operands
+        self.register_pairs = set(register_pairs)
         # self.uses = None
 
 
@@ -38,6 +40,7 @@ def get_parser():
     parser.add_argument("--output", "-o", type=str, default=None)
     parser.add_argument("--metrics", default=None, help="Output metrics to file")
     parser.add_argument("--compat", action="store_true")
+    parser.add_argument("--register-pairs", type=json.loads, default={})
     return parser
 
 
@@ -69,7 +72,13 @@ def run(args):
         visitor = CollectRegisterOperandsVisitor()
         for _, instr_def in set_def.instructions.items():
             metrics["n_instructions"] += 1
-            context = VisitorContext(instr_def.operands)
+            pairs = args.register_pairs.get(instr_def.name, [])
+            if pairs and set_def.xlen != 32:
+                raise ValueError("Register pairs currently require RV32")
+            unknown = set(pairs) - set(instr_def.operands)
+            if unknown:
+                raise ValueError(f"Unknown pair operands in {instr_def.name}: {unknown}")
+            context = VisitorContext(instr_def.operands, pairs)
             logger.debug("collecting register operands for instr %s", instr_def.name)
             try:
                 visitor.generate(instr_def.operation, context)

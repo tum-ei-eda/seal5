@@ -246,6 +246,12 @@ def gen_riscv_instr_info_str(instr, set_def):
 def gen_intrinsic_pattern(instr, set_name, intrinsic: IntrinsicDefn, ext_settings: Optional[ExtensionsSettings] = None):
     assert ext_settings is not None
     arch_ = ext_settings.get_arch(name=set_name)
+    # RV32 scalar i64 is split by type legalization. Its pair intrinsic needs
+    # a target lowering adapter, rather than an illegal i64 SelectionDAG Pat.
+    if intrinsic.ret_type == "i64" and any(
+        operand.split(":", 1)[0] in ("GPRPair", "GPRPairRV32") for operand in instr.llvm_writes
+    ):
+        return "// Scalar pair intrinsic is selected by custom RV32 type legalization.\n"
     operands = {operand.split(":$", 1)[1]: operand for operand in instr.llvm_intrin_reads}
     declared = [arg.arg_name for arg in intrinsic.args]
     assert len(declared) == len(set(declared)), f"Duplicate intrinsic arguments for {instr.name}"

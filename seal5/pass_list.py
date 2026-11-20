@@ -701,6 +701,7 @@ def collect_register_operands(
     inplace: bool = True,
     use_subprocess: bool = False,
     log_level: str = "warning",
+    register_pairs: Optional[dict] = None,
     **_kwargs,
 ):
     assert inplace
@@ -714,6 +715,10 @@ def collect_register_operands(
         "--log",
         log_level if not verbose else "debug",
     ]
+    if register_pairs:
+        import json
+
+        args.extend(["--register-pairs", json.dumps(register_pairs)])
     if gen_metrics_file:
         # TODO: move to .seal5/metrics
         metrics_file = settings.temp_dir / (name + "_collect_register_operands_metrics.csv")
