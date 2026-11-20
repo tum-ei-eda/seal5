@@ -785,6 +785,11 @@ class Seal5Settings(YAMLSettings):
         return self._meta_dir / "settings.yml"
 
     @property
+    def source_dir(self):
+        """LLVM source directory as a path, including for patch conditions."""
+        return Path(self.directory)
+
+    @property
     def deps_dir(self):
         """Seal5 deps_dir getter."""
         return self._meta_dir / "deps"

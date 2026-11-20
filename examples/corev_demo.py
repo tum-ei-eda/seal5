@@ -66,8 +66,10 @@ FILES = [
     EXAMPLES_DIR / "common" / "cfg" / "passes.yml",
     EXAMPLES_DIR / "common" / "cfg" / "git.yml",
 ]
-if LLVM_REF.startswith("llvmorg-22."):
-    FILES.append(EXAMPLES_DIR / "corev" / "cfg" / "llvm22.yml")
+if LLVM_REF.startswith(("llvmorg-22.", "llvmorg-23.")):
+    LLVM_MAJOR = LLVM_REF.removeprefix("llvmorg-").split(".")[0]
+    FILES.append(EXAMPLES_DIR / "corev" / "cfg" / "corev.yml")
+    FILES.append(EXAMPLES_DIR / "corev" / "cfg" / f"llvm{LLVM_MAJOR}.yml")
     FILES.append(EXAMPLES_DIR / "corev" / "tests" / "simd" / "*.c")
 
 run_seal5_flow(FILES, name="corev", dest=DEST, lookup_paths=[EXAMPLES_DIR / "common/cdsl/rv_base"])
