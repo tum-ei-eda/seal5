@@ -16,7 +16,7 @@ import pathlib
 import pandas as pd
 
 from m2isar.metamodel import behav, type_info, attribute_info
-from seal5.model import Seal5InstrAttribute, Seal5OperandAttribute
+from seal5.model import Seal5InstrAttribute, Seal5OperandAttribute, Seal5RegisterClass
 from seal5.model_utils import load_model, dump_model
 
 
@@ -35,6 +35,7 @@ def get_parser():
     parser.add_argument("--compat", action="store_true")
     parser.add_argument("--allow-memory", action="store_true", help="Try experimental load/store patterns")
     parser.add_argument("--allow-branches", action="store_true", help="Try recognized branch intrinsic patterns")
+    parser.add_argument("--allow-csr", action="store_true", help="Try CSR state patterns")
     parser.add_argument(
         "--gisel-table", action="store_true", help="Try direct GlobalISel two-result arithmetic patterns"
     )
@@ -105,15 +106,28 @@ def run(args):
                 lowered_branch = Seal5InstrAttribute.IS_BRANCH in attributes
                 allowed_branch = args.allow_branches and lowered_branch
                 allowed_store = args.allow_memory and may_store and not may_load
-                expected_outs = 0 if allowed_store or allowed_branch else 1
+                csr_registers = {
+                    name
+                    for name, register in getattr(set_def, "registers", {}).items()
+                    if register.reg_class == Seal5RegisterClass.CSR
+                }
+                implicit_registers = set(attributes.get(Seal5InstrAttribute.USES, []))
+                implicit_registers.update(attributes.get(Seal5InstrAttribute.DEFS, []))
+                csr_operand = any(
+                    op.attributes.get(Seal5OperandAttribute.REG_CLASS) == Seal5RegisterClass.CSR.name
+                    or getattr(op, "reg_class", None) == Seal5RegisterClass.CSR
+                    for op in instr_def.operands.values()
+                )
+                csr_access = csr_operand or bool(implicit_registers & csr_registers)
+                uses_custom_reg = bool(implicit_registers - csr_registers)
+                allowed_csr = args.allow_csr and csr_access
+                expected_outs = 0 if allowed_store or allowed_branch or (allowed_csr and num_outs == 0) else 1
                 allowed_multi = (
                     args.gisel_table and num_outs == 2 and not (may_load or may_store or is_branch or lowered_branch)
                 )
                 has_loop = Seal5InstrAttribute.HAS_LOOP in attributes
                 # TODO: has_static_loop
                 has_call = Seal5InstrAttribute.HAS_CALL in attributes
-                uses_custom_reg = len(attributes.get(Seal5InstrAttribute.USES, []))
-                defs_custom_reg = len(attributes.get(Seal5InstrAttribute.DEFS, []))
                 # TODO: check if PC is being read/written -> not supported
                 # uses_pc = ?
                 skip_pattern_gen = (
@@ -128,7 +142,7 @@ def run(args):
                     or has_loop
                     or has_call
                     or uses_custom_reg
-                    or defs_custom_reg
+                    or (csr_access and not allowed_csr)
                 )
                 if skip_pattern_gen:
                     attributes[Seal5InstrAttribute.SKIP_PATTERN_GEN] = []

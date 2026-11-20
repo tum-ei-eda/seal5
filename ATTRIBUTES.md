@@ -68,8 +68,35 @@ Attributes controlling SEAL5 processing and code generation behavior.
 
 | Attribute | Scope | Origin | Description | Type | Example |
 |-----------|-------|--------|-------------|------|---------|
-| `SKIP_PATTERN_GEN` | Instruction | SEAL5 | Added to unsupported instructions to avoid invalid patterns. | `Bool` | |
+| `KEEP` | Instruction set / instruction | USER | Selects the set or instruction, overriding its name-based YAML filters. | `Bool` | `[[keep]]` |
+| `DROP` | Instruction set / instruction | USER | Excludes the set or instruction, overriding its name-based YAML filters. | `Bool` | `[[drop]]` |
+| `SKIP_PATTERN_GEN` | Instruction | USER/SEAL5 | Avoids PatternGen for an instruction, including when otherwise supported. | `Bool` | `[[skip_pattern_gen]]` |
 | `AUTO_UNROLL_LOOP` | Instruction | USER/SEAL5 | Unrolls loop bodies if feasible. | `Bool` | |
 | `AUTO_UNROLL_IMM` | Instruction | USER/SEAL5 | Instantiates one LLVM instruction per immediate value instead of a single generic one for pattern generation. | `Bool` | |
 | `AUTO_INTRIN` | Instruction | USER/SEAL5 | Automatically populates information about intrinsic functions and builtins if not provided by the user. | `Bool` | |
 | `INLINE` | Function | USER/SEAL5 | Inlines and flattens function behavior into the caller. | `Bool` | |
+
+If any set is marked `keep`, unmarked sets are excluded unless selected by a YAML
+`filter.sets.keep` expression. The same rule applies independently to instructions
+in the retained sets. A `drop` attribute always excludes its target. Specifying
+both `keep` and `drop` on the same target is an error. Opcode and encoding-size
+filters still apply to instructions marked `keep`; a kept instruction cannot
+rescue a dropped set. With no `keep` attributes, existing YAML filtering is
+unchanged.
+
+## Extension metadata
+
+Instruction-set attributes can supply extension settings, for example:
+
+```coredsl
+InstructionSet XCoreVMac extends RV32I [[keep]] [[ver=1.0]] [[experimental]] [[arch=xcvmac]] [[feature=XCVMac]] {
+    // ...
+}
+```
+
+`ver` (or `version`), `arch`, and `feature` accept a literal value. Version
+values retain their spelling, so `1.20` remains distinct from `1.2`.
+`experimental` is a flag or accepts `true`/`false`. Explicit YAML extension
+settings override the corresponding attributes; unspecified settings use the
+attributes or the usual defaults. Set attributes are local to the declaration
+and are not inherited from extended sets.

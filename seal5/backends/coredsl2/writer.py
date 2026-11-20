@@ -20,7 +20,6 @@ from seal5.logging import Logger
 
 from .utils import Seal5CoreDSL2Writer
 
-
 logger = Logger("backends.coredsl2_writer")
 
 

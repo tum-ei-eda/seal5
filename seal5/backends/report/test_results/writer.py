@@ -24,6 +24,15 @@ from seal5.logging import Logger
 logger = Logger("backends.test_results_writer")
 
 
+def latest_test_metrics(metrics):
+    """Report the latest attempt when a saved build is tested again."""
+    for stages_metrics in reversed(metrics):
+        assert len(stages_metrics) == 1
+        if "test" in stages_metrics:
+            return stages_metrics["test"]
+    return None
+
+
 def main():
     """Main app entrypoint."""
 
@@ -57,12 +66,7 @@ def main():
     settings = Seal5Settings.from_yaml_file(args.yaml)
 
     def map_tests(metrics):
-        test_metrics = None
-        for stages_metrics in metrics:
-            assert len(stages_metrics) == 1
-            if "test" in stages_metrics.keys():
-                test_metrics = stages_metrics["test"]
-                break
+        test_metrics = latest_test_metrics(metrics)
         if test_metrics is None:
             logger.warning("Could not find test metrics. Make sure to run TEST stage!")
             return {}, []

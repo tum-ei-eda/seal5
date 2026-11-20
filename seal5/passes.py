@@ -218,6 +218,22 @@ class Seal5Pass:
         return PassResult(metrics=self.metrics)
 
 
+PROGRESS_MODES = ("none", "tqdm", "rich")
+PROGRESS_ENV_VAR = "SEAL5_PROGRESS"
+
+
+def get_progress_mode(settings: Optional[Seal5Settings]):
+    """Resolve progress mode: SEAL5_PROGRESS env var (set by --progress CLI flag) overrides settings."""
+    mode = os.environ.get(PROGRESS_ENV_VAR) or None
+    if mode is not None:
+        mode = mode.lower()
+        if mode not in PROGRESS_MODES:
+            raise ValueError(f"Invalid {PROGRESS_ENV_VAR}: {mode} (expected {', '.join(PROGRESS_MODES)})")
+    else:
+        mode = getattr(getattr(settings, "logging", None), "progress", None)
+    return mode if mode in ("tqdm", "rich") else None
+
+
 class PassManager:
     def __init__(
         self,
@@ -284,13 +300,49 @@ class PassManager:
                         logger.error(msg)
                         raise RuntimeError(msg)
 
-        for pass_ in self.pass_list:
+        progress_mode = None if self.has_parent else get_progress_mode(settings)
+        progress = None
+        task = None
+        pass_iter = self.pass_list
+        if progress_mode == "tqdm":
+            from tqdm import tqdm
+
+            pass_iter = progress = tqdm(self.pass_list, desc=self.name, unit="pass")
+        elif progress_mode == "rich":
+            from rich.progress import Progress
+
+            progress = Progress()
+            progress.start()
+            task = progress.add_task(self.name, total=len(self.pass_list))
+
+        try:
+            self._run_passes(pass_iter, input_models, settings, env, verbose, progress_mode, progress, task)
+        finally:
+            if progress_mode == "rich":
+                progress.stop()
+            elif progress_mode == "tqdm":
+                progress.close()
+        end = time.time()
+        diff = end - start
+        self.metrics["start"] = start
+        self.metrics["end"] = end
+        self.metrics["time_s"] = diff
+        return PassResult(metrics=self.metrics)
+
+    def _run_passes(self, pass_iter, input_models, settings, env, verbose, progress_mode, progress, task):
+        for pass_ in pass_iter:
+            if progress_mode == "tqdm":
+                progress.set_postfix_str(pass_.name)
+            elif progress_mode == "rich":
+                progress.update(task, description=f"{self.name}: {pass_.name}")
             # input_models_ = []
             # for model_name in input_models:
             #    overrides = passes_settings.per_model.get(model_name, None)
             #    if overrides:
             if check_filter(pass_.name, self.skip, self.only):
                 pass_.skip()
+                if progress_mode == "rich":
+                    progress.advance(task)
                 continue
             assert pass_.is_pending, f"Pass {pass_.name} is not pending"
             result = pass_.run(input_models, settings=settings, env=env, verbose=verbose, parent=self)
@@ -298,12 +350,8 @@ class PassManager:
                 metrics = result.metrics
                 if metrics:
                     self.metrics["passes"].append({pass_.name: metrics})
-        end = time.time()
-        diff = end - start
-        self.metrics["start"] = start
-        self.metrics["end"] = end
-        self.metrics["time_s"] = diff
-        return PassResult(metrics=self.metrics)
+            if progress_mode == "rich":
+                progress.advance(task)
 
 
 def filter_passes(

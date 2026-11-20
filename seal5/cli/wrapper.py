@@ -18,8 +18,10 @@
 #
 """Command line subcommand for Exporting Seal5 artifacts"""
 
+import argparse
+
 from seal5.logging import Logger
-from seal5.wrapper import run_seal5_flow
+from seal5.wrapper import REPORT, REPORT_DIR, run_seal5_flow
 
 logger = Logger("cli")
 
@@ -38,6 +40,18 @@ def add_wrapper_options(parser):
         default=None,
         help="Destination of artifacts",
     )
+    wrapper_parser.add_argument(
+        "--report",
+        action=argparse.BooleanOptionalAction,
+        default=REPORT,
+        help="Generate reports at the end of the flow",
+    )
+    wrapper_parser.add_argument(
+        "--report-dir",
+        type=str,
+        default=REPORT_DIR,
+        help="Directory for generated reports (default: .seal5/reports)",
+    )
     wrapper_parser.add_argument("-I", dest="includes", action="append", default=None, help="Extra include directories")
 
 
@@ -51,4 +65,11 @@ def get_parser(subparsers):
 
 def handle(args):
     """Callback function which will be called to process the export subcommand"""
-    run_seal5_flow(args.files, dest=args.dir, out_dir=args.out_dir, lookup_paths=args.includes)
+    run_seal5_flow(
+        args.files,
+        dest=args.dir,
+        out_dir=args.out_dir,
+        lookup_paths=args.includes,
+        report=args.report,
+        report_dir=args.report_dir,
+    )

@@ -37,6 +37,7 @@ def transform_model(model, *, memory=False, registers=False, subscripts=False, b
                     instr.operation = operation
                     instr.operands[offset_name].attributes[Seal5OperandAttribute.IS_BRANCH_OFFS] = []
                     instr.attributes[Seal5InstrAttribute.IS_BRANCH] = []
+                    instr.attributes[Seal5InstrAttribute.IS_TERMINATOR] = []
                     counts["branches"] += 1
         for name, visitor in visitors:
             counts[name] += visitor.changed

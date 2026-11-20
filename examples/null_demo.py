@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 """Demo script for Seal5 Python API, building a toolchain without custom instructions."""
+
 import os
 
 # import logging

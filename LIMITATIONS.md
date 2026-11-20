@@ -3,13 +3,13 @@
 - Unsupported Instruction Types
   - Memory
   - Branch
-  - CSR instructions
 - Unsupported DataTypes
   - Float (`f32`,...)
   - Vectors except (`v2i16`, `v4i8`)
   - Scalars except (`i8`, `i16`, `i32`, `i64`)
 - Codegen Limitations (Patterns)
   - GlobalISel only, ISelDAG backwards-compatibility is planned, see Issue #11
+  - CSR state patterns require `passes.overrides.check_pattern_support.allow_csr: true`
   - Single output-only
   - Single basic block (?)
   - No memory access
