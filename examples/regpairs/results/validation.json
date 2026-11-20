@@ -1,0 +1,1156 @@
+{
+  "llvm_base": "f3e4c5705c2da4ecadc2babeae356e2960220293",
+  "llvm_build": "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions",
+  "source_models": "examples/regpairs/cdsl/RegPairs.core_desc",
+  "validation_scope": "Generated into separate SEAL5 metadata and installed into the existing assertions-enabled LLVM 23 compiler; not a clean standalone compiler rebuild.",
+  "python_tests": 134,
+  "source_lit_tests": 6,
+  "corev_regression": {
+    "passed": 651,
+    "unsupported": 2
+  },
+  "semantic_cases": 1525,
+  "execution": {
+    "levels": [
+      0,
+      2,
+      3
+    ],
+    "boundary_inputs": 49,
+    "random_inputs": 4096,
+    "register_pressure_inputs": 128,
+    "reference_compiler": "/work/git/m2isar/m2isar_new/install/bin/riscv64-unknown-elf-gcc",
+    "all_commands_passed": true,
+    "commands": [
+      {
+        "name": "plugin",
+        "command": [
+          "c++",
+          "-std=c++17",
+          "-fPIC",
+          "-shared",
+          "-I/tmp/m2isar-spike/riscv",
+          "-I/tmp/m2isar-spike",
+          "-I/tmp/m2isar-spike-build",
+          "/work/git/seal5_new/examples/regpairs/runtime/spike.cc",
+          "-o",
+          "/tmp/seal5-regpairs-extra-execution/libseal5-regpairs.so"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "reference",
+        "command": [
+          "/work/git/m2isar/m2isar_new/install/bin/riscv64-unknown-elf-gcc",
+          "-march=rv32im",
+          "-mabi=ilp32",
+          "-O2",
+          "-c",
+          "/work/git/seal5_new/examples/regpairs/runtime/check.c",
+          "-o",
+          "/tmp/seal5-regpairs-extra-execution/reference.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "builtins-O0",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/clang",
+          "--target=riscv32",
+          "-march=rv32imxregpairs",
+          "-mabi=ilp32",
+          "-O0",
+          "-mllvm",
+          "-verify-machineinstrs",
+          "-c",
+          "/work/git/seal5_new/examples/regpairs/tests/pair.test-builtin.c",
+          "-o",
+          "/tmp/seal5-regpairs-extra-execution/builtins-O0.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "builtins-O0-disassembly",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/llvm-objdump",
+          "-d",
+          "--mattr=+xregpairs",
+          "--disassembler-options=numeric",
+          "/tmp/seal5-regpairs-extra-execution/builtins-O0.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "intrinsics-O0",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/clang",
+          "--target=riscv32",
+          "-march=rv32imxregpairs",
+          "-mabi=ilp32",
+          "-O0",
+          "-mllvm",
+          "-verify-machineinstrs",
+          "-c",
+          "/tmp/seal5-regpairs-extra-execution/intrinsics.ll",
+          "-o",
+          "/tmp/seal5-regpairs-extra-execution/intrinsics-O0.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "intrinsics-O0-disassembly",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/llvm-objdump",
+          "-d",
+          "--mattr=+xregpairs",
+          "--disassembler-options=numeric",
+          "/tmp/seal5-regpairs-extra-execution/intrinsics-O0.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "stress-O0",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/clang",
+          "--target=riscv32",
+          "-march=rv32imxregpairs",
+          "-mabi=ilp32",
+          "-O0",
+          "-mllvm",
+          "-verify-machineinstrs",
+          "-c",
+          "/work/git/seal5_new/examples/regpairs/runtime/stress.c",
+          "-o",
+          "/tmp/seal5-regpairs-extra-execution/stress-O0.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "stress-O0-disassembly",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/llvm-objdump",
+          "-d",
+          "--mattr=+xregpairs",
+          "--disassembler-options=numeric",
+          "/tmp/seal5-regpairs-extra-execution/stress-O0.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "automatic-O0",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/clang",
+          "--target=riscv32",
+          "-march=rv32imxregpairs",
+          "-mabi=ilp32",
+          "-O0",
+          "-mllvm",
+          "-verify-machineinstrs",
+          "-c",
+          "/work/git/seal5_new/examples/regpairs/runtime/automatic.c",
+          "-o",
+          "/tmp/seal5-regpairs-extra-execution/automatic-O0.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "automatic-O0-disassembly",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/llvm-objdump",
+          "-d",
+          "--mattr=+xregpairs",
+          "--disassembler-options=numeric",
+          "/tmp/seal5-regpairs-extra-execution/automatic-O0.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "alias-O0",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/clang",
+          "--target=riscv32",
+          "-march=rv32imxregpairs",
+          "-mabi=ilp32",
+          "-O0",
+          "-mllvm",
+          "-verify-machineinstrs",
+          "-c",
+          "/work/git/seal5_new/examples/regpairs/runtime/alias.S",
+          "-o",
+          "/tmp/seal5-regpairs-extra-execution/alias-O0.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "alias-O0-disassembly",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/llvm-objdump",
+          "-d",
+          "--mattr=+xregpairs",
+          "--disassembler-options=numeric",
+          "/tmp/seal5-regpairs-extra-execution/alias-O0.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "link-O0",
+        "command": [
+          "/work/git/m2isar/m2isar_new/install/bin/riscv64-unknown-elf-gcc",
+          "-march=rv32im",
+          "-mabi=ilp32",
+          "-O2",
+          "-nostdlib",
+          "-Wl,-T,/work/git/seal5_new/examples/packed_simd/runtime/link.ld",
+          "/work/git/seal5_new/examples/packed_simd/runtime/start.S",
+          "/tmp/seal5-regpairs-extra-execution/reference.o",
+          "/tmp/seal5-regpairs-extra-execution/builtins-O0.o",
+          "/tmp/seal5-regpairs-extra-execution/intrinsics-O0.o",
+          "/tmp/seal5-regpairs-extra-execution/stress-O0.o",
+          "/tmp/seal5-regpairs-extra-execution/automatic-O0.o",
+          "/tmp/seal5-regpairs-extra-execution/alias-O0.o",
+          "-lgcc",
+          "-o",
+          "/tmp/seal5-regpairs-extra-execution/check-O0.elf"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "execute-O0",
+        "command": [
+          "/tmp/m2isar-spike-build/spike",
+          "--isa=RV32IM",
+          "-m128",
+          "--extlib=/tmp/seal5-regpairs-extra-execution/libseal5-regpairs.so",
+          "--extension=seal5_regpairs",
+          "/tmp/seal5-regpairs-extra-execution/check-O0.elf"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "builtins-O2",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/clang",
+          "--target=riscv32",
+          "-march=rv32imxregpairs",
+          "-mabi=ilp32",
+          "-O2",
+          "-mllvm",
+          "-verify-machineinstrs",
+          "-c",
+          "/work/git/seal5_new/examples/regpairs/tests/pair.test-builtin.c",
+          "-o",
+          "/tmp/seal5-regpairs-extra-execution/builtins-O2.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "builtins-O2-disassembly",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/llvm-objdump",
+          "-d",
+          "--mattr=+xregpairs",
+          "--disassembler-options=numeric",
+          "/tmp/seal5-regpairs-extra-execution/builtins-O2.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "intrinsics-O2",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/clang",
+          "--target=riscv32",
+          "-march=rv32imxregpairs",
+          "-mabi=ilp32",
+          "-O2",
+          "-mllvm",
+          "-verify-machineinstrs",
+          "-c",
+          "/tmp/seal5-regpairs-extra-execution/intrinsics.ll",
+          "-o",
+          "/tmp/seal5-regpairs-extra-execution/intrinsics-O2.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "intrinsics-O2-disassembly",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/llvm-objdump",
+          "-d",
+          "--mattr=+xregpairs",
+          "--disassembler-options=numeric",
+          "/tmp/seal5-regpairs-extra-execution/intrinsics-O2.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "stress-O2",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/clang",
+          "--target=riscv32",
+          "-march=rv32imxregpairs",
+          "-mabi=ilp32",
+          "-O2",
+          "-mllvm",
+          "-verify-machineinstrs",
+          "-c",
+          "/work/git/seal5_new/examples/regpairs/runtime/stress.c",
+          "-o",
+          "/tmp/seal5-regpairs-extra-execution/stress-O2.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "stress-O2-disassembly",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/llvm-objdump",
+          "-d",
+          "--mattr=+xregpairs",
+          "--disassembler-options=numeric",
+          "/tmp/seal5-regpairs-extra-execution/stress-O2.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "automatic-O2",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/clang",
+          "--target=riscv32",
+          "-march=rv32imxregpairs",
+          "-mabi=ilp32",
+          "-O2",
+          "-mllvm",
+          "-verify-machineinstrs",
+          "-c",
+          "/work/git/seal5_new/examples/regpairs/runtime/automatic.c",
+          "-o",
+          "/tmp/seal5-regpairs-extra-execution/automatic-O2.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "automatic-O2-disassembly",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/llvm-objdump",
+          "-d",
+          "--mattr=+xregpairs",
+          "--disassembler-options=numeric",
+          "/tmp/seal5-regpairs-extra-execution/automatic-O2.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "alias-O2",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/clang",
+          "--target=riscv32",
+          "-march=rv32imxregpairs",
+          "-mabi=ilp32",
+          "-O2",
+          "-mllvm",
+          "-verify-machineinstrs",
+          "-c",
+          "/work/git/seal5_new/examples/regpairs/runtime/alias.S",
+          "-o",
+          "/tmp/seal5-regpairs-extra-execution/alias-O2.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "alias-O2-disassembly",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/llvm-objdump",
+          "-d",
+          "--mattr=+xregpairs",
+          "--disassembler-options=numeric",
+          "/tmp/seal5-regpairs-extra-execution/alias-O2.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "link-O2",
+        "command": [
+          "/work/git/m2isar/m2isar_new/install/bin/riscv64-unknown-elf-gcc",
+          "-march=rv32im",
+          "-mabi=ilp32",
+          "-O2",
+          "-nostdlib",
+          "-Wl,-T,/work/git/seal5_new/examples/packed_simd/runtime/link.ld",
+          "/work/git/seal5_new/examples/packed_simd/runtime/start.S",
+          "/tmp/seal5-regpairs-extra-execution/reference.o",
+          "/tmp/seal5-regpairs-extra-execution/builtins-O2.o",
+          "/tmp/seal5-regpairs-extra-execution/intrinsics-O2.o",
+          "/tmp/seal5-regpairs-extra-execution/stress-O2.o",
+          "/tmp/seal5-regpairs-extra-execution/automatic-O2.o",
+          "/tmp/seal5-regpairs-extra-execution/alias-O2.o",
+          "-lgcc",
+          "-o",
+          "/tmp/seal5-regpairs-extra-execution/check-O2.elf"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "execute-O2",
+        "command": [
+          "/tmp/m2isar-spike-build/spike",
+          "--isa=RV32IM",
+          "-m128",
+          "--extlib=/tmp/seal5-regpairs-extra-execution/libseal5-regpairs.so",
+          "--extension=seal5_regpairs",
+          "/tmp/seal5-regpairs-extra-execution/check-O2.elf"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "builtins-O3",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/clang",
+          "--target=riscv32",
+          "-march=rv32imxregpairs",
+          "-mabi=ilp32",
+          "-O3",
+          "-mllvm",
+          "-verify-machineinstrs",
+          "-c",
+          "/work/git/seal5_new/examples/regpairs/tests/pair.test-builtin.c",
+          "-o",
+          "/tmp/seal5-regpairs-extra-execution/builtins-O3.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "builtins-O3-disassembly",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/llvm-objdump",
+          "-d",
+          "--mattr=+xregpairs",
+          "--disassembler-options=numeric",
+          "/tmp/seal5-regpairs-extra-execution/builtins-O3.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "intrinsics-O3",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/clang",
+          "--target=riscv32",
+          "-march=rv32imxregpairs",
+          "-mabi=ilp32",
+          "-O3",
+          "-mllvm",
+          "-verify-machineinstrs",
+          "-c",
+          "/tmp/seal5-regpairs-extra-execution/intrinsics.ll",
+          "-o",
+          "/tmp/seal5-regpairs-extra-execution/intrinsics-O3.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "intrinsics-O3-disassembly",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/llvm-objdump",
+          "-d",
+          "--mattr=+xregpairs",
+          "--disassembler-options=numeric",
+          "/tmp/seal5-regpairs-extra-execution/intrinsics-O3.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "stress-O3",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/clang",
+          "--target=riscv32",
+          "-march=rv32imxregpairs",
+          "-mabi=ilp32",
+          "-O3",
+          "-mllvm",
+          "-verify-machineinstrs",
+          "-c",
+          "/work/git/seal5_new/examples/regpairs/runtime/stress.c",
+          "-o",
+          "/tmp/seal5-regpairs-extra-execution/stress-O3.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "stress-O3-disassembly",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/llvm-objdump",
+          "-d",
+          "--mattr=+xregpairs",
+          "--disassembler-options=numeric",
+          "/tmp/seal5-regpairs-extra-execution/stress-O3.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "automatic-O3",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/clang",
+          "--target=riscv32",
+          "-march=rv32imxregpairs",
+          "-mabi=ilp32",
+          "-O3",
+          "-mllvm",
+          "-verify-machineinstrs",
+          "-c",
+          "/work/git/seal5_new/examples/regpairs/runtime/automatic.c",
+          "-o",
+          "/tmp/seal5-regpairs-extra-execution/automatic-O3.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "automatic-O3-disassembly",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/llvm-objdump",
+          "-d",
+          "--mattr=+xregpairs",
+          "--disassembler-options=numeric",
+          "/tmp/seal5-regpairs-extra-execution/automatic-O3.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "alias-O3",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/clang",
+          "--target=riscv32",
+          "-march=rv32imxregpairs",
+          "-mabi=ilp32",
+          "-O3",
+          "-mllvm",
+          "-verify-machineinstrs",
+          "-c",
+          "/work/git/seal5_new/examples/regpairs/runtime/alias.S",
+          "-o",
+          "/tmp/seal5-regpairs-extra-execution/alias-O3.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "alias-O3-disassembly",
+        "command": [
+          "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/llvm-objdump",
+          "-d",
+          "--mattr=+xregpairs",
+          "--disassembler-options=numeric",
+          "/tmp/seal5-regpairs-extra-execution/alias-O3.o"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "link-O3",
+        "command": [
+          "/work/git/m2isar/m2isar_new/install/bin/riscv64-unknown-elf-gcc",
+          "-march=rv32im",
+          "-mabi=ilp32",
+          "-O2",
+          "-nostdlib",
+          "-Wl,-T,/work/git/seal5_new/examples/packed_simd/runtime/link.ld",
+          "/work/git/seal5_new/examples/packed_simd/runtime/start.S",
+          "/tmp/seal5-regpairs-extra-execution/reference.o",
+          "/tmp/seal5-regpairs-extra-execution/builtins-O3.o",
+          "/tmp/seal5-regpairs-extra-execution/intrinsics-O3.o",
+          "/tmp/seal5-regpairs-extra-execution/stress-O3.o",
+          "/tmp/seal5-regpairs-extra-execution/automatic-O3.o",
+          "/tmp/seal5-regpairs-extra-execution/alias-O3.o",
+          "-lgcc",
+          "-o",
+          "/tmp/seal5-regpairs-extra-execution/check-O3.elf"
+        ],
+        "exit_code": 0
+      },
+      {
+        "name": "execute-O3",
+        "command": [
+          "/tmp/m2isar-spike-build/spike",
+          "--isa=RV32IM",
+          "-m128",
+          "--extlib=/tmp/seal5-regpairs-extra-execution/libseal5-regpairs.so",
+          "--extension=seal5_regpairs",
+          "/tmp/seal5-regpairs-extra-execution/check-O3.elf"
+        ],
+        "exit_code": 0
+      }
+    ],
+    "ordinary_scalar_and_explicit_vector_addition": true,
+    "operations": [
+      "PAIR_ADD64",
+      "PAIR_ADD_2X32",
+      "PAIR_SUB64",
+      "PAIR_SUB_2X32",
+      "PAIR_MUL_2X32"
+    ],
+    "all_five_mnemonics_checked_in_builtin_intrinsic_automatic_and_alias_objects": true
+  },
+  "probes": [
+    {
+      "name": "PAIR_ADD64-semantics",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-probe/input/XRegPairs/PAIR_ADD64.core_desc",
+        "--riscv-xlen=32",
+        "--skip-patterns",
+        "--skip-formats",
+        "-o",
+        "/tmp/seal5-regpairs-extra-probe/PAIR_ADD64.ll"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "PAIR_ADD64-custom",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-probe/input/XRegPairs/PAIR_ADD64.core_desc",
+        "--riscv-xlen=32",
+        "--skip-formats",
+        "--skip-verify",
+        "--mattr=+m,+xregpairs",
+        "-p",
+        "HasStdExtXRegPairs,IsRV32",
+        "-o",
+        "/tmp/seal5-regpairs-extra-probe/PAIR_ADD64-custom.td"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "PAIR_ADD64-native-p",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-probe/input/XRegPairs/PAIR_ADD64.core_desc",
+        "--riscv-xlen=32",
+        "--skip-formats",
+        "--skip-verify",
+        "--mattr=+m,+experimental-p",
+        "-p",
+        "HasStdExtXRegPairs,IsRV32",
+        "-o",
+        "/tmp/seal5-regpairs-extra-probe/PAIR_ADD64-native-p.td"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "PAIR_ADD_2X32-semantics",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-probe/input/XRegPairs/PAIR_ADD_2X32.core_desc",
+        "--riscv-xlen=32",
+        "--skip-patterns",
+        "--skip-formats",
+        "-o",
+        "/tmp/seal5-regpairs-extra-probe/PAIR_ADD_2X32.ll"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "PAIR_ADD_2X32-custom",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-probe/input/XRegPairs/PAIR_ADD_2X32.core_desc",
+        "--riscv-xlen=32",
+        "--skip-formats",
+        "--skip-verify",
+        "--mattr=+m,+xregpairs",
+        "-p",
+        "HasStdExtXRegPairs,IsRV32",
+        "-o",
+        "/tmp/seal5-regpairs-extra-probe/PAIR_ADD_2X32-custom.td"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "PAIR_ADD_2X32-native-p",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-probe/input/XRegPairs/PAIR_ADD_2X32.core_desc",
+        "--riscv-xlen=32",
+        "--skip-formats",
+        "--skip-verify",
+        "--mattr=+m,+experimental-p",
+        "-p",
+        "HasStdExtXRegPairs,IsRV32",
+        "-o",
+        "/tmp/seal5-regpairs-extra-probe/PAIR_ADD_2X32-native-p.td"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "PAIR_MUL_2X32-semantics",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-probe/input/XRegPairs/PAIR_MUL_2X32.core_desc",
+        "--riscv-xlen=32",
+        "--skip-patterns",
+        "--skip-formats",
+        "-o",
+        "/tmp/seal5-regpairs-extra-probe/PAIR_MUL_2X32.ll"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "PAIR_MUL_2X32-custom",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-probe/input/XRegPairs/PAIR_MUL_2X32.core_desc",
+        "--riscv-xlen=32",
+        "--skip-formats",
+        "--skip-verify",
+        "--mattr=+m,+xregpairs",
+        "-p",
+        "HasStdExtXRegPairs,IsRV32",
+        "-o",
+        "/tmp/seal5-regpairs-extra-probe/PAIR_MUL_2X32-custom.td"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "PAIR_MUL_2X32-native-p",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-probe/input/XRegPairs/PAIR_MUL_2X32.core_desc",
+        "--riscv-xlen=32",
+        "--skip-formats",
+        "--skip-verify",
+        "--mattr=+m,+experimental-p",
+        "-p",
+        "HasStdExtXRegPairs,IsRV32",
+        "-o",
+        "/tmp/seal5-regpairs-extra-probe/PAIR_MUL_2X32-native-p.td"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "PAIR_SUB64-semantics",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-probe/input/XRegPairs/PAIR_SUB64.core_desc",
+        "--riscv-xlen=32",
+        "--skip-patterns",
+        "--skip-formats",
+        "-o",
+        "/tmp/seal5-regpairs-extra-probe/PAIR_SUB64.ll"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "PAIR_SUB64-custom",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-probe/input/XRegPairs/PAIR_SUB64.core_desc",
+        "--riscv-xlen=32",
+        "--skip-formats",
+        "--skip-verify",
+        "--mattr=+m,+xregpairs",
+        "-p",
+        "HasStdExtXRegPairs,IsRV32",
+        "-o",
+        "/tmp/seal5-regpairs-extra-probe/PAIR_SUB64-custom.td"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "PAIR_SUB64-native-p",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-probe/input/XRegPairs/PAIR_SUB64.core_desc",
+        "--riscv-xlen=32",
+        "--skip-formats",
+        "--skip-verify",
+        "--mattr=+m,+experimental-p",
+        "-p",
+        "HasStdExtXRegPairs,IsRV32",
+        "-o",
+        "/tmp/seal5-regpairs-extra-probe/PAIR_SUB64-native-p.td"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "PAIR_SUB_2X32-semantics",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-probe/input/XRegPairs/PAIR_SUB_2X32.core_desc",
+        "--riscv-xlen=32",
+        "--skip-patterns",
+        "--skip-formats",
+        "-o",
+        "/tmp/seal5-regpairs-extra-probe/PAIR_SUB_2X32.ll"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "PAIR_SUB_2X32-custom",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-probe/input/XRegPairs/PAIR_SUB_2X32.core_desc",
+        "--riscv-xlen=32",
+        "--skip-formats",
+        "--skip-verify",
+        "--mattr=+m,+xregpairs",
+        "-p",
+        "HasStdExtXRegPairs,IsRV32",
+        "-o",
+        "/tmp/seal5-regpairs-extra-probe/PAIR_SUB_2X32-custom.td"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "PAIR_SUB_2X32-native-p",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-probe/input/XRegPairs/PAIR_SUB_2X32.core_desc",
+        "--riscv-xlen=32",
+        "--skip-formats",
+        "--skip-verify",
+        "--mattr=+m,+experimental-p",
+        "-p",
+        "HasStdExtXRegPairs,IsRV32",
+        "-o",
+        "/tmp/seal5-regpairs-extra-probe/PAIR_SUB_2X32-native-p.td"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "loops-custom",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/clang",
+        "--target=riscv32",
+        "-march=rv32imxregpairs",
+        "-O3",
+        "-Rpass=loop-vectorize",
+        "-Rpass-missed=loop-vectorize",
+        "-S",
+        "/work/git/seal5_new/examples/regpairs/feasibility/loops.c",
+        "-o",
+        "/tmp/seal5-regpairs-extra-probe/loops-custom.s"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "loops-custom-ir",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/clang",
+        "--target=riscv32",
+        "-march=rv32imxregpairs",
+        "-O3",
+        "-Rpass=loop-vectorize",
+        "-Rpass-missed=loop-vectorize",
+        "-S",
+        "/work/git/seal5_new/examples/regpairs/feasibility/loops.c",
+        "-emit-llvm",
+        "-o",
+        "/tmp/seal5-regpairs-extra-probe/loops-custom.ll"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "loops-native-p",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/clang",
+        "--target=riscv32",
+        "-march=rv32imp0p21",
+        "-menable-experimental-extensions",
+        "-O3",
+        "-Rpass=loop-vectorize",
+        "-Rpass-missed=loop-vectorize",
+        "-S",
+        "/work/git/seal5_new/examples/regpairs/feasibility/loops.c",
+        "-o",
+        "/tmp/seal5-regpairs-extra-probe/loops-native-p.s"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "loops-native-p-ir",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/clang",
+        "--target=riscv32",
+        "-march=rv32imp0p21",
+        "-menable-experimental-extensions",
+        "-O3",
+        "-Rpass=loop-vectorize",
+        "-Rpass-missed=loop-vectorize",
+        "-S",
+        "/work/git/seal5_new/examples/regpairs/feasibility/loops.c",
+        "-emit-llvm",
+        "-o",
+        "/tmp/seal5-regpairs-extra-probe/loops-native-p.ll"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "vector-custom",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/llc",
+        "-mtriple=riscv32",
+        "-mattr=+m,+xregpairs",
+        "-verify-machineinstrs",
+        "/work/git/seal5_new/examples/regpairs/feasibility/vector.ll",
+        "-o",
+        "/tmp/seal5-regpairs-extra-probe/vector-custom.s"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "vector-native-p",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/llc",
+        "-mtriple=riscv32",
+        "-mattr=+m,+experimental-p",
+        "-verify-machineinstrs",
+        "/work/git/seal5_new/examples/regpairs/feasibility/vector.ll",
+        "-o",
+        "/tmp/seal5-regpairs-extra-probe/vector-native-p.s"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "globalisel",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/llc",
+        "-mtriple=riscv32",
+        "-mattr=+m,+xregpairs",
+        "-global-isel=1",
+        "-global-isel-abort=1",
+        "-verify-machineinstrs",
+        "/work/git/seal5_new/examples/regpairs/tests/pair.test-intrinsic.ll",
+        "-o",
+        "/tmp/seal5-regpairs-extra-probe/globalisel.s"
+      ],
+      "exit_code": 1
+    }
+  ],
+  "implementation_sha256": {
+    "examples/gpr32_demo.py": "a0711e0baf7413c04d5ff80b4d21a741d2930fa87ce1d4ef1b2b01166d832d24",
+    "examples/regpairs/README.md": "baaf8dfcef3ab8f1ff7f8637bdbb2dfec9a5437251bdcfef16a286ba9bcd325c",
+    "examples/regpairs/cdsl/RegPairs.core_desc": "c47a56f7f153ef6023c72e31360e7abeb0971d908415ba603b260c3e04a9ebfc",
+    "examples/regpairs/cfg/regpairs.yml": "55c9c396006b26594a4175d5ae6c857ea6de43b42ddafa5de37f851a0b041db3",
+    "examples/regpairs/check_extraction.py": "6e3cf816d03f28963fc1be6b4abf84b0950c6ff24a32c77702673b28784c5895",
+    "examples/regpairs/check_semantics.py": "528d1dc996a7a016ff7043ccb7db09fa1f5729a10a77006112202dc98836e19d",
+    "examples/regpairs/execute.py": "cb9760e86df24ad580ffbb138f238ac17ee029f14159018c7f81aa3a803cf5ec",
+    "examples/regpairs/feasibility/loops.c": "a852647b61c9cfa2d66a83cced9a50cb54e71a5c959a52ebe61d838bb2cb0d40",
+    "examples/regpairs/feasibility/vector.ll": "d7e0a1424308bac18be3a4b39e3db4f5968aa0a47daf25033d97d913e8e69dba",
+    "examples/regpairs/patches/llvm23-pair-capability.patch": "ce7e364d3c6d122c788666e2006e0acf39be36627b438c84a1fd3c22ba769b11",
+    "examples/regpairs/patches/llvm23-pair-extraction.patch": "c024792d4184528619577c695f51759eaf6811fcc1b2a13db841654affe94c50",
+    "examples/regpairs/patches/llvm23-pair-intrinsics.patch": "b28fd165ab226ce20d68b847919586ac37ede78794dfc9e12f5e0b3f03c62e93",
+    "examples/regpairs/patches/llvm23-pair-legalization.patch": "30dc720665e7923d61635733dd0df16da86cbe1dcc5f06599c14a1296798bfe3",
+    "examples/regpairs/patches/llvm23-pair-parser.patch": "4eeb0df7148b8d14344a69c823d47250ea4a435a80f50ee79ba7d1aa874c6b57",
+    "examples/regpairs/probe.py": "a724b12beb439e3ac88cb9a2ea95b37d14d9b7dd76673b3f9a6f3a7670b470d7",
+    "examples/regpairs/runtime/alias.S": "498470f2e4e7b1719795a544b8ba702d5680711297a03433c4ad9fd4b8cf7b27",
+    "examples/regpairs/runtime/automatic.c": "559a6cc6f0ab1bcd4603c5da1a62fd30479e946342d1538fb2ffe09e672b2573",
+    "examples/regpairs/runtime/check.c": "2a28f330f6db7a9fd5c5d59c26b89efc835ac1dc7927154ce466d2e04cf94407",
+    "examples/regpairs/runtime/spike.cc": "a89963de9c3612ed7875c5af0d06ef825d5bf764dc7b73e32611704dc9ae5f34",
+    "examples/regpairs/runtime/stress.c": "37ac8f371abf11f291326c82e4a8047792bfc91106608dfe8034a65f8b152a95",
+    "examples/regpairs/tests/pair.test-arithmetic.ll": "a16449f553dd6890c66af15cd43d7cf8e6b66daa7c9d5932ec1e24b24eef9b44",
+    "examples/regpairs/tests/pair.test-builtin.c": "d5a5f9b2bac2d23b19e6387972efe342b035970047ed35ce680cab1bae3eefdb",
+    "examples/regpairs/tests/pair.test-codegen.ll": "a03327ccc448b8534a427a7382fca34a636993d5d7287e6774a500377015ad22",
+    "examples/regpairs/tests/pair.test-intrinsic.ll": "5ba813df03cf8e61d0520291ce1ac84ad4bf1a7769f0e826ed64be466afecfeb",
+    "examples/regpairs/tests/pair.test-mc-invalid.s": "5be18b826bd43af87dfe78aadec754da737687e7fcd8acbee8a9ba689e6cd7da",
+    "examples/regpairs/tests/pair.test-mc.s": "77df13d5eba57b01957aa6f4f37b8c4b71ba80dc60e06b9393f3934b09b8eab7",
+    "examples/regpairs_demo.py": "f4c2694ede32f4801ada34350f022dcea23081757f8b00c9de7150d231292ab2",
+    "seal5/backends/coredsl2/writer.py": "b149f6a07a06b7c113d15d3bdda6aa3abad3dec46aa69eb446be0853b25c7d8b",
+    "seal5/backends/patterngen/writer.py": "51b2a68d864d3c761700c75ae4bf7a0c1a03257ddfed7adbc06cca921aac1162",
+    "seal5/backends/riscv_instr_info/writer.py": "6e8854fa2000962136b575b92c3a3e0e4ba859071aee13b569c9e544725c8fea",
+    "seal5/model.py": "3296bbdbe59a3e14210afb483b306ec3c2f92a11f945b7101f1316b5e512b9cf",
+    "seal5/pass_list.py": "365432a352c71b146806a7f9c696c982efda467bb211b185cf3080b7510c1b85",
+    "seal5/transform/collect_register_operands/collect.py": "09358ce67ec808c9cf9cadbb674a295ed19075927c03a04b9ddbd28ec45588fe",
+    "seal5/transform/collect_register_operands/visitor.py": "5d6d4855e3583195b361bdd2e97663f5074f4b98f576490915cc384e5788a42c",
+    "seal5/transform/normalize_register_pairs.py": "c7313a5c92f724097fc0f379abb298756ee4a545568c9250830f544178aec21a",
+    "tests/test_normalize_register_pairs.py": "dc711df8a2bd8f4139beddefc9f7e8072dcdb39f735a235bf1303b1921ced489",
+    "tests/test_register_pair_example.py": "af996ca72547348c5345970294a12df942145b52db392ab07cb796a4bbf7a14a",
+    "tests/test_register_pair_predicate.py": "0d9fd67192d563bfdc2dbf6a4766c1963395b7bf3422cca27cf01438d762a9f5",
+    "tests/test_register_pairs.py": "33bbb8f4d726cb3751e038b553a5500781807e22fa1e507ef734926607f53eda"
+  },
+  "logs": {
+    "generation": "/tmp/seal5-regpairs-extra-generation.log",
+    "patterns": "/tmp/seal5-regpairs-extra-patterns.log",
+    "build": "/tmp/seal5-regpairs-extra-build12.log",
+    "pattern_build": "/tmp/seal5-regpairs-extra-pattern-build.log",
+    "python": "/tmp/seal5-regpairs-commit-python.log",
+    "lit": "/tmp/seal5-regpairs-extra-lit.log",
+    "corev": "/tmp/seal5-regpairs-extra-corev.log",
+    "execution": "/tmp/seal5-regpairs-extra-execution.log",
+    "extraction": "/tmp/seal5-regpairs-extra-extraction.log",
+    "semantics": "/tmp/seal5-regpairs-extra-semantic-final",
+    "probes": "/tmp/seal5-regpairs-extra-probe",
+    "patches": "/tmp/seal5-regpairs-extra-patches.log",
+    "lint": "/tmp/seal5-regpairs-extra-lint.log"
+  },
+  "generation": {
+    "metadata": "/tmp/seal5-regpairs23-extra/.seal5",
+    "patterns": {
+      "PAIR_ADD64": 1,
+      "PAIR_ADD_2X32": 1,
+      "PAIR_SUB64": 1,
+      "PAIR_SUB_2X32": 1,
+      "PAIR_MUL_2X32": 1
+    },
+    "matches_compiled_patterns": true,
+    "matches_compiled_instruction_definitions": true,
+    "handwritten_bootstrap_patterns_removed": true,
+    "generic_xlen_globalisel_tests_disabled": true
+  },
+  "patch_preflight": {
+    "source": "f3e4c5705c2da4ecadc2babeae356e2960220293",
+    "patches": [
+      "parser",
+      "capability",
+      "extraction",
+      "intrinsics",
+      "legalization"
+    ],
+    "all_apply": true
+  },
+  "limitations": [
+    "Incremental compiler build; no clean standalone rebuild",
+    "Automatic loop vectorization requires a complete cost model",
+    "GlobalISel pair instruction selection and table extraction unsupported",
+    "Scalar pair pattern generation currently supports register/register ADD64 and SUB64; scalar i64 multiplication expands"
+  ],
+  "extraction_checks": [
+    {
+      "name": "PAIR_ADD64",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-extraction/PAIR_ADD64.core_desc",
+        "--riscv-xlen=32",
+        "--skip-formats",
+        "--skip-verify",
+        "--mattr=+m,+xregpairs",
+        "-p",
+        "HasStdExtXRegPairs,IsRV32",
+        "-o",
+        "/tmp/seal5-regpairs-extra-extraction/PAIR_ADD64.td"
+      ],
+      "exit_code": 0,
+      "expected_success": true
+    },
+    {
+      "name": "PAIR_ADD_2X32",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-extraction/PAIR_ADD_2X32.core_desc",
+        "--riscv-xlen=32",
+        "--skip-formats",
+        "--skip-verify",
+        "--mattr=+m,+xregpairs",
+        "-p",
+        "HasStdExtXRegPairs,IsRV32",
+        "-o",
+        "/tmp/seal5-regpairs-extra-extraction/PAIR_ADD_2X32.td"
+      ],
+      "exit_code": 0,
+      "expected_success": true
+    },
+    {
+      "name": "PAIR_MUL_2X32",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-extraction/PAIR_MUL_2X32.core_desc",
+        "--riscv-xlen=32",
+        "--skip-formats",
+        "--skip-verify",
+        "--mattr=+m,+xregpairs",
+        "-p",
+        "HasStdExtXRegPairs,IsRV32",
+        "-o",
+        "/tmp/seal5-regpairs-extra-extraction/PAIR_MUL_2X32.td"
+      ],
+      "exit_code": 0,
+      "expected_success": true
+    },
+    {
+      "name": "PAIR_SUB64",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-extraction/PAIR_SUB64.core_desc",
+        "--riscv-xlen=32",
+        "--skip-formats",
+        "--skip-verify",
+        "--mattr=+m,+xregpairs",
+        "-p",
+        "HasStdExtXRegPairs,IsRV32",
+        "-o",
+        "/tmp/seal5-regpairs-extra-extraction/PAIR_SUB64.td"
+      ],
+      "exit_code": 0,
+      "expected_success": true
+    },
+    {
+      "name": "PAIR_SUB_2X32",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-extraction/PAIR_SUB_2X32.core_desc",
+        "--riscv-xlen=32",
+        "--skip-formats",
+        "--skip-verify",
+        "--mattr=+m,+xregpairs",
+        "-p",
+        "HasStdExtXRegPairs,IsRV32",
+        "-o",
+        "/tmp/seal5-regpairs-extra-extraction/PAIR_SUB_2X32.td"
+      ],
+      "exit_code": 0,
+      "expected_success": true
+    },
+    {
+      "name": "PAIR_SUB_2X32_mismatched_inputs",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-extraction/PAIR_SUB_2X32_mismatched_inputs.core_desc",
+        "--riscv-xlen=32",
+        "--skip-formats",
+        "--skip-verify",
+        "--mattr=+m,+xregpairs",
+        "-p",
+        "HasStdExtXRegPairs,IsRV32",
+        "-o",
+        "/tmp/seal5-regpairs-extra-extraction/PAIR_SUB_2X32_mismatched_inputs.td"
+      ],
+      "exit_code": 255,
+      "expected_success": false
+    },
+    {
+      "name": "PAIR_MUL_2X32_mismatched_inputs",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-extraction/PAIR_MUL_2X32_mismatched_inputs.core_desc",
+        "--riscv-xlen=32",
+        "--skip-formats",
+        "--skip-verify",
+        "--mattr=+m,+xregpairs",
+        "-p",
+        "HasStdExtXRegPairs,IsRV32",
+        "-o",
+        "/tmp/seal5-regpairs-extra-extraction/PAIR_MUL_2X32_mismatched_inputs.td"
+      ],
+      "exit_code": 255,
+      "expected_success": false
+    },
+    {
+      "name": "PAIR_SUB_2X32_reversed_high",
+      "command": [
+        "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/pattern-gen",
+        "/tmp/seal5-regpairs-extra-extraction/PAIR_SUB_2X32_reversed_high.core_desc",
+        "--riscv-xlen=32",
+        "--skip-formats",
+        "--skip-verify",
+        "--mattr=+m,+xregpairs",
+        "-p",
+        "HasStdExtXRegPairs,IsRV32",
+        "-o",
+        "/tmp/seal5-regpairs-extra-extraction/PAIR_SUB_2X32_reversed_high.td"
+      ],
+      "exit_code": 255,
+      "expected_success": false
+    }
+  ],
+  "features": {
+    "seal5-regpair32": "Shared v2i32 pair representation",
+    "seal5-regpair32-add": "i64 ADD / v2i32 ADD",
+    "seal5-regpair32-sub": "i64 SUB / v2i32 SUB",
+    "seal5-regpair32-mul": "v2i32 MUL only"
+  },
+  "feature_disabling": "LLVM clears the parent xregpairs ISA when a required capability is disabled; arithmetic then falls back to scalar code."
+}

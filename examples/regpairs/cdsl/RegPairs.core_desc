@@ -1,0 +1,87 @@
+import "RVI.core_desc"
+
+// Pair operands encode the even register number in the usual five-bit field.
+// Legal operands are x0, x2, ..., x30. The x0 pair is the 64-bit constant zero;
+// it does not read or modify x1 (matching LLVM's GPRPair convention).
+InstructionSet XRegPairs extends RV32I {
+  instructions {
+    PAIR_ADD64 {
+      encoding: 7'd0 :: rs2[4:0] :: rs1[4:0] :: 3'd0 :: rd[4:0] :: 7'b0001011;
+      assembly: {"pair.add64", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: {
+        unsigned<64> a = 0;
+        unsigned<64> b = 0;
+        if (rs1 != 0) a = X[rs1 + 1] :: X[rs1];
+        if (rs2 != 0) b = X[rs2 + 1] :: X[rs2];
+        unsigned<64> result = (unsigned<64>)(a + b);
+        if (rd != 0) {
+          X[rd] = result[31:0];
+          X[rd + 1] = result[63:32];
+        }
+      }
+    }
+    PAIR_ADD_2X32 {
+      encoding: 7'd0 :: rs2[4:0] :: rs1[4:0] :: 3'd1 :: rd[4:0] :: 7'b0001011;
+      assembly: {"pair.add.2x32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: {
+        unsigned<64> a = 0;
+        unsigned<64> b = 0;
+        if (rs1 != 0) a = X[rs1 + 1] :: X[rs1];
+        if (rs2 != 0) b = X[rs2 + 1] :: X[rs2];
+        unsigned<64> result = ((unsigned<32>)(a[63:32] + b[63:32])) ::
+                              ((unsigned<32>)(a[31:0] + b[31:0]));
+        if (rd != 0) {
+          X[rd] = result[31:0];
+          X[rd + 1] = result[63:32];
+        }
+      }
+    }
+    PAIR_SUB64 {
+      encoding: 7'd0 :: rs2[4:0] :: rs1[4:0] :: 3'd2 :: rd[4:0] :: 7'b0001011;
+      assembly: {"pair.sub64", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: {
+        unsigned<64> a = 0;
+        unsigned<64> b = 0;
+        if (rs1 != 0) a = X[rs1 + 1] :: X[rs1];
+        if (rs2 != 0) b = X[rs2 + 1] :: X[rs2];
+        unsigned<64> result = (unsigned<64>)(a - b);
+        if (rd != 0) {
+          X[rd] = result[31:0];
+          X[rd + 1] = result[63:32];
+        }
+      }
+    }
+    PAIR_SUB_2X32 {
+      encoding: 7'd0 :: rs2[4:0] :: rs1[4:0] :: 3'd3 :: rd[4:0] :: 7'b0001011;
+      assembly: {"pair.sub.2x32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: {
+        unsigned<64> a = 0;
+        unsigned<64> b = 0;
+        if (rs1 != 0) a = X[rs1 + 1] :: X[rs1];
+        if (rs2 != 0) b = X[rs2 + 1] :: X[rs2];
+        unsigned<64> result = ((unsigned<32>)(a[63:32] - b[63:32])) ::
+                              ((unsigned<32>)(a[31:0] - b[31:0]));
+        if (rd != 0) {
+          X[rd] = result[31:0];
+          X[rd + 1] = result[63:32];
+        }
+      }
+    }
+    PAIR_MUL_2X32 {
+      encoding: 7'd0 :: rs2[4:0] :: rs1[4:0] :: 3'd4 :: rd[4:0] :: 7'b0001011;
+      assembly: {"pair.mul.2x32", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: {
+        unsigned<64> a = 0;
+        unsigned<64> b = 0;
+        if (rs1 != 0) a = X[rs1 + 1] :: X[rs1];
+        if (rs2 != 0) b = X[rs2 + 1] :: X[rs2];
+        unsigned<64> result = ((unsigned<32>)(a[63:32] * b[63:32])) ::
+                              ((unsigned<32>)(a[31:0] * b[31:0]));
+        if (rd != 0) {
+          X[rd] = result[31:0];
+          X[rd + 1] = result[63:32];
+        }
+      }
+    }
+  }
+}
