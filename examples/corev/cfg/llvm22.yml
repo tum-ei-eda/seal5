@@ -1,0 +1,26 @@
+---
+tools:
+  pattern_gen:
+    ref: llvm-22.1.8-packed-simd
+patches:
+  - name: corev_rotate_capability
+    target: llvm
+    stage: 0
+    priority: 0
+    file: ../patches/llvm22-rotate-capability.patch
+    comment: Preserve RV32 rotate-right nodes for generated instruction patterns
+    onlyif: "'FeatureSeal5Rotate32' not in (settings.deps_dir / 'cdsl2llvm/llvm/lib/Target/RISCV/RISCVFeatures.td').read_text()"
+  - name: corev_minmax_capability
+    target: llvm
+    stage: 0
+    priority: 0
+    file: ../patches/llvm22-minmax-capability.patch
+    comment: Preserve RV32 min/max nodes for generated ALU and clip patterns
+    onlyif: "'FeatureSeal5MinMax32' not in (settings.deps_dir / 'cdsl2llvm/llvm/lib/Target/RISCV/RISCVFeatures.td').read_text()"
+  - name: corev_packed_compare_capability
+    target: llvm
+    stage: 0
+    priority: 0
+    file: ../patches/llvm22-packed-compare-capability.patch
+    comment: Preserve packed comparison vectors and scalar broadcasts during legalization
+    onlyif: "'FeatureGPR32VCmp' not in (settings.deps_dir / 'cdsl2llvm/llvm/lib/Target/RISCV/RISCVFeatures.td').read_text()"

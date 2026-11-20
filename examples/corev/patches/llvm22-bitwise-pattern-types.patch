@@ -1,0 +1,18 @@
+--- a/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp
++++ b/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp
+@@ -1286,6 +1286,15 @@
+       if (NodeL->Type.isPointer())
+         NodeL->Type = Type;
+     }
++    // Erasing a non-register bitcast must not produce a scalar bitwise
++    // pattern with a vector operand (e.g. i32 AND a v4i8 splat). Such trees
++    // cannot be typed by TableGen. Keep these unsupported until the cast can
++    // be represented rather than emitting a malformed selection rule.
++    if ((Opcode == TargetOpcode::G_AND || Opcode == TargetOpcode::G_OR ||
++         Opcode == TargetOpcode::G_XOR) && Type.isScalar() &&
++        (NodeL->Type.isVector() || NodeR->Type.isVector()))
++      return pError(FORMAT, &Cur);
++
+     auto Node = std::make_unique<BinopNode>(
+         Type, Opcode, std::move(NodeL), std::move(NodeR));
+ 

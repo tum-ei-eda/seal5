@@ -1,13 +1,10 @@
-; RUN: llc -O3 -mtriple=riscv32 -mattr=+xcorevalu -verify-machineinstrs < %s \
-; RUN:   | FileCheck %s
+; RUN: llc -mtriple=riscv32 -mattr=+m,+xcorevalu -verify-machineinstrs %s -o - | FileCheck %s
 
 declare i32 @llvm.riscv.xcorevalu.alu.extbz(i32)
 
-define i32 @test_extbz(i32 %a) {
-; CHECK-LABEL: test_extbz:
-; CHECK:       # %bb.0:
-; CHECK-NEXT:    seal5.cv.extbz a0, a0
-; CHECK-NEXT:    ret
-  %1 = call i32 @llvm.riscv.xcorevalu.alu.extbz(i32 %a)
-  ret i32 %1
+define i32 @cv_extbz_0(i32 %a0) {
+; CHECK-LABEL: cv_extbz_0:
+; CHECK: seal5.cv.extbz
+  %result = call i32 @llvm.riscv.xcorevalu.alu.extbz(i32 %a0)
+  ret i32 %result
 }

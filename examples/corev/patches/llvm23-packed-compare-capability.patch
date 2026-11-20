@@ -1,0 +1,490 @@
+--- a/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp
++++ b/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp
+@@ -623,6 +623,7 @@
+   std::string patternString() override {
+     static const std::unordered_map<int, std::string> UnopStr = {
+         {TargetOpcode::G_ANYEXT, "anyext"},
++        {TargetOpcode::G_SPLAT_VECTOR, "splat_vector"},
+         {TargetOpcode::G_SEXT, "sext"},
+         {TargetOpcode::G_ZEXT, "zext"},
+         {TargetOpcode::G_VECREDUCE_ADD, "vecreduce_add"},
+@@ -638,6 +639,10 @@
+         {TargetOpcode::G_ABS, "abs"}};
+ 
+     std::string TypeStr = lltToString(Type);
++
++    if (Op == TargetOpcode::G_SPLAT_VECTOR)
++      return "(" + TypeStr + " (splat_vector (" + lltToString(Operand->Type) +
++             " " + Operand->patternString() + ")))";
+ 
+     // ignore bitcast ops for now
+     if ((Op == TargetOpcode::G_BITCAST) ||
+@@ -1323,6 +1328,7 @@
+     return std::make_pair(SUCCESS, std::move(Node));
+   }
+   case TargetOpcode::G_CONSTANT_FOLD_BARRIER:
++  case TargetOpcode::G_SPLAT_VECTOR:
+   case TargetOpcode::G_ANYEXT:
+   case TargetOpcode::G_SEXT:
+   case TargetOpcode::G_ZEXT:
+@@ -1947,6 +1953,24 @@
+     Code += ";";
+   OutStream << "\n" << Code << "\n\n";
+ 
++  // Comparison operands can be interchanged by vectorization or combining.
++  // The GlobalISel importer checks the predicate and operands in order.
++  if (OutType.isFixedVector() && OutType.getSizeInBits() == 32) {
++    auto *Cmp = dyn_cast<BinopNode>(Node.get());
++    if (Cmp && Cmp->Op == ISD::SETCC) {
++      auto *C = static_cast<CompareNode *>(Cmp);
++      std::string Swapped = "(" + lltToString(OutType) + " (setcc (" +
++          lltToString(C->Right->Type) + " " + C->Right->patternString() + "), (" +
++          lltToString(C->Left->Type) + " " + C->Left->patternString() + "), " +
++          CmpStr.at(CmpInst::getSwappedPredicate(C->Cond)) + "))";
++      OutStream << "def : Pat<\n\t" << Swapped << ",\n\t(" << TargetDefName
++                << " " << PatternDstOps << ")>;\n\n";
++      outs() << "Pattern for " << InstName << " [" << InstMnemonic << "]: "
++             << Swapped << '\n';
++      ++PatternGenNumPatternsGenerated;
++    }
++  }
++
+   const TargetLowering *TLI = MF.getSubtarget().getTargetLowering();
+   if (!MayLoad && !MayStore && !IsBranch && XLen == 32 &&
+       OutType == LLT::scalar(32)) {
+--- a/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
++++ b/llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp
+@@ -141,6 +141,15 @@
+ 
+   auto PtrVecTys = {nxv1p0, nxv2p0, nxv4p0, nxv8p0, nxv16p0};
+ 
++  auto PackedCompare = [&ST](unsigned Idx) -> LegalityPredicate {
++    return [Idx, &ST](const LegalityQuery &Q) {
++      return ST.hasGPR32VCmp() && ST.hasGPR32V() && !ST.is64Bit() &&
++             !ST.hasVInstructions() &&
++             (Q.Types[Idx] == LLT::fixed_vector(4, 8) ||
++              Q.Types[Idx] == LLT::fixed_vector(2, 16));
++    };
++  };
++
+   auto PackedFallback = [&ST](unsigned Idx) -> LegalityPredicate {
+     return [Idx, &ST](const LegalityQuery &Q) {
+       return ST.hasGPR32V() && !ST.is64Bit() && !ST.hasVInstructions() &&
+@@ -192,6 +201,10 @@
+               .clampScalar(0, sXLen, sXLen);
+ 
+   getActionDefinitionsBuilder({G_ZEXT, G_SEXT, G_ANYEXT})
++      .customIf(all(PackedCompare(0), LegalityPredicate([](const LegalityQuery &Q) {
++        return Q.Opcode == G_SEXT && Q.Types[1].isVector() &&
++               Q.Types[1].getScalarSizeInBits() == 1;
++      })))
+       .legalFor({{s32, s16}})
+       .legalFor(ST.is64Bit(), {{s64, s16}, {s64, s32}})
+       .legalIf(all(typeIsLegalIntOrFPVec(0, IntOrFPVecTys, ST),
+@@ -327,6 +340,10 @@
+       .clampScalar(0, s32, sXLen);
+ 
+   getActionDefinitionsBuilder(G_ICMP)
++      .legalIf(all(PackedCompare(1), LegalityPredicate([](const LegalityQuery &Q) {
++        return Q.Types[0] == Q.Types[1];
++      })))
++      .customIf(PackedCompare(1))
+       .legalFor({{sXLen, sXLen}, {sXLen, p0}})
+       .legalIf(all(typeIsLegalBoolVec(0, BoolVecTys, ST),
+                    typeIsLegalIntOrFPVec(1, IntOrFPVecTys, ST)))
+@@ -414,6 +431,10 @@
+         // unmerge them and the artifact combiner removes the temporary vector.
+         .legalIf(PackedFallback(0));
+ 
++    getActionDefinitionsBuilder(G_SPLAT_VECTOR)
++        .legalIf(all(PackedCompare(0), typeIs(1, s32)))
++        .clampScalar(1, s32, s32);
++
+     // Additional packed operations are enabled only as their selectors are tested.
+   }
+ 
+@@ -1546,6 +1567,50 @@
+   MachineIRBuilder &MIRBuilder = Helper.MIRBuilder;
+   MachineRegisterInfo &MRI = *MIRBuilder.getMRI();
+   MachineFunction &MF = *MI.getParent()->getParent();
++  const auto &ST = MF.getSubtarget<RISCVSubtarget>();
++  auto IsPacked = [](LLT Ty) {
++    return Ty == LLT::fixed_vector(4, 8) || Ty == LLT::fixed_vector(2, 16);
++  };
++  if (ST.hasGPR32VCmp() && ST.hasGPR32V() && !ST.is64Bit() &&
++      !ST.hasVInstructions()) {
++    if (MI.getOpcode() == TargetOpcode::G_SEXT &&
++        IsPacked(MRI.getType(MI.getOperand(0).getReg()))) {
++      auto *Cmp = getDefIgnoringCopies(MI.getOperand(1).getReg(), MRI);
++      if (Cmp && Cmp->getOpcode() == TargetOpcode::G_ICMP &&
++          MRI.getType(Cmp->getOperand(2).getReg()) ==
++              MRI.getType(MI.getOperand(0).getReg())) {
++        MIRBuilder.buildICmp(static_cast<CmpInst::Predicate>(Cmp->getOperand(1).getPredicate()),
++                             MI.getOperand(0).getReg(), Cmp->getOperand(2).getReg(),
++                             Cmp->getOperand(3).getReg());
++        MI.eraseFromParent();
++        return true;
++      }
++      return Helper.fewerElementsVector(MI, 0,
++                 LLT::scalar(MRI.getType(MI.getOperand(0).getReg()).getScalarSizeInBits())) ==
++             LegalizerHelper::Legalized;
++    }
++    if (MI.getOpcode() == TargetOpcode::G_ICMP &&
++        IsPacked(MRI.getType(MI.getOperand(2).getReg()))) {
++      Register Mask = MI.getOperand(0).getReg();
++      LLT Ty = MRI.getType(MI.getOperand(2).getReg());
++      SmallVector<MachineInstr *, 4> Extensions;
++      for (auto &Use : MRI.use_nodbg_instructions(Mask)) {
++        if (Use.getOpcode() != TargetOpcode::G_SEXT ||
++            MRI.getType(Use.getOperand(0).getReg()) != Ty)
++          return Helper.fewerElementsVector(MI, 1, Ty.getElementType()) ==
++                 LegalizerHelper::Legalized;
++        Extensions.push_back(&Use);
++      }
++      for (auto *Ext : Extensions) {
++        MIRBuilder.buildICmp(static_cast<CmpInst::Predicate>(MI.getOperand(1).getPredicate()),
++                             Ext->getOperand(0).getReg(), MI.getOperand(2).getReg(),
++                             MI.getOperand(3).getReg());
++        Ext->eraseFromParent();
++      }
++      MI.eraseFromParent();
++      return true;
++    }
++  }
+   if (MI.getOpcode() == TargetOpcode::G_SHUFFLE_VECTOR) {
+     SmallVector<Register, 16> Inputs, Outputs;
+     LLT EltTy = MRI.getType(MI.getOperand(1).getReg()).getElementType();
+@@ -1578,6 +1643,18 @@
+     LLT Ty = MRI.getType(Dst);
+     unsigned Bits = Ty.getScalarSizeInBits();
+     LLT WordTy = LLT::scalar(32);
++    if (ST.hasGPR32VCmp() && IsPacked(Ty)) {
++      Register First = MI.getOperand(1).getReg();
++      bool Splat = true;
++      for (unsigned I = 2; I < MI.getNumOperands(); ++I)
++        Splat &= MI.getOperand(I).getReg() == First;
++      if (Splat) {
++        auto Scalar = MIRBuilder.buildAnyExtOrTrunc(WordTy, First);
++        MIRBuilder.buildInstr(TargetOpcode::G_SPLAT_VECTOR, {Dst}, {Scalar.getReg(0)});
++        MI.eraseFromParent();
++        return true;
++      }
++    }
+     auto Packed = MIRBuilder.buildConstant(WordTy, 0);
+     for (unsigned I = 1; I < MI.getNumOperands(); ++I) {
+       auto Lane = MIRBuilder.buildZExtOrTrunc(WordTy, MI.getOperand(I).getReg());
+--- a/llvm/lib/Target/RISCV/GISel/RISCVRegisterBankInfo.cpp
++++ b/llvm/lib/Target/RISCV/GISel/RISCVRegisterBankInfo.cpp
+@@ -246,7 +246,8 @@
+   if (ST.hasGPR32V() && !ST.is64Bit() &&
+       (Opc == TargetOpcode::G_BITCAST || Opc == TargetOpcode::G_ADD ||
+        Opc == TargetOpcode::G_SUB || Opc == TargetOpcode::G_AND ||
+-       Opc == TargetOpcode::G_OR || Opc == TargetOpcode::G_XOR)) {
++       Opc == TargetOpcode::G_OR || Opc == TargetOpcode::G_XOR ||
++       Opc == TargetOpcode::G_ICMP || Opc == TargetOpcode::G_SPLAT_VECTOR)) {
+     bool HasPackedOperand = false;
+     for (const MachineOperand &MO : MI.operands()) {
+       if (!MO.isReg() || !MO.getReg().isVirtual())
+@@ -255,9 +256,13 @@
+       HasPackedOperand |= Ty == LLT::fixed_vector(4, 8) ||
+                           Ty == LLT::fixed_vector(2, 16);
+     }
+-    if (HasPackedOperand)
+-      return getInstructionMapping(DefaultMappingID, 1, GPRValueMapping,
+-                                   NumOperands);
++    if (HasPackedOperand) {
++      SmallVector<const ValueMapping *, 4> Mappings;
++      for (const auto &MO : MI.operands())
++        Mappings.push_back(MO.isReg() ? GPRValueMapping : nullptr);
++      return getInstructionMapping(DefaultMappingID, 1,
++                                   getOperandsMapping(Mappings), NumOperands);
++    }
+   }
+ 
+   switch (Opc) {
+--- a/llvm/lib/Target/RISCV/RISCVFeatures.td
++++ b/llvm/lib/Target/RISCV/RISCVFeatures.td
+@@ -1173,2 +1173,5 @@
++def FeatureGPR32VCmp : SubtargetFeature<"gpr32v-cmp", "HasGPR32VCmp", "true",
++    "Enable packed byte and halfword integer comparisons", [FeatureGPR32V]>;
++
+ def FeatureGPR32VAdd : SubtargetFeature<"gpr32v-add", "HasGPR32VAdd", "true",
+                                       "Packed byte/halfword addition">;
+--- a/llvm/lib/Target/RISCV/RISCVISelDAGToDAG.cpp
++++ b/llvm/lib/Target/RISCV/RISCVISelDAGToDAG.cpp
+@@ -53,6 +53,12 @@
+     SDValue Result;
+     switch (N->getOpcode()) {
+     case ISD::SPLAT_VECTOR: {
++      // Packed GPR broadcasts are matched by ordinary TableGen rules.
++      MVT PackedVT = N->getSimpleValueType(0);
++      if (Subtarget->hasGPR32VCmp() && !Subtarget->is64Bit() &&
++          !Subtarget->hasVInstructions() &&
++          (PackedVT == MVT::v4i8 || PackedVT == MVT::v2i16))
++        break;
+       if (Subtarget->hasStdExtP())
+         break;
+       // Convert integer SPLAT_VECTOR to VMV_V_X_VL and floating-point
+--- a/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
++++ b/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
+@@ -178,6 +178,10 @@
+     // Memory still transfers one scalar word; the packed representation is a
+     // register view. This also retains the ordinary scalar alignment handling.
+     for (MVT VT : {MVT::v4i8, MVT::v2i16}) {
++      if (Subtarget.hasGPR32VCmp()) {
++        setOperationAction(ISD::SETCC, VT, Legal);
++        setOperationAction(ISD::SPLAT_VECTOR, VT, Legal);
++      }
+       setOperationAction(ISD::ADD, VT, Subtarget.hasGPR32VAdd() ? Legal : Expand);
+       setOperationAction(ISD::SUB, VT, Subtarget.hasGPR32VSub() ? Legal : Expand);
+       // Only the generated packed arithmetic is selected directly. All other
+@@ -189,7 +193,8 @@
+                            ISD::SIGN_EXTEND, ISD::ZERO_EXTEND, ISD::ANY_EXTEND,
+                            ISD::TRUNCATE, ISD::CONCAT_VECTORS,
+                            ISD::EXTRACT_SUBVECTOR, ISD::INSERT_SUBVECTOR})
+-        setOperationAction(Opc, VT, Expand);
++        if (Opc != ISD::SETCC || !Subtarget.hasGPR32VCmp())
++          setOperationAction(Opc, VT, Expand);
+       for (unsigned Opc : {ISD::AND, ISD::OR, ISD::XOR}) {
+         setOperationAction(Opc, VT, Promote);
+         AddPromotedToType(Opc, VT, MVT::i32);
+@@ -8254,6 +8259,12 @@
+       (Op.getValueType() == MVT::v4i8 || Op.getValueType() == MVT::v2i16)) {
+     SDLoc DL(Op);
+     unsigned Bits = Op.getValueType().getScalarSizeInBits();
++    if (Subtarget.hasGPR32VCmp()) {
++      if (SDValue Splat = cast<BuildVectorSDNode>(Op)->getSplatValue())
++        if (!Splat.isUndef())
++          return DAG.getNode(ISD::SPLAT_VECTOR, DL, Op.getValueType(),
++                             DAG.getAnyExtOrTrunc(Splat, DL, MVT::i32));
++    }
+     SDValue Packed = DAG.getConstant(0, DL, MVT::i32);
+     for (unsigned I = 0; I < Op.getNumOperands(); ++I) {
+       SDValue Lane = Op.getOperand(I);
+--- a/llvm/lib/Target/RISCV/RISCVInstrInfo.td
++++ b/llvm/lib/Target/RISCV/RISCVInstrInfo.td
+@@ -2471,4 +2471,17 @@
+ def : Pat<(i32 (bitconvert (v2i16 GPR32V2:$src))),
+           (COPY_TO_REGCLASS GPR32V2:$src, GPR)>;
+ }
++
++// Standalone broadcasts still have a scalar fallback when no comparison folds
++// them. A folded scalar-broadcast instruction consumes the original word.
++let Predicates = [HasGPR32V, IsRV32] in {
++def : Pat<(v4i8 (splat_vector (i32 GPR:$src))),
++          (COPY_TO_REGCLASS
++            (OR (SLLI (ANDI GPR:$src, 255), 24),
++              (OR (SLLI (ANDI GPR:$src, 255), 16),
++                (OR (SLLI (ANDI GPR:$src, 255), 8), (ANDI GPR:$src, 255)))), GPR32V4)>;
++def : Pat<(v2i16 (splat_vector (i32 GPR:$src))),
++          (COPY_TO_REGCLASS (OR (SLLI GPR:$src, 16),
++                               (SRLI (SLLI GPR:$src, 16), 16)), GPR32V2)>;
++}
+ // PATTERNGEN_GPR32V_BRIDGES_END
+--- a/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
++++ b/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
+@@ -716,6 +716,24 @@
+          "Expected the same scalar types");
+ 
+   Kind = improveShuffleKindFromMask(Kind, Mask, SrcTy, Index, SubTp);
++
++  // Packed splats either fold into a scalar-broadcast comparison or use
++  // the scalar shift/or fallback. Do not make unrelated shuffles cheap.
++  if (ST->hasGPR32VCmp() && !ST->is64Bit() &&
++      !ST->hasVInstructions() && Kind == TTI::SK_Broadcast && Index == 0 &&
++      DstTy == SrcTy && DstTy->getPrimitiveSizeInBits() == 32 &&
++      (DstTy->getScalarSizeInBits() == 8 ||
++       DstTy->getScalarSizeInBits() == 16)) {
++    if (CxtI && CxtI->hasOneUse()) {
++      auto *Cmp = dyn_cast<ICmpInst>(*CxtI->user_begin());
++      if (Cmp && Cmp->hasOneUse()) {
++        auto *Ext = dyn_cast<SExtInst>(*Cmp->user_begin());
++        if (Ext && Ext->getType() == DstTy)
++          return 0;
++      }
++    }
++    return DstTy->getScalarSizeInBits() == 8 ? 7 : 3;
++  }
+ 
+   // TODO: Add proper cost model for P extension fixed vectors (e.g., v4i16)
+   // For now, skip all fixed vector cost analysis when P extension is available
+@@ -1870,6 +1888,29 @@
+                                                TTI::CastContextHint CCH,
+                                                TTI::TargetCostKind CostKind,
+                                                const Instruction *I) const {
++  // A packed vector and i32 occupy the same physical register.
++  if (Opcode == Instruction::BitCast && ST->hasGPR32V() &&
++      !ST->is64Bit() && !ST->hasVInstructions()) {
++    auto IsPacked = [](Type *Ty) {
++      auto *VT = dyn_cast<FixedVectorType>(Ty);
++      return VT && VT->getPrimitiveSizeInBits() == 32 &&
++             (VT->getScalarSizeInBits() == 8 ||
++              VT->getScalarSizeInBits() == 16);
++    };
++    if ((Src->isIntegerTy(32) && IsPacked(Dst)) ||
++        (Dst->isIntegerTy(32) && IsPacked(Src)))
++      return 0;
++  }
++  if (Opcode == Instruction::SExt && ST->hasGPR32VCmp() &&
++      !ST->is64Bit() && !ST->hasVInstructions() && I &&
++      isa<ICmpInst>(I->getOperand(0))) {
++    auto *S = dyn_cast<FixedVectorType>(Src);
++    auto *D = dyn_cast<FixedVectorType>(Dst);
++    if (S && D && S->getNumElements() == D->getNumElements() &&
++        S->getScalarSizeInBits() == 1 && D->getPrimitiveSizeInBits() == 32 &&
++        (D->getScalarSizeInBits() == 8 || D->getScalarSizeInBits() == 16))
++      return 0;
++  }
+   bool IsVectorType = isa<VectorType>(Dst) && isa<VectorType>(Src);
+   if (!IsVectorType)
+     return BaseT::getCastInstrCost(Opcode, Dst, Src, CCH, CostKind, I);
+@@ -2416,6 +2457,13 @@
+     unsigned Opcode, Type *ValTy, Type *CondTy, CmpInst::Predicate VecPred,
+     TTI::TargetCostKind CostKind, TTI::OperandValueInfo Op1Info,
+     TTI::OperandValueInfo Op2Info, const Instruction *I) const {
++  if (Opcode == Instruction::ICmp && ST->hasGPR32VCmp() &&
++      ST->hasGPR32V() && !ST->is64Bit() && !ST->hasVInstructions()) {
++    if (auto *VT = dyn_cast<FixedVectorType>(ValTy);
++        VT && VT->getPrimitiveSizeInBits() == 32 &&
++        (VT->getScalarSizeInBits() == 8 || VT->getScalarSizeInBits() == 16))
++      return 1;
++  }
+   if (CostKind != TTI::TCK_RecipThroughput)
+     return BaseT::getCmpSelInstrCost(Opcode, ValTy, CondTy, VecPred, CostKind,
+                                      Op1Info, Op2Info, I);
+@@ -2599,6 +2647,11 @@
+           return 1; // The top lane only needs a right shift.
+         return Bits == 8 && Index == 0 ? 1 : 2;
+       }
++      // Inserting into lane zero of poison only exposes the scalar low bits;
++      // the other lanes impose no constraints and need no masking/merging.
++      if (Opcode == Instruction::InsertElement && Index == 0 && Op0 &&
++          isa<PoisonValue>(Op0) && !ST->is64Bit())
++        return 0;
+       if (Opcode == Instruction::InsertElement)
+         return Index == -1U ? 10 : 6;
+     }
+--- a/llvm/tools/pattern-gen/LLVMOverride.cpp
++++ b/llvm/tools/pattern-gen/LLVMOverride.cpp
+@@ -13,6 +13,7 @@
+ #include "llvm/Analysis/LoopAnalysisManager.h"
+ #include "llvm/Analysis/TargetLibraryInfo.h"
+ #include "llvm/Analysis/TargetTransformInfo.h"
++#include "llvm/Analysis/ValueTracking.h"
+ #include "llvm/CodeGen/GlobalISel/CSEInfo.h"
+ #include "llvm/CodeGen/CommandFlags.h"
+ #include "llvm/CodeGen/FunctionLoweringInfo.h"
+@@ -458,6 +459,86 @@
+   }
+ };
+ 
++// SLP sometimes packs the boolean results of scalar comparisons without
++// packing their operands, especially for a shared broadcast operand. Recover
++// the vector operation before legalization rather than matching expanded lanes.
++static bool combinePackedCompareLanes(Module &M) {
++  bool Changed = false;
++  const DataLayout &DL = M.getDataLayout();
++  SmallVector<SExtInst *, 8> Extensions;
++  for (auto &F : M)
++    for (auto &BB : F)
++      for (auto &I : BB)
++        if (auto *Ext = dyn_cast<SExtInst>(&I))
++          Extensions.push_back(Ext);
++  for (auto *Ext : Extensions) {
++    auto *DstTy = dyn_cast<FixedVectorType>(Ext->getType());
++    if (!DstTy || DstTy->getPrimitiveSizeInBits() != 32 ||
++        (DstTy->getScalarSizeInBits() != 8 && DstTy->getScalarSizeInBits() != 16))
++      continue;
++    unsigned N = DstTy->getNumElements();
++    SmallVector<ICmpInst *, 4> Comparisons(N, nullptr);
++    Value *V = Ext->getOperand(0);
++    bool Valid = true;
++    for (unsigned I = 0; I < N; ++I) {
++      auto *Insert = dyn_cast<InsertElementInst>(V);
++      auto *Index = Insert ? dyn_cast<ConstantInt>(Insert->getOperand(2)) : nullptr;
++      auto *Cmp = Insert ? dyn_cast<ICmpInst>(Insert->getOperand(1)) : nullptr;
++      if (!Index || Index->getZExtValue() >= N || !Cmp ||
++          Comparisons[Index->getZExtValue()] ||
++          Cmp->getOperand(0)->getType() != DstTy->getElementType()) {
++        Valid = false;
++        break;
++      }
++      Comparisons[Index->getZExtValue()] = Cmp;
++      V = Insert->getOperand(0);
++    }
++    if (!Valid || !isa<UndefValue>(V))
++      continue;
++    auto Pred = Comparisons[0]->getPredicate();
++    if (llvm::any_of(Comparisons, [&](auto *C) { return C->getPredicate() != Pred; }))
++      continue;
++    IRBuilder<> B(Ext);
++    auto Pack = [&](unsigned Operand) -> Value * {
++      SmallVector<Value *, 4> Values;
++      for (auto *Cmp : Comparisons)
++        Values.push_back(Cmp->getOperand(Operand));
++      if (llvm::all_of(Values, [&](Value *X) { return X == Values[0]; })) {
++        Changed = true;
++        return B.CreateVectorSplat(N, Values[0]);
++      }
++      auto *First = dyn_cast<LoadInst>(Values[0]);
++      if (!First || First->isVolatile() || First->isAtomic() ||
++          First->getParent() != Ext->getParent())
++        return nullptr;
++      int64_t Start = 0;
++      Value *Base = GetPointerBaseWithConstantOffset(First->getPointerOperand(), Start, DL);
++      Instruction *Earliest = First;
++      for (unsigned I = 0; I < N; ++I) {
++        auto *Load = dyn_cast<LoadInst>(Values[I]);
++        int64_t Offset = 0;
++        if (!Load || Load->isVolatile() || Load->isAtomic() ||
++            Load->getParent() != Ext->getParent() || !Load->comesBefore(Ext) ||
++            GetPointerBaseWithConstantOffset(Load->getPointerOperand(), Offset, DL) != Base ||
++            Offset != Start + int64_t(I * DstTy->getScalarSizeInBits() / 8))
++          return nullptr;
++        if (Load->comesBefore(Earliest))
++          Earliest = Load;
++      }
++      // Moving the reads to Ext is safe only if nothing can change memory.
++      for (auto It = Earliest->getIterator(); &*It != Ext; ++It)
++        if (It->mayWriteToMemory() || It->mayHaveSideEffects())
++          return nullptr;
++      Changed = true;
++      return B.CreateAlignedLoad(DstTy, First->getPointerOperand(), First->getAlign());
++    };
++    Value *A = Pack(0), *C = Pack(1);
++    if (A && C)
++      Ext->setOperand(0, B.CreateICmp(Pred, A, C));
++  }
++  return Changed;
++}
++
+ void optimizeModule(llvm::TargetMachine *Machine, llvm::Module *Mod,
+                     llvm::CodeGenOptLevel OptLevel) {
+   Mod->setTargetTriple(Machine->getTargetTriple());
+@@ -491,6 +572,13 @@
+ 
+   // Optimize the IR!
+   MPM.run(*Mod, MAM);
++  if (Machine->getTargetFeatureString().contains("+gpr32v-cmp") &&
++      !Machine->getTargetFeatureString().contains("-gpr32v-cmp") &&
++      combinePackedCompareLanes(*Mod)) {
++    MAM.invalidate(*Mod, PreservedAnalyses::none());
++    auto Cleanup = PB.buildPerModuleDefaultPipeline(llvm::OptimizationLevel::O3);
++    Cleanup.run(*Mod, MAM);
++  }
+ }
+ 
+ static void setOptions() {
+@@ -510,8 +598,11 @@
+               FeaturesStr = codegen::getFeaturesStr() + Mattr;
+   // The analysis target models candidate instructions before their ISA exists.
+   // Final backends instead enable each operation through the generated feature.
+-  if (FeaturesStr.find("+gpr32v") != std::string::npos)
++  if (FeaturesStr.find("+gpr32v") != std::string::npos) {
+     FeaturesStr += ",+gpr32v-add,+gpr32v-sub";
++    if (FeaturesStr.find("-gpr32v-cmp") == std::string::npos)
++      FeaturesStr += ",+gpr32v-cmp";
++  }
+ 
+   auto MAttrs = codegen::getMAttrs();
+ 

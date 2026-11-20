@@ -20,6 +20,7 @@
 
 import difflib
 import re
+import subprocess
 import time
 from pathlib import Path
 from typing import Optional, Union
@@ -173,6 +174,7 @@ def get_pattern_gen_backend_patch(src: Path, llvm_dir: Path, temp_dir: Path):
             (target / name, None)
             for name in (
                 "RISCVISelLowering.cpp",
+                "RISCVISelDAGToDAG.cpp",
                 "RISCVTargetTransformInfo.cpp",
                 "RISCVTargetTransformInfo.h",
                 "RISCVRegisterInfo.cpp",
@@ -230,7 +232,13 @@ def get_pattern_gen_backend_patch(src: Path, llvm_dir: Path, temp_dir: Path):
         elif name == "packed_features":
             feature_text = (src / path).read_text()
             features = []
-            for feature_name in ("FeatureGPR32V", "HasGPR32V", "FeatureGPR32VAdd", "FeatureGPR32VSub"):
+            for feature_name in (
+                "FeatureGPR32V",
+                "HasGPR32V",
+                "FeatureGPR32VAdd",
+                "FeatureGPR32VSub",
+                "FeatureGPR32VCmp",
+            ):
                 feature = re.search(rf"^def {feature_name}\b.*?;", feature_text, re.MULTILINE | re.DOTALL)
                 if feature is None:
                     assert feature_name not in ("FeatureGPR32V", "HasGPR32V"), f"Missing {feature_name}"
@@ -348,6 +356,46 @@ def build_llc(
     utils.make("llc", cwd=dest, print_func=logger.info if verbose else logger.debug, live=True, use_ninja=use_ninja)
 
 
+def scalarize_register_inputs(contents, xlen, opt):
+    """Expose synthetic readonly register inputs through the scalar register ABI.
+
+    Only use this for register-only instructions: real memory operands must keep
+    their pointer semantics. SROA recovers subregister extractions from the local
+    register slots without allowing external loads to absorb them.
+    """
+
+    def rewrite(match):
+        header = match.group(0)
+        slots = []
+
+        def argument(arg):
+            name = arg.group(1)
+            scalar = name + ".seal5_value"
+            slots.extend(
+                [
+                    f"  {name} = alloca i{xlen}, align {xlen // 8}",
+                    f"  store i{xlen} {scalar}, ptr {name}, align {xlen // 8}",
+                ]
+            )
+            return f"i{xlen} {scalar}"
+
+        header = re.sub(r"ptr (?=[^,%]*\breadonly\b)[^,%]*?(%[\w.]+)(?=[,)])", argument, header)
+        return header + "\n" + "\n".join(slots)
+
+    original = contents
+    contents = re.sub(r"(?m)^define [^\n]+\{", rewrite, contents)
+    if contents == original or ".seal5_value" not in contents:
+        return original
+    result = subprocess.run(
+        [str(opt), "-S", "-passes=sroa,instcombine", "-o", "-"],
+        input=contents,
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    return result.stdout
+
+
 def combine_test_fragments(
     ll_file: Union[str, Path],
     instr: str,
@@ -355,11 +403,17 @@ def combine_test_fragments(
     test_mir_checks: str,
     test_asm_checks: str,
     return_output=False,
-    scalar_inputs=False,
+    scalarize_inputs=False,
     register_writebacks=0,
+    scalar_inputs=None,
+    checked_functions=None,
 ):
     with open(ll_file, "r") as f:
         contents = f.read()
+    if scalarize_inputs:
+        contents = scalarize_test_inputs(contents)
+    if scalar_inputs is not None:
+        contents = scalarize_register_inputs(contents, *scalar_inputs)
     if register_writebacks > 1:
         # PatternGen models register outputs as stores through synthetic noalias
         # pointers. Group their writebacks after the computations, as register
@@ -397,15 +451,17 @@ def combine_test_fragments(
     ret_lines = []
     ret_lines += test_header.splitlines()
     insert_checks = False
+    function_instr = instr
     # instr_name = None
     for line in lines:
         if insert_checks:
             insert_checks = False
             # instr_name = None
-            ret_lines += test_mir_checks.splitlines()
-            ret_lines += test_asm_checks.splitlines()
+            ret_lines += test_mir_checks.replace(f"impl{instr}", f"impl{function_instr}").splitlines()
+            ret_lines += test_asm_checks.replace(f"impl{instr}", f"impl{function_instr}").splitlines()
         if line.startswith("define ") and " @impl" in line:
-            insert_checks = True
+            function_instr = re.search(r"@impl([^\s(]+)\(", line).group(1)
+            insert_checks = checked_functions is None or function_instr in checked_functions
             # instr_name = line.split("(", 1)[0].split("impl", 1)[-1]
         ret_lines.append(line)
     ret = "\n".join(ret_lines)
@@ -451,6 +507,7 @@ def run_pattern_gen(
     memory_instruction=False,
     gisel_table=False,
     num_register_outputs=None,
+    may_store=False,
 ):
     """Excute pattern-gen executable."""
     if not isinstance(build_dir, Path):
@@ -550,6 +607,7 @@ def run_pattern_gen(
             print_func=logger.info if verbose else logger.debug,
             handle_exit=handle_exit,
             live=True,
+            separate_stderr=True,
         )
     except Exception as e:
         if break_on_err:
@@ -574,6 +632,7 @@ def run_pattern_gen(
         # errs = None
         # opt_ll = None
         patterns = []
+        pattern_functions = set()
         found_pattern = False
         # reason = None
         # rest = []
@@ -588,6 +647,14 @@ def run_pattern_gen(
             # print("line", line)
             if len(line.strip()) == 0 or line.startswith("==="):
                 continue
+            # A complete record must end before diagnostics on the other stream.
+            # Keep collecting only while a multiline pattern is unbalanced.
+            if found_pattern and any(fragment.strip() for fragment in pat):
+                current = "\n".join(pat)
+                if current.count("(") == current.count(")"):
+                    patterns.append(current)
+                    pat = []
+                    found_pattern = False
             if found_pattern and "Pattern for" not in line:
                 # print("A1")
                 pat.append(line)
@@ -606,6 +673,7 @@ def run_pattern_gen(
                         raise ValueError(f"Could not parse pattern line: {line!r}")
 
                     instr_ = match_.group("instr")
+                    pattern_functions.add(instr_)
                     # print("instr", instr)
                     mnemonic_ = match_.group("mnemonic")  # None when [...] is absent
                     # print("mnemonic_", mnemonic_)
@@ -700,7 +768,10 @@ def run_pattern_gen(
             # TODO: get real mnemonic
             # mnemonic = instr.lower()
             # TODO: get real llvm instr name
-            llvm_instr = instr
+            # Immediate unrolling names semantic functions TEST_0, TEST_1, ...,
+            # while all variants select the same generated target instruction.
+            target = re.search(r"\bdef\s+(\w+)\s*:\s*RVInst_", dest.read_text())
+            llvm_instr = target.group(1) if target else instr
             # TODO: move to different pass
             # TODO: make optional
             if xlen is None:
@@ -735,7 +806,7 @@ def run_pattern_gen(
                     )
                 test_mir_checks += f"  ; RV{xlen}-MIR-LABEL: name: impl{instr}\n"
                 # test_mir_checks += f"  ; RV{xlen}-MIR: LW\n"  # TODO: once per reg input operand
-                test_mir_checks += f"  ; RV{xlen}-MIR: {llvm_instr}\n"
+                test_mir_checks += f"  ; RV{xlen}-MIR: {{{{^ *[^;]*}}}} {llvm_instr}{{{{[ ,]}}}}\n"
                 if has_register_output and not may_load:
                     # Packed results may cross a register-class COPY before the scalar writeback.
                     store_check = "MIR" if packed_register_output else "MIR-NEXT"
@@ -761,8 +832,14 @@ def run_pattern_gen(
                 test_mir_checks,
                 test_asm_checks,
                 return_output=may_load and has_register_output,
-                scalar_inputs=memory_instruction,
+                scalarize_inputs=memory_instruction,
                 register_writebacks=num_register_outputs if gisel_table else 0,
+                checked_functions=pattern_functions,
+                scalar_inputs=(
+                    (xlen, build_dir / "bin" / "opt")
+                    if not may_load and not may_store and xlen is not None
+                    else None
+                ),
             )
             # print("test_content", test_content)
             test_file = ll_file.replace(".ll", ".test-cg.ll")

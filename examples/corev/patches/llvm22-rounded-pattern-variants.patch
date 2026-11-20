@@ -1,0 +1,54 @@
+--- a/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp
++++ b/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp
+@@ -876,6 +876,32 @@
+   return Variants;
+ }
+
++// Wrapping rounded subtraction can be written either as (a + round) - b
++// or (a - b) + round. Keep both trees when normalization is specialized.
++static std::vector<std::string> roundedArithmeticPatternVariants(PatternNode *Root) {
++  auto *Shift = dyn_cast<BinopNode>(Root);
++  if (!Shift || Shift->Type != LLT::scalar(32) ||
++      (Shift->Op != TargetOpcode::G_ASHR && Shift->Op != TargetOpcode::G_LSHR))
++    return {};
++  auto *Count = dyn_cast<ConstantNode>(Shift->Right.get());
++  auto *Sub = dyn_cast<BinopNode>(Shift->Left.get());
++  if (!Count || Count->Type != LLT::scalar(32) || Count->Constant == 0 ||
++      Count->Constant > 31 || !Sub || Sub->Op != TargetOpcode::G_SUB ||
++      Sub->Type != LLT::scalar(32))
++    return {};
++  auto *Add = dyn_cast<BinopNode>(Sub->Left.get());
++  if (!Add || Add->Op != TargetOpcode::G_ADD || Add->Type != LLT::scalar(32))
++    return {};
++  auto *Round = dyn_cast<ConstantNode>(Add->Right.get());
++  if (!Round || Round->Type != LLT::scalar(32) ||
++      Round->Constant != (uint64_t(1) << (Count->Constant - 1)))
++    return {};
++  std::string Op = Shift->Op == TargetOpcode::G_ASHR ? "sra" : "srl";
++  return {"(" + Op + " (add (sub " + Add->Left->patternString() + ", " +
++          Sub->Right->patternString() + "), " + Round->patternString() + "), " +
++          Count->patternString() + ")"};
++}
++
+ struct StoreNode : public PatternNode {
+   std::unique_ptr<PatternNode> Value;
+   std::unique_ptr<PatternNode> Addr;
+@@ -1881,10 +1907,14 @@
+
+   const TargetLowering *TLI = MF.getSubtarget().getTargetLowering();
+   if (!MayLoad && !MayStore && !IsBranch && XLen == 32 &&
+-      OutType == LLT::scalar(32) &&
+-      TLI->isOperationLegal(ISD::SMIN, MVT::i32) &&
+-      TLI->isOperationLegal(ISD::SMAX, MVT::i32)) {
+-    for (const std::string &Variant : clampPatternVariants(Node.get())) {
++      OutType == LLT::scalar(32)) {
++    auto Variants = roundedArithmeticPatternVariants(Node.get());
++    if (TLI->isOperationLegal(ISD::SMIN, MVT::i32) &&
++        TLI->isOperationLegal(ISD::SMAX, MVT::i32)) {
++      auto Clamps = clampPatternVariants(Node.get());
++      Variants.insert(Variants.end(), Clamps.begin(), Clamps.end());
++    }
++    for (const std::string &Variant : Variants) {
+       OutStream << "def : Pat<\n\t(" << lltToString(OutType) << " "
+                 << Variant << "),\n\t(" << TargetDefName << " "
+                 << PatternDstOps << ")>;\n\n";

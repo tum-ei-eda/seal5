@@ -3,20 +3,16 @@ models:
   XCoreVMac:
     extensions:
       XCoreVMac:
-        # feature: XCVmac
-        # arch: xcvmac
-        version: "1.0"
+        version: '1.0'
         experimental: false
         vendor: true
     passes:
       overrides:
         convert_models:
-          prefix: "SEAL5_"
+          prefix: SEAL5_
 intrinsics:
-  # See: https://github.com/openhwgroup/core-v-sw/blob/master/specifications/corev-builtin-spec.md#listing-of-multiply-accumulate-builtins-xcvmac
   intrinsics:
-  - &ScalarCoreVMacGprGprGprIntrinsicSigned
-    args:
+  - args: &id001
     - arg_name: rd
       arg_type: i32
       signed: true
@@ -26,16 +22,18 @@ intrinsics:
     - arg_name: rs2
       arg_type: i32
       signed: true
-    set_name: XCoreVMac
     instr_name: SEAL5_CV_MAC
     intrinsic_name: mac_mac
-    ret_type: i32
     ret_signed: true
-  - <<: *ScalarCoreVMacGprGprGprIntrinsicSigned
+    ret_type: i32
+    set_name: XCoreVMac
+  - args: *id001
     instr_name: SEAL5_CV_MSU
     intrinsic_name: mac_msu
-  - &ScalarCoreVMacGprGprImmIntrinsicUnsigned
-    args:
+    ret_signed: true
+    ret_type: i32
+    set_name: XCoreVMac
+  - args: &id002
     - arg_name: rs1
       arg_type: i32
       signed: false
@@ -46,47 +44,54 @@ intrinsics:
       arg_type: i32
       immediate: true
       signed: false
-    set_name: XCoreVMac
     instr_name: SEAL5_CV_MULUN
     intrinsic_name: mac_mulun
-    ret_type: i32
     ret_signed: false
-  - &ScalarCoreVMacGprGprImmIntrinsicSigned
-    args:
-    - arg_name: rs1
-      arg_type: i32
-      signed: false
-    - arg_name: rs2
-      arg_type: i32
-      signed: false
-    - arg_name: Is3
-      arg_type: i32
-      immediate: true
-      signed: false
+    ret_type: i32
+    set_name: XCoreVMac
+  - args: *id002
     instr_name: SEAL5_CV_MULHHUN
     intrinsic_name: mac_mulhhun
-    ret_type: i32
     ret_signed: true
-  - <<: *ScalarCoreVMacGprGprImmIntrinsicSigned
+    ret_type: i32
+    set_name: XCoreVMac
+  - args: *id002
     instr_name: SEAL5_CV_MULSN
     intrinsic_name: mac_mulsn
-  - <<: *ScalarCoreVMacGprGprImmIntrinsicSigned
+    ret_signed: true
+    ret_type: i32
+    set_name: XCoreVMac
+  - args: *id002
     instr_name: SEAL5_CV_MULHHSN
     intrinsic_name: mac_mulhhsn
-  - <<: *ScalarCoreVMacGprGprImmIntrinsicUnsigned
+    ret_signed: true
+    ret_type: i32
+    set_name: XCoreVMac
+  - args: *id002
     instr_name: SEAL5_CV_MULURN
     intrinsic_name: mac_mulurn
-  - <<: *ScalarCoreVMacGprGprImmIntrinsicUnsigned
+    ret_signed: false
+    ret_type: i32
+    set_name: XCoreVMac
+  - args: *id002
     instr_name: SEAL5_CV_MULHHURN
     intrinsic_name: mac_mulhhurn
-  - <<: *ScalarCoreVMacGprGprImmIntrinsicSigned
+    ret_signed: false
+    ret_type: i32
+    set_name: XCoreVMac
+  - args: *id002
     instr_name: SEAL5_CV_MULSRN
     intrinsic_name: mac_mulsrn
-  - <<: *ScalarCoreVMacGprGprImmIntrinsicSigned
+    ret_signed: true
+    ret_type: i32
+    set_name: XCoreVMac
+  - args: *id002
     instr_name: SEAL5_CV_MULHHSRN
     intrinsic_name: mac_mulhhsrn
-  - &ScalarCoreVMacGprGprGprImmIntrinsicUnsigned
-    args:
+    ret_signed: true
+    ret_type: i32
+    set_name: XCoreVMac
+  - args: &id003
     - arg_name: rd
       arg_type: i32
       signed: false
@@ -100,17 +105,18 @@ intrinsics:
       arg_type: i32
       immediate: true
       signed: false
-    set_name: XCoreVMac
     instr_name: SEAL5_CV_MACUN
     intrinsic_name: mac_macun
-    ret_type: i32
     ret_signed: false
-  - <<: *ScalarCoreVMacGprGprGprImmIntrinsicUnsigned
+    ret_type: i32
+    set_name: XCoreVMac
+  - args: *id003
     instr_name: SEAL5_CV_MACHHUN
     intrinsic_name: mac_machhun
-  - &ScalarCoreVMacGprGprGprImmIntrinsicSigned
-    args:
-    # TODO: fix order
+    ret_signed: false
+    ret_type: i32
+    set_name: XCoreVMac
+  - args: &id004
     - arg_name: rd
       arg_type: i32
       signed: true
@@ -126,20 +132,36 @@ intrinsics:
       signed: false
     instr_name: SEAL5_CV_MACSN
     intrinsic_name: mac_macsn
-    ret_type: i32
     ret_signed: true
-  - <<: *ScalarCoreVMacGprGprGprImmIntrinsicSigned
+    ret_type: i32
+    set_name: XCoreVMac
+  - args: *id004
     instr_name: SEAL5_CV_MACHHSN
     intrinsic_name: mac_machhsn
-  - <<: *ScalarCoreVMacGprGprGprImmIntrinsicUnsigned
+    ret_signed: true
+    ret_type: i32
+    set_name: XCoreVMac
+  - args: *id003
     instr_name: SEAL5_CV_MACURN
     intrinsic_name: mac_macurn
-  - <<: *ScalarCoreVMacGprGprGprImmIntrinsicUnsigned
+    ret_signed: false
+    ret_type: i32
+    set_name: XCoreVMac
+  - args: *id003
     instr_name: SEAL5_CV_MACHHURN
     intrinsic_name: mac_machhurn
-  - <<: *ScalarCoreVMacGprGprGprImmIntrinsicSigned
+    ret_signed: false
+    ret_type: i32
+    set_name: XCoreVMac
+  - args: *id004
     instr_name: SEAL5_CV_MACSRN
     intrinsic_name: mac_macsrn
-  - <<: *ScalarCoreVMacGprGprGprImmIntrinsicSigned
+    ret_signed: true
+    ret_type: i32
+    set_name: XCoreVMac
+  - args: *id004
     instr_name: SEAL5_CV_MACHHSRN
     intrinsic_name: mac_machhsrn
+    ret_signed: true
+    ret_type: i32
+    set_name: XCoreVMac

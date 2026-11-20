@@ -1,0 +1,19 @@
+--- a/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
++++ b/llvm/lib/Target/RISCV/AsmParser/RISCVAsmParser.cpp
+@@ -2945,9 +2945,13 @@
+   if (Result.isFailure())
+     return true;
+ 
+-  // Attempt to parse token as a register.
+-  if (parseRegister(Operands, true).isSuccess())
+-    return false;
++  // Attempt to parse token as a register. Generated instructions can spell
++  // register-offset addresses using separate offset and base operands.
++  if (parseRegister(Operands, true).isSuccess()) {
++    if (getLexer().is(AsmToken::LParen))
++      return !parseMemOpBaseReg(Operands).isSuccess();
++    return false;
++  }
+ 
+   // Attempt to parse token as an expression
+   if (parseExpression(Operands).isSuccess()) {

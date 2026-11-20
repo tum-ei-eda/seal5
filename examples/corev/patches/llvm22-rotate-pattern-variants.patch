@@ -1,0 +1,45 @@
+--- a/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp
++++ b/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp
+@@ -881,6 +881,33 @@
+   return Variants;
+ }
+ 
++// A rotate is the identity when its count modulo the word width is zero.
++// Require the same value and count in both arms before removing the guard.
++static std::vector<std::string> rotatePatternVariants(PatternNode *Root) {
++  auto *Select = dyn_cast<TernopNode>(Root);
++  if (!Select || Select->Op != TargetOpcode::G_SELECT ||
++      Select->Type != LLT::scalar(32))
++    return {};
++  auto *Cmp = dyn_cast<BinopNode>(Select->First.get());
++  auto *Rotate = dyn_cast<BinopNode>(Select->Third.get());
++  if (!Cmp || Cmp->Op != ISD::SETCC ||
++      static_cast<CompareNode *>(Cmp)->Cond != CmpInst::ICMP_EQ ||
++      !Rotate || Rotate->Op != TargetOpcode::G_ROTR ||
++      Rotate->Type != LLT::scalar(32))
++    return {};
++  auto *Mask = dyn_cast<BinopNode>(Cmp->Left.get());
++  auto *Zero = dyn_cast<ConstantNode>(Cmp->Right.get());
++  if (!Mask || Mask->Op != TargetOpcode::G_AND ||
++      Mask->Type != LLT::scalar(32) || !Zero || Zero->Constant != 0)
++    return {};
++  auto *WidthMask = dyn_cast<ConstantNode>(Mask->Right.get());
++  if (!WidthMask || WidthMask->Constant != 31 ||
++      Mask->Left->patternString() != Rotate->Right->patternString() ||
++      Select->Second->patternString() != Rotate->Left->patternString())
++    return {};
++  return {Rotate->patternString()};
++}
++
+ // Wrapping rounded subtraction can be written either as (a + round) - b
+ // or (a - b) + round. Keep both trees when normalization is specialized.
+ static std::vector<std::string> roundedArithmeticPatternVariants(PatternNode *Root) {
+@@ -1948,6 +1975,8 @@
+   if (!MayLoad && !MayStore && !IsBranch && XLen == 32 &&
+       OutType == LLT::scalar(32)) {
+     auto Variants = roundedArithmeticPatternVariants(Node.get());
++    auto Rotates = rotatePatternVariants(Node.get());
++    Variants.insert(Variants.end(), Rotates.begin(), Rotates.end());
+     if (TLI->isOperationLegal(ISD::SMIN, MVT::i32) &&
+         TLI->isOperationLegal(ISD::SMAX, MVT::i32)) {
+       auto Clamps = clampPatternVariants(Node.get());

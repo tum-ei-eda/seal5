@@ -1,0 +1,6 @@
+Initializer::loadIni(): Ini sucessfully loaded /tmp/seal5-corev-main-instruction-checks/guest.ini
+  Load Configs from .ini files:
+ETISS: Info: Created new config container: global
+COREV_CHECKS checks=4592 failures=0
+SEAL5_RESULT verified=1
+SEAL5_COUNTS {"instructions":359582,"model_cycles":359582,"starts":1,"ends":1,"active":0,"mnemonics":{"add":24455,"addi":63448,"and":24499,"andi":7009,"auipc":4,"beq":10720,"bge":756,"bgeu":24242,"blt":459,"bltu":168,"bne":9119,"cv_bclrr":136,"cv_beqimm":136,"cv_bitrev":1224,"cv_bneimm":136,"cv_bsetr":136,"cv_clip":256,"cv_clipr":136,"cv_clipu":256,"cv_clipur":136,"cv_cnt":136,"cv_ff1":136,"cv_fl1":136,"cv_insertr":136,"cv_pack":136,"cv_pack_h":136,"cv_packhi_b":136,"cv_packlo_b":136,"cv_ror":136,"cv_shuffle_b":136,"cv_shuffle_h":136,"cv_shuffle_sci_h":544,"ebreak":3,"jal":4005,"jalr":6654,"lbu":65,"lh":16,"lhu":1,"lui":508,"lw":7544,"mul":284,"mulhu":16,"or":26390,"ori":5,"remu":1224,"sb":57,"sh":4,"sll":49264,"slli":5480,"slti":1,"sltiu":136,"sltu":152,"srai":6,"srl":31008,"srli":1928,"sub":24443,"sw":6254,"xor":280,"xori":24383}}

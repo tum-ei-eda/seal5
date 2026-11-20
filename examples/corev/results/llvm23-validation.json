@@ -1,0 +1,651 @@
+{
+  "date": "2026-11-20",
+  "llvm_version": "23.1.3",
+  "dependency_commit": "f3e4c5705c2da4ecadc2babeae356e2960220293",
+  "cdsl_commit": "56b66cfea193b28cd88ea89a684469ef76fa31cc",
+  "workspace": "/tmp/seal5-xcorev-llvm23",
+  "build_configuration": "release_assertions",
+  "implementation_sha256": {
+    "examples/corev/benchmark_embench.py": "b07f2ba7049f4e01ab6e9862b4194b2547bf03cfbf838b0e52561292d4e70611",
+    "examples/corev/cfg/XCoreVAlu.yml": "4ad012967812b540bd7b0a7fe696950a9ed666c52bc88e1770b80418b46382e6",
+    "examples/corev/cfg/XCoreVBitmanip.yml": "957e2b860356ef740abe0070ef353064318d388a4f5ae91b357a238511a23e3c",
+    "examples/corev/cfg/XCoreVBranchImmediate.yml": "155f4311e1e9b86dccda4027636a2fd941b6c1567876a5310ba5dee864499c4f",
+    "examples/corev/cfg/XCoreVMac.yml": "bde824432f913906ad198af9b7d5a6101d71e8ec3a2db8e097016f0d04a57a0c",
+    "examples/corev/cfg/XCoreVMem.yml": "2370bf71a330f8339e97e9bee268a18fcc8d322b04591532e0a305eb3259ed8d",
+    "examples/corev/cfg/XCoreVSimd.yml": "97bed74c461d7a4c36f5540bed6b7c55d88e004b18e1364b8ae9a458bfc19997",
+    "examples/corev/cfg/corev.yml": "9e74a177889afa61789dfe24d0b76b9b34706598314cfcb1e6cd7a3874a67c3f",
+    "examples/corev/cfg/filter.yml": "19317b205296544d4c301684040ad15189bbc216a7025e63c9b186d499a32c6f",
+    "examples/corev/cfg/llvm22.yml": "17d860b91abc27efd4c32b900c257f4d5ebe255406470895a42ea76fb73f399e",
+    "examples/corev/cfg/llvm23.yml": "9a88b0413728697a8867da85e4c89553a4151d7751a76b99c496f36283f95ba5",
+    "examples/corev/cfg/riscv.yml": "6f20d8dac0dda5931a5a6f812925a91e4ce9abcdfbba052af185106742683459",
+    "examples/corev/patches/llvm22-bitwise-pattern-types.patch": "8ca11c36dd2af32361578d828c35865602c15ed033e22216d8430d7f482a2038",
+    "examples/corev/patches/llvm22-clamp-pattern-variants.patch": "f98352dd0d52d43349c0ed6e556c1f957ebfb01146c0fc92ca325ec3fa869d1a",
+    "examples/corev/patches/llvm22-fixed-vector-splats.patch": "fdba8d0aa8f6d9f0f999a92a46d644bb9f0a0259484cfa61fc766f5e1699ed9b",
+    "examples/corev/patches/llvm22-minmax-capability.patch": "bd7c175cd74ca830caa947b42856d73bd3d9fdae3265933175612b83281b1632",
+    "examples/corev/patches/llvm22-mul-mask-cost.patch": "9eb3f04356668f0c83154831c3db29f3cc64baf3ae5432c4da16d5534e1e3d9f",
+    "examples/corev/patches/llvm22-narrow-register-offsets.patch": "01185e3c3aabd7b0e3957a318f401fa7045c17b1c0e2d9971a4941470a2a7627",
+    "examples/corev/patches/llvm22-packed-capabilities.patch": "de1e502d178fb4fd2d2e502e0d17571a01a1315141158d4476f961c320f3b66e",
+    "examples/corev/patches/llvm22-packed-compare-capability.patch": "3faef3444a32de4a4d9eebfe65249deafaea392e7e5c88818fed5663705dfd69",
+    "examples/corev/patches/llvm22-packed-lane-combines.patch": "41c218cccc00fed680f87a9a5da02b909c228486503369524163e25c235e01bf",
+    "examples/corev/patches/llvm22-register-offset-asm.patch": "9b75c99246061049ea92f2d6e7142b6b8b3321a27b0c5045d3a56851ced5e861",
+    "examples/corev/patches/llvm22-rotate-capability.patch": "76116cc892508884322328f61994c29ae49ff0d678164f200dfcc6c9f0debd15",
+    "examples/corev/patches/llvm22-rotate-pattern-variants.patch": "72277c05e02d0a758cbda3240428de127a284646d3b91f626d851d9df06ece19",
+    "examples/corev/patches/llvm22-rounded-pattern-variants.patch": "c2024d97e4f2555feba18d55707dc6dd761d1b2e3baf837bc6fda85d3b3b5d59",
+    "examples/corev/patches/llvm23-minmax-capability.patch": "c95238bfd5b37ab653295b9f9970b1038aa891d2f7727b9195fe010c0dd80d87",
+    "examples/corev/patches/llvm23-packed-compare-capability.patch": "369df93c301ecf76d18e6d2c3ccdf06c557bdbce4c09652534702ab5063aa9d1",
+    "examples/corev/patches/llvm23-rotate-capability.patch": "b5b76b0f0bdb9983ea31f8e0dab795e9b7cbeabb5ca18afdea3a93fc307c2c1e",
+    "examples/corev/patches/llvm23-subtarget-feature-capacity.patch": "e50bee65e6ceab69d5dca8579c5fc63ee9554247cb786cba4209b1302f0ab593",
+    "examples/corev_demo.py": "9045baa53e40c60596301fa8861f53a06d558ff6736f178fb0c5a1f10bebd798",
+    "seal5/settings.py": "c85904f9f50d054843b96d0cb2cecc784137b67e718b5922a15d01dc142f1e7f",
+    "seal5/tools/cdsl2llvm.py": "08163f51a36e3e795a02fcf4b7380e546808b8fc2cab84bc0644d5eaa6d86e55"
+  },
+  "python_tests": {
+    "passed": 115
+  },
+  "source_codegen": {
+    "llvm22": {
+      "passed": 651,
+      "unsupported": 2,
+      "failed": 0
+    },
+    "llvm23": {
+      "passed": 651,
+      "unsupported": 2,
+      "failed": 0
+    }
+  },
+  "generated_codegen": {
+    "passed": 124,
+    "failed": 14,
+    "same_failures_as_llvm22": true,
+    "failed_tests": [
+      "SEAL5_CV_AND_H.test-cg.ll",
+      "SEAL5_CV_AVGU_H.test-cg.ll",
+      "SEAL5_CV_AVG_B.test-cg.ll",
+      "SEAL5_CV_AVG_H.test-cg.ll",
+      "SEAL5_CV_CMPLEU_B.test-cg.ll",
+      "SEAL5_CV_CMPLEU_H.test-cg.ll",
+      "SEAL5_CV_CMPLE_B.test-cg.ll",
+      "SEAL5_CV_CMPLE_H.test-cg.ll",
+      "SEAL5_CV_CMPLTU_B.test-cg.ll",
+      "SEAL5_CV_CMPLTU_H.test-cg.ll",
+      "SEAL5_CV_CMPLT_B.test-cg.ll",
+      "SEAL5_CV_CMPLT_H.test-cg.ll",
+      "SEAL5_CV_OR_H.test-cg.ll",
+      "SEAL5_CV_XOR_H.test-cg.ll"
+    ]
+  },
+  "pattern_extraction": {
+    "successful": 183,
+    "skipped": 26,
+    "failed": 101,
+    "same_instruction_sets_as_llvm22": true,
+    "metrics": {
+      "XCoreVAlu": {
+        "n_sets": "1",
+        "n_instructions": "31",
+        "n_skipped": "0",
+        "n_failed": "0",
+        "n_success": "31",
+        "skipped_instructions": "[]",
+        "failed_instructions": "[]",
+        "success_instructions": "['SEAL5_CV_ABS', 'SEAL5_CV_ADDN', 'SEAL5_CV_ADDNR', 'SEAL5_CV_ADDRN', 'SEAL5_CV_ADDRNR', 'SEAL5_CV_ADDUN', 'SEAL5_CV_ADDUNR', 'SEAL5_CV_ADDURN', 'SEAL5_CV_ADDURNR', 'SEAL5_CV_CLIP', 'SEAL5_CV_CLIPR', 'SEAL5_CV_CLIPU', 'SEAL5_CV_CLIPUR', 'SEAL5_CV_EXTBS', 'SEAL5_CV_EXTBZ', 'SEAL5_CV_EXTHS', 'SEAL5_CV_EXTHZ', 'SEAL5_CV_MAX', 'SEAL5_CV_MAXU', 'SEAL5_CV_MIN', 'SEAL5_CV_MINU', 'SEAL5_CV_SLE', 'SEAL5_CV_SLEU', 'SEAL5_CV_SUBN', 'SEAL5_CV_SUBNR', 'SEAL5_CV_SUBRN', 'SEAL5_CV_SUBRNR', 'SEAL5_CV_SUBUN', 'SEAL5_CV_SUBUNR', 'SEAL5_CV_SUBURN', 'SEAL5_CV_SUBURNR']",
+        "n_extracted_patterns": "379",
+        "n_gisel_table_entries": "0",
+        "n_gisel_table_entries_matched": "0",
+        "n_gisel_table_entries_matched_known": "0",
+        "n_gisel_table_entries_matched_unreported_instructions": "0",
+        "n_processed_instructions": "31",
+        "tablegen_bytes": "66067",
+        "gisel_table_bytes": "0",
+        "gisel_table_patch_bytes": "0",
+        "pattern_gen_time_s": "0.5623209811747074",
+        "tablegen_time_s": "0.5623209811747074",
+        "gisel_table_time_s": "0",
+        "n_tablegen_patterns": "379",
+        "n_tablegen_patterns_imported": "",
+        "n_tablegen_patterns_imported_known": "0",
+        "n_tablegen_patterns_imported_unreported_instructions": "31",
+        "n_tablegen_patterns_matched": "",
+        "n_tablegen_patterns_matched_known": "0",
+        "n_tablegen_patterns_matched_unreported_instructions": "31",
+        "n_gisel_table_patterns": "0",
+        "n_gisel_table_patterns_matched": "0",
+        "n_gisel_table_patterns_matched_known": "0",
+        "n_gisel_table_patterns_matched_unreported_instructions": "0",
+        "n_processed_sets": "1",
+        "generation_wall_time_s": "3.2058089380152524"
+      },
+      "XCoreVBitmanip": {
+        "n_sets": "1",
+        "n_instructions": "15",
+        "n_skipped": "10",
+        "n_failed": "1",
+        "n_success": "4",
+        "skipped_instructions": "['SEAL5_CV_BCLR', 'SEAL5_CV_BCLRR', 'SEAL5_CV_BITREV', 'SEAL5_CV_BSET', 'SEAL5_CV_BSETR', 'SEAL5_CV_CNT', 'SEAL5_CV_FF1', 'SEAL5_CV_FL1', 'SEAL5_CV_INSERT', 'SEAL5_CV_INSERTR']",
+        "failed_instructions": "['SEAL5_CV_EXTRACT']",
+        "success_instructions": "['SEAL5_CV_EXTRACTR', 'SEAL5_CV_EXTRACTU', 'SEAL5_CV_EXTRACTUR', 'SEAL5_CV_ROR']",
+        "n_extracted_patterns": "5",
+        "n_gisel_table_entries": "0",
+        "n_gisel_table_entries_matched": "0",
+        "n_gisel_table_entries_matched_known": "0",
+        "n_gisel_table_entries_matched_unreported_instructions": "0",
+        "n_processed_instructions": "5",
+        "tablegen_bytes": "2469",
+        "gisel_table_bytes": "0",
+        "gisel_table_patch_bytes": "0",
+        "pattern_gen_time_s": "0.08279967773705721",
+        "tablegen_time_s": "0.08279967773705721",
+        "gisel_table_time_s": "0",
+        "n_tablegen_patterns": "5",
+        "n_tablegen_patterns_imported": "",
+        "n_tablegen_patterns_imported_known": "0",
+        "n_tablegen_patterns_imported_unreported_instructions": "4",
+        "n_tablegen_patterns_matched": "",
+        "n_tablegen_patterns_matched_known": "0",
+        "n_tablegen_patterns_matched_unreported_instructions": "4",
+        "n_gisel_table_patterns": "0",
+        "n_gisel_table_patterns_matched": "0",
+        "n_gisel_table_patterns_matched_known": "0",
+        "n_gisel_table_patterns_matched_unreported_instructions": "0",
+        "n_processed_sets": "1",
+        "generation_wall_time_s": "0.4564640033058822"
+      },
+      "XCoreVBranchImmediate": {
+        "n_sets": "1",
+        "n_instructions": "2",
+        "n_skipped": "0",
+        "n_failed": "0",
+        "n_success": "2",
+        "skipped_instructions": "[]",
+        "failed_instructions": "[]",
+        "success_instructions": "['SEAL5_CV_BEQIMM', 'SEAL5_CV_BNEIMM']",
+        "n_extracted_patterns": "2",
+        "n_gisel_table_entries": "0",
+        "n_gisel_table_entries_matched": "0",
+        "n_gisel_table_entries_matched_known": "0",
+        "n_gisel_table_entries_matched_unreported_instructions": "0",
+        "n_processed_instructions": "2",
+        "tablegen_bytes": "1010",
+        "gisel_table_bytes": "0",
+        "gisel_table_patch_bytes": "0",
+        "pattern_gen_time_s": "0.023772469721734524",
+        "tablegen_time_s": "0.023772469721734524",
+        "gisel_table_time_s": "0",
+        "n_tablegen_patterns": "2",
+        "n_tablegen_patterns_imported": "",
+        "n_tablegen_patterns_imported_known": "0",
+        "n_tablegen_patterns_imported_unreported_instructions": "2",
+        "n_tablegen_patterns_matched": "",
+        "n_tablegen_patterns_matched_known": "0",
+        "n_tablegen_patterns_matched_unreported_instructions": "2",
+        "n_gisel_table_patterns": "0",
+        "n_gisel_table_patterns_matched": "0",
+        "n_gisel_table_patterns_matched_known": "0",
+        "n_gisel_table_patterns_matched_unreported_instructions": "0",
+        "n_processed_sets": "1",
+        "generation_wall_time_s": "0.1626655627042055"
+      },
+      "XCoreVMac": {
+        "n_sets": "1",
+        "n_instructions": "18",
+        "n_skipped": "0",
+        "n_failed": "0",
+        "n_success": "18",
+        "skipped_instructions": "[]",
+        "failed_instructions": "[]",
+        "success_instructions": "['SEAL5_CV_MAC', 'SEAL5_CV_MACHHSN', 'SEAL5_CV_MACHHSRN', 'SEAL5_CV_MACHHUN', 'SEAL5_CV_MACHHURN', 'SEAL5_CV_MACSN', 'SEAL5_CV_MACSRN', 'SEAL5_CV_MACUN', 'SEAL5_CV_MACURN', 'SEAL5_CV_MSU', 'SEAL5_CV_MULHHSN', 'SEAL5_CV_MULHHSRN', 'SEAL5_CV_MULHHUN', 'SEAL5_CV_MULHHURN', 'SEAL5_CV_MULSN', 'SEAL5_CV_MULSRN', 'SEAL5_CV_MULUN', 'SEAL5_CV_MULURN']",
+        "n_extracted_patterns": "390",
+        "n_gisel_table_entries": "0",
+        "n_gisel_table_entries_matched": "0",
+        "n_gisel_table_entries_matched_known": "0",
+        "n_gisel_table_entries_matched_unreported_instructions": "0",
+        "n_processed_instructions": "18",
+        "tablegen_bytes": "103416",
+        "gisel_table_bytes": "0",
+        "gisel_table_patch_bytes": "0",
+        "pattern_gen_time_s": "0.46021159505471587",
+        "tablegen_time_s": "0.46021159505471587",
+        "gisel_table_time_s": "0",
+        "n_tablegen_patterns": "390",
+        "n_tablegen_patterns_imported": "",
+        "n_tablegen_patterns_imported_known": "0",
+        "n_tablegen_patterns_imported_unreported_instructions": "18",
+        "n_tablegen_patterns_matched": "",
+        "n_tablegen_patterns_matched_known": "0",
+        "n_tablegen_patterns_matched_unreported_instructions": "18",
+        "n_gisel_table_patterns": "0",
+        "n_gisel_table_patterns_matched": "0",
+        "n_gisel_table_patterns_matched_known": "0",
+        "n_gisel_table_patterns_matched_unreported_instructions": "0",
+        "n_processed_sets": "1",
+        "generation_wall_time_s": "1.9482113346457481"
+      },
+      "XCoreVMem": {
+        "n_sets": "1",
+        "n_instructions": "24",
+        "n_skipped": "16",
+        "n_failed": "0",
+        "n_success": "8",
+        "skipped_instructions": "['SEAL5_CV_LBU_ri_inc', 'SEAL5_CV_LBU_rr_inc', 'SEAL5_CV_LB_ri_inc', 'SEAL5_CV_LB_rr_inc', 'SEAL5_CV_LHU_ri_inc', 'SEAL5_CV_LHU_rr_inc', 'SEAL5_CV_LH_ri_inc', 'SEAL5_CV_LH_rr_inc', 'SEAL5_CV_LW_ri_inc', 'SEAL5_CV_LW_rr_inc', 'SEAL5_CV_SB_ri_inc', 'SEAL5_CV_SB_rr_inc', 'SEAL5_CV_SH_ri_inc', 'SEAL5_CV_SH_rr_inc', 'SEAL5_CV_SW_ri_inc', 'SEAL5_CV_SW_rr_inc']",
+        "failed_instructions": "[]",
+        "success_instructions": "['SEAL5_CV_LBU_rr', 'SEAL5_CV_LB_rr', 'SEAL5_CV_LHU_rr', 'SEAL5_CV_LH_rr', 'SEAL5_CV_LW_rr', 'SEAL5_CV_SB_rr', 'SEAL5_CV_SH_rr', 'SEAL5_CV_SW_rr']",
+        "n_extracted_patterns": "8",
+        "n_gisel_table_entries": "0",
+        "n_gisel_table_entries_matched": "0",
+        "n_gisel_table_entries_matched_known": "0",
+        "n_gisel_table_entries_matched_unreported_instructions": "0",
+        "n_processed_instructions": "8",
+        "tablegen_bytes": "3558",
+        "gisel_table_bytes": "0",
+        "gisel_table_patch_bytes": "0",
+        "pattern_gen_time_s": "0.0938271009363234",
+        "tablegen_time_s": "0.0938271009363234",
+        "gisel_table_time_s": "0",
+        "n_tablegen_patterns": "8",
+        "n_tablegen_patterns_imported": "",
+        "n_tablegen_patterns_imported_known": "0",
+        "n_tablegen_patterns_imported_unreported_instructions": "8",
+        "n_tablegen_patterns_matched": "",
+        "n_tablegen_patterns_matched_known": "0",
+        "n_tablegen_patterns_matched_unreported_instructions": "8",
+        "n_gisel_table_patterns": "0",
+        "n_gisel_table_patterns_matched": "0",
+        "n_gisel_table_patterns_matched_known": "0",
+        "n_gisel_table_patterns_matched_unreported_instructions": "0",
+        "n_processed_sets": "1",
+        "generation_wall_time_s": "0.627626562025398"
+      },
+      "XCoreVSimd": {
+        "n_sets": "1",
+        "n_instructions": "220",
+        "n_skipped": "0",
+        "n_failed": "100",
+        "n_success": "120",
+        "skipped_instructions": "[]",
+        "failed_instructions": "['SEAL5_CV_ABS_B', 'SEAL5_CV_ABS_H', 'SEAL5_CV_ADD_SCI_H', 'SEAL5_CV_ADD_SC_H', 'SEAL5_CV_AND_SCI_B', 'SEAL5_CV_AND_SCI_H', 'SEAL5_CV_AND_SC_B', 'SEAL5_CV_AND_SC_H', 'SEAL5_CV_AVGU_SCI_B', 'SEAL5_CV_AVGU_SCI_H', 'SEAL5_CV_AVGU_SC_B', 'SEAL5_CV_AVGU_SC_H', 'SEAL5_CV_AVG_SCI_B', 'SEAL5_CV_AVG_SCI_H', 'SEAL5_CV_AVG_SC_B', 'SEAL5_CV_AVG_SC_H', 'SEAL5_CV_CPLXCONJ', 'SEAL5_CV_CPLXMUL_I', 'SEAL5_CV_CPLXMUL_I_DIV2', 'SEAL5_CV_CPLXMUL_I_DIV4', 'SEAL5_CV_CPLXMUL_I_DIV8', 'SEAL5_CV_CPLXMUL_R', 'SEAL5_CV_CPLXMUL_R_DIV2', 'SEAL5_CV_CPLXMUL_R_DIV4', 'SEAL5_CV_CPLXMUL_R_DIV8', 'SEAL5_CV_EXTRACTU_B', 'SEAL5_CV_EXTRACTU_H', 'SEAL5_CV_EXTRACT_B', 'SEAL5_CV_EXTRACT_H', 'SEAL5_CV_INSERT_B', 'SEAL5_CV_INSERT_H', 'SEAL5_CV_MAXU_B', 'SEAL5_CV_MAXU_H', 'SEAL5_CV_MAXU_SCI_B', 'SEAL5_CV_MAXU_SCI_H', 'SEAL5_CV_MAXU_SC_B', 'SEAL5_CV_MAXU_SC_H', 'SEAL5_CV_MAX_B', 'SEAL5_CV_MAX_H', 'SEAL5_CV_MAX_SCI_B', 'SEAL5_CV_MAX_SCI_H', 'SEAL5_CV_MAX_SC_B', 'SEAL5_CV_MAX_SC_H', 'SEAL5_CV_MINU_B', 'SEAL5_CV_MINU_H', 'SEAL5_CV_MINU_SCI_B', 'SEAL5_CV_MINU_SCI_H', 'SEAL5_CV_MINU_SC_B', 'SEAL5_CV_MINU_SC_H', 'SEAL5_CV_MIN_B', 'SEAL5_CV_MIN_H', 'SEAL5_CV_MIN_SCI_B', 'SEAL5_CV_MIN_SCI_H', 'SEAL5_CV_MIN_SC_B', 'SEAL5_CV_MIN_SC_H', 'SEAL5_CV_OR_SCI_B', 'SEAL5_CV_OR_SCI_H', 'SEAL5_CV_OR_SC_B', 'SEAL5_CV_OR_SC_H', 'SEAL5_CV_PACK', 'SEAL5_CV_PACKHI_B', 'SEAL5_CV_PACKLO_B', 'SEAL5_CV_PACK_H', 'SEAL5_CV_SHUFFLE2_B', 'SEAL5_CV_SHUFFLE2_H', 'SEAL5_CV_SHUFFLEI0_SCI_B', 'SEAL5_CV_SHUFFLEI1_SCI_B', 'SEAL5_CV_SHUFFLEI2_SCI_B', 'SEAL5_CV_SHUFFLEI3_SCI_B', 'SEAL5_CV_SHUFFLE_B', 'SEAL5_CV_SHUFFLE_H', 'SEAL5_CV_SHUFFLE_SCI_H', 'SEAL5_CV_SLL_B', 'SEAL5_CV_SLL_H', 'SEAL5_CV_SLL_SCI_B', 'SEAL5_CV_SLL_SCI_H', 'SEAL5_CV_SLL_SC_B', 'SEAL5_CV_SLL_SC_H', 'SEAL5_CV_SRA_B', 'SEAL5_CV_SRA_H', 'SEAL5_CV_SRA_SCI_B', 'SEAL5_CV_SRA_SCI_H', 'SEAL5_CV_SRA_SC_B', 'SEAL5_CV_SRA_SC_H', 'SEAL5_CV_SRL_B', 'SEAL5_CV_SRL_H', 'SEAL5_CV_SRL_SCI_B', 'SEAL5_CV_SRL_SCI_H', 'SEAL5_CV_SRL_SC_B', 'SEAL5_CV_SRL_SC_H', 'SEAL5_CV_SUBROTMJ', 'SEAL5_CV_SUBROTMJ_DIV2', 'SEAL5_CV_SUBROTMJ_DIV4', 'SEAL5_CV_SUBROTMJ_DIV8', 'SEAL5_CV_SUB_SCI_H', 'SEAL5_CV_SUB_SC_H', 'SEAL5_CV_XOR_SCI_B', 'SEAL5_CV_XOR_SCI_H', 'SEAL5_CV_XOR_SC_B', 'SEAL5_CV_XOR_SC_H']",
+        "success_instructions": "['SEAL5_CV_ADD_B', 'SEAL5_CV_ADD_DIV2', 'SEAL5_CV_ADD_DIV4', 'SEAL5_CV_ADD_DIV8', 'SEAL5_CV_ADD_H', 'SEAL5_CV_ADD_SCI_B', 'SEAL5_CV_ADD_SC_B', 'SEAL5_CV_AND_B', 'SEAL5_CV_AND_H', 'SEAL5_CV_AVGU_B', 'SEAL5_CV_AVGU_H', 'SEAL5_CV_AVG_B', 'SEAL5_CV_AVG_H', 'SEAL5_CV_CMPEQ_B', 'SEAL5_CV_CMPEQ_H', 'SEAL5_CV_CMPEQ_SCI_B', 'SEAL5_CV_CMPEQ_SCI_H', 'SEAL5_CV_CMPEQ_SC_B', 'SEAL5_CV_CMPEQ_SC_H', 'SEAL5_CV_CMPGEU_B', 'SEAL5_CV_CMPGEU_H', 'SEAL5_CV_CMPGEU_SCI_B', 'SEAL5_CV_CMPGEU_SCI_H', 'SEAL5_CV_CMPGEU_SC_B', 'SEAL5_CV_CMPGEU_SC_H', 'SEAL5_CV_CMPGE_B', 'SEAL5_CV_CMPGE_H', 'SEAL5_CV_CMPGE_SCI_B', 'SEAL5_CV_CMPGE_SCI_H', 'SEAL5_CV_CMPGE_SC_B', 'SEAL5_CV_CMPGE_SC_H', 'SEAL5_CV_CMPGTU_B', 'SEAL5_CV_CMPGTU_H', 'SEAL5_CV_CMPGTU_SCI_B', 'SEAL5_CV_CMPGTU_SCI_H', 'SEAL5_CV_CMPGTU_SC_B', 'SEAL5_CV_CMPGTU_SC_H', 'SEAL5_CV_CMPGT_B', 'SEAL5_CV_CMPGT_H', 'SEAL5_CV_CMPGT_SCI_B', 'SEAL5_CV_CMPGT_SCI_H', 'SEAL5_CV_CMPGT_SC_B', 'SEAL5_CV_CMPGT_SC_H', 'SEAL5_CV_CMPLEU_B', 'SEAL5_CV_CMPLEU_H', 'SEAL5_CV_CMPLEU_SCI_B', 'SEAL5_CV_CMPLEU_SCI_H', 'SEAL5_CV_CMPLEU_SC_B', 'SEAL5_CV_CMPLEU_SC_H', 'SEAL5_CV_CMPLE_B', 'SEAL5_CV_CMPLE_H', 'SEAL5_CV_CMPLE_SCI_B', 'SEAL5_CV_CMPLE_SCI_H', 'SEAL5_CV_CMPLE_SC_B', 'SEAL5_CV_CMPLE_SC_H', 'SEAL5_CV_CMPLTU_B', 'SEAL5_CV_CMPLTU_H', 'SEAL5_CV_CMPLTU_SCI_B', 'SEAL5_CV_CMPLTU_SCI_H', 'SEAL5_CV_CMPLTU_SC_B', 'SEAL5_CV_CMPLTU_SC_H', 'SEAL5_CV_CMPLT_B', 'SEAL5_CV_CMPLT_H', 'SEAL5_CV_CMPLT_SCI_B', 'SEAL5_CV_CMPLT_SCI_H', 'SEAL5_CV_CMPLT_SC_B', 'SEAL5_CV_CMPLT_SC_H', 'SEAL5_CV_CMPNE_B', 'SEAL5_CV_CMPNE_H', 'SEAL5_CV_CMPNE_SCI_B', 'SEAL5_CV_CMPNE_SCI_H', 'SEAL5_CV_CMPNE_SC_B', 'SEAL5_CV_CMPNE_SC_H', 'SEAL5_CV_DOTSP_B', 'SEAL5_CV_DOTSP_H', 'SEAL5_CV_DOTSP_SCI_B', 'SEAL5_CV_DOTSP_SCI_H', 'SEAL5_CV_DOTSP_SC_B', 'SEAL5_CV_DOTSP_SC_H', 'SEAL5_CV_DOTUP_B', 'SEAL5_CV_DOTUP_H', 'SEAL5_CV_DOTUP_SCI_B', 'SEAL5_CV_DOTUP_SCI_H', 'SEAL5_CV_DOTUP_SC_B', 'SEAL5_CV_DOTUP_SC_H', 'SEAL5_CV_DOTUSP_B', 'SEAL5_CV_DOTUSP_H', 'SEAL5_CV_DOTUSP_SCI_B', 'SEAL5_CV_DOTUSP_SCI_H', 'SEAL5_CV_DOTUSP_SC_B', 'SEAL5_CV_DOTUSP_SC_H', 'SEAL5_CV_OR_B', 'SEAL5_CV_OR_H', 'SEAL5_CV_SDOTSP_B', 'SEAL5_CV_SDOTSP_H', 'SEAL5_CV_SDOTSP_SCI_B', 'SEAL5_CV_SDOTSP_SCI_H', 'SEAL5_CV_SDOTSP_SC_B', 'SEAL5_CV_SDOTSP_SC_H', 'SEAL5_CV_SDOTUP_B', 'SEAL5_CV_SDOTUP_H', 'SEAL5_CV_SDOTUP_SCI_B', 'SEAL5_CV_SDOTUP_SCI_H', 'SEAL5_CV_SDOTUP_SC_B', 'SEAL5_CV_SDOTUP_SC_H', 'SEAL5_CV_SDOTUSP_B', 'SEAL5_CV_SDOTUSP_H', 'SEAL5_CV_SDOTUSP_SCI_B', 'SEAL5_CV_SDOTUSP_SCI_H', 'SEAL5_CV_SDOTUSP_SC_B', 'SEAL5_CV_SDOTUSP_SC_H', 'SEAL5_CV_SUB_B', 'SEAL5_CV_SUB_DIV2', 'SEAL5_CV_SUB_DIV4', 'SEAL5_CV_SUB_DIV8', 'SEAL5_CV_SUB_H', 'SEAL5_CV_SUB_SCI_B', 'SEAL5_CV_SUB_SC_B', 'SEAL5_CV_XOR_B', 'SEAL5_CV_XOR_H']",
+        "n_extracted_patterns": "180",
+        "n_gisel_table_entries": "0",
+        "n_gisel_table_entries_matched": "0",
+        "n_gisel_table_entries_matched_known": "0",
+        "n_gisel_table_entries_matched_unreported_instructions": "0",
+        "n_processed_instructions": "220",
+        "tablegen_bytes": "83615",
+        "gisel_table_bytes": "0",
+        "gisel_table_patch_bytes": "0",
+        "pattern_gen_time_s": "6.053582184016705",
+        "tablegen_time_s": "6.053582184016705",
+        "gisel_table_time_s": "0",
+        "n_tablegen_patterns": "180",
+        "n_tablegen_patterns_imported": "",
+        "n_tablegen_patterns_imported_known": "0",
+        "n_tablegen_patterns_imported_unreported_instructions": "120",
+        "n_tablegen_patterns_matched": "",
+        "n_tablegen_patterns_matched_known": "0",
+        "n_tablegen_patterns_matched_unreported_instructions": "120",
+        "n_gisel_table_patterns": "0",
+        "n_gisel_table_patterns_matched": "0",
+        "n_gisel_table_patterns_matched_known": "0",
+        "n_gisel_table_patterns_matched_unreported_instructions": "0",
+        "n_processed_sets": "1",
+        "generation_wall_time_s": "16.74693480785936"
+      }
+    }
+  },
+  "subtarget_features": {
+    "count": 391,
+    "capacity_bits": 448
+  },
+  "semantic_checks": {
+    "mac": 3216,
+    "rounded_alu": 3456,
+    "clip": 723,
+    "clip_bounds_proofs": 4,
+    "clip_specialization_skips": 2,
+    "dot_product": 40800,
+    "packed_comparison": 87760,
+    "scalar_comparison": 5940,
+    "rotate_pattern_cases": 3,
+    "failures": 0,
+    "fixed_vector_splat_verifier_passed": true
+  },
+  "stock_integration_patch_preflight": {
+    "22": [
+      {
+        "name": "corev_bitwise_pattern_types",
+        "result": "applies"
+      },
+      {
+        "name": "corev_register_offset_asm",
+        "result": "applies"
+      },
+      {
+        "name": "corev_packed_capabilities",
+        "result": "already_present"
+      },
+      {
+        "name": "corev_mul_mask_cost",
+        "result": "applies"
+      },
+      {
+        "name": "corev_clamp_pattern_variants",
+        "result": "applies"
+      },
+      {
+        "name": "corev_rounded_pattern_variants",
+        "result": "applies"
+      },
+      {
+        "name": "corev_rotate_pattern_variants",
+        "result": "applies"
+      },
+      {
+        "name": "corev_narrow_register_offsets",
+        "result": "applies"
+      },
+      {
+        "name": "corev_fixed_vector_splats",
+        "result": "applies"
+      },
+      {
+        "name": "corev_packed_lane_combines",
+        "result": "applies"
+      },
+      {
+        "name": "corev_rotate_capability",
+        "result": "applies"
+      },
+      {
+        "name": "corev_minmax_capability",
+        "result": "applies"
+      },
+      {
+        "name": "corev_packed_compare_capability",
+        "result": "applies"
+      }
+    ],
+    "23": [
+      {
+        "name": "corev_bitwise_pattern_types",
+        "result": "applies"
+      },
+      {
+        "name": "corev_register_offset_asm",
+        "result": "applies"
+      },
+      {
+        "name": "corev_packed_capabilities",
+        "result": "already_present"
+      },
+      {
+        "name": "corev_mul_mask_cost",
+        "result": "applies"
+      },
+      {
+        "name": "corev_clamp_pattern_variants",
+        "result": "applies"
+      },
+      {
+        "name": "corev_rounded_pattern_variants",
+        "result": "applies"
+      },
+      {
+        "name": "corev_rotate_pattern_variants",
+        "result": "applies"
+      },
+      {
+        "name": "corev_narrow_register_offsets",
+        "result": "applies"
+      },
+      {
+        "name": "corev_fixed_vector_splats",
+        "result": "applies"
+      },
+      {
+        "name": "corev_packed_lane_combines",
+        "result": "applies"
+      },
+      {
+        "name": "corev_subtarget_feature_capacity",
+        "result": "applies"
+      },
+      {
+        "name": "corev_rotate_capability",
+        "result": "applies"
+      },
+      {
+        "name": "corev_minmax_capability",
+        "result": "applies"
+      },
+      {
+        "name": "corev_packed_compare_capability",
+        "result": "applies"
+      }
+    ]
+  },
+  "embench": {
+    "verified_executions": 42,
+    "repetitions": 1,
+    "compile_failures": [
+      "cubic/baseline",
+      "cubic/corev"
+    ],
+    "comparison": {
+      "llvm22_repetitions": 3,
+      "llvm23_repetitions": 1,
+      "verified_program_pairs": 21,
+      "llvm22_corev_instruction_reduction_pct": 5.524612685403119,
+      "llvm23_corev_instruction_reduction_pct": 4.7731839662775055,
+      "llvm23_vs22_instruction_change_pct": {
+        "baseline": -0.934068651167741,
+        "corev": -0.14612813016670056
+      },
+      "programs": [
+        {
+          "program": "aha-mont64",
+          "baseline_llvm22": 5806645,
+          "baseline_llvm23": 5806647,
+          "baseline_change_pct": 3.444329728097273e-05,
+          "corev_llvm22": 5810461,
+          "corev_llvm23": 5809617,
+          "corev_change_pct": -0.014525525599429212
+        },
+        {
+          "program": "crc32",
+          "baseline_llvm22": 4005409,
+          "baseline_llvm23": 4005409,
+          "baseline_change_pct": 0.0,
+          "corev_llvm22": 3831336,
+          "corev_llvm23": 3831336,
+          "corev_change_pct": 0.0
+        },
+        {
+          "program": "edn",
+          "baseline_llvm22": 3220984,
+          "baseline_llvm23": 3086045,
+          "baseline_change_pct": -4.189371943480625,
+          "corev_llvm22": 2506471,
+          "corev_llvm23": 2520305,
+          "corev_change_pct": 0.5519313808139081
+        },
+        {
+          "program": "huffbench",
+          "baseline_llvm22": 2519750,
+          "baseline_llvm23": 2524997,
+          "baseline_change_pct": 0.20823494394284214,
+          "corev_llvm22": 2406189,
+          "corev_llvm23": 2411458,
+          "corev_change_pct": 0.21897697978006114
+        },
+        {
+          "program": "matmult-int",
+          "baseline_llvm22": 1997869,
+          "baseline_llvm23": 1997869,
+          "baseline_change_pct": 0.0,
+          "corev_llvm22": 1669020,
+          "corev_llvm23": 1669020,
+          "corev_change_pct": 0.0
+        },
+        {
+          "program": "md5sum",
+          "baseline_llvm22": 2019904,
+          "baseline_llvm23": 2019904,
+          "baseline_change_pct": 0.0,
+          "corev_llvm22": 1946773,
+          "corev_llvm23": 1947589,
+          "corev_change_pct": 0.04191551865575516
+        },
+        {
+          "program": "minver",
+          "baseline_llvm22": 5017804,
+          "baseline_llvm23": 5013364,
+          "baseline_change_pct": -0.08848492288658916,
+          "corev_llvm22": 5020584,
+          "corev_llvm23": 5020584,
+          "corev_change_pct": 0.0
+        },
+        {
+          "program": "nbody",
+          "baseline_llvm22": 3436375,
+          "baseline_llvm23": 3436375,
+          "baseline_change_pct": 0.0,
+          "corev_llvm22": 3454939,
+          "corev_llvm23": 3454939,
+          "corev_change_pct": 0.0
+        },
+        {
+          "program": "nettle-aes",
+          "baseline_llvm22": 3871746,
+          "baseline_llvm23": 3871590,
+          "baseline_change_pct": -0.004029189931364918,
+          "corev_llvm22": 3271308,
+          "corev_llvm23": 3301806,
+          "corev_change_pct": 0.9322876354045606
+        },
+        {
+          "program": "nettle-sha256",
+          "baseline_llvm22": 4413263,
+          "baseline_llvm23": 3935413,
+          "baseline_change_pct": -10.8275894729138,
+          "corev_llvm22": 3409118,
+          "corev_llvm23": 3276118,
+          "corev_change_pct": -3.9013023309841466
+        },
+        {
+          "program": "nsichneu",
+          "baseline_llvm22": 2001632,
+          "baseline_llvm23": 2001632,
+          "baseline_change_pct": 0.0,
+          "corev_llvm22": 2001637,
+          "corev_llvm23": 2001637,
+          "corev_change_pct": 0.0
+        },
+        {
+          "program": "picojpeg",
+          "baseline_llvm22": 3296200,
+          "baseline_llvm23": 3375790,
+          "baseline_change_pct": 2.414598628723996,
+          "corev_llvm22": 3270029,
+          "corev_llvm23": 3372659,
+          "corev_change_pct": 3.1385042762617665
+        },
+        {
+          "program": "primecount",
+          "baseline_llvm22": 4571595,
+          "baseline_llvm23": 4571595,
+          "baseline_change_pct": 0.0,
+          "corev_llvm22": 4081141,
+          "corev_llvm23": 4081141,
+          "corev_change_pct": 0.0
+        },
+        {
+          "program": "qrduino",
+          "baseline_llvm22": 2838449,
+          "baseline_llvm23": 2775259,
+          "baseline_change_pct": -2.2262157960209916,
+          "corev_llvm22": 2717027,
+          "corev_llvm23": 2677877,
+          "corev_change_pct": -1.4409131745838355
+        },
+        {
+          "program": "sglib-combined",
+          "baseline_llvm22": 2383411,
+          "baseline_llvm23": 2413249,
+          "baseline_change_pct": 1.2519032596560065,
+          "corev_llvm22": 2281689,
+          "corev_llvm23": 2305700,
+          "corev_change_pct": 1.0523344767845222
+        },
+        {
+          "program": "slre",
+          "baseline_llvm22": 2681172,
+          "baseline_llvm23": 2674462,
+          "baseline_change_pct": -0.250263690654684,
+          "corev_llvm22": 2905906,
+          "corev_llvm23": 2899636,
+          "corev_change_pct": -0.2157674749286409
+        },
+        {
+          "program": "st",
+          "baseline_llvm22": 3835252,
+          "baseline_llvm23": 3832643,
+          "baseline_change_pct": -0.06802682066263666,
+          "corev_llvm22": 3837967,
+          "corev_llvm23": 3844407,
+          "corev_change_pct": 0.16779716969947955
+        },
+        {
+          "program": "statemate",
+          "baseline_llvm22": 1154863,
+          "baseline_llvm23": 1135223,
+          "baseline_change_pct": -1.7006346207299017,
+          "corev_llvm22": 1160760,
+          "corev_llvm23": 1141120,
+          "corev_change_pct": -1.6919948998931789
+        },
+        {
+          "program": "tarfind",
+          "baseline_llvm22": 1209286,
+          "baseline_llvm23": 1209286,
+          "baseline_change_pct": 0.0,
+          "corev_llvm22": 1175024,
+          "corev_llvm23": 1175071,
+          "corev_change_pct": 0.003999918299535388
+        },
+        {
+          "program": "ud",
+          "baseline_llvm22": 2057433,
+          "baseline_llvm23": 2036741,
+          "baseline_change_pct": -1.0057192627900835,
+          "corev_llvm22": 1897809,
+          "corev_llvm23": 1897809,
+          "corev_change_pct": 0.0
+        },
+        {
+          "program": "wikisort",
+          "baseline_llvm22": 1065226,
+          "baseline_llvm23": 1039782,
+          "baseline_change_pct": -2.3886011043665833,
+          "corev_llvm22": 1083175,
+          "corev_llvm23": 1064375,
+          "corev_change_pct": -1.7356382855955865
+        }
+      ]
+    }
+  },
+  "known_shared_limitations": [
+    "CLB disabled upstream",
+    "Signed immediate EXTRACT s33 sign-extension legalization",
+    "101 pattern extraction failures including unsupported SIMD operations",
+    "14 existing exact-opcode selection checks fail"
+  ],
+  "fixes": [
+    "shared CORE-V configuration and test inventory",
+    "LLVM 23 rotate/minmax/comparison patches",
+    "feature bitset capacity 384 to 448",
+    "register-input recognition independent of readonly attribute order",
+    "extra-operand diagnostic test compatibility",
+    "benchmark report derives LLVM major from recorded compiler version"
+  ]
+}

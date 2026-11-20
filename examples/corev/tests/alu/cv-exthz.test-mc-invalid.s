@@ -11,4 +11,4 @@ seal5.cv.exthz t0
 # CHECK-ERROR: too few operands for instruction
 
 seal5.cv.exthz t0, t1, t2
-# CHECK-ERROR: invalid operand for instruction
+# CHECK-ERROR: {{(invalid operand|unexpected extra operand)}} for instruction

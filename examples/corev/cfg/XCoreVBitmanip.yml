@@ -28,9 +28,6 @@ intrinsics:
     instr_name: SEAL5_CV_FL1
     intrinsic_name: bitmanip_fl1
   - <<: *ScalarCoreVBitmanipGprIntrinsic
-    instr_name: SEAL5_CV_CLB
-    intrinsic_name: bitmanip_clb
-  - <<: *ScalarCoreVBitmanipGprIntrinsic
     instr_name: SEAL5_CV_CNT
     intrinsic_name: bitmanip_cnt
   # binary (reg+reg)

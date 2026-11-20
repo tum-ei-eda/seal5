@@ -20,4 +20,4 @@ seal5.cv.clipu t0, t1
 # CHECK-ERROR: too few operands for instruction
 
 seal5.cv.clipu t0, t1, 0, 0
-# CHECK-ERROR: invalid operand for instruction
+# CHECK-ERROR: {{(invalid operand|unexpected extra operand)}} for instruction

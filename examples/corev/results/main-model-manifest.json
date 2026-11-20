@@ -1,0 +1,34 @@
+{
+  "corev_commit": "56b66cfea193b28cd88ea89a684469ef76fa31cc",
+  "generator_base": "204131e",
+  "generator_patch": "../review/m2isar-tested-snapshot.patch",
+  "writer_flags": [
+    "--separate",
+    "--no-static-scalars",
+    "--fill-mode",
+    "auto"
+  ],
+  "runtime_prefix": "/tmp/seal5-corev-main-etiss-install",
+  "cdsl_sha256": {
+    "XCoreV.core_desc": "16680469e2184f6f7c1d43f2c76da809d10beea279ed0fe1aaddc4e519867e1a",
+    "XCoreVAlu.core_desc": "049d3218b08eb6a3a7939fbae820f5401cb89c9a8a2a6ff8bd88cb2e932c72b5",
+    "XCoreVBitmanip.core_desc": "464d5cdb1b6ad0844c494ee11f2bd7d4b29aadd08e06834229bad0e8a98d9030",
+    "XCoreVBranchImmediate.core_desc": "69cbe496711a369d7f1f277c9df8e6e11dcf361a8481b272231dc02c80ee3d5f",
+    "XCoreVHwlp.core_desc": "d68a744903e181bc4e8419fdb446bc079b1b4ad583e5fdd04d447b806d71c405",
+    "XCoreVMac.core_desc": "66353c966d7b705e60ca0059041ebf4ebb37289330f28cbd132f79d725bee733",
+    "XCoreVMem.core_desc": "a2a5f0209191968b9799f293342a3ddbb2e16fc5e7dbcf371db0da0824feb48f",
+    "XCoreVSimd.core_desc": "1905af7707ce57a6f54336bbcd8ac1815759a9b20868a7312f8eb8a35db09925",
+    "rv_base/RISCVBase.core_desc": "1cabd518e1adabdeb81b3e6a4677cc164a7acdebc5a51942b2d216a38dd6d67b",
+    "rv_base/RISCVEncoding.core_desc": "c062d6fb1bdbc196d5f5e99d77f475b52161e0eaa2f35881f71bb9223b581512",
+    "rv_base/RVA.core_desc": "81cf26772ff2d2f34cb63d479544bf40d076478a4a379a81082124d211ac3ef8",
+    "rv_base/RVC.core_desc": "097ff3f88901459114de9436fdeff4e635b5c78326cdeb1c2e6ae26124e7bbab",
+    "rv_base/RVD.core_desc": "a1764695f9a86c22e7a689bb7ae47b3e447f3519b20cb07b933835c32ba9166e",
+    "rv_base/RVF.core_desc": "5c1f3c9c5c3aec5ee4c4bb8c8f8bdb33104deaec8874897334bef06e677ed28b",
+    "rv_base/RVI.core_desc": "30667670d12124971dc97c823fdde45693685156c2ac5f3ddedd98e46b935ac6",
+    "rv_base/RVM.core_desc": "cfd90d58f53d5235afd59a6fa4834222b2715818f03ea886daae002d927e037f",
+    "rv_base/RVV.core_desc": "587baab325659c24b6789dad8e81b8cb7e7307844884dfa7713433a7306b619f",
+    "top.core_desc": "d02f8eb5d10e9c5ffed5ec87b1ffb98f55ae68c9b5fdc68cc74ecbed3a384c19",
+    "tum_mod.core_desc": "947040fdffcc0857571b444b4fc37f5fef47a9721493f1f68db669b25b50134f",
+    "tum_rva.core_desc": "b5c5208e2c4e34a15140e899ec9a59a96f5ee143f054946142eedcac13ae88d8"
+  }
+}

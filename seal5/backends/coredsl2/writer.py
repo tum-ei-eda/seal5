@@ -65,6 +65,12 @@ def main():
         out_path = pathlib.Path(args.output)
 
     model_obj = load_model(top_level, compat=args.compat)
+    if args.reduced:
+        from seal5.transform.detect_branches import pattern_branch_operation
+
+        for set_def in model_obj.sets.values():
+            for instr in set_def.instructions.values():
+                instr.operation = pattern_branch_operation(instr.operation, instr.constraints)
 
     metrics = init_metrics()
     allowed_attrs = ALLOWED_SEAL5_ATTRS

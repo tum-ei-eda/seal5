@@ -1,0 +1,22 @@
+--- a/m2isar/metamodel/arch.py
++++ b/m2isar/metamodel/arch.py
+@@ -745,7 +745,7 @@
+ 	"""A group of InstructionSet instances."""
+ 
+ 	def __init__(self, name, combines: "list[str]"):
+-		super().__init__(name, [], {}, {}, {}, {}, {})
++		super().__init__(name, [], {}, {}, {}, {}, {}, {}, [], {})
+ 		self.combines = combines
+ 
+ class CoreDef(Named):
+--- a/m2isar/backends/etiss/instruction_utils.py
++++ b/m2isar/backends/etiss/instruction_utils.py
+@@ -227,7 +227,7 @@
+ 		sign = {False: "U", True: ""}
+ 
+ 		if self.ignore_static:
+-			return val
++			return Template(val).safe_substitute(**replacements.rename_dynamic)
+ 
+ 		return Template(f'" + std::to_string({val}) + "{sign[signed]}LL').safe_substitute(**replacements.rename_static)
+ 

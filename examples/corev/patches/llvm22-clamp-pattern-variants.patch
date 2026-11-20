@@ -1,0 +1,158 @@
+--- a/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp
++++ b/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp
+@@ -48,7 +48,9 @@
+ #include "llvm/Support/raw_ostream.h"
+ #include "llvm/Target/TargetMachine.h"
+ #include "llvm/Transforms/Utils/PredicateInfo.h"
++#include <algorithm>
+ #include <memory>
++#include <optional>
+ #include <sstream>
+ #include <string>
+ #include <utility>
+@@ -69,6 +71,8 @@
+ STATISTIC(PatternGenNumErrorFormat, "Errors of type: FORMAT");
+ STATISTIC(PatternGenNumErrorMultipleStores, "Errors of type: MULTIPLE STORES");
+ STATISTIC(PatternGenNumErrorUnusedOperand, "Errors of type: UNUSED_OPERAND");
++STATISTIC(PatternGenNumConstantSpecializationsSkipped,
++          "Constant-result specializations skipped");
+ STATISTIC(PatternGenNumErrorOperandMissmatch,
+           "Errors of type: OPERAND_MISSMATCH");
+
+@@ -782,6 +786,96 @@
+   static bool classof(const PatternNode *p) { return p->getKind() == PN_Cast; }
+ };
+
++// Return equivalent scalar clamp trees only when the bounds are ordered.
++// The optimizer may interchange signed/unsigned min for nonnegative operands;
++// source-level min(max()) and max(min()) also need separate TableGen rules.
++static std::vector<std::string> clampPatternVariants(PatternNode *Root) {
++  auto Unwrap = [](PatternNode *N) {
++    while (auto *Cast = dyn_cast<CastNode>(N)) {
++      if (Cast->Type != Cast->Value->Type)
++        break;
++      N = Cast->Value.get();
++    }
++    return N;
++  };
++  Root = Unwrap(Root);
++  if (Root->Type != LLT::scalar(32))
++    return {};
++  auto Constant = [&](PatternNode *N) -> std::optional<int32_t> {
++    if (auto *C = dyn_cast<ConstantNode>(Unwrap(N));
++        C && C->Type == LLT::scalar(32))
++      return static_cast<int32_t>(C->Constant);
++    return std::nullopt;
++  };
++  auto Nonnegative = [&](PatternNode *N) {
++    if (auto C = Constant(N))
++      return *C >= 0;
++    auto *B = dyn_cast<BinopNode>(Unwrap(N));
++    if (!B || B->Op != TargetOpcode::G_AND)
++      return false;
++    auto L = Constant(B->Left.get()), R = Constant(B->Right.get());
++    return (L && *L >= 0) || (R && *R >= 0);
++  };
++
++  auto *Outer = dyn_cast<BinopNode>(Root);
++  if (!Outer)
++    return {};
++  PatternNode *Value = nullptr;
++  std::string Lower, Upper;
++  bool UnsignedMin = false;
++  if (Outer->Op == TargetOpcode::G_SMIN ||
++      Outer->Op == TargetOpcode::G_UMIN) {
++    auto *Inner = dyn_cast<BinopNode>(Unwrap(Outer->Left.get()));
++    if (!Inner || Inner->Op != TargetOpcode::G_SMAX)
++      return {};
++    auto *L = Unwrap(Inner->Right.get());
++    auto *H = Unwrap(Outer->Right.get());
++    auto LC = Constant(L), HC = Constant(H);
++    bool Ordered = LC && HC && *LC <= *HC;
++    if (LC && *LC == 0 && Nonnegative(H))
++      Ordered = true;
++    if (auto *Not = dyn_cast<BinopNode>(L);
++        Not && Not->Op == TargetOpcode::G_XOR &&
++        Constant(Not->Right.get()) == std::optional<int32_t>(-1) &&
++        Unwrap(Not->Left.get())->patternString() == H->patternString() &&
++        Nonnegative(H))
++      Ordered = true;
++    if (!Ordered || (Outer->Op == TargetOpcode::G_UMIN &&
++                     (!LC || *LC < 0 || !Nonnegative(H))))
++      return {};
++    Value = Inner->Left.get();
++    Lower = L->patternString();
++    Upper = H->patternString();
++    UnsignedMin = LC && *LC >= 0 && Nonnegative(H);
++  } else if (Outer->Op == TargetOpcode::G_ASHR &&
++             Constant(Outer->Right.get()) == std::optional<int32_t>(31)) {
++    // Arithmetic sign replication is clamp(x, -1, 0).
++    Value = Outer->Left.get();
++    Lower = "(i32 -1)";
++    Upper = "(i32 0)";
++  } else if (Outer->Op == ISD::SETCC &&
++             static_cast<CompareNode *>(Outer)->Cond == CmpInst::ICMP_SGT &&
++             Constant(Outer->Right.get()) == std::optional<int32_t>(0)) {
++    // A word-sized signed-positive predicate is clamp(x, 0, 1).
++    Value = Outer->Left.get();
++    Lower = "(i32 0)";
++    Upper = "(i32 1)";
++    UnsignedMin = true;
++  } else {
++    return {};
++  }
++  std::string V = Value->patternString();
++  std::vector<std::string> Variants = {
++      "(smin (smax " + V + ", " + Lower + "), " + Upper + ")",
++      "(smax (smin " + V + ", " + Upper + "), " + Lower + ")"};
++  if (UnsignedMin)
++    Variants.push_back("(umin (smax " + V + ", " + Lower + "), " + Upper + ")");
++  Variants.erase(std::remove(Variants.begin(), Variants.end(),
++                             Root->patternString()),
++                 Variants.end());
++  return Variants;
++}
++
+ struct StoreNode : public PatternNode {
+   std::unique_ptr<PatternNode> Value;
+   std::unique_ptr<PatternNode> Addr;
+@@ -1592,6 +1686,17 @@
+     }
+     ++PatternGenNumInstructionsFailing;
+     ++PatternGenNumPatternsFailing;
++    return true;
++  }
++
++  // A constant-only specialization has no source register to bind. Keep the
++  // other variants instead of treating this expected optimization as failure.
++  if (!MayLoad && !MayStore && !IsBranch && isa<ConstantNode>(Node.get()) &&
++      llvm::any_of(CurInstr->fields,
++                   [](const auto &Field) { return Field.fixedImm.has_value(); })) {
++    outs() << "Skipped constant specialization for " << InstName << '\n';
++    ++PatternGenNumConstantSpecializationsSkipped;
++    Generated = true;
+     return true;
+   }
+
+@@ -1774,6 +1879,21 @@
+     Code += ";";
+   OutStream << "\n" << Code << "\n\n";
+
++  const TargetLowering *TLI = MF.getSubtarget().getTargetLowering();
++  if (!MayLoad && !MayStore && !IsBranch && XLen == 32 &&
++      OutType == LLT::scalar(32) &&
++      TLI->isOperationLegal(ISD::SMIN, MVT::i32) &&
++      TLI->isOperationLegal(ISD::SMAX, MVT::i32)) {
++    for (const std::string &Variant : clampPatternVariants(Node.get())) {
++      OutStream << "def : Pat<\n\t(" << lltToString(OutType) << " "
++                << Variant << "),\n\t(" << TargetDefName << " "
++                << PatternDstOps << ")>;\n\n";
++      outs() << "Pattern for " << InstName << " [" << InstMnemonic
++             << "]: " << Variant << '\n';
++      ++PatternGenNumPatternsGenerated;
++    }
++  }
++
+   Generated = true;
+   return true;
+ }

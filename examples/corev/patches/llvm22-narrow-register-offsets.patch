@@ -1,0 +1,16 @@
+diff --git a/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp b/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp
+--- a/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp
++++ b/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp
+@@ -1188,6 +1188,12 @@
+
+   bool SizeMismatch = (int)Type.getSizeInBits() != ReadSize;
+
++  // Widened any-extending loads still read the addressed register lane.
++  if (Cur.getOpcode() == TargetOpcode::G_LOAD && SizeMismatch && ReadOffset) {
++    Node = std::make_unique<BinopNode>(
++        Type, TargetOpcode::G_LSHR, std::move(Node),
++        std::make_unique<ConstantNode>(Type, ReadOffset * 8));
++  }
+   if (Cur.getOpcode() == TargetOpcode::G_ZEXTLOAD && SizeMismatch) {
+     if (ReadOffset != 0)
+       Node = std::make_unique<BinopNode>(

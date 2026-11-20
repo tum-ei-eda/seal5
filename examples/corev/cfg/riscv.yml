@@ -3,7 +3,6 @@ riscv:
   xlen: 32
   features:
   - m
-  - fast-unaligned-access
   - gpr32v
   legalization:
     gisel:

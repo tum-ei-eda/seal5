@@ -1,0 +1,6 @@
+// The upstream set relies on another top-level import to provide RV32I.
+// SEAL5 parses each extension separately, so supply that dependency explicitly.
+import "RVI.core_desc"
+import "../cdsl/XCoreVBitmanip.core_desc"
+
+Core Seal5BitmanipInput provides XCoreVBitmanip {}

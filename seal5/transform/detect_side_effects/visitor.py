@@ -45,6 +45,7 @@ class DetectSideEffectsVisitor(ExprVisitor):
             if isinstance(stmt, behav.Conditional):
                 if (
                     len(stmt.conds) == 1
+                    and len(stmt.stmts) == 1
                     and isinstance(stmt.stmts[0], behav.Block)
                     and len(stmt.stmts[0].statements) == 0
                 ):

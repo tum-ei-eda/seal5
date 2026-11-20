@@ -112,6 +112,10 @@ def detect_branch(operation, operands):
         and pure_condition(body.conds[0])
     ):
         trap = statements(body.stmts[0])
+        if isinstance(trap, list) and not trap:
+            # Constraint collection may already have removed the trap call.
+            # Keep its conditional guard around the branch intrinsic.
+            guarded = True
         if isinstance(trap, behav.ProcedureCall):
             trap_name = trap.ref_or_name if isinstance(trap.ref_or_name, str) else trap.ref_or_name.name
             if trap_name == "raise":
@@ -148,3 +152,31 @@ def detect_branch(operation, operands):
 
         return replace(operation), name
     return behav.Operation([branch], operation.line_info), name
+
+
+def pattern_branch_operation(operation, constraints):
+    """Reduce a guarded branch only within its collected constraint domain.
+
+    Constraint collection shares the original guard expression with its
+    negation. Identity provides a conservative proof without interpreting or
+    weakening arbitrary constraints. The stored behavior remains unchanged.
+    """
+    outer = statements(operation)
+    if not isinstance(outer, behav.Conditional) or len(outer.conds) != 1 or len(outer.stmts) != 1:
+        return operation
+    guard = statements(outer.stmts[0])
+    if not isinstance(guard, behav.Conditional) or len(guard.conds) != 1 or len(guard.stmts) != 2:
+        return operation
+    empty, branch = (statements(arm) for arm in guard.stmts)
+    if empty != [] or not isinstance(branch, BranchIntrinsic) or branch.args[0] is not outer.conds[0]:
+        return operation
+    for constraint in constraints:
+        for stmt in constraint.stmts:
+            stmt = ungroup(stmt)
+            if (
+                isinstance(stmt, behav.UnaryOperation)
+                and stmt.op.value == "!"
+                and ungroup(stmt.right) is ungroup(guard.conds[0])
+            ):
+                return behav.Operation([branch], operation.line_info)
+    return operation

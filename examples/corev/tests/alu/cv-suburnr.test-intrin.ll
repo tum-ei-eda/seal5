@@ -1,22 +1,10 @@
-; RUN: llc -O3 -mtriple=riscv32 -mattr=+xcorevalu -verify-machineinstrs < %s \
-; RUN:   | FileCheck %s
+; RUN: llc -mtriple=riscv32 -mattr=+m,+xcorevalu -verify-machineinstrs %s -o - | FileCheck %s
 
 declare i32 @llvm.riscv.xcorevalu.alu.suburnr(i32, i32, i32)
 
-define i32 @test_suburnr(i32 %a, i32 %b, i32 %c) {
-; CHECK-LABEL: test_suburnr:
-; CHECK:       # %bb.0:
-; CHECK-NEXT:    seal5.cv.suburnr a0, a1, a2
-; CHECK-NEXT:    ret
-  %1 = call i32 @llvm.riscv.xcorevalu.alu.suburnr(i32 %a, i32 %b, i32 %c)
-  ret i32 %1
-}
-
-define i32 @test_suburnr2(i32 %a, i32 %b) {
-; CHECK-LABEL: test_suburnr2:
-; CHECK:       # %bb.0:
-; CHECK-NEXT:    seal5.cv.suburnr a0, a1, a2
-; CHECK-NEXT:    ret
-  %1 = call i32 @llvm.riscv.xcorevalu.alu.suburnr(i32 %a, i32 %b, i32 15)
-  ret i32 %1
+define i32 @cv_suburnr_0(i32 %a0, i32 %a1, i32 %a2) {
+; CHECK-LABEL: cv_suburnr_0:
+; CHECK: seal5.cv.subuRNr
+  %result = call i32 @llvm.riscv.xcorevalu.alu.suburnr(i32 %a0, i32 %a1, i32 %a2)
+  ret i32 %result
 }

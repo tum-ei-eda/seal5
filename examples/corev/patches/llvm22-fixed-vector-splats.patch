@@ -1,0 +1,48 @@
+diff --git a/llvm/lib/CodeGen/MachineVerifier.cpp b/llvm/lib/CodeGen/MachineVerifier.cpp
+--- a/llvm/lib/CodeGen/MachineVerifier.cpp
++++ b/llvm/lib/CodeGen/MachineVerifier.cpp
+@@ -1962,8 +1962,8 @@
+     LLT DstTy = MRI->getType(MI->getOperand(0).getReg());
+     LLT SrcTy = MRI->getType(MI->getOperand(1).getReg());
+
+-    if (!DstTy.isScalableVector()) {
+-      report("Destination type must be a scalable vector", MI);
++    if (!DstTy.isVector()) {
++      report("Destination type must be a vector", MI);
+       break;
+     }
+
+diff --git a/llvm/test/MachineVerifier/test_g_splat_vector.mir b/llvm/test/MachineVerifier/test_g_splat_vector.mir
+--- a/llvm/test/MachineVerifier/test_g_splat_vector.mir
++++ b/llvm/test/MachineVerifier/test_g_splat_vector.mir
+@@ -9,11 +9,11 @@
+     %1:_(<2 x s32>) = G_IMPLICIT_DEF
+     %2:_(<vscale x 2 x s32>) = G_IMPLICIT_DEF
+
+-    ; CHECK: Destination type must be a scalable vector
++    ; CHECK: Destination type must be a vector
+     %3:_(s32) = G_SPLAT_VECTOR %0
+
+-    ; CHECK: Destination type must be a scalable vector
+-    %4:_(<2 x s32>) = G_SPLAT_VECTOR %0
++    ; CHECK: Destination type must be a vector
++    %4:_(p0) = G_SPLAT_VECTOR %0
+
+     ; CHECK: Source type must be a scalar or pointer
+     %5:_(<vscale x 2 x s32>) = G_SPLAT_VECTOR %1
+diff --git a/llvm/test/MachineVerifier/valid-g-splat-fixed.mir b/llvm/test/MachineVerifier/valid-g-splat-fixed.mir
+new file mode 100644
+--- /dev/null
++++ b/llvm/test/MachineVerifier/valid-g-splat-fixed.mir
+@@ -0,0 +1,11 @@
++# RUN: llc -mtriple=riscv32 -run-pass=none -verify-machineinstrs -filetype=null %s
++# REQUIRES: riscv-registered-target
++
++---
++name: fixed_splats
++body: |
++  bb.0:
++    %0:_(s32) = G_IMPLICIT_DEF
++    %1:_(<4 x s8>) = G_SPLAT_VECTOR %0
++    %2:_(<2 x s16>) = G_SPLAT_VECTOR %0
++...

@@ -47,6 +47,7 @@ class DetectInoutsVisitor(ExprVisitor):
             if isinstance(stmt, behav.Conditional):
                 if (
                     len(stmt.conds) == 1
+                    and len(stmt.stmts) == 1
                     and isinstance(stmt.stmts[0], behav.Block)
                     and len(stmt.stmts[0].statements) == 0
                 ):
@@ -63,6 +64,16 @@ class DetectInoutsVisitor(ExprVisitor):
 
     @generate.register
     def _(self, expr: behav.SliceOperation, context):
+        from seal5.transform.explicit_names import ungroup
+
+        if context.is_write and not all(
+            isinstance(ungroup(bound), behav.Literal) for bound in (expr.left, expr.right)
+        ):
+            # A variable lane write preserves bits outside the selected lane.
+            # Its destination is therefore also an input (e.g. cv.insert).
+            context.push(IOMode.READ)
+            self.generate(expr.expr, context)
+            context.pop()
         expr.expr = self.generate(expr.expr, context)
         context.push(IOMode.READ)
         expr.left = self.generate(expr.left, context)
@@ -175,7 +186,15 @@ class DetectInoutsVisitor(ExprVisitor):
 
     @generate.register
     def _(self, expr: behav.ProcedureCall, context):
-        expr.fn_args = [self.generate(arg, context) for arg in expr.args]
+        from seal5.transform.detect_branches import BranchIntrinsic
+
+        context.push(IOMode.READ)
+        try:
+            expr.fn_args = [self.generate(arg, context) for arg in expr.args]
+            if isinstance(expr, BranchIntrinsic):
+                expr.offset = self.generate(expr.offset, context)
+        finally:
+            context.pop()
         return expr
 
     @generate.register

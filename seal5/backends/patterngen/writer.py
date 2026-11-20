@@ -48,6 +48,61 @@ def require_packed_simd_feature(contents):
     return contents[: predicates.start(1)] + ", ".join(names) + contents[predicates.end(1) :]
 
 
+def allow_equivalent_zero_specializations(directory, instructions):
+    """Accept equivalent zero-count encodings without weakening nonzero checks.
+
+    Match complete extracted source trees under identical predicates and output
+    constraints. This is deliberately restricted to pure zero specializations;
+    it does not infer equivalence from instruction names or test outcomes.
+    """
+    groups = {}
+    for instruction in instructions:
+        dest = pathlib.Path(directory) / f"{instruction.name}.td"
+        output = pathlib.Path(str(dest) + ".out")
+        test = dest.with_suffix(".test-cg.ll")
+        if not all(path.is_file() for path in (dest, output, test)):
+            continue
+        td = dest.read_text()
+        if not all(
+            flag in td
+            for flag in ("hasSideEffects = 0", "mayLoad = 0", "mayStore = 0", "isBranch = 0", "isTerminator = 0")
+        ):
+            continue
+        target = re.search(r"\bdef\s+(\w+)\s*:\s*RVInst_", td)
+        predicates = re.search(r"let Predicates = \[(.*?)\]", td)
+        constraints = re.search(r'Constraints = "([^"]*)"', td)
+        outputs = re.search(r"\(outs ([^)]*)\)", td)
+        if target is None or predicates is None or constraints is None or outputs is None:
+            continue
+        function = instruction.name + "_0"
+        records = re.findall(r"^Pattern for (\S+) \[([^]]+)\]: (.+)$", output.read_text(), re.M)
+        for name, mnemonic, pattern in records:
+            if name != function or pattern.count("(") != pattern.count(")"):
+                continue
+            key = (predicates.group(1), constraints.group(1), outputs.group(1), " ".join(pattern.split()))
+            groups.setdefault(key, []).append((test, function, target.group(1), mnemonic))
+    for entries in groups.values():
+        targets = sorted({entry[2] for entry in entries})
+        mnemonics = sorted({entry[3] for entry in entries})
+        if len(targets) < 2:
+            continue
+        mir = "{{(" + "|".join(re.escape(target) for target in targets) + ")}}"
+        asm = "{{(" + "|".join(re.escape(mnemonic) for mnemonic in mnemonics) + r")([ \t]|$)}}"
+        for test, function, target, mnemonic in entries:
+            contents = test.read_text()
+            match = re.search(r"^define [^\n]*@impl" + re.escape(function) + r"\([^\n]*\{.*?^}", contents, re.M | re.S)
+            if match is None:
+                continue
+            body = match.group()
+            updated = body.replace(" " + target + "{{[ ,]}}", " " + mir + "{{[ ,]}}")
+            updated = re.sub(
+                r"(?m)^(\s*; RV(?:32|64)-ASM: )" + re.escape(mnemonic) + r"$", lambda m: m.group(1) + asm, updated
+            )
+            if updated != body:
+                updated = updated.replace("\n", "\n  ; Zero normalization has equivalent encodings.\n", 1)
+                test.write_text(contents[: match.start()] + updated + contents[match.end() :])
+
+
 def main():
     """Main app entrypoint."""
 
@@ -69,6 +124,7 @@ def main():
     parser.add_argument("--ext", type=str, default="td", help="Default file extension (if using --splitted)")
     parser.add_argument("--parallel", type=int, default=1, help="How many instructions should be processed in parallel")
     parser.add_argument("--compat", action="store_true")
+    parser.add_argument("--coredsl-typing", action="store_true", help="Preserve CoreDSL widening arithmetic rules")
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--generate-tests", action="store_true")
     # parser.add_argument("--xlen", type=int, default=32, help="RISC-V XLEN")
@@ -170,6 +226,7 @@ def main():
                         install_dir,
                         input_file,
                         output_file,
+                        no_extend=not args.coredsl_typing,
                         skip_patterns=not args.patterns,
                         skip_formats=not args.formats,
                         ext=predicate,
@@ -191,6 +248,7 @@ def main():
                             for operand in instr_def.operands.values()
                         ),
                         may_load=Seal5InstrAttribute.MAY_LOAD in attrs,
+                        may_store=Seal5InstrAttribute.MAY_STORE in attrs,
                         memory_instruction=(
                             Seal5InstrAttribute.MAY_LOAD in attrs or Seal5InstrAttribute.MAY_STORE in attrs
                         ),
@@ -319,6 +377,8 @@ def main():
                     results.append(result_)
                     if result_:
                         includes.extend(includes_)
+            if args.patterns and args.generate_tests and not args.gisel_table:
+                allow_equivalent_zero_specializations(set_dir, set_def.instructions.values())
             if len(includes) > 0:
                 set_includes_str = "\n".join([f'include "seal5/{inc}"' for inc in sorted(includes)])
                 if len(set_includes_str.strip()) > 0:

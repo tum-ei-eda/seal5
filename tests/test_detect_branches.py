@@ -8,7 +8,7 @@ from m2isar.metamodel import behav
 from test_explicit_names import symbol
 from test_normalize_subscripts import render
 from seal5.model import DataType, Seal5ImmOperand, Seal5Type
-from seal5.transform.detect_branches import BranchIntrinsic, detect_branch
+from seal5.transform.detect_branches import BranchIntrinsic, detect_branch, pattern_branch_operation
 
 
 def branch_tree(operator="=="):
@@ -28,6 +28,87 @@ def branch_tree(operator="=="):
 
 
 class BranchTests(unittest.TestCase):
+    def test_branch_displacement_is_an_input(self):
+        from seal5.transform.detect_inouts.collect import VisitorContext
+        from seal5.transform.detect_inouts.visitor import DetectInoutsVisitor
+
+        original, operands, _, _ = branch_tree()
+        lowered, _ = detect_branch(original, operands)
+        context = VisitorContext()
+        DetectInoutsVisitor().generate(lowered, context)
+        self.assertIn("imm", context.reads)
+        self.assertFalse(context.writes)
+
+    def test_trap_collection_keeps_the_aligned_branch(self):
+        from m2isar.metamodel import arch, type_info
+        from seal5.transform.collect_raises.collect import VisitorContext as RaiseContext
+        from seal5.transform.collect_raises.visitor import CollectRaisesVisitor
+        from seal5.transform.detect_inouts.collect import VisitorContext
+        from seal5.transform.detect_inouts.visitor import DetectInoutsVisitor
+
+        original, operands, _, offset = branch_tree()
+        outer = original.statements[0]
+        update = outer.stmts[0]
+        function = arch.Function("raise", {}, None, type_info.TypeKind.VOID, [], None, extern=True)
+        trap = behav.ProcedureCall(function, [])
+        misaligned = behav.BinaryOperation(offset, behav.Operator("%"), behav.Literal(4))
+        outer.stmts = [behav.Block([behav.Conditional([misaligned], [behav.Block([trap]), update])])]
+        lowered, name = detect_branch(original, operands)
+        self.assertEqual(name, "imm")
+        raises = RaiseContext()
+        lowered = CollectRaisesVisitor().generate(lowered, raises)
+        self.assertEqual(len(raises.raises), 1)
+        context = VisitorContext()
+        lowered = DetectInoutsVisitor().generate(lowered, context)
+        guard = lowered.statements[0].stmts[0].statements[0]
+        self.assertEqual(guard.stmts[0].statements, [])
+        self.assertIsInstance(guard.stmts[1].statements[0], BranchIntrinsic)
+        self.assertIn("imm", context.reads)
+
+    def test_empty_trap_arm_survives_analysis(self):
+        from seal5.transform.collect_raises.collect import VisitorContext as RaiseContext
+        from seal5.transform.collect_raises.visitor import CollectRaisesVisitor
+        from seal5.transform.detect_side_effects.collect import VisitorContext as SideContext
+        from seal5.transform.detect_side_effects.visitor import DetectSideEffectsVisitor
+        from seal5.transform.detect_calls.collect import VisitorContext as CallContext
+        from seal5.transform.detect_calls.visitor import DetectCallsVisitor
+        from seal5.transform.detect_loops.collect import VisitorContext as LoopContext
+        from seal5.transform.detect_loops.visitor import DetectLoopsVisitor
+        from seal5.transform.detect_inouts.collect import VisitorContext
+        from seal5.transform.detect_inouts.visitor import DetectInoutsVisitor
+
+        original, operands, _, offset = branch_tree()
+        outer = original.statements[0]
+        misaligned = behav.BinaryOperation(offset, behav.Operator("%"), behav.Literal(4))
+        guard = behav.Conditional([misaligned], [behav.Block([]), outer.stmts[0]])
+        outer.stmts = [behav.Block([guard])]
+        for visitor, context in (
+            (CollectRaisesVisitor(), RaiseContext()),
+            (DetectSideEffectsVisitor(), SideContext()),
+            (DetectInoutsVisitor(), VisitorContext()),
+            (DetectCallsVisitor(), CallContext()),
+            (DetectLoopsVisitor(), LoopContext()),
+        ):
+            original = visitor.generate(original, context)
+            self.assertIs(original.statements[0].stmts[0].statements[0], guard)
+            self.assertIsInstance(guard.stmts[1].statements[0], behav.Assignment)
+        lowered, name = detect_branch(original, operands)
+        self.assertEqual(name, "imm")
+        lowered_guard = lowered.statements[0].stmts[0].statements[0]
+        self.assertIs(lowered_guard.conds[0], misaligned)
+        self.assertIsInstance(lowered_guard.stmts[1].statements[0], BranchIntrinsic)
+
+        from seal5.model import Seal5Constraint
+
+        self.assertIs(pattern_branch_operation(lowered, []), lowered)
+        unrelated = behav.BinaryOperation(offset, behav.Operator("%"), behav.Literal(8))
+        constraint = Seal5Constraint([behav.UnaryOperation(behav.Operator("!"), unrelated)])
+        self.assertIs(pattern_branch_operation(lowered, [constraint]), lowered)
+        constraint = Seal5Constraint([behav.UnaryOperation(behav.Operator("!"), misaligned)])
+        reduced = pattern_branch_operation(lowered, [constraint])
+        self.assertIsInstance(reduced.statements[0], BranchIntrinsic)
+        self.assertIs(lowered.statements[0].stmts[0].statements[0], lowered_guard)
+
     def test_alignment_guard_is_preserved(self):
         original, operands, condition, offset = branch_tree()
         outer = original.statements[0]
