@@ -1,0 +1,140 @@
+{
+  "scope": "Initial migration blockers; no full CORE-V LLVM 23 backend build or Embench qualification yet",
+  "llvm_version": "23.1.3",
+  "dependency_commit": "f3e4c5705c2da4ecadc2babeae356e2960220293",
+  "cdsl_commit": "56b66cfea193b28cd88ea89a684469ef76fa31cc",
+  "demo_inputs": [
+    {
+      "llvm_ref": "llvmorg-22.1.8",
+      "config_paths": [
+        "/work/git/seal5_new/examples/corev/cfg/XCoreVMac.yml",
+        "/work/git/seal5_new/examples/corev/cfg/XCoreVAlu.yml",
+        "/work/git/seal5_new/examples/corev/cfg/XCoreVBitmanip.yml",
+        "/work/git/seal5_new/examples/corev/cfg/XCoreVSimd.yml",
+        "/work/git/seal5_new/examples/corev/cfg/XCoreVMem.yml",
+        "/work/git/seal5_new/examples/corev/cfg/XCoreVBranchImmediate.yml",
+        "/work/git/seal5_new/examples/corev/cfg/filter.yml",
+        "/work/git/seal5_new/examples/corev/cfg/riscv.yml",
+        "/work/git/seal5_new/examples/common/cfg/llvm.yml",
+        "/work/git/seal5_new/examples/common/cfg/patches.yml",
+        "/work/git/seal5_new/examples/common/cfg/tests.yml",
+        "/work/git/seal5_new/examples/common/cfg/passes.yml",
+        "/work/git/seal5_new/examples/common/cfg/git.yml",
+        "/work/git/seal5_new/examples/corev/cfg/llvm22.yml"
+      ],
+      "simd_c_tests": 4
+    },
+    {
+      "llvm_ref": "llvmorg-23.1.3",
+      "config_paths": [
+        "/work/git/seal5_new/examples/corev/cfg/XCoreVMac.yml",
+        "/work/git/seal5_new/examples/corev/cfg/XCoreVAlu.yml",
+        "/work/git/seal5_new/examples/corev/cfg/XCoreVBitmanip.yml",
+        "/work/git/seal5_new/examples/corev/cfg/XCoreVSimd.yml",
+        "/work/git/seal5_new/examples/corev/cfg/XCoreVMem.yml",
+        "/work/git/seal5_new/examples/corev/cfg/XCoreVBranchImmediate.yml",
+        "/work/git/seal5_new/examples/corev/cfg/filter.yml",
+        "/work/git/seal5_new/examples/corev/cfg/riscv.yml",
+        "/work/git/seal5_new/examples/common/cfg/llvm.yml",
+        "/work/git/seal5_new/examples/common/cfg/patches.yml",
+        "/work/git/seal5_new/examples/common/cfg/tests.yml",
+        "/work/git/seal5_new/examples/common/cfg/passes.yml",
+        "/work/git/seal5_new/examples/common/cfg/git.yml"
+      ],
+      "simd_c_tests": 0
+    }
+  ],
+  "patch_compatibility": [
+    {
+      "name": "corev_bitwise_pattern_types",
+      "stage": 0,
+      "result": "applies",
+      "diagnostic": ""
+    },
+    {
+      "name": "corev_register_offset_asm",
+      "stage": 0,
+      "result": "applies",
+      "diagnostic": ""
+    },
+    {
+      "name": "corev_packed_capabilities",
+      "stage": 0,
+      "result": "already_in_dependency"
+    },
+    {
+      "name": "corev_rotate_capability",
+      "stage": 0,
+      "result": "fails_to_apply",
+      "diagnostic": "error: patch failed: llvm/lib/Target/RISCV/RISCVFeatures.td:1044\nerror: llvm/lib/Target/RISCV/RISCVFeatures.td: patch does not apply\nerror: patch failed: llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp:227\nerror: llvm/lib/Target/RISCV/GISel/RISCVLegalizerInfo.cpp: patch does not apply"
+    },
+    {
+      "name": "corev_mul_mask_cost",
+      "stage": 3,
+      "result": "applies",
+      "diagnostic": ""
+    },
+    {
+      "name": "corev_minmax_capability",
+      "stage": 0,
+      "result": "fails_to_apply",
+      "diagnostic": "error: patch failed: llvm/lib/Target/RISCV/RISCVFeatures.td:1048\nerror: llvm/lib/Target/RISCV/RISCVFeatures.td: patch does not apply"
+    },
+    {
+      "name": "corev_clamp_pattern_variants",
+      "stage": 0,
+      "result": "applies",
+      "diagnostic": ""
+    },
+    {
+      "name": "corev_rounded_pattern_variants",
+      "stage": 0,
+      "result": "applies",
+      "diagnostic": ""
+    },
+    {
+      "name": "corev_rotate_pattern_variants",
+      "stage": 0,
+      "result": "applies",
+      "diagnostic": ""
+    },
+    {
+      "name": "corev_narrow_register_offsets",
+      "stage": 0,
+      "result": "applies",
+      "diagnostic": ""
+    },
+    {
+      "name": "corev_fixed_vector_splats",
+      "stage": 0,
+      "result": "applies",
+      "diagnostic": ""
+    },
+    {
+      "name": "corev_packed_compare_capability",
+      "stage": 0,
+      "result": "fails_to_apply",
+      "diagnostic": "error: patch failed: llvm/lib/Target/RISCV/RISCVFeatures.td:1038\nerror: llvm/lib/Target/RISCV/RISCVFeatures.td: patch does not apply\nerror: patch failed: llvm/lib/Target/RISCV/RISCVISelDAGToDAG.cpp:51\nerror: llvm/lib/Target/RISCV/RISCVISelDAGToDAG.cpp: patch does not apply\nerror: patch failed: llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp:691\nerror: llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp: patch does not apply"
+    },
+    {
+      "name": "corev_packed_lane_combines",
+      "stage": 0,
+      "result": "applies",
+      "diagnostic": ""
+    }
+  ],
+  "mac_semantics": {
+    "checks_per_mode": 3216,
+    "default_typing_failures_opt23": 1420,
+    "coredsl_typing_failures_opt23": 0,
+    "default_typing_failures_opt22_control": 1420,
+    "coredsl_typing_failures_opt22_control": 0,
+    "example": {
+      "case": "MULUN, low halfwords 0x8000 * 0xffff, shift 0",
+      "expected": 2147450880,
+      "actual_default": 32768
+    }
+  },
+  "raw_artifacts": "/tmp/seal5-corev-llvm23-audit",
+  "implementation_changes": false
+}

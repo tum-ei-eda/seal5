@@ -1,0 +1,2935 @@
+{
+  "configuration": {
+    "source": "/tmp/xcorev-example-check/etiss_riscv_examples/target_code/embench/embench-iot",
+    "llvm_bin": "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin",
+    "gcc": "/work/git/m2isar/m2isar_new/install/bin/riscv64-unknown-elf-gcc",
+    "etiss_prefix": "/tmp/seal5-corev-main-etiss-install",
+    "etiss_examples": "/tmp/xcorev-example-check/etiss_riscv_examples",
+    "output": "/tmp/seal5-corev-embench-llvm23",
+    "benchmarks": null,
+    "repetitions": 1,
+    "jobs": 6,
+    "run_timeout": 180
+  },
+  "method": "RV32IM/ILP32, strict alignment, O3, normal vectorizer profitability, no LTO; GlobalISel with fallback disabled",
+  "measurement": "Independent host-side instruction instrumentation between seal5_measure_start/end; includes marker/call overhead. ETISS cycles are a model, not hardware timing. Initialization, warmup and verification excluded.",
+  "versions": {
+    "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/clang": "clang version 23.1.3 (/tmp/cdsl2llvm-llvm23-gisel-port f3e4c5705c2da4ecadc2babeae356e2960220293)\nTarget: riscv32-unknown-unknown-elf\nThread model: posix\nInstalledDir: /tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin\nBuild config: +assertions\n",
+    "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/opt": "LLVM (http://llvm.org/):\n  LLVM version 23.1.3\n  Optimized build with assertions.\n  Default target: riscv32-unknown-elf\n  Host CPU: cascadelake\n",
+    "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/llc": "LLVM (http://llvm.org/):\n  LLVM version 23.1.3\n  Optimized build with assertions.\n  Default target: riscv32-unknown-elf\n  Host CPU: cascadelake\n\n  Registered Targets:\n    riscv32   - 32-bit RISC-V\n    riscv32be - 32-bit big endian RISC-V\n    riscv64   - 64-bit RISC-V\n    riscv64be - 64-bit big endian RISC-V\n",
+    "/work/git/m2isar/m2isar_new/install/bin/riscv64-unknown-elf-gcc": "riscv64-unknown-elf-gcc (g1b306039a) 15.1.0\nCopyright (C) 2025 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n"
+  },
+  "source_sha256": {
+    "config/arc/boards/generic/boardsupport.c": "5c8633a9833004f2f2ab734f6d3704cd2475cd714eb822146e40b559af5aba54",
+    "config/arc/boards/generic/boardsupport.h": "66f3ac5121e3dbaf49a046ff677a74b47eca13a73abd35530aef51e62b2bfc23",
+    "config/arc/chips/em/chipsupport.c": "c0ad53258a6795f0e64871f909bf706369f6e97e17110d8eadf1c810a1db39cc",
+    "config/arc/chips/em/chipsupport.h": "ec1400dd7ae43c9aabf359aa94cb809e26278c597e19765d86acc46f38295bd7",
+    "config/arm/boards/generic/boardsupport.c": "7f93f779f84917d6e10d9cfcec1773ef239690cdbc86c7c3b5de92ce88aaf60c",
+    "config/arm/boards/generic/boardsupport.h": "ef6f7df2e9f9f453b950ed2f046a79ad09b39f4af50e6c3be29f47b6c5640ab8",
+    "config/arm/boards/stm32f4-discovery/boardsupport.c": "5203dbd4b48900c7c6bc4ab16f074b47002987f4ac4e2fd0cbd8b28e9226f547",
+    "config/arm/boards/stm32f4-discovery/boardsupport.h": "b7306736a3c2980b755752fecdbcf299aae6dc0da5cd329307b93bbfebe4aafd",
+    "config/arm/chips/cortex-m4/chipsupport.c": "a06b173eb41342be942fcaaa4e418f528bd2253eec18f5ec159223156d207fd0",
+    "config/arm/chips/cortex-m4/chipsupport.h": "8d806ce0217de1e63ed34b9cf5d67a12e60049c529fff20cbfe67d88f50a1fbf",
+    "config/avr/boards/generic/boardsupport.c": "2de7d81c23bf2783a608108e47263f17c9ba8e9de7a596429770a51fb0180935",
+    "config/avr/boards/generic/boardsupport.h": "33d3de5ca9fbf2bcc5635792fb5f943b0b95a579d89eac33af13c20ddb8d0f31",
+    "config/avr/chips/atmega64/chipsupport.c": "254a65d1b79cc15a629bf377d982ee9ef3ee7f98276c3a1bde7e2c4676742b85",
+    "config/avr/chips/atmega64/chipsupport.h": "b24b20a0df5d1209388dd957fa7009422919015947300d1b2e3aa17f0adc3ba2",
+    "config/mac/boards/generic/boardsupport.c": "daf6afb4eb3d7c5f636c1daff34de720956cef3e03631b90f95f3dde0cd5732d",
+    "config/mac/boards/generic/boardsupport.h": "71e6df69efbfda7bb46c03a71e7d7cff449aff1853459c3cead20cef4ae3ae63",
+    "config/mac/boards/size/boardsupport.c": "7f93f779f84917d6e10d9cfcec1773ef239690cdbc86c7c3b5de92ce88aaf60c",
+    "config/mac/boards/size/boardsupport.h": "71e6df69efbfda7bb46c03a71e7d7cff449aff1853459c3cead20cef4ae3ae63",
+    "config/mac/chips/generic/chipsupport.c": "b4f486886ee1f93bd421f384ef6e0bb53bd5479df7efacdf9fc61e7b95d98208",
+    "config/mac/chips/generic/chipsupport.h": "6ea1c225d1385dba6479ef6a3d7d600157d3e8ff702677b5c128f6a0c289fdbc",
+    "config/mac/chips/size-test-clang/chipsupport.c": "c525279795e8aa02d57585b33f1fd9b036805b2340189706ab1341de8965ff98",
+    "config/mac/chips/size-test-clang/chipsupport.h": "5d577107c76f6173680a19cbb0cd5235705448c97263fd7b5d631c491a2cea41",
+    "config/mac/chips/size-test-clang-ARM-M1/chipsupport.c": "c0288044dce6b2f24a4e430a5b516f9dd4795233c6627eaf18e8f04d0035e5af",
+    "config/mac/chips/size-test-clang-ARM-M1/chipsupport.h": "677dfcd0fd87bfe8f7298eb9fae1630a0d7b7034ab356499728a4290c54b99d0",
+    "config/mac/chips/size-test-clang-X86-64/chipsupport.c": "c0288044dce6b2f24a4e430a5b516f9dd4795233c6627eaf18e8f04d0035e5af",
+    "config/mac/chips/size-test-clang-X86-64/chipsupport.h": "677dfcd0fd87bfe8f7298eb9fae1630a0d7b7034ab356499728a4290c54b99d0",
+    "config/mac/chips/speed-test-clang/chipsupport.c": "c0288044dce6b2f24a4e430a5b516f9dd4795233c6627eaf18e8f04d0035e5af",
+    "config/mac/chips/speed-test-clang/chipsupport.h": "677dfcd0fd87bfe8f7298eb9fae1630a0d7b7034ab356499728a4290c54b99d0",
+    "config/mac/chips/speed-test-clang-ARM-M1/chipsupport.c": "c0288044dce6b2f24a4e430a5b516f9dd4795233c6627eaf18e8f04d0035e5af",
+    "config/mac/chips/speed-test-clang-ARM-M1/chipsupport.h": "677dfcd0fd87bfe8f7298eb9fae1630a0d7b7034ab356499728a4290c54b99d0",
+    "config/mac/chips/speed-test-clang-X86-64/chipsupport.c": "c0288044dce6b2f24a4e430a5b516f9dd4795233c6627eaf18e8f04d0035e5af",
+    "config/mac/chips/speed-test-clang-X86-64/chipsupport.h": "677dfcd0fd87bfe8f7298eb9fae1630a0d7b7034ab356499728a4290c54b99d0",
+    "config/native/boards/default/boardsupport.c": "1e6c72c22a5d87cf4810aa106977f4c40f5ed0cbb72573f33b60c52ce1684cd1",
+    "config/native/boards/default/boardsupport.h": "946bfa869739d5abd9b8abd89be8829040ccba991938475b9c971ae4cfd34b12",
+    "config/native/chips/debug-gcc/chipsupport.c": "b4f486886ee1f93bd421f384ef6e0bb53bd5479df7efacdf9fc61e7b95d98208",
+    "config/native/chips/debug-gcc/chipsupport.h": "6ea1c225d1385dba6479ef6a3d7d600157d3e8ff702677b5c128f6a0c289fdbc",
+    "config/native/chips/default/chipsupport.c": "b4f486886ee1f93bd421f384ef6e0bb53bd5479df7efacdf9fc61e7b95d98208",
+    "config/native/chips/default/chipsupport.h": "6ea1c225d1385dba6479ef6a3d7d600157d3e8ff702677b5c128f6a0c289fdbc",
+    "config/native/chips/size-test-gcc/chipsupport.c": "c525279795e8aa02d57585b33f1fd9b036805b2340189706ab1341de8965ff98",
+    "config/native/chips/size-test-gcc/chipsupport.h": "5d577107c76f6173680a19cbb0cd5235705448c97263fd7b5d631c491a2cea41",
+    "config/native/chips/speed-test-gcc/chipsupport.c": "b4f486886ee1f93bd421f384ef6e0bb53bd5479df7efacdf9fc61e7b95d98208",
+    "config/native/chips/speed-test-gcc/chipsupport.h": "6ea1c225d1385dba6479ef6a3d7d600157d3e8ff702677b5c128f6a0c289fdbc",
+    "config/riscv32/boards/ri5cyverilator/boardsupport.c": "6dfae9ee498d03313a51300410d0a97ecfbe0bf47183613caf1948d1932d412b",
+    "config/riscv32/boards/ri5cyverilator/boardsupport.h": "7733351aea4b92179786c3c73dda0329233d3ceb1d034e258ec84c2eb9dd358a",
+    "config/riscv32/boards/rv32wallyverilog/boardsupport.c": "389b402a743c0b96c1d62d0dcca78763cddcd60aa4aa9f737d77c64e5924c86e",
+    "config/riscv32/boards/rv32wallyverilog/boardsupport.h": "f897dfc7d03c8543382250637d9b324c3bf67bf29eafe63301137c37abd90290",
+    "config/riscv32/chips/generic/chipsupport.c": "e92a5581c8f20ce34e128a2919a7fbf609cf294329aaf64ca9342f2248a9ef26",
+    "config/riscv32/chips/generic/chipsupport.h": "3bc62a56f971ec7be4f0deab49fa9dc956368b6636c975cacd9e74d5934c698f",
+    "src/aha-mont64/mont64.c": "e18ee3f518de0431597a16cf27c27c08dba9a540f45ecc9e9ed13956e4f1eb49",
+    "src/crc32/crc_32.c": "8180991358e28507a14426207840ec5c340e2491beac8e72658b3832621efb9c",
+    "src/cubic/basicmath_small.c": "9c6e07fef13af99e4c225299ca7623ac6889f35ab70c05d92355a4a48c8c82c2",
+    "src/cubic/libcubic.c": "dfbd2621ed65dbd7313a7ef5b1063799f20839219b298686b7eed2efbcfdee69",
+    "src/cubic/pi.h": "a85e73070dbd8f87d96fb75c189afd96e20f645b7bd93c04e26cf6831aec02ac",
+    "src/cubic/snipmath.h": "d16b9fbcb53bd7ed14bf9b2d04c041ff5e0e47727284ac5175965cc4d09c006e",
+    "src/cubic/sniptype.h": "6e1d83b87f51034d8154f3b0e89d33005cd53e68add6148556ddfb963554c23e",
+    "src/edn/libedn.c": "e94f8a6707d37be7cf6b5ed2227903da41988cfcd3ac145b791c756714420ff5",
+    "src/huffbench/libhuffbench.c": "a6d0faac21da603ee5b3a061ab77a59a37df431961d4254147659544ddb914fb",
+    "src/matmult-int/matmult-int.c": "d070416c56a5fe1c66ae8f16ca10f59e7c0002a6dbd62ff1db633914220f959d",
+    "src/md5sum/md5.c": "df94c469a6fff6729000a981fd19d85a7b9a46bb4ebfcb2405e759a7d700b765",
+    "src/minver/libminver.c": "1840042f2bc683f5bb373aaf9c9441a3dac2a9080aa812384d455b7416243662",
+    "src/nbody/nbody.c": "ae4aa56e7cf9c65cc7a74ab974ec756c40d36c5785b382c600bd5117096efb6f",
+    "src/nettle-aes/nettle-aes.c": "87cd050b8e7eb603f2a15ad1eaba00333915fd1ab3e2d3d3d1b540fa3476f296",
+    "src/nettle-sha256/nettle-sha256.c": "2770ad46ac26fac096821eb3ae558364600bdaeb6d96bc06049327c90138959f",
+    "src/nsichneu/libnsichneu.c": "e4515f435c8d8d13c13f9a7204536a376527f3fbe2737803d8f16d0a0a3747d6",
+    "src/picojpeg/libpicojpeg.c": "72cfb201379ccbb943d10334b941f91413a5bf4213cbf75f1657aa3492e5e103",
+    "src/picojpeg/picojpeg.h": "50dbd519c3e7b5732cc2e58d9e47195a3e5652f5d14f9d997f102b844e64db36",
+    "src/picojpeg/picojpeg_test.c": "d41425baf9bafd7d07c7a6656d4bf9678d7b85a4b5d4aa93cacda56a3a29d097",
+    "src/primecount/primecount.c": "3073a224e04be2155165c8793cd45d529e108ab55989820e3e08e78e4fb6fae2",
+    "src/qrduino/ecctable.h": "54e176fa47d4c20baab098962a0c0f1a8629362499dbc8fbab5d581312b1002c",
+    "src/qrduino/qrbits.h": "af772ed9bd01daab613ed2161c47fd065a92ff4932765ab65bfd9877b48af609",
+    "src/qrduino/qrencode.c": "05d2147e1809578fcdce4ebd6105a555e59dc8c9b5c5b2f4d7a239ea8d9bf5b8",
+    "src/qrduino/qrencode.h": "0e53eccb11ab127e3e6d54bdc66a3d2d5fdb213b937b18d20f7ffe6d890799c3",
+    "src/qrduino/qrframe.c": "3d3400ff94ba165d0cf2945a364527f55291fa144511e0a94f317fdc58992f15",
+    "src/qrduino/qrtest.c": "6b09aa24d48344494f75187cb3854b891dcbd537a3cbede182d85457a62acabc",
+    "src/sglib-combined/combined.c": "f8ef3f9be64fee51fcb4845fbefcad74b84cfca6417126d4fb94af0a44264e11",
+    "src/sglib-combined/sglib.h": "fb3f51027b228ef863803fe3086dfb9a769a76e6e3016dc0cca826952bb03bd7",
+    "src/slre/libslre.c": "fb2f84e5133b60655fa7e3a72a6128e63dadd53408fdf38eff5a2ed1732c014d",
+    "src/slre/slre.h": "87bdc34b18e269c46c13c3e221f2618fa2aac2b4299fe59561810522880e3264",
+    "src/st/libst.c": "f04afbb2c3786c86db51094e65db0c4e8d39aee7521c0fd7fb729d7fdac51818",
+    "src/statemate/libstatemate.c": "0522d5a9b7502a8f78e5210a35df9ba0e31874d77b22bb7e56e47fce9bc0f3c9",
+    "src/tarfind/tarfind.c": "366dfc4ea6d0d5e4489c483fd3fad32a48ddc755e0b2ffefe682f577fc4853ba",
+    "src/ud/libud.c": "b03de5ab8657c509a1d314725a0f082f512047b32b5bbd82e9cdbc1f4133d37d",
+    "src/wikisort/libwikisort.c": "9fe2e014b0fc8270264722cb680f010f7ae654dfbdd485b66f61e73fdb961471",
+    "support/beebsc.c": "b7ac0fd67a772bf58ec5361b410959d27d9be7384ac7369c9e6805fc5c821566",
+    "support/beebsc.h": "9a9fdef180978ec3caa6531d3c2dc6823bc5387731b568402c6c65442a2d7c6c",
+    "support/board.c": "93df5b9b66c35294cd216a482df753efe8b216822bbb6d9221e7b92368fc646c",
+    "support/chip.c": "c70e2547dd0f0c8bff594a89b26676d4c175c1c9397f68c9792288497f920ecf",
+    "support/dummy-crt0.c": "7add27dce1678a3534f0ed5cde0d206fe3ca7be52125d52418881fd6c8c4b02b",
+    "support/dummy-libc.c": "71d3c33cde463cdd2c06705c622f0359daf33ca8f7b6924db199cd875f4003b8",
+    "support/dummy-libgcc.c": "65cf56110e1e533d2aeec85571f743327dfe39d9842d1819d64d11487b6fa04a",
+    "support/dummy-libm.c": "96970651b5897dc5737311b65607f7d8897c80b65a7eb0a86a03dde60ef3e3a0",
+    "support/main.c": "2227468e1743a037a053f2624b68763ee4c0feb16c4b9bfafc4ba55e29daec23",
+    "support/support.h": "3c0862b8279c8d01951b2c8a180f04bd996431c2fb63ffb91773e38895f25e53"
+  },
+  "records": [
+    {
+      "program": "aha-mont64",
+      "variant": "baseline",
+      "units": [
+        {
+          "source": "src/aha-mont64/mont64.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 20.65685247629881,
+          "instructions": 5806647,
+          "model_cycles": 5806647,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 236044,
+            "addi": 683163,
+            "and": 24111,
+            "andi": 27076,
+            "auipc": 1,
+            "beq": 501679,
+            "bge": 1,
+            "bne": 207696,
+            "jal": 237730,
+            "jalr": 4,
+            "lbu": 3,
+            "lui": 433,
+            "lw": 8056,
+            "mul": 17350,
+            "mulhu": 14810,
+            "or": 935679,
+            "slli": 730944,
+            "sltiu": 326133,
+            "sltu": 359133,
+            "srai": 162432,
+            "srli": 649728,
+            "sub": 491103,
+            "sw": 1716,
+            "xor": 25382,
+            "xori": 166240
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 69228,
+      "static_custom_instructions": {},
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "aha-mont64",
+      "variant": "corev",
+      "units": [
+        {
+          "source": "src/aha-mont64/mont64.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 20.858093617949635,
+          "instructions": 5809617,
+          "model_cycles": 5809617,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "addi": 524967,
+            "auipc": 1,
+            "beq": 490258,
+            "bge": 1,
+            "bne": 192045,
+            "cv_addrn": 385359,
+            "cv_and_b": 51188,
+            "cv_bneimm": 27072,
+            "cv_clip": 162432,
+            "cv_mac": 13964,
+            "cv_or_b": 935679,
+            "cv_subrn": 491103,
+            "cv_xor_b": 27921,
+            "jal": 238153,
+            "jalr": 4,
+            "lbu": 3,
+            "lui": 433,
+            "lw": 8903,
+            "mul": 13541,
+            "mulhu": 14810,
+            "slli": 730944,
+            "sltiu": 326133,
+            "sltu": 359133,
+            "srli": 649728,
+            "sw": 2141,
+            "xori": 163701
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 69324,
+      "static_custom_instructions": {
+        "seal5.cv.mac": 49,
+        "seal5.cv.addRN": 111,
+        "seal5.cv.or.b": 76,
+        "seal5.cv.subRN": 33,
+        "seal5.cv.clip": 7,
+        "seal5.cv.xor.b": 23,
+        "seal5.cv.and.b": 17,
+        "seal5.cv.beqimm": 1,
+        "seal5.cv.bneimm": 4
+      },
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "crc32",
+      "variant": "baseline",
+      "units": [
+        {
+          "source": "src/crc32/crc_32.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 17.53213664283976,
+          "instructions": 4005409,
+          "model_cycles": 4005409,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 348160,
+            "addi": 522931,
+            "and": 1,
+            "andi": 174080,
+            "auipc": 174251,
+            "bge": 1,
+            "bne": 174250,
+            "jal": 2,
+            "jalr": 348504,
+            "lui": 348162,
+            "lw": 348168,
+            "mul": 174080,
+            "slli": 348160,
+            "srli": 522240,
+            "sw": 174258,
+            "xor": 348160,
+            "xori": 1
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 65596,
+      "static_custom_instructions": {},
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "crc32",
+      "variant": "corev",
+      "units": [
+        {
+          "source": "src/crc32/crc_32.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 17.636500230059028,
+          "instructions": 3831336,
+          "model_cycles": 3831336,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 174080,
+            "addi": 348684,
+            "auipc": 174251,
+            "bge": 1,
+            "bne": 170,
+            "cv_addrn": 174250,
+            "cv_and_b": 1,
+            "cv_bneimm": 174080,
+            "cv_extbz": 174080,
+            "cv_lw_rr": 174080,
+            "cv_xor_b": 348161,
+            "jal": 2,
+            "jalr": 348504,
+            "lui": 348162,
+            "lw": 174090,
+            "mul": 174080,
+            "slli": 348160,
+            "srli": 522240,
+            "sw": 174260
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 65628,
+      "static_custom_instructions": {
+        "seal5.cv.xor.b": 6,
+        "seal5.cv.extbz": 2,
+        "seal5.cv.lw": 2,
+        "seal5.cv.addRN": 3,
+        "seal5.cv.bneimm": 2,
+        "seal5.cv.and.b": 1
+      },
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "cubic",
+      "variant": "baseline",
+      "units": [
+        {
+          "source": "src/cubic/basicmath_small.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        },
+        {
+          "source": "src/cubic/libcubic.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 1,
+          "diagnostic": "LLVM ERROR: unable to legalize instruction: %201:_(s32) = G_FCMP floatpred(olt), %40:_(s128), %163:_ (in function: SolveCubic)\n"
+        }
+      ],
+      "executions": [],
+      "status": "compile_failed"
+    },
+    {
+      "program": "cubic",
+      "variant": "corev",
+      "units": [
+        {
+          "source": "src/cubic/basicmath_small.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        },
+        {
+          "source": "src/cubic/libcubic.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 1,
+          "diagnostic": "LLVM ERROR: unable to legalize instruction: %201:_(s32) = G_FCMP floatpred(olt), %40:_(s128), %163:_ (in function: SolveCubic)\n"
+        }
+      ],
+      "executions": [],
+      "status": "compile_failed"
+    },
+    {
+      "program": "edn",
+      "variant": "baseline",
+      "units": [
+        {
+          "source": "src/edn/libedn.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 20.96157027501613,
+          "instructions": 3086045,
+          "model_cycles": 3086045,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 809013,
+            "addi": 345848,
+            "auipc": 175,
+            "bge": 1,
+            "bltu": 1392,
+            "bne": 282750,
+            "jal": 2,
+            "jalr": 352,
+            "lh": 717141,
+            "lhu": 13920,
+            "lui": 5,
+            "lw": 128165,
+            "mul": 586467,
+            "sh": 67773,
+            "slli": 18270,
+            "srai": 44283,
+            "srli": 25926,
+            "sub": 18444,
+            "sw": 26118
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 68604,
+      "static_custom_instructions": {},
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "edn",
+      "variant": "corev",
+      "units": [
+        {
+          "source": "src/edn/libedn.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 20.14535041479394,
+          "instructions": 2520305,
+          "model_cycles": 2520305,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "addi": 255984,
+            "auipc": 175,
+            "bge": 1,
+            "bltu": 1392,
+            "bne": 282750,
+            "cv_addn": 21750,
+            "cv_addrn": 377155,
+            "cv_addun": 696,
+            "cv_clip": 2784,
+            "cv_exths": 8352,
+            "cv_lh_rr": 217500,
+            "cv_mac": 521304,
+            "cv_msu": 8700,
+            "cv_subn": 8613,
+            "cv_subrn": 9048,
+            "cv_subun": 783,
+            "cv_sw_rr": 4350,
+            "jal": 2,
+            "jalr": 352,
+            "lh": 499641,
+            "lhu": 13920,
+            "lui": 5,
+            "lw": 85361,
+            "mul": 73602,
+            "sh": 67773,
+            "slli": 9918,
+            "srai": 2784,
+            "srli": 24447,
+            "sw": 21163
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 68348,
+      "static_custom_instructions": {
+        "seal5.cv.addRN": 88,
+        "seal5.cv.mac": 90,
+        "seal5.cv.addN": 8,
+        "seal5.cv.sw": 2,
+        "seal5.cv.msu": 4,
+        "seal5.cv.subN": 2,
+        "seal5.cv.bneimm": 1,
+        "seal5.cv.subRN": 13,
+        "seal5.cv.exths": 12,
+        "seal5.cv.adduN": 1,
+        "seal5.cv.subuN": 2,
+        "seal5.cv.clip": 4,
+        "seal5.cv.lh": 1,
+        "seal5.cv.and.b": 3
+      },
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "huffbench",
+      "variant": "baseline",
+      "units": [
+        {
+          "source": "src/huffbench/libhuffbench.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 19.360001357272267,
+          "instructions": 2524997,
+          "model_cycles": 2524997,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 241791,
+            "addi": 791660,
+            "and": 56650,
+            "andi": 2475,
+            "auipc": 276,
+            "beq": 92499,
+            "bge": 4467,
+            "bgeu": 120230,
+            "blt": 2970,
+            "bltu": 148555,
+            "bne": 102894,
+            "jal": 69698,
+            "jalr": 477,
+            "lbu": 147961,
+            "lui": 146,
+            "lw": 243689,
+            "or": 30250,
+            "ori": 14509,
+            "sb": 80531,
+            "sll": 5863,
+            "slli": 147741,
+            "sltiu": 27445,
+            "sltu": 29601,
+            "srai": 2486,
+            "srli": 53581,
+            "sub": 682,
+            "sw": 101910,
+            "xor": 1793,
+            "xori": 2167
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 67868,
+      "static_custom_instructions": {},
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "huffbench",
+      "variant": "corev",
+      "units": [
+        {
+          "source": "src/huffbench/libhuffbench.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 20.211263834964484,
+          "instructions": 2411458,
+          "model_cycles": 2411458,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 451,
+            "addi": 277521,
+            "andi": 297,
+            "auipc": 276,
+            "beq": 72589,
+            "bge": 4467,
+            "bgeu": 120230,
+            "blt": 2970,
+            "bltu": 147851,
+            "bne": 12199,
+            "cv_abs": 1782,
+            "cv_addn": 693,
+            "cv_addrn": 643148,
+            "cv_and_b": 58817,
+            "cv_beqimm": 17545,
+            "cv_bneimm": 93060,
+            "cv_clip": 11,
+            "cv_extbz": 11,
+            "cv_lbu_rr": 35750,
+            "cv_lw_rr": 58652,
+            "cv_maxu": 704,
+            "cv_or_b": 44759,
+            "cv_sb_rr": 71104,
+            "cv_subrn": 352,
+            "cv_sw_rr": 16049,
+            "cv_xor_b": 2167,
+            "jal": 70270,
+            "jalr": 477,
+            "lbu": 112211,
+            "lui": 146,
+            "lw": 185038,
+            "sb": 9427,
+            "sll": 5863,
+            "slli": 147741,
+            "sltiu": 27445,
+            "sltu": 29601,
+            "srli": 53581,
+            "sub": 330,
+            "sw": 85862,
+            "xor": 11
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 67740,
+      "static_custom_instructions": {
+        "seal5.cv.addRN": 49,
+        "seal5.cv.beqimm": 14,
+        "seal5.cv.lw": 31,
+        "seal5.cv.sw": 15,
+        "seal5.cv.clip": 1,
+        "seal5.cv.addN": 3,
+        "seal5.cv.xor.b": 3,
+        "seal5.cv.and.b": 6,
+        "seal5.cv.or.b": 7,
+        "seal5.cv.subRN": 2,
+        "seal5.cv.sb": 6,
+        "seal5.cv.maxu": 2,
+        "seal5.cv.abs": 1,
+        "seal5.cv.bneimm": 6,
+        "seal5.cv.lbu": 3,
+        "seal5.cv.extbz": 1
+      },
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "matmult-int",
+      "variant": "baseline",
+      "units": [
+        {
+          "source": "src/matmult-int/matmult-int.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 19.54132951190695,
+          "instructions": 1997869,
+          "model_cycles": 1997869,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 351716,
+            "addi": 51580,
+            "andi": 368,
+            "auipc": 139,
+            "bge": 1,
+            "bgeu": 92,
+            "blt": 4140,
+            "bltu": 460,
+            "bne": 19642,
+            "jal": 94,
+            "jalr": 280,
+            "lui": 5,
+            "lw": 772808,
+            "mul": 368920,
+            "sltiu": 92,
+            "sub": 4232,
+            "sw": 423208,
+            "xor": 92
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 67548,
+      "static_custom_instructions": {},
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "matmult-int",
+      "variant": "corev",
+      "units": [
+        {
+          "source": "src/matmult-int/matmult-int.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 19.713655865285546,
+          "instructions": 1669020,
+          "model_cycles": 1669020,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 276,
+            "addi": 14000,
+            "andi": 368,
+            "auipc": 139,
+            "bge": 1,
+            "bgeu": 92,
+            "blt": 4140,
+            "bltu": 460,
+            "bne": 19596,
+            "cv_addrn": 39653,
+            "cv_bneimm": 46,
+            "cv_lw_rr": 18400,
+            "cv_mac": 351440,
+            "jal": 94,
+            "jalr": 280,
+            "lui": 5,
+            "lw": 754547,
+            "mul": 37720,
+            "sltiu": 92,
+            "sub": 4232,
+            "sw": 423347,
+            "xor": 92
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 67532,
+      "static_custom_instructions": {
+        "seal5.cv.addRN": 15,
+        "seal5.cv.bneimm": 1,
+        "seal5.cv.mac": 103,
+        "seal5.cv.lw": 1
+      },
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "md5sum",
+      "variant": "baseline",
+      "units": [
+        {
+          "source": "src/md5sum/md5.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 18.78253131872043,
+          "instructions": 2019904,
+          "model_cycles": 2019904,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 369240,
+            "addi": 709780,
+            "and": 52224,
+            "andi": 39933,
+            "auipc": 460,
+            "beq": 52377,
+            "bge": 868,
+            "bgeu": 65484,
+            "blt": 1479,
+            "bltu": 56253,
+            "bne": 51663,
+            "jal": 40190,
+            "jalr": 973,
+            "lui": 360,
+            "lw": 170710,
+            "mul": 51,
+            "or": 39168,
+            "ori": 51,
+            "sb": 51459,
+            "sll": 52224,
+            "slli": 52326,
+            "sltiu": 102,
+            "srl": 52224,
+            "sub": 53856,
+            "sw": 28008,
+            "xor": 39273,
+            "xori": 39168
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 66412,
+      "static_custom_instructions": {},
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "md5sum",
+      "variant": "corev",
+      "units": [
+        {
+          "source": "src/md5sum/md5.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 18.935450735036284,
+          "instructions": 1947589,
+          "model_cycles": 1947589,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 714,
+            "addi": 370172,
+            "andi": 714,
+            "auipc": 460,
+            "beq": 52377,
+            "bge": 868,
+            "bgeu": 65484,
+            "blt": 1479,
+            "bltu": 56253,
+            "bne": 51663,
+            "cv_addrn": 630564,
+            "cv_and_b": 91443,
+            "cv_lw_rr": 52224,
+            "cv_or_b": 39219,
+            "cv_sb_rr": 51051,
+            "cv_xor_b": 78339,
+            "jal": 40190,
+            "jalr": 973,
+            "lui": 360,
+            "lw": 122669,
+            "mul": 51,
+            "sb": 408,
+            "sll": 52224,
+            "slli": 52326,
+            "sltiu": 102,
+            "srl": 52224,
+            "sub": 53856,
+            "sw": 29080,
+            "xor": 102
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 66492,
+      "static_custom_instructions": {
+        "seal5.cv.addRN": 22,
+        "seal5.cv.and.b": 8,
+        "seal5.cv.or.b": 4,
+        "seal5.cv.sb": 2,
+        "seal5.cv.xor.b": 9,
+        "seal5.cv.lw": 1
+      },
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "minver",
+      "variant": "baseline",
+      "units": [
+        {
+          "source": "src/minver/libminver.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 26.953960983082652,
+          "instructions": 5013364,
+          "model_cycles": 5013364,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 128760,
+            "addi": 991799,
+            "and": 72705,
+            "andi": 207015,
+            "auipc": 66601,
+            "beq": 298590,
+            "bge": 101011,
+            "bgeu": 71040,
+            "blt": 90465,
+            "bltu": 11100,
+            "bne": 116550,
+            "divu": 17760,
+            "jal": 89357,
+            "jalr": 135979,
+            "lbu": 2220,
+            "lui": 126543,
+            "lw": 402387,
+            "mul": 88245,
+            "or": 284160,
+            "ori": 8325,
+            "remu": 17760,
+            "sll": 10545,
+            "slli": 552225,
+            "sltiu": 1665,
+            "sltu": 32745,
+            "srl": 8880,
+            "srli": 577200,
+            "sub": 85470,
+            "sw": 377967,
+            "xor": 38295
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 72504,
+      "static_custom_instructions": {},
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "minver",
+      "variant": "corev",
+      "units": [
+        {
+          "source": "src/minver/libminver.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 27.033357926178724,
+          "instructions": 5020584,
+          "model_cycles": 5020584,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 103785,
+            "addi": 927975,
+            "and": 72705,
+            "andi": 207015,
+            "auipc": 66601,
+            "beq": 286935,
+            "bge": 101011,
+            "bgeu": 71040,
+            "blt": 90465,
+            "bltu": 11100,
+            "bne": 112665,
+            "cv_addrn": 73262,
+            "cv_and_b": 1665,
+            "cv_beqimm": 11655,
+            "cv_bneimm": 3885,
+            "cv_lw_rr": 14430,
+            "cv_mac": 10545,
+            "cv_subrn": 1665,
+            "cv_sw_rr": 15540,
+            "cv_xor_b": 4995,
+            "divu": 17760,
+            "jal": 89357,
+            "jalr": 135979,
+            "lbu": 2220,
+            "lui": 127098,
+            "lw": 409048,
+            "mul": 77700,
+            "or": 284160,
+            "ori": 8325,
+            "remu": 17760,
+            "sll": 10545,
+            "slli": 550560,
+            "sltiu": 1665,
+            "sltu": 32745,
+            "srl": 8880,
+            "srli": 575535,
+            "sub": 83805,
+            "sw": 365203,
+            "xor": 33300
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 72584,
+      "static_custom_instructions": {
+        "seal5.cv.addRN": 35,
+        "seal5.cv.mac": 8,
+        "seal5.cv.sw": 8,
+        "seal5.cv.subRN": 1,
+        "seal5.cv.xor.b": 3,
+        "seal5.cv.lw": 8,
+        "seal5.cv.and.b": 1,
+        "seal5.cv.beqimm": 2,
+        "seal5.cv.bneimm": 2
+      },
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "nbody",
+      "variant": "baseline",
+      "units": [
+        {
+          "source": "src/nbody/nbody.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 28.826340030878782,
+          "instructions": 3436375,
+          "model_cycles": 3436375,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 407045,
+            "addi": 536518,
+            "and": 51942,
+            "andi": 85999,
+            "auipc": 16150,
+            "beq": 104939,
+            "bge": 83611,
+            "bgeu": 58886,
+            "blt": 61975,
+            "bltu": 15904,
+            "bne": 106110,
+            "divu": 4060,
+            "jal": 52860,
+            "jalr": 41103,
+            "lbu": 1801,
+            "lui": 57212,
+            "lw": 165547,
+            "mul": 116420,
+            "or": 190880,
+            "ori": 2015,
+            "remu": 4060,
+            "sll": 15216,
+            "slli": 424455,
+            "sltiu": 1,
+            "sltu": 75975,
+            "srai": 3000,
+            "srl": 15216,
+            "srli": 482641,
+            "sub": 92969,
+            "sw": 131720,
+            "xor": 7530,
+            "xori": 22615
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 70740,
+      "static_custom_instructions": {},
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "nbody",
+      "variant": "corev",
+      "units": [
+        {
+          "source": "src/nbody/nbody.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 28.72317084344104,
+          "instructions": 3454939,
+          "model_cycles": 3454939,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 406544,
+            "addi": 542037,
+            "and": 51942,
+            "andi": 85999,
+            "auipc": 16150,
+            "beq": 104438,
+            "bge": 83611,
+            "bgeu": 58886,
+            "blt": 61975,
+            "bltu": 15904,
+            "bne": 106110,
+            "cv_addrn": 9629,
+            "cv_beqimm": 501,
+            "cv_lw_rr": 1000,
+            "divu": 4060,
+            "jal": 52860,
+            "jalr": 41103,
+            "lbu": 1801,
+            "lui": 57212,
+            "lw": 166961,
+            "mul": 116420,
+            "or": 190880,
+            "ori": 2015,
+            "remu": 4060,
+            "sll": 15216,
+            "slli": 424455,
+            "sltiu": 1,
+            "sltu": 75975,
+            "srai": 3000,
+            "srl": 15216,
+            "srli": 482641,
+            "sub": 92969,
+            "sw": 133223,
+            "xor": 7530,
+            "xori": 22615
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 71348,
+      "static_custom_instructions": {
+        "seal5.cv.beqimm": 4,
+        "seal5.cv.addRN": 76,
+        "seal5.cv.lw": 2
+      },
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "nettle-aes",
+      "variant": "baseline",
+      "units": [
+        {
+          "source": "src/nettle-aes/nettle-aes.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 22.483087567146868,
+          "instructions": 3871590,
+          "model_cycles": 3871590,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 594282,
+            "addi": 135506,
+            "andi": 437736,
+            "auipc": 391,
+            "beq": 27222,
+            "bge": 1,
+            "bgeu": 3042,
+            "bltu": 624,
+            "bne": 45240,
+            "jal": 16226,
+            "jalr": 784,
+            "lbu": 94068,
+            "lui": 394,
+            "lw": 712466,
+            "or": 82992,
+            "sb": 39936,
+            "slli": 619008,
+            "srli": 480792,
+            "sw": 20372,
+            "xor": 560508
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 69900,
+      "static_custom_instructions": {},
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "nettle-aes",
+      "variant": "corev",
+      "units": [
+        {
+          "source": "src/nettle-aes/nettle-aes.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 22.701673849951476,
+          "instructions": 3301806,
+          "model_cycles": 3301806,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "addi": 36914,
+            "auipc": 391,
+            "beq": 16224,
+            "bge": 1,
+            "bgeu": 3042,
+            "bltu": 624,
+            "bne": 5382,
+            "cv_addrn": 137754,
+            "cv_and_b": 156,
+            "cv_beqimm": 8502,
+            "cv_bneimm": 42354,
+            "cv_extbz": 437580,
+            "cv_lbu_rr": 48048,
+            "cv_lw_rr": 537888,
+            "cv_or_b": 69732,
+            "cv_ror": 13260,
+            "cv_sw_rr": 8112,
+            "cv_xor_b": 560508,
+            "jal": 16382,
+            "jalr": 784,
+            "lbu": 46020,
+            "lui": 394,
+            "lw": 185030,
+            "sb": 39936,
+            "slli": 606060,
+            "srli": 467532,
+            "sw": 13196
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 69996,
+      "static_custom_instructions": {
+        "seal5.cv.beqimm": 8,
+        "seal5.cv.addRN": 102,
+        "seal5.cv.or.b": 60,
+        "seal5.cv.bneimm": 9,
+        "seal5.cv.ror": 8,
+        "seal5.cv.extbz": 63,
+        "seal5.cv.lbu": 44,
+        "seal5.cv.xor.b": 60,
+        "seal5.cv.sw": 4,
+        "seal5.cv.adduN": 1,
+        "seal5.cv.lw": 42,
+        "seal5.cv.and.b": 6
+      },
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "nettle-sha256",
+      "variant": "baseline",
+      "units": [
+        {
+          "source": "src/nettle-sha256/nettle-sha256.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 23.483754524961114,
+          "instructions": 3935413,
+          "model_cycles": 3935413,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 579025,
+            "addi": 130638,
+            "and": 182400,
+            "andi": 9025,
+            "auipc": 6651,
+            "beq": 1425,
+            "bge": 1,
+            "bgeu": 4750,
+            "blt": 1900,
+            "bltu": 13775,
+            "bne": 16150,
+            "jal": 1427,
+            "jalr": 11879,
+            "lbu": 60800,
+            "lui": 1428,
+            "lw": 227532,
+            "or": 595175,
+            "sb": 34200,
+            "slli": 598025,
+            "sltiu": 1425,
+            "srli": 653600,
+            "sub": 6175,
+            "sw": 127782,
+            "xor": 670225
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 72940,
+      "static_custom_instructions": {},
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "nettle-sha256",
+      "variant": "corev",
+      "units": [
+        {
+          "source": "src/nettle-sha256/nettle-sha256.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 24.88756673410535,
+          "instructions": 3276118,
+          "model_cycles": 3276118,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 6650,
+            "addi": 394265,
+            "andi": 8550,
+            "auipc": 5701,
+            "bge": 1,
+            "bgeu": 4750,
+            "blt": 1900,
+            "bltu": 14250,
+            "bne": 15675,
+            "cv_addrn": 590426,
+            "cv_addun": 42750,
+            "cv_and_b": 182875,
+            "cv_beqimm": 1425,
+            "cv_bneimm": 475,
+            "cv_or_b": 47975,
+            "cv_ror": 547200,
+            "cv_sb_rr": 475,
+            "cv_subrn": 950,
+            "cv_xor_b": 668800,
+            "jal": 1427,
+            "jalr": 10929,
+            "lbu": 60800,
+            "lui": 1428,
+            "lw": 335833,
+            "sb": 26125,
+            "slli": 49875,
+            "sltiu": 1425,
+            "srli": 63650,
+            "sub": 4275,
+            "sw": 183833,
+            "xor": 1425
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 72156,
+      "static_custom_instructions": {
+        "seal5.cv.and.b": 82,
+        "seal5.cv.beqimm": 9,
+        "seal5.cv.addRN": 260,
+        "seal5.cv.lw": 2,
+        "seal5.cv.or.b": 60,
+        "seal5.cv.ror": 208,
+        "seal5.cv.xor.b": 256,
+        "seal5.cv.adduN": 15,
+        "seal5.cv.subRN": 4,
+        "seal5.cv.sb": 1,
+        "seal5.cv.extbz": 1,
+        "seal5.cv.bneimm": 1
+      },
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "nsichneu",
+      "variant": "baseline",
+      "units": [
+        {
+          "source": "src/nsichneu/libnsichneu.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 31.81206080596894,
+          "instructions": 2001632,
+          "model_cycles": 2001632,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "addi": 1243,
+            "auipc": 1,
+            "beq": 2462,
+            "bge": 461625,
+            "blt": 3694,
+            "bne": 301595,
+            "jal": 1235,
+            "jalr": 4,
+            "lui": 2,
+            "lw": 1226077,
+            "sw": 3694
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 82124,
+      "static_custom_instructions": {},
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "nsichneu",
+      "variant": "corev",
+      "units": [
+        {
+          "source": "src/nsichneu/libnsichneu.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 31.093024672940373,
+          "instructions": 2001637,
+          "model_cycles": 2001637,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "addi": 16,
+            "auipc": 1,
+            "beq": 2462,
+            "bge": 461625,
+            "blt": 3694,
+            "bne": 300364,
+            "cv_addrn": 1232,
+            "cv_bneimm": 1231,
+            "jal": 1235,
+            "jalr": 4,
+            "lui": 2,
+            "lw": 1226077,
+            "sw": 3694
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 81660,
+      "static_custom_instructions": {
+        "seal5.cv.addRN": 626,
+        "seal5.cv.bneimm": 13,
+        "seal5.cv.sw": 126,
+        "seal5.cv.subRN": 6,
+        "seal5.cv.beqimm": 4
+      },
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "picojpeg",
+      "variant": "baseline",
+      "units": [
+        {
+          "source": "src/picojpeg/libpicojpeg.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        },
+        {
+          "source": "src/picojpeg/picojpeg_test.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 31.807172702159733,
+          "instructions": 3375790,
+          "model_cycles": 3375790,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 230814,
+            "addi": 916436,
+            "and": 106722,
+            "andi": 87240,
+            "auipc": 5953,
+            "beq": 27972,
+            "bge": 1,
+            "bgeu": 130158,
+            "blt": 108,
+            "bltu": 21432,
+            "bne": 159408,
+            "jal": 24926,
+            "jalr": 13006,
+            "lb": 63504,
+            "lbu": 165564,
+            "lh": 161802,
+            "lhu": 20970,
+            "lui": 15146,
+            "lw": 69002,
+            "mul": 105534,
+            "or": 105438,
+            "sb": 171912,
+            "sh": 205338,
+            "sll": 6630,
+            "slli": 169740,
+            "slti": 1338,
+            "sltiu": 48,
+            "srai": 37842,
+            "srl": 2478,
+            "srli": 178920,
+            "sub": 108228,
+            "sw": 60824,
+            "xor": 18,
+            "xori": 1338
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 93916,
+      "static_custom_instructions": {},
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "picojpeg",
+      "variant": "corev",
+      "units": [
+        {
+          "source": "src/picojpeg/libpicojpeg.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        },
+        {
+          "source": "src/picojpeg/picojpeg_test.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 32.852662979159504,
+          "instructions": 3372659,
+          "model_cycles": 3372659,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 30,
+            "addi": 503822,
+            "andi": 60,
+            "auipc": 5953,
+            "beq": 9366,
+            "bge": 1,
+            "bgeu": 130656,
+            "blt": 108,
+            "bltu": 20916,
+            "bne": 136146,
+            "cv_addrn": 595567,
+            "cv_addun": 22176,
+            "cv_addurn": 9984,
+            "cv_and_b": 9402,
+            "cv_beqimm": 10818,
+            "cv_bneimm": 31050,
+            "cv_clip": 1368,
+            "cv_extbz": 84498,
+            "cv_exths": 36312,
+            "cv_exthz": 139236,
+            "cv_lb_rr": 1890,
+            "cv_lbu_rr": 5514,
+            "cv_lhu_rr": 510,
+            "cv_mac": 6,
+            "cv_minu": 18,
+            "cv_or_b": 105438,
+            "cv_sb_rr": 198,
+            "cv_sh_rr": 64512,
+            "cv_subrn": 94962,
+            "cv_suburn": 9984,
+            "jal": 31718,
+            "jalr": 13006,
+            "lb": 61614,
+            "lbu": 160050,
+            "lh": 161802,
+            "lhu": 20460,
+            "lui": 15086,
+            "lw": 165788,
+            "mul": 105528,
+            "sb": 171714,
+            "sh": 140826,
+            "sll": 6630,
+            "slli": 95100,
+            "slti": 1338,
+            "sltiu": 48,
+            "srl": 2478,
+            "srli": 98610,
+            "sub": 114,
+            "sw": 88892,
+            "xor": 18,
+            "xori": 1338
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 94588,
+      "static_custom_instructions": {
+        "seal5.cv.bneimm": 77,
+        "seal5.cv.beqimm": 142,
+        "seal5.cv.addRN": 782,
+        "seal5.cv.and.b": 35,
+        "seal5.cv.or.b": 93,
+        "seal5.cv.subRN": 220,
+        "seal5.cv.exthz": 331,
+        "seal5.cv.extbz": 129,
+        "seal5.cv.lhu": 1,
+        "seal5.cv.sh": 20,
+        "seal5.cv.xor.b": 35,
+        "seal5.cv.clip": 243,
+        "seal5.cv.sb": 8,
+        "seal5.cv.lbu": 8,
+        "seal5.cv.adduN": 13,
+        "seal5.cv.exths": 38,
+        "seal5.cv.lb": 2,
+        "seal5.cv.adduRN": 5,
+        "seal5.cv.subuRN": 7,
+        "seal5.cv.mac": 1,
+        "seal5.cv.minu": 1
+      },
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "primecount",
+      "variant": "baseline",
+      "units": [
+        {
+          "source": "src/primecount/primecount.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 17.71131244301796,
+          "instructions": 4571595,
+          "model_cycles": 4571595,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 558214,
+            "addi": 1230325,
+            "auipc": 1,
+            "beq": 186045,
+            "bge": 225836,
+            "bgeu": 65717,
+            "blt": 186044,
+            "bltu": 186044,
+            "bne": 156787,
+            "divu": 186044,
+            "jal": 32772,
+            "jalr": 4,
+            "lw": 375607,
+            "mul": 251802,
+            "slli": 186085,
+            "slt": 186044,
+            "srai": 186044,
+            "sub": 186044,
+            "sw": 186136
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 65820,
+      "static_custom_instructions": {},
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "primecount",
+      "variant": "corev",
+      "units": [
+        {
+          "source": "src/primecount/primecount.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 17.695500885136425,
+          "instructions": 4081141,
+          "model_cycles": 4081141,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "addi": 164044,
+            "auipc": 1,
+            "beq": 186045,
+            "bge": 225836,
+            "bgeu": 65717,
+            "cv_addrn": 977256,
+            "cv_beqimm": 156787,
+            "cv_clip": 186044,
+            "cv_mac": 186044,
+            "cv_max": 186044,
+            "cv_maxu": 186044,
+            "cv_subrn": 186044,
+            "cv_sw_rr": 82,
+            "divu": 186044,
+            "jal": 189557,
+            "jalr": 4,
+            "lw": 375607,
+            "mul": 65758,
+            "slli": 186085,
+            "slt": 186044,
+            "sw": 186054
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 65788,
+      "static_custom_instructions": {
+        "seal5.cv.addRN": 21,
+        "seal5.cv.max": 2,
+        "seal5.cv.subRN": 2,
+        "seal5.cv.maxu": 2,
+        "seal5.cv.mac": 2,
+        "seal5.cv.beqimm": 2,
+        "seal5.cv.sw": 4,
+        "seal5.cv.clip": 1
+      },
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "qrduino",
+      "variant": "baseline",
+      "units": [
+        {
+          "source": "src/qrduino/qrencode.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        },
+        {
+          "source": "src/qrduino/qrframe.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        },
+        {
+          "source": "src/qrduino/qrtest.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 33.93348804395646,
+          "instructions": 2775259,
+          "model_cycles": 2775259,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 363375,
+            "addi": 454716,
+            "and": 98145,
+            "andi": 340660,
+            "auipc": 221,
+            "beq": 157675,
+            "bge": 10076,
+            "bgeu": 95750,
+            "blt": 165,
+            "bltu": 51570,
+            "bne": 95200,
+            "jal": 51432,
+            "jalr": 489,
+            "lbu": 348925,
+            "lui": 2658,
+            "lw": 129616,
+            "mul": 81700,
+            "or": 5765,
+            "ori": 25235,
+            "sb": 65035,
+            "slli": 28785,
+            "sltiu": 37240,
+            "sltu": 9510,
+            "srai": 26845,
+            "srl": 123710,
+            "srli": 117005,
+            "sub": 305,
+            "sw": 2171,
+            "xor": 25270,
+            "xori": 26010
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 84204,
+      "static_custom_instructions": {},
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "qrduino",
+      "variant": "corev",
+      "units": [
+        {
+          "source": "src/qrduino/qrencode.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        },
+        {
+          "source": "src/qrduino/qrframe.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        },
+        {
+          "source": "src/qrduino/qrtest.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 35.55125795537606,
+          "instructions": 2677877,
+          "model_cycles": 2677877,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 315,
+            "addi": 206062,
+            "and": 30,
+            "andi": 305,
+            "auipc": 221,
+            "beq": 71150,
+            "bge": 10076,
+            "bgeu": 94310,
+            "blt": 165,
+            "bltu": 52960,
+            "bne": 81535,
+            "cv_abs": 40,
+            "cv_addn": 40,
+            "cv_addrn": 484555,
+            "cv_addun": 40480,
+            "cv_and_b": 262715,
+            "cv_beqimm": 55660,
+            "cv_bneimm": 44530,
+            "cv_clip": 25005,
+            "cv_extbs": 1760,
+            "cv_extbz": 179785,
+            "cv_lbu_rr": 134670,
+            "cv_lw_rr": 5,
+            "cv_mac": 9645,
+            "cv_maxu": 10,
+            "cv_minu": 40,
+            "cv_or_b": 30940,
+            "cv_sb_rr": 60440,
+            "cv_subrn": 50,
+            "cv_xor_b": 44925,
+            "jal": 66867,
+            "jalr": 489,
+            "lbu": 214255,
+            "lui": 4348,
+            "lw": 130432,
+            "mul": 81195,
+            "or": 60,
+            "sb": 4595,
+            "slli": 27025,
+            "sltiu": 37240,
+            "sltu": 9510,
+            "srl": 123710,
+            "srli": 76525,
+            "sub": 255,
+            "sw": 2632,
+            "xor": 6310,
+            "xori": 5
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 85388,
+      "static_custom_instructions": {
+        "seal5.cv.addRN": 676,
+        "seal5.cv.mac": 92,
+        "seal5.cv.xor.b": 18,
+        "seal5.cv.beqimm": 87,
+        "seal5.cv.or.b": 202,
+        "seal5.cv.bneimm": 21,
+        "seal5.cv.sb": 170,
+        "seal5.cv.clip": 2,
+        "seal5.cv.lbu": 26,
+        "seal5.cv.extbz": 335,
+        "seal5.cv.subRN": 3,
+        "seal5.cv.extbs": 1,
+        "seal5.cv.and.b": 195,
+        "seal5.cv.adduN": 97,
+        "seal5.cv.abs": 1,
+        "seal5.cv.msu": 1,
+        "seal5.cv.minu": 1,
+        "seal5.cv.lw": 1,
+        "seal5.cv.addN": 13,
+        "seal5.cv.maxu": 4
+      },
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "sglib-combined",
+      "variant": "baseline",
+      "units": [
+        {
+          "source": "src/sglib-combined/combined.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 22.172194927930832,
+          "instructions": 2413249,
+          "model_cycles": 2413249,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 200564,
+            "addi": 399701,
+            "andi": 33437,
+            "auipc": 27493,
+            "beq": 149524,
+            "bge": 78823,
+            "bgeu": 16849,
+            "blt": 91988,
+            "bltu": 8758,
+            "bne": 186238,
+            "jal": 24914,
+            "jalr": 54988,
+            "lbu": 65192,
+            "lh": 17400,
+            "lui": 17492,
+            "lw": 513025,
+            "mul": 8700,
+            "mulh": 5800,
+            "mulhu": 2900,
+            "ori": 12006,
+            "sb": 20532,
+            "sh": 5829,
+            "slli": 140650,
+            "slt": 24592,
+            "sltiu": 29,
+            "srai": 17400,
+            "srli": 27173,
+            "sub": 18502,
+            "sw": 237008,
+            "xor": 29,
+            "xori": 5713
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 77500,
+      "static_custom_instructions": {},
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "sglib-combined",
+      "variant": "corev",
+      "units": [
+        {
+          "source": "src/sglib-combined/combined.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 22.669632353819907,
+          "instructions": 2305700,
+          "model_cycles": 2305700,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 17516,
+            "addi": 267377,
+            "andi": 8845,
+            "auipc": 27493,
+            "beq": 141259,
+            "bge": 78823,
+            "bgeu": 16849,
+            "blt": 87464,
+            "bltu": 8758,
+            "bne": 139113,
+            "cv_addrn": 216432,
+            "cv_and_b": 24592,
+            "cv_beqimm": 8265,
+            "cv_bneimm": 47125,
+            "cv_exths": 11600,
+            "cv_exthz": 11774,
+            "cv_lw_rr": 84013,
+            "cv_mac": 8700,
+            "cv_max": 4495,
+            "cv_or_b": 12006,
+            "cv_sb_rr": 2871,
+            "cv_subrn": 18125,
+            "cv_sw_rr": 42282,
+            "cv_xor_b": 5713,
+            "jal": 24914,
+            "jalr": 54988,
+            "lbu": 65192,
+            "lh": 17400,
+            "lui": 17492,
+            "lw": 432115,
+            "mulh": 5800,
+            "mulhu": 2900,
+            "sb": 17661,
+            "sh": 5829,
+            "slli": 128847,
+            "slt": 24592,
+            "sltiu": 29,
+            "srai": 5800,
+            "srli": 15399,
+            "sub": 377,
+            "sw": 194846,
+            "xor": 29
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 77692,
+      "static_custom_instructions": {
+        "seal5.cv.xor.b": 5,
+        "seal5.cv.addRN": 158,
+        "seal5.cv.beqimm": 23,
+        "seal5.cv.bneimm": 45,
+        "seal5.cv.mac": 15,
+        "seal5.cv.lw": 18,
+        "seal5.cv.sw": 14,
+        "seal5.cv.sb": 5,
+        "seal5.cv.lbu": 1,
+        "seal5.cv.exthz": 5,
+        "seal5.cv.exths": 7,
+        "seal5.cv.subRN": 11,
+        "seal5.cv.max": 2,
+        "seal5.cv.and.b": 2,
+        "seal5.cv.or.b": 1
+      },
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "slre",
+      "variant": "baseline",
+      "units": [
+        {
+          "source": "src/slre/libslre.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 22.196055565960705,
+          "instructions": 2674462,
+          "model_cycles": 2674462,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 193820,
+            "addi": 762090,
+            "and": 9350,
+            "andi": 15950,
+            "auipc": 33001,
+            "beq": 133320,
+            "bge": 213511,
+            "bgeu": 7480,
+            "blt": 26400,
+            "bltu": 9570,
+            "bne": 170610,
+            "jal": 39272,
+            "jalr": 66004,
+            "lbu": 138270,
+            "lui": 46091,
+            "lw": 355967,
+            "or": 13530,
+            "sll": 5940,
+            "slli": 17270,
+            "slt": 9020,
+            "slti": 6270,
+            "sltiu": 6820,
+            "sltu": 110,
+            "srai": 6270,
+            "srli": 550,
+            "sub": 33770,
+            "sw": 338916,
+            "xor": 6820,
+            "xori": 8470
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 70348,
+      "static_custom_instructions": {},
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "slre",
+      "variant": "corev",
+      "units": [
+        {
+          "source": "src/slre/libslre.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 22.825358044356108,
+          "instructions": 2899636,
+          "model_cycles": 2899636,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 2860,
+            "addi": 809831,
+            "and": 2310,
+            "andi": 1980,
+            "auipc": 33001,
+            "beq": 132770,
+            "bge": 205701,
+            "bgeu": 7480,
+            "blt": 25630,
+            "bltu": 9570,
+            "bne": 146630,
+            "cv_addrn": 323071,
+            "cv_and_b": 21010,
+            "cv_beqimm": 18590,
+            "cv_bneimm": 5940,
+            "cv_clip": 6270,
+            "cv_lbu_rr": 51040,
+            "cv_max": 8580,
+            "cv_or_b": 8470,
+            "cv_sle": 8470,
+            "cv_subrn": 32780,
+            "cv_xor_b": 6270,
+            "jal": 35092,
+            "jalr": 66004,
+            "lbu": 87230,
+            "lui": 73261,
+            "lw": 371038,
+            "or": 5060,
+            "sll": 5940,
+            "slli": 17270,
+            "slt": 550,
+            "slti": 6270,
+            "sltiu": 6820,
+            "sltu": 110,
+            "srli": 550,
+            "sub": 990,
+            "sw": 354647,
+            "xor": 550
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 70588,
+      "static_custom_instructions": {
+        "seal5.cv.addRN": 141,
+        "seal5.cv.bneimm": 7,
+        "seal5.cv.lbu": 30,
+        "seal5.cv.subRN": 24,
+        "seal5.cv.and.b": 25,
+        "seal5.cv.beqimm": 14,
+        "seal5.cv.max": 3,
+        "seal5.cv.clip": 1,
+        "seal5.cv.sleu": 2,
+        "seal5.cv.xor.b": 1,
+        "seal5.cv.sle": 2,
+        "seal5.cv.or.b": 4
+      },
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "st",
+      "variant": "baseline",
+      "units": [
+        {
+          "source": "src/st/libst.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 25.63366908719763,
+          "instructions": 3832643,
+          "model_cycles": 3832643,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 284661,
+            "addi": 628091,
+            "and": 42952,
+            "andi": 122330,
+            "auipc": 31331,
+            "beq": 120770,
+            "bge": 77403,
+            "bgeu": 56888,
+            "blt": 63154,
+            "bltu": 17381,
+            "bne": 77727,
+            "divu": 10660,
+            "jal": 44553,
+            "jalr": 72518,
+            "lbu": 9490,
+            "lui": 82675,
+            "lw": 202014,
+            "mul": 141388,
+            "mulh": 1300,
+            "mulhu": 1300,
+            "or": 280332,
+            "ori": 2717,
+            "remu": 10660,
+            "sll": 43810,
+            "slli": 458432,
+            "sltiu": 10504,
+            "sltu": 102037,
+            "srai": 2756,
+            "srl": 43810,
+            "srli": 471562,
+            "sub": 114023,
+            "sw": 186787,
+            "xor": 10478,
+            "xori": 6149
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 69600,
+      "static_custom_instructions": {},
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "st",
+      "variant": "corev",
+      "units": [
+        {
+          "source": "src/st/libst.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 25.866106048226357,
+          "instructions": 3844407,
+          "model_cycles": 3844407,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 280761,
+            "addi": 629381,
+            "and": 42952,
+            "andi": 122330,
+            "auipc": 31331,
+            "beq": 120770,
+            "bge": 77403,
+            "bgeu": 56888,
+            "blt": 63154,
+            "bltu": 17381,
+            "bne": 77727,
+            "cv_addrn": 14319,
+            "cv_mac": 5200,
+            "divu": 10660,
+            "jal": 44553,
+            "jalr": 72518,
+            "lbu": 9490,
+            "lui": 82675,
+            "lw": 202066,
+            "mul": 136188,
+            "mulh": 1300,
+            "mulhu": 1300,
+            "or": 280332,
+            "ori": 2717,
+            "remu": 10660,
+            "sll": 43810,
+            "slli": 458432,
+            "sltiu": 10504,
+            "sltu": 102037,
+            "srai": 2756,
+            "srl": 43810,
+            "srli": 471562,
+            "sub": 114023,
+            "sw": 186790,
+            "xor": 10478,
+            "xori": 6149
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 69792,
+      "static_custom_instructions": {
+        "seal5.cv.addRN": 33,
+        "seal5.cv.mac": 8
+      },
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "statemate",
+      "variant": "baseline",
+      "units": [
+        {
+          "source": "src/statemate/libstatemate.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 21.055128337815404,
+          "instructions": 1135223,
+          "model_cycles": 1135223,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 7856,
+            "addi": 55003,
+            "andi": 5892,
+            "auipc": 19641,
+            "beq": 70704,
+            "bge": 1,
+            "bgeu": 3928,
+            "bltu": 5892,
+            "bne": 35352,
+            "jal": 9823,
+            "jalr": 37320,
+            "lbu": 296564,
+            "lui": 13749,
+            "lw": 72673,
+            "sb": 390836,
+            "slli": 3928,
+            "sub": 3928,
+            "sw": 102133
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 69548,
+      "static_custom_instructions": {},
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "statemate",
+      "variant": "corev",
+      "units": [
+        {
+          "source": "src/statemate/libstatemate.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 21.471636769827455,
+          "instructions": 1141120,
+          "model_cycles": 1141120,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 7856,
+            "addi": 49112,
+            "andi": 5892,
+            "auipc": 19641,
+            "beq": 15712,
+            "bge": 1,
+            "bgeu": 3928,
+            "bltu": 5892,
+            "bne": 7856,
+            "cv_addrn": 5893,
+            "cv_beqimm": 53028,
+            "cv_bneimm": 29460,
+            "jal": 15716,
+            "jalr": 37320,
+            "lbu": 296564,
+            "lui": 13749,
+            "lw": 72674,
+            "sb": 390836,
+            "slli": 3928,
+            "sub": 3928,
+            "sw": 102134
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 69900,
+      "static_custom_instructions": {
+        "seal5.cv.beqimm": 92,
+        "seal5.cv.bneimm": 82,
+        "seal5.cv.or.b": 14,
+        "seal5.cv.and.b": 30,
+        "seal5.cv.xor.b": 5,
+        "seal5.cv.subRN": 2,
+        "seal5.cv.addRN": 12,
+        "seal5.cv.extbz": 6
+      },
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "tarfind",
+      "variant": "baseline",
+      "units": [
+        {
+          "source": "src/tarfind/tarfind.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 18.177068173885345,
+          "instructions": 1209286,
+          "model_cycles": 1209286,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 123328,
+            "addi": 226466,
+            "andi": 5029,
+            "auipc": 41079,
+            "beq": 9494,
+            "bge": 1,
+            "bgeu": 3243,
+            "bltu": 24863,
+            "bne": 58891,
+            "jal": 2025,
+            "jalr": 80609,
+            "lbu": 20962,
+            "lui": 72431,
+            "lw": 36721,
+            "mul": 80370,
+            "mulh": 36190,
+            "sb": 64437,
+            "slli": 39292,
+            "sltiu": 1,
+            "srai": 36190,
+            "srli": 108570,
+            "sub": 3149,
+            "sw": 135945
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 66492,
+      "static_custom_instructions": {},
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "tarfind",
+      "variant": "corev",
+      "units": [
+        {
+          "source": "src/tarfind/tarfind.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 18.09643010701984,
+          "instructions": 1175071,
+          "model_cycles": 1175071,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 42723,
+            "addi": 138342,
+            "andi": 5029,
+            "auipc": 41079,
+            "beq": 4559,
+            "bge": 1,
+            "bgeu": 3243,
+            "bltu": 24863,
+            "bne": 53110,
+            "cv_addrn": 134514,
+            "cv_beqimm": 4935,
+            "cv_bneimm": 5781,
+            "cv_lbu_rr": 4700,
+            "cv_mac": 39480,
+            "jal": 2025,
+            "jalr": 80609,
+            "lbu": 16262,
+            "lui": 72431,
+            "lw": 36721,
+            "mul": 40890,
+            "mulh": 36190,
+            "sb": 64437,
+            "slli": 39292,
+            "sltiu": 1,
+            "srai": 36190,
+            "srli": 108570,
+            "sub": 3149,
+            "sw": 135945
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 66492,
+      "static_custom_instructions": {
+        "seal5.cv.addRN": 37,
+        "seal5.cv.mac": 3,
+        "seal5.cv.beqimm": 10,
+        "seal5.cv.lbu": 5,
+        "seal5.cv.bneimm": 5
+      },
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "ud",
+      "variant": "baseline",
+      "units": [
+        {
+          "source": "src/ud/libud.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 18.076374258846045,
+          "instructions": 2036741,
+          "model_cycles": 2036741,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 149278,
+            "addi": 747887,
+            "auipc": 1479,
+            "beq": 7390,
+            "bge": 2957,
+            "bgeu": 7390,
+            "blt": 7390,
+            "bne": 186228,
+            "div": 31038,
+            "jal": 16260,
+            "jalr": 2960,
+            "lui": 1479,
+            "lw": 359169,
+            "mul": 174404,
+            "slli": 75378,
+            "sub": 125630,
+            "sw": 140424
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 66636,
+      "static_custom_instructions": {},
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "ud",
+      "variant": "corev",
+      "units": [
+        {
+          "source": "src/ud/libud.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 18.37191396486014,
+          "instructions": 1897809,
+          "model_cycles": 1897809,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "addi": 313355,
+            "auipc": 1479,
+            "bge": 2957,
+            "bgeu": 7390,
+            "blt": 7390,
+            "bne": 162580,
+            "cv_addrn": 537992,
+            "cv_beqimm": 7390,
+            "cv_bneimm": 23648,
+            "cv_lw_rr": 84246,
+            "cv_mac": 69466,
+            "cv_msu": 125630,
+            "cv_sw_rr": 53208,
+            "div": 31038,
+            "jal": 16260,
+            "jalr": 2960,
+            "lui": 1479,
+            "lw": 280835,
+            "slli": 75378,
+            "sw": 93128
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 66684,
+      "static_custom_instructions": {
+        "seal5.cv.addRN": 42,
+        "seal5.cv.or.b": 1,
+        "seal5.cv.bneimm": 2,
+        "seal5.cv.mac": 9,
+        "seal5.cv.beqimm": 1,
+        "seal5.cv.lw": 9,
+        "seal5.cv.msu": 4,
+        "seal5.cv.sw": 5
+      },
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "wikisort",
+      "variant": "baseline",
+      "units": [
+        {
+          "source": "src/wikisort/libwikisort.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 29.02185990009457,
+          "instructions": 1039782,
+          "model_cycles": 1039782,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 72008,
+            "addi": 176874,
+            "and": 5576,
+            "andi": 18108,
+            "auipc": 9020,
+            "beq": 25021,
+            "bge": 30716,
+            "bgeu": 16697,
+            "blt": 28810,
+            "bltu": 6160,
+            "bne": 21588,
+            "divu": 4800,
+            "jal": 14574,
+            "jalr": 23886,
+            "lbu": 2065,
+            "lui": 17211,
+            "lw": 126221,
+            "mul": 29200,
+            "or": 47922,
+            "ori": 1236,
+            "remu": 4800,
+            "sll": 5318,
+            "slli": 103983,
+            "sltiu": 4320,
+            "sltu": 12104,
+            "srai": 2507,
+            "srl": 6115,
+            "srli": 93607,
+            "sub": 28556,
+            "sw": 96370,
+            "xor": 4121,
+            "xori": 288
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 78580,
+      "static_custom_instructions": {},
+      "status": "verified",
+      "deterministic_counts": true
+    },
+    {
+      "program": "wikisort",
+      "variant": "corev",
+      "units": [
+        {
+          "source": "src/wikisort/libwikisort.c",
+          "frontend_exit": 0,
+          "optimizer_exit": 0,
+          "codegen_exit": 0
+        }
+      ],
+      "executions": [
+        {
+          "exit_code": 0,
+          "verified": true,
+          "wall_seconds": 29.272303324192762,
+          "instructions": 1064375,
+          "model_cycles": 1064375,
+          "starts": 1,
+          "ends": 1,
+          "active": 0,
+          "mnemonics": {
+            "add": 45904,
+            "addi": 137761,
+            "and": 5576,
+            "andi": 17308,
+            "auipc": 9020,
+            "beq": 24612,
+            "bge": 30716,
+            "bgeu": 16697,
+            "blt": 28810,
+            "bltu": 6160,
+            "bne": 20006,
+            "cv_addrn": 85272,
+            "cv_and_b": 800,
+            "cv_beqimm": 1982,
+            "cv_bneimm": 9,
+            "cv_clip": 400,
+            "cv_lw_rr": 8316,
+            "cv_subrn": 1291,
+            "cv_sw_rr": 10262,
+            "divu": 4800,
+            "jal": 16117,
+            "jalr": 23886,
+            "lbu": 2065,
+            "lui": 17212,
+            "lw": 120075,
+            "mul": 29200,
+            "or": 47922,
+            "ori": 1236,
+            "remu": 4800,
+            "sll": 5318,
+            "slli": 103984,
+            "sltiu": 4320,
+            "sltu": 12104,
+            "srai": 2107,
+            "srl": 6115,
+            "srli": 93607,
+            "sub": 27265,
+            "sw": 86931,
+            "xor": 4121,
+            "xori": 288
+          }
+        }
+      ],
+      "link_exit": 0,
+      "linked_text_bytes": 79716,
+      "static_custom_instructions": {
+        "seal5.cv.min": 3,
+        "seal5.cv.max": 1,
+        "seal5.cv.subRN": 74,
+        "seal5.cv.or.b": 11,
+        "seal5.cv.addRN": 513,
+        "seal5.cv.subuN": 9,
+        "seal5.cv.lw": 54,
+        "seal5.cv.extbz": 6,
+        "seal5.cv.beqimm": 31,
+        "seal5.cv.bneimm": 23,
+        "seal5.cv.sw": 25,
+        "seal5.cv.xor.b": 3,
+        "seal5.cv.subN": 1,
+        "seal5.cv.addN": 2,
+        "seal5.cv.msu": 1,
+        "seal5.cv.clip": 3,
+        "seal5.cv.and.b": 4
+      },
+      "status": "verified",
+      "deterministic_counts": true
+    }
+  ],
+  "artifact_sha256": {
+    "/work/git/seal5_new/examples/corev/benchmark_embench.py": "b07f2ba7049f4e01ab6e9862b4194b2547bf03cfbf838b0e52561292d4e70611",
+    "/work/git/seal5_new/examples/corev/benchmark_runtime/instruction_checks.c": "386e68fdeae26272774130ead5116d5b52315a81aa06727651585285d5439da3",
+    "/work/git/seal5_new/examples/corev/benchmark_runtime/main.c": "e1e46865cf7967f9aa2fff0ad28d984ac31b27ff807c3e241081d6f881920f5c",
+    "/work/git/seal5_new/examples/corev/benchmark_runtime/etiss_counter.cpp": "fb3d02b604a96feb343c5f47eca2a2477baee1c52d237cbc3f1eb4a9191d6b27",
+    "/work/git/seal5_new/examples/corev/benchmark_runtime/counter_check.S": "f78db02c2686fa5c1d0aec8b1429edcea4803ad01e5daeb075c4df86ef596197",
+    "/tmp/seal5-corev-main-etiss-install/lib/libETISS.so": "b08d6a8b9047697144cf1b1273f9f27cfd6d6acf079b2264e9e1a49921861324",
+    "/tmp/seal5-corev-main-etiss-install/lib/plugins/libRV32IMACFDXCoreV.so": "834b8ab66d3a6578aab61d50a017fd4818a694b2ec5837190644b6239c86e1a4",
+    "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/clang-23": "77428e0a44ab1755a308386f37d82a79c217e27c32acd8db52b74a20e06fee87",
+    "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/opt": "00963c2a4a3e17ab04f16ba9db45f3f743a1afaba94183f9104cb068c7959af6",
+    "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/llc": "776df930005e6ccfbf5e78350f2af820b4657f0c13071f66cf02752e758a33ed",
+    "/tmp/seal5-xcorev-llvm23/.seal5/build/release_assertions/bin/llvm-objdump": "a443616bf46c5ffc0711410d88868116679eed3fbb1c62c35bd3778c79f68020",
+    "/work/git/m2isar/m2isar_new/install/bin/riscv64-unknown-elf-gcc": "f7b5b6efb3602758f714276ed34774b5f04338d8deeeeef66d19933c4c0e9c92"
+  },
+  "counter_self_test": {
+    "link_exit": 0,
+    "exit_code": 0,
+    "verified": true,
+    "wall_seconds": 12.770607930142432,
+    "instructions": 31,
+    "model_cycles": 31,
+    "starts": 1,
+    "ends": 1,
+    "active": 0,
+    "mnemonics": {
+      "addi": 11,
+      "bne": 10,
+      "cv_add_h": 10
+    }
+  }
+}

@@ -1,14 +1,15 @@
-# Full CORE-V example (LLVM 22)
+# Full CORE-V example (LLVM 22 and LLVM 23)
 
 ## Embench execution
 
 The [CDSL review and regeneration notes](review/README.md) describe the tested
-integration of `fixes-2026` with `restore-xcorev-llvm22`, simulator corrections,
-and the remaining merge requirements. Saved measurements are in
-[results](results/).
+merged upstream integration, simulator corrections and tested model inputs.
+Saved measurements are in
+[results](results/). The [LLVM 23 validation](results/llvm23-validation.md) records
+compatibility checks and the remaining instruction-count regressions.
 
 `benchmark_embench.py` compares RV32IM with the generated full CORE-V target
-using the same LLVM 22 frontend, `-O3` pipeline, and GlobalISel backend.
+using the selected LLVM frontend, `-O3` pipeline, and GlobalISel backend.
 GlobalISel fallback is disabled. Both variants use normal vectorization
 profitability, strict alignment, ILP32, and identical baseline GCC startup,
 support routines and Newlib. The Embench C sources are unchanged.
@@ -50,6 +51,10 @@ BUILD_CONFIG=release_assertions IGNORE_ERROR=1 TEST=1 INSTALL=0 DEPLOY=0 EXPORT=
 DEST=/tmp/seal5_llvm_corev_llvm22 python examples/corev_demo.py
 ```
 
+Use `LLVM_REF=llvmorg-23.1.3` and a separate destination such as
+`DEST=/tmp/seal5_llvm_corev_llvm23` for LLVM 23. Keep the LLVM 22 build and
+benchmark artifacts separate when comparing versions.
+
 The example includes 310 instruction descriptions from XCoreVAlu, XCoreVBitmanip,
 XCoreVMac, XCoreVSimd, XCoreVMem and XCoreVBranchImmediate. Hardware loops
 are not included. Upstream currently disables `CV_CLB`; its intrinsic mapping
@@ -58,9 +63,14 @@ and assembly/intrinsic checks are disabled here as well. The `alu_slet` and
 use the upstream `CV_SLE` and `CV_SLEU` names and mnemonics.
 
 The bit manipulation input wrapper supplies the missing standalone `RVI`
-import without modifying the pinned upstream descriptions. The LLVM 22 configuration selects the packed-SIMD
-PatternGen branch and enables memory normalization and immediate-branch
-patterns. It uses ordinary TableGen patterns, without direct GISel tables.
+import without modifying the pinned upstream descriptions. Both LLVM versions load `cfg/corev.yml` for shared arithmetic typing,
+capability features, memory normalization and immediate-branch patterns.
+`cfg/llvm22.yml` and `cfg/llvm23.yml` select their packed-SIMD PatternGen branch
+and version-specific rotate, min/max and comparison patches. LLVM 23 also
+raises subtarget feature capacity to fit the full generated target. Portable patches
+retain their existing filenames. Both use ordinary TableGen patterns, without
+direct GISel tables. The same source tests, including SIMD C tests, run for both
+versions.
 
 Generated rules receive `AddedComplexity = 1000`, as in the normalization
 and packed-SIMD examples, to expose their selection during validation. This

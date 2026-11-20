@@ -1,4 +1,14 @@
-# Merged-main Embench results
+# CORE-V validation results
+
+## LLVM 23 migration
+
+The [LLVM 23 validation](llvm23-validation.md) records the completed port:
+651 source tests pass, generated selection/extraction coverage matches LLVM 22,
+and all 21 supported Embench programs verify in both variants. The one-repeat
+[LLVM 23 run](embench-llvm23-main.md) and [cross-version instruction table](llvm22-23-instructions.md)
+record performance changes, including the remaining PicoJPEG and SGLIB regressions.
+
+## LLVM 22 reference
 
 The current [full table](embench-llvm22-main.md) and
 [machine-readable results](embench-llvm22-main.json) use upstream CDSL main

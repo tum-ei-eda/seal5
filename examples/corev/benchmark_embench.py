@@ -61,8 +61,11 @@ def save(report, output):
 
 
 def summarize(report):
+    clang_version = next((value for path, value in report["versions"].items() if Path(path).name == "clang"), "")
+    version = re.search(r"clang version (\d+)", clang_version)
+    llvm_major = version.group(1) if version else "unknown"
     lines = [
-        "# LLVM 22 SEAL5 CORE-V Embench",
+        f"# LLVM {llvm_major} SEAL5 CORE-V Embench",
         "",
         report["method"] + ".",
         "",
