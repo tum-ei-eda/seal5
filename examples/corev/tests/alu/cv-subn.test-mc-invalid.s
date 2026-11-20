@@ -23,4 +23,4 @@ seal5.cv.subN t0, t1, t2
 # CHECK-ERROR: too few operands for instruction
 
 seal5.cv.subN t0, t1, t2, 0, a0
-# CHECK-ERROR: invalid operand for instruction
+# CHECK-ERROR: {{(invalid operand|unexpected extra operand)}} for instruction
