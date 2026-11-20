@@ -1,0 +1,198 @@
+--- a/llvm/lib/Target/RISCV/RISCVISelDAGToDAG.cpp
++++ b/llvm/lib/Target/RISCV/RISCVISelDAGToDAG.cpp
+@@ -2945,6 +2945,13 @@
+     }
+     break;
+   }
++  case ISD::BUILD_VECTOR:
++    if (!Subtarget->is64Bit() && Subtarget->hasSeal5RegPair32() && VT == MVT::v2i32) {
++      SDValue Pair = buildGPRPair(CurDAG, DL, VT, Node->getOperand(0), Node->getOperand(1));
++      ReplaceNode(Node, Pair.getNode());
++      return;
++    }
++    break;
+   case ISD::BITCAST: {
+     MVT SrcVT = Node->getOperand(0).getSimpleValueType();
+     // Just drop bitcasts between vectors if both are fixed or both are
+--- a/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
++++ b/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
+@@ -390,6 +390,9 @@
+ 
+   if (!Subtarget.is64Bit() && Subtarget.hasStdExtXRegPairs())
+     setOperationAction(ISD::INTRINSIC_WO_CHAIN, MVT::i64, Custom);
++
++  if (!Subtarget.is64Bit() && Subtarget.hasSeal5RegPair32())
++    addRegisterClass(MVT::v2i32, &RISCV::GPRPairRegClass);
+ 
+   // Compute derived properties from the register classes.
+   computeRegisterProperties(STI.getRegisterInfo());
+@@ -778,6 +781,29 @@
+                          {MVT::v2i16, MVT::v4i8, MVT::v2i32, MVT::v4i16},
+                          Legal);
+     }
++  }
++
++  if (!Subtarget.is64Bit() && Subtarget.hasSeal5RegPair32()) {
++    for (unsigned Op = 0; Op < ISD::BUILTIN_OP_END; ++Op)
++      setOperationAction(Op, MVT::v2i32, Expand);
++    for (MVT OtherVT : MVT::integer_fixedlen_vector_valuetypes()) {
++      setTruncStoreAction(MVT::v2i32, OtherVT, Expand);
++      setLoadExtAction({ISD::EXTLOAD, ISD::SEXTLOAD, ISD::ZEXTLOAD},
++                       MVT::v2i32, OtherVT, Expand);
++    }
++    if (Subtarget.hasStdExtXRegPairs() && Subtarget.hasSeal5RegPair32Add()) {
++      setOperationAction(ISD::ADD, MVT::v2i32, Legal);
++      setOperationAction(ISD::ADD, MVT::i64, Custom);
++    }
++    if (Subtarget.hasStdExtXRegPairs() && Subtarget.hasSeal5RegPair32Sub()) {
++      setOperationAction(ISD::SUB, MVT::v2i32, Legal);
++      setOperationAction(ISD::SUB, MVT::i64, Custom);
++    }
++    if (Subtarget.hasStdExtXRegPairs() && Subtarget.hasSeal5RegPair32Mul())
++      setOperationAction(ISD::MUL, MVT::v2i32, Legal);
++    setOperationAction({ISD::LOAD, ISD::STORE}, MVT::v2i32, Custom);
++    setOperationAction(ISD::BUILD_VECTOR, MVT::v2i32, Legal);
++    setOperationAction(ISD::EXTRACT_VECTOR_ELT, MVT::v2i32, Custom);
+   }
+ 
+   if (Subtarget.hasStdExtZfbfmin()) {
+@@ -3272,6 +3298,8 @@
+ // Permit combining of mask vectors as BUILD_VECTOR never expands to scalar
+ // stores for those types.
+ bool RISCVTargetLowering::mergeStoresAfterLegalization(EVT VT) const {
++  if (!Subtarget.is64Bit() && Subtarget.hasSeal5RegPair32() && VT == MVT::i32)
++    return false;
+   if (Subtarget.hasGPR32V() && !Subtarget.hasVInstructions())
+     return false;
+   if (Subtarget.hasStdExtP() && !Subtarget.is64Bit() &&
+@@ -8457,6 +8485,17 @@
+   case ISD::INSERT_VECTOR_ELT:
+     return lowerINSERT_VECTOR_ELT(Op, DAG);
+   case ISD::EXTRACT_VECTOR_ELT:
++    if (!Subtarget.is64Bit() && Subtarget.hasSeal5RegPair32() &&
++        Op.getOperand(0).getValueType() == MVT::v2i32) {
++      SDValue Pair = Op.getOperand(0), Index = Op.getOperand(1);
++      if (auto *C = dyn_cast<ConstantSDNode>(Index))
++        return DAG.getTargetExtractSubreg(C->getZExtValue() == 0
++            ? RISCV::sub_gpr_even : RISCV::sub_gpr_odd, SDLoc(Op), MVT::i32, Pair);
++      SDValue Lo = DAG.getTargetExtractSubreg(RISCV::sub_gpr_even, SDLoc(Op), MVT::i32, Pair);
++      SDValue Hi = DAG.getTargetExtractSubreg(RISCV::sub_gpr_odd, SDLoc(Op), MVT::i32, Pair);
++      return DAG.getSelectCC(SDLoc(Op), Index, DAG.getConstant(0, SDLoc(Op), MVT::i32),
++                             Lo, Hi, ISD::SETEQ);
++    }
+     return lowerEXTRACT_VECTOR_ELT(Op, DAG);
+   case ISD::SCALAR_TO_VECTOR: {
+     MVT VT = Op.getSimpleValueType();
+@@ -9031,8 +9070,10 @@
+       return DAG.getMergeValues({Pair, Chain}, DL);
+     }
+ 
+-    if (Subtarget.hasStdExtP() && !Subtarget.is64Bit() &&
+-        (VT == MVT::v2i32 || VT == MVT::v4i16 || VT == MVT::v8i8)) {
++    if (!Subtarget.is64Bit() &&
++        ((Subtarget.hasSeal5RegPair32() && VT == MVT::v2i32) ||
++         (Subtarget.hasStdExtP() &&
++          (VT == MVT::v2i32 || VT == MVT::v4i16 || VT == MVT::v8i8)))) {
+       assert(!Subtarget.is64Bit() && "Unexpected custom legalisation");
+ 
+       // Determine the half-size type
+@@ -9170,8 +9211,10 @@
+           Store->getMemOperand());
+     }
+ 
+-    if (Subtarget.hasStdExtP() && !Subtarget.is64Bit() &&
+-        (VT == MVT::v2i32 || VT == MVT::v4i16 || VT == MVT::v8i8)) {
++    if (!Subtarget.is64Bit() &&
++        ((Subtarget.hasSeal5RegPair32() && VT == MVT::v2i32) ||
++         (Subtarget.hasStdExtP() &&
++          (VT == MVT::v2i32 || VT == MVT::v4i16 || VT == MVT::v8i8)))) {
+       assert(!Subtarget.is64Bit() && "Unexpected custom legalisation");
+ 
+       auto *Store = cast<StoreSDNode>(Op);
+@@ -15762,6 +15805,22 @@
+   }
+   case ISD::ADD:
+   case ISD::SUB:
++    if (N->getValueType(0) == MVT::i64 && !Subtarget.is64Bit() &&
++        Subtarget.hasStdExtXRegPairs() && ((N->getOpcode() == ISD::ADD && Subtarget.hasSeal5RegPair32Add()) ||
++         (N->getOpcode() == ISD::SUB && Subtarget.hasSeal5RegPair32Sub()))) {
++      auto MakePair = [&](SDValue V) {
++        auto [Lo, Hi] = DAG.SplitScalar(V, DL, MVT::i32, MVT::i32);
++        return DAG.getNode(RISCVISD::BuildGPRPair, DL, MVT::Untyped, Lo, Hi);
++      };
++      unsigned Opc = N->getOpcode() == ISD::ADD ? RISCVISD::SEAL5_ADD64
++                                               : RISCVISD::SEAL5_SUB64;
++      SDValue Pair = DAG.getNode(Opc, DL, MVT::Untyped,
++                                 MakePair(N->getOperand(0)), MakePair(N->getOperand(1)));
++      SDValue Lo = DAG.getTargetExtractSubreg(RISCV::sub_gpr_even, DL, MVT::i32, Pair);
++      SDValue Hi = DAG.getTargetExtractSubreg(RISCV::sub_gpr_odd, DL, MVT::i32, Pair);
++      Results.push_back(DAG.getNode(ISD::BUILD_PAIR, DL, MVT::i64, Lo, Hi));
++      return;
++    }
+     if (N->getValueType(0) == MVT::i64) {
+       assert(!Subtarget.is64Bit() && Subtarget.hasStdExtP() &&
+              "Unexpected custom legalisation");
+--- a/llvm/lib/Target/RISCV/RISCVInstrInfo.td
++++ b/llvm/lib/Target/RISCV/RISCVInstrInfo.td
+@@ -2548,3 +2548,10 @@
+                                (SRLI (SLLI GPR:$src, 16), 16)), GPR32V2)>;
+ }
+ // PATTERNGEN_GPR32V_BRIDGES_END
++
++// Scalar pair addition has an untyped pair result; RV32 i64 stays illegal.
++def SDT_Seal5PairAdd : SDTypeProfile<1, 2,
++    [SDTCisVT<0, untyped>, SDTCisVT<1, untyped>, SDTCisVT<2, untyped>]>;
++def riscv_seal5_add64 : RVSDNode<"SEAL5_ADD64", SDT_Seal5PairAdd>;
++
++def riscv_seal5_sub64 : RVSDNode<"SEAL5_SUB64", SDT_Seal5PairAdd>;
+--- a/llvm/lib/Target/RISCV/RISCVSubtarget.cpp
++++ b/llvm/lib/Target/RISCV/RISCVSubtarget.cpp
+@@ -162,6 +162,8 @@
+ 
+ // Returns true if VT is a P extension packed SIMD type.
+ bool RISCVSubtarget::isPExtPackedType(MVT VT) const {
++  if (!is64Bit() && HasSeal5RegPair32 && VT == MVT::v2i32)
++    return true;
+   if (!HasStdExtP)
+     return false;
+ 
+@@ -174,6 +176,8 @@
+ 
+ // Returns true if VT is a P extension packed double-wide SIMD type.
+ bool RISCVSubtarget::isPExtPackedDoubleType(MVT VT) const {
++  if (!is64Bit() && HasSeal5RegPair32 && VT == MVT::v2i32)
++    return true;
+   if (!HasStdExtP || is64Bit())
+     return false;
+ 
+--- a/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
++++ b/llvm/lib/Target/RISCV/RISCVTargetTransformInfo.cpp
+@@ -1066,7 +1066,8 @@
+     return InstructionCost::getInvalid();
+ 
+   // GPR32V has no RVV container type or vslide-based build-vector sequence.
+-  if (ST->hasGPR32V() && !ST->hasVInstructions())
++  if ((ST->hasGPR32V() || ST->hasSeal5RegPair32()) &&
++      !ST->hasVInstructions())
+     return BaseT::getScalarizationOverhead(Ty, DemandedElts, Insert, Extract,
+                                            CostKind, ForPoisonSrc, VL, VIC);
+ 
+@@ -2633,6 +2634,18 @@
+     unsigned Opcode, Type *Val, TTI::TargetCostKind CostKind, unsigned Index,
+     const Value *Op0, const Value *Op1, TTI::VectorInstrContext VIC) const {
+   assert(Val->isVectorTy() && "This must be a vector type");
++
++  // Pair lanes live in scalar subregisters, without RVV slide instructions.
++  if (!ST->is64Bit() && ST->hasSeal5RegPair32() &&
++      !ST->hasVInstructions() && isa<FixedVectorType>(Val) &&
++      cast<FixedVectorType>(Val)->getNumElements() == 2 &&
++      Val->getScalarType()->isIntegerTy(32)) {
++    if (Opcode == Instruction::ExtractElement)
++      return Index == -1U ? 2 : 0;
++    if (Opcode == Instruction::InsertElement)
++      return Index == -1U ? 6 : 2;
++    return BaseT::getVectorInstrCost(Opcode, Val, CostKind, Index, Op0, Op1, VIC);
++  }
+ 
+   // Estimate scalar packing/unpacking instructions; GPR32V has no RVV slides.
+   if (ST->hasGPR32V() && !ST->hasVInstructions() && isa<FixedVectorType>(Val)) {

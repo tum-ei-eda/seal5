@@ -48,6 +48,22 @@ def require_packed_simd_feature(contents):
     return contents[: predicates.start(1)] + ", ".join(names) + contents[predicates.end(1) :]
 
 
+def require_register_pair_feature(contents):
+    """Gate pair representation and each extracted arithmetic operation."""
+    if not re.search(r"\bGPRPair(?:RV32)?\b", contents):
+        return contents
+    required = ["HasSeal5RegPair32"]
+    for op in ("add", "sub", "mul"):
+        if re.search(r"\(" + op + r"\s|riscv_seal5_" + op + "64", contents):
+            required.append("HasSeal5RegPair32" + op.title())
+    predicates = re.search(r"let Predicates = \[(.*?)\] in \{", contents)
+    if predicates is None:
+        return "let Predicates = [" + ", ".join(required) + "] in {\n" + contents + "\n}\n"
+    names = [name.strip() for name in predicates.group(1).split(",") if name.strip()]
+    names.extend(name for name in required if name not in names)
+    return contents[: predicates.start(1)] + ", ".join(names) + contents[predicates.end(1) :]
+
+
 def allow_equivalent_zero_specializations(directory, instructions):
     """Accept equivalent zero-count encodings without weakening nonzero checks.
 
@@ -258,7 +274,9 @@ def main():
                     )
                     if output_file.is_file():
                         if args.patterns:
-                            contents = require_packed_simd_feature(output_file.read_text())
+                            contents = require_register_pair_feature(
+                                require_packed_simd_feature(output_file.read_text())
+                            )
                             if Seal5InstrAttribute.IS_BRANCH in attrs:
                                 # Imported DAG patterns must never enter the GlobalISel tables.
                                 contents = cdsl2llvm.lower_branch_patterns_to_riscv(contents)
