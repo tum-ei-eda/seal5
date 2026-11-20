@@ -9,6 +9,7 @@ seal5.transform.detect\_branches
    .. autosummary::
    
       detect_branch
+      pattern_branch_operation
       pc_relative_offset
       pure_condition
       statements

@@ -8,6 +8,7 @@ seal5.backends.patterngen.writer
 
    .. autosummary::
    
+      allow_equivalent_zero_specializations
       main
       require_packed_simd_feature
    

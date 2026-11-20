@@ -18,6 +18,7 @@ seal5.tools.cdsl2llvm
       ignore_gisel_patterns
       lower_branch_patterns_to_riscv
       run_pattern_gen
+      scalarize_register_inputs
       scalarize_test_inputs
       split_minmax_legalizer_actions
    
