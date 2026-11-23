@@ -1,0 +1,144 @@
+--- a/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
++++ b/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
+@@ -57,6 +57,11 @@
+ #define DEBUG_TYPE "riscv-lower"
+ 
+ STATISTIC(NumTailCalls, "Number of tail calls");
++
++// Keep the ISA enabled while measuring automatic bit-operation selection.
++static cl::opt<bool> EnableSeal5RegPairBitOps(
++    "riscv-seal5-regpair-bitops", cl::Hidden, cl::init(true),
++    cl::desc("Select custom RV32 pair logic and constant shifts"));
+ 
+ static cl::opt<unsigned> ExtensionMaxWebSize(
+     DEBUG_TYPE "-ext-max-web-size", cl::Hidden,
+@@ -393,6 +398,14 @@
+ 
+   if (!Subtarget.is64Bit() && Subtarget.hasSeal5RegPair32())
+     addRegisterClass(MVT::v2i32, &RISCV::GPRPairRegClass);
++
++  if (EnableSeal5RegPairBitOps && !Subtarget.is64Bit() &&
++      Subtarget.hasStdExtXRegPairs()) {
++    if (Subtarget.hasSeal5RegPair32Logic())
++      setOperationAction({ISD::XOR, ISD::AND}, MVT::i64, Custom);
++    if (Subtarget.hasSeal5RegPair32Shift())
++      setOperationAction({ISD::SHL, ISD::SRL, ISD::SRA, ISD::ROTR, ISD::ROTL}, MVT::i64, Custom);
++  }
+ 
+   // Compute derived properties from the register classes.
+   computeRegisterProperties(STI.getRegisterInfo());
+@@ -15585,6 +15598,54 @@
+                                              SmallVectorImpl<SDValue> &Results,
+                                              SelectionDAG &DAG) const {
+   SDLoc DL(N);
++  if (N->getValueType(0) == MVT::i64 && !Subtarget.is64Bit() &&
++      Subtarget.hasStdExtXRegPairs()) {
++    unsigned PairOpc = 0;
++    bool IsShift = false;
++    uint64_t Count = 0;
++    switch (N->getOpcode()) {
++    case ISD::XOR:
++      if (Subtarget.hasSeal5RegPair32Logic()) PairOpc = RISCVISD::SEAL5_XOR64;
++      break;
++    case ISD::AND:
++      if (Subtarget.hasSeal5RegPair32Logic()) PairOpc = RISCVISD::SEAL5_AND64;
++      break;
++    case ISD::SHL: case ISD::SRL: case ISD::SRA: case ISD::ROTR: case ISD::ROTL:
++      if (!Subtarget.hasSeal5RegPair32Shift()) break;
++      // Constant-count instructions only; leave variable counts to expansion.
++      if (auto *C = dyn_cast<ConstantSDNode>(N->getOperand(1))) {
++        Count = C->getZExtValue();
++        if (N->getOpcode() == ISD::ROTR || N->getOpcode() == ISD::ROTL)
++          Count &= 63;
++        if (Count >= 64) return;
++        if (N->getOpcode() == ISD::ROTL) Count = (-Count) & 63;
++        switch (N->getOpcode()) {
++        case ISD::SHL: PairOpc = RISCVISD::SEAL5_SLL64; break;
++        case ISD::SRL: PairOpc = RISCVISD::SEAL5_SRL64; break;
++        case ISD::SRA: PairOpc = RISCVISD::SEAL5_SRA64; break;
++        default: PairOpc = RISCVISD::SEAL5_ROR64; break;
++        }
++        IsShift = true;
++      } else {
++        return;
++      }
++      break;
++    default: break;
++    }
++    if (PairOpc) {
++      auto MakePair = [&](SDValue V) {
++        auto [Lo, Hi] = DAG.SplitScalar(V, DL, MVT::i32, MVT::i32);
++        return DAG.getNode(RISCVISD::BuildGPRPair, DL, MVT::Untyped, Lo, Hi);
++      };
++      SDValue RHS = IsShift ? DAG.getConstant(Count, DL, MVT::i32)
++                            : MakePair(N->getOperand(1));
++      SDValue Pair = DAG.getNode(PairOpc, DL, MVT::Untyped, MakePair(N->getOperand(0)), RHS);
++      SDValue Lo = DAG.getTargetExtractSubreg(RISCV::sub_gpr_even, DL, MVT::i32, Pair);
++      SDValue Hi = DAG.getTargetExtractSubreg(RISCV::sub_gpr_odd, DL, MVT::i32, Pair);
++      Results.push_back(DAG.getNode(ISD::BUILD_PAIR, DL, MVT::i64, Lo, Hi));
++      return;
++    }
++  }
+   switch (N->getOpcode()) {
+   default:
+     llvm_unreachable("Don't know how to custom type legalize this operation!");
+@@ -16326,6 +16387,43 @@
+     default:
+       llvm_unreachable(
+           "Don't know how to custom type legalize this intrinsic!");
++    case Intrinsic::riscv_xregpairs_xor64:
++    case Intrinsic::riscv_xregpairs_and64:
++    case Intrinsic::riscv_xregpairs_slli64:
++    case Intrinsic::riscv_xregpairs_srli64:
++    case Intrinsic::riscv_xregpairs_srai64:
++    case Intrinsic::riscv_xregpairs_rori64: {
++      if (Subtarget.is64Bit() || !Subtarget.hasStdExtXRegPairs())
++        report_fatal_error("RV32 register-pair intrinsic requires xregpairs");
++      unsigned Opc;
++      bool Shift = false;
++      switch (IntNo) {
++      case Intrinsic::riscv_xregpairs_xor64: Opc = RISCV::PAIR_XOR64; break;
++      case Intrinsic::riscv_xregpairs_and64: Opc = RISCV::PAIR_AND64; break;
++      case Intrinsic::riscv_xregpairs_slli64: Opc = RISCV::PAIR_SLLI64; Shift = true; break;
++      case Intrinsic::riscv_xregpairs_srli64: Opc = RISCV::PAIR_SRLI64; Shift = true; break;
++      case Intrinsic::riscv_xregpairs_srai64: Opc = RISCV::PAIR_SRAI64; Shift = true; break;
++      default: Opc = RISCV::PAIR_RORI64; Shift = true; break;
++      }
++      auto MakePair = [&](SDValue V) {
++        auto [Lo, Hi] = DAG.SplitScalar(V, DL, MVT::i32, MVT::i32);
++        return DAG.getNode(RISCVISD::BuildGPRPair, DL, MVT::Untyped, Lo, Hi);
++      };
++      SDValue RHS;
++      if (Shift) {
++        auto *C = dyn_cast<ConstantSDNode>(N->getOperand(2));
++        if (!C || C->getZExtValue() >= 64)
++          report_fatal_error("RV32 pair shift immediate must be in [0, 63]");
++        RHS = DAG.getTargetConstant(C->getZExtValue(), DL, MVT::i32);
++      } else {
++        RHS = MakePair(N->getOperand(2));
++      }
++      SDValue Pair(DAG.getMachineNode(Opc, DL, MVT::Untyped, MakePair(N->getOperand(1)), RHS), 0);
++      SDValue Lo = DAG.getTargetExtractSubreg(RISCV::sub_gpr_even, DL, MVT::i32, Pair);
++      SDValue Hi = DAG.getTargetExtractSubreg(RISCV::sub_gpr_odd, DL, MVT::i32, Pair);
++      Results.push_back(DAG.getNode(ISD::BUILD_PAIR, DL, MVT::i64, Lo, Hi));
++      return;
++    }
+     case Intrinsic::riscv_xregpairs_add64:
+     case Intrinsic::riscv_xregpairs_add_2x32:
+     case Intrinsic::riscv_xregpairs_sub64:
+--- a/llvm/lib/Target/RISCV/RISCVInstrInfo.td
++++ b/llvm/lib/Target/RISCV/RISCVInstrInfo.td
+@@ -2555,3 +2555,13 @@
+ def riscv_seal5_add64 : RVSDNode<"SEAL5_ADD64", SDT_Seal5PairAdd>;
+ 
+ def riscv_seal5_sub64 : RVSDNode<"SEAL5_SUB64", SDT_Seal5PairAdd>;
++
++// Pair logic and constant-count shifts keep scalar i64 illegal on RV32.
++def riscv_seal5_xor64 : RVSDNode<"SEAL5_XOR64", SDT_Seal5PairAdd>;
++def riscv_seal5_and64 : RVSDNode<"SEAL5_AND64", SDT_Seal5PairAdd>;
++def SDT_Seal5PairShift : SDTypeProfile<1, 2,
++    [SDTCisVT<0, untyped>, SDTCisVT<1, untyped>, SDTCisVT<2, i32>]>;
++def riscv_seal5_sll64 : RVSDNode<"SEAL5_SLL64", SDT_Seal5PairShift>;
++def riscv_seal5_srl64 : RVSDNode<"SEAL5_SRL64", SDT_Seal5PairShift>;
++def riscv_seal5_sra64 : RVSDNode<"SEAL5_SRA64", SDT_Seal5PairShift>;
++def riscv_seal5_ror64 : RVSDNode<"SEAL5_ROR64", SDT_Seal5PairShift>;

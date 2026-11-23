@@ -33,7 +33,7 @@ def test_pair_demo_release_inputs(monkeypatch, version, style):
         llvm=types.SimpleNamespace(state=types.SimpleNamespace(version=types.SimpleNamespace(major=version)))
     )
     selected = [p for p in pairs if "pair-" in p["file"] and eval(p["onlyif"], {"settings": settings})]
-    assert len(selected) == 5
+    assert len(selected) == 7
     for patch in selected:
         assert f"llvm{version}-pair-" in patch["file"]
         assert (Path("examples/regpairs/cfg") / patch["file"]).is_file()

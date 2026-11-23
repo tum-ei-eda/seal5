@@ -1,6 +1,6 @@
 --- a/llvm/lib/Target/RISCV/RISCVFeatures.td
 +++ b/llvm/lib/Target/RISCV/RISCVFeatures.td
-@@ -2208,3 +2208,17 @@
+@@ -2208,3 +2208,23 @@
                                           "Ventana Veyron-Series processors",
                                           [], InlineIgnore>;
  
@@ -18,3 +18,9 @@
 +def FeatureSeal5RegPair32Mul : SubtargetFeature<"seal5-regpair32-mul",
 +    "HasSeal5RegPair32Mul", "true", "RV32 pair mul", [FeatureSeal5RegPair32]>;
 +def HasSeal5RegPair32Mul : Predicate<"!Subtarget->is64Bit() && Subtarget->hasSeal5RegPair32Mul()">;
++def FeatureSeal5RegPair32Logic : SubtargetFeature<"seal5-regpair32-logic",
++    "HasSeal5RegPair32Logic", "true", "RV32 pair logic", [FeatureSeal5RegPair32]>;
++def HasSeal5RegPair32Logic : Predicate<"!Subtarget->is64Bit() && Subtarget->hasSeal5RegPair32Logic()">;
++def FeatureSeal5RegPair32Shift : SubtargetFeature<"seal5-regpair32-shift",
++    "HasSeal5RegPair32Shift", "true", "RV32 pair shift", [FeatureSeal5RegPair32]>;
++def HasSeal5RegPair32Shift : Predicate<"!Subtarget->is64Bit() && Subtarget->hasSeal5RegPair32Shift()">;

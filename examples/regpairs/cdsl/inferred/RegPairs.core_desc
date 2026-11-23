@@ -109,5 +109,111 @@ InstructionSet XRegPairs extends RV32I {
         }
       }
     }
+    PAIR_XOR64 {
+      encoding: 7'd0 :: rs2[4:0] :: rs1[4:0] :: 3'd5 :: rd[4:0] :: 7'b0001011;
+      assembly: {"pair.xor64", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: {
+        if (((rd | rs1 | rs2) & 1) != 0) {
+          raise(0, RV_CAUSE_ILLEGAL_INSTRUCTION);
+        } else {
+          unsigned<64> a = 0;
+          if (rs1 != 0) a = X[rs1 + 1] :: X[rs1];
+          unsigned<64> b = 0;
+          if (rs2 != 0) b = X[rs2 + 1] :: X[rs2];
+          unsigned<64> result = (unsigned<64>)(a ^ b);
+          if (rd != 0) {
+            X[rd] = result[31:0];
+            X[rd + 1] = result[63:32];
+          }
+        }
+      }
+    }
+    PAIR_AND64 {
+      encoding: 7'd0 :: rs2[4:0] :: rs1[4:0] :: 3'd6 :: rd[4:0] :: 7'b0001011;
+      assembly: {"pair.and64", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: {
+        if (((rd | rs1 | rs2) & 1) != 0) {
+          raise(0, RV_CAUSE_ILLEGAL_INSTRUCTION);
+        } else {
+          unsigned<64> a = 0;
+          if (rs1 != 0) a = X[rs1 + 1] :: X[rs1];
+          unsigned<64> b = 0;
+          if (rs2 != 0) b = X[rs2 + 1] :: X[rs2];
+          unsigned<64> result = (unsigned<64>)(a & b);
+          if (rd != 0) {
+            X[rd] = result[31:0];
+            X[rd + 1] = result[63:32];
+          }
+        }
+      }
+    }
+    PAIR_SLLI64 {
+      encoding: 6'd0 :: shamt[5:0] :: rs1[4:0] :: 3'd7 :: rd[4:0] :: 7'b0001011;
+      assembly: {"pair.slli64", "{name(rd)}, {name(rs1)}, {shamt}"};
+      behavior: {
+        if (((rd | rs1) & 1) != 0) {
+          raise(0, RV_CAUSE_ILLEGAL_INSTRUCTION);
+        } else {
+          unsigned<64> a = 0;
+          if (rs1 != 0) a = X[rs1 + 1] :: X[rs1];
+          unsigned<64> result = (unsigned<64>)(a << shamt);
+          if (rd != 0) {
+            X[rd] = result[31:0];
+            X[rd + 1] = result[63:32];
+          }
+        }
+      }
+    }
+    PAIR_SRLI64 {
+      encoding: 6'd1 :: shamt[5:0] :: rs1[4:0] :: 3'd7 :: rd[4:0] :: 7'b0001011;
+      assembly: {"pair.srli64", "{name(rd)}, {name(rs1)}, {shamt}"};
+      behavior: {
+        if (((rd | rs1) & 1) != 0) {
+          raise(0, RV_CAUSE_ILLEGAL_INSTRUCTION);
+        } else {
+          unsigned<64> a = 0;
+          if (rs1 != 0) a = X[rs1 + 1] :: X[rs1];
+          unsigned<64> result = (unsigned<64>)(a >> shamt);
+          if (rd != 0) {
+            X[rd] = result[31:0];
+            X[rd + 1] = result[63:32];
+          }
+        }
+      }
+    }
+    PAIR_SRAI64 {
+      encoding: 6'd2 :: shamt[5:0] :: rs1[4:0] :: 3'd7 :: rd[4:0] :: 7'b0001011;
+      assembly: {"pair.srai64", "{name(rd)}, {name(rs1)}, {shamt}"};
+      behavior: {
+        if (((rd | rs1) & 1) != 0) {
+          raise(0, RV_CAUSE_ILLEGAL_INSTRUCTION);
+        } else {
+          unsigned<64> a = 0;
+          if (rs1 != 0) a = X[rs1 + 1] :: X[rs1];
+          unsigned<64> result = (unsigned<64>)((signed<64>)a >> shamt);
+          if (rd != 0) {
+            X[rd] = result[31:0];
+            X[rd + 1] = result[63:32];
+          }
+        }
+      }
+    }
+    PAIR_RORI64 {
+      encoding: 6'd3 :: shamt[5:0] :: rs1[4:0] :: 3'd7 :: rd[4:0] :: 7'b0001011;
+      assembly: {"pair.rori64", "{name(rd)}, {name(rs1)}, {shamt}"};
+      behavior: {
+        if (((rd | rs1) & 1) != 0) {
+          raise(0, RV_CAUSE_ILLEGAL_INSTRUCTION);
+        } else {
+          unsigned<64> a = 0;
+          if (rs1 != 0) a = X[rs1 + 1] :: X[rs1];
+          unsigned<64> result = (unsigned<64>)((a >> shamt) | (a << ((64 - (unsigned<32>)shamt) & 63)));
+          if (rd != 0) {
+            X[rd] = result[31:0];
+            X[rd + 1] = result[63:32];
+          }
+        }
+      }
+    }
   }
 }

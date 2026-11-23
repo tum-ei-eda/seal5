@@ -48,6 +48,8 @@ def main():
     gcc = [args.gcc, "-march=rv32im", "-mabi=ilp32", "-O2"]
     reference = output / "reference.o"
     run("reference", [*gcc, "-c", ROOT / "runtime/check.c", "-o", reference])
+    bit_reference = output / "reference-bitops.o"
+    run("reference-bitops", [*gcc, "-c", ROOT / "runtime/check_bitops.c", "-o", bit_reference])
     for level in (0, 2, 3):
         objects = []
         clang = [
@@ -61,6 +63,7 @@ def main():
         ]
         for name, source in (
             ("builtins", ROOT / "tests/pair.test-builtin.c"),
+            ("bitops", ROOT / "tests/pair.test-bitops.c"),
             ("intrinsics", ROOT / "tests/pair.test-intrinsic.ll"),
             ("stress", ROOT / "runtime/stress.c"),
             ("automatic", ROOT / "runtime/automatic.c"),
@@ -77,11 +80,14 @@ def main():
                 source = target
             obj = output / f"{name}-O{level}.o"
             run(f"{name}-O{level}", [*clang, "-c", source, "-o", obj])
+            # Decode linker-removable two-byte alignment padding as c.nop.
             decoded = run(
                 f"{name}-O{level}-disassembly",
-                [args.bin / "llvm-objdump", "-d", "--mattr=+xregpairs", "--disassembler-options=numeric", obj],
+                [args.bin / "llvm-objdump", "-d", "--mattr=+xregpairs,+c", "--disassembler-options=numeric", obj],
             )
             expected = ["pair.add64", "pair.add.2x32", "pair.sub64", "pair.sub.2x32", "pair.mul.2x32"]
+            if name == "bitops":
+                expected = ["pair.xor64", "pair.and64", "pair.slli64", "pair.srli64", "pair.srai64", "pair.rori64"]
             if name == "stress":
                 expected = ["pair.add64"]
             if "<unknown>" in decoded or any(mnemonic not in decoded for mnemonic in expected):
@@ -96,6 +102,7 @@ def main():
                 f"-Wl,-T,{COMMON / 'link.ld'}",
                 COMMON / "start.S",
                 reference,
+                bit_reference,
                 *objects,
                 "-lgcc",
                 "-o",

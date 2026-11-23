@@ -237,7 +237,7 @@ def test_full_export_retains_traps_after_compiler_behavior_changes(tmp_path):
     output = tmp_path / "architectural.core_desc"
     run("seal5.backends.coredsl2.writer", path, "-o", output, "--architectural")
     contents = output.read_text()
-    assert contents.count("raise(0, 2)") == 5
+    assert contents.count("raise(0, 2)") == len(pair_set.instructions)
     assert "register unsigned<64> XP" not in contents
     assert "XP[" not in contents
     assert "_seal5_pair_value_" in contents
