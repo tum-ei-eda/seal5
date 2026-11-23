@@ -1139,6 +1139,7 @@ class Seal5Flow:
         self.logger.info("Testing Seal5 LLVM")
         start = time.time()
         metrics = {}
+        unsupported_tests = []
         if config is None:
             config = self.settings.llvm.default_config
         test_paths = self.settings.test.paths
@@ -1153,6 +1154,7 @@ class Seal5Flow:
                 self.settings.get_llvm_build_dir(config=config, fallback=True, check=True),
                 test_paths,
                 verbose=verbose,
+                unsupported_tests=unsupported_tests,
             )
             num_tests = len(passed_tests) + len(failing_tests)
             if num_tests == 0:
@@ -1171,6 +1173,9 @@ class Seal5Flow:
         metrics["start"] = start
         metrics["end"] = end
         metrics["time_s"] = diff
+        if unsupported_tests:
+            self.logger.info("%d tests unsupported: %s", len(unsupported_tests), ", ".join(unsupported_tests))
+        metrics["unsupported"] = unsupported_tests
         metrics["failing"] = failing_tests
         metrics["passed"] = passed_tests
         metrics["score"] = f"{score*100:.2f}%" if score is not None else None
