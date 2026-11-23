@@ -1,4 +1,4 @@
-import "../../common/cdsl/rv_base/RV32I.core_desc"
+import "../../common/cdsl/rv_base/RVI.core_desc"
 import "../../common/cdsl/LLVMIRIntrinsics.core_desc"
 
 InstructionSet XLLVMIRIntrinsicsExample extends RV32I {
