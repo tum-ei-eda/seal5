@@ -9,6 +9,12 @@ This example implements a small custom ISA on LLVM 22 and LLVM 23:
 | `pair.sub64 rd, rs1, rs2` | Subtraction modulo 2^64, including borrow between words |
 | `pair.sub.2x32 rd, rs1, rs2` | Two independent subtractions modulo 2^32 |
 | `pair.mul.2x32 rd, rs1, rs2` | Two low-word products modulo 2^32 |
+| `pair.xor64 rd, rs1, rs2` | Bitwise XOR |
+| `pair.and64 rd, rs1, rs2` | Bitwise AND |
+| `pair.slli64 rd, rs1, shamt` | Logical left shift |
+| `pair.srli64 rd, rs1, shamt` | Logical right shift |
+| `pair.srai64 rd, rs1, shamt` | Arithmetic right shift |
+| `pair.rori64 rd, rs1, shamt` | Rotate right |
 
 A pair is written using its **even** register: `x10` means the low word in
 `x10` and the high word in `x11`. Legal register operands are `x0, x2, …, x30`.
@@ -73,7 +79,7 @@ from that class; the architectural behavior stays intact. Unknown checks are not
 removed. Reduced PatternGen `XP[rs1]` is a symbolic operand reference, with no
 runtime array indexing.
 
-The two source examples implement the same five instructions:
+The two source examples implement the same eleven instructions:
 
 | Style | Source | Selection |
 |---|---|---|
@@ -233,7 +239,7 @@ results rather than silently substituting hand-written patterns.
 
 Current findings:
 
-- All five descriptions produce generated patterns. Pair functions are extracted
+- All eleven descriptions produce generated patterns. Pair functions are extracted
   before GlobalISel legalization splits the output into word stores. Ordinary
   PatternGen functions retain their existing extraction pipeline.
 - ADD64 and SUB64 map to target pair nodes whose result has the existing untyped
@@ -257,7 +263,15 @@ Current findings:
 - SelectionDAG is supported. Pair GlobalISel code generation and GlobalISel
   table extraction are not implemented; no-fallback probes report failure.
 
-The scalar pair nodes currently support register/register ADD64 and SUB64. Further
+The scalar pair nodes support register/register ADD64, SUB64, XOR64 and AND64,
+plus immediate left/right shifts and rotate-right. Shift counts are six-bit
+constants in 0–63. Rotate-left constants select rotate-right with the complementary
+count. Variable-count C operations expand using ordinary RV32 instructions.
+The internal `seal5-regpair32-logic` and `seal5-regpair32-shift` capabilities
+gate automatic selection of the new operations. Disabling either required
+capability also clears the parent ISA feature in LLVM. For an add-only benchmark
+while keeping the ISA enabled, use `-mllvm -riscv-seal5-regpair-bitops=false`;
+explicit builtins remain available. Further
 scalar pair operations need explicit lowering support; further packed element
 sizes need their own legalization and semantic recognition. These patches are
 an example implementation rather than generic support for every pair operation.
@@ -272,3 +286,26 @@ python examples/regpairs/check_extraction.py /path/to/reduced/XRegPairs \
 Upstream reference:
 [LLVM RV32 P-extension register-pair support](https://github.com/llvm/llvm-project/commit/5e4a21a1b9464ac483daf47deb2d6e4edb8228fe).
 See [validation results](results/validation.md) for what was actually tested.
+
+## SHA-512 benchmark
+
+`benchmark_sha512.py` extracts the unchanged compression function and constants
+from Mbed TLS 2.28.10 `library/sha512.c`. Supply that file from the
+[`mbedtls-2.28.10` tag](https://github.com/Mbed-TLS/mbedtls/blob/mbedtls-2.28.10/library/sha512.c).
+The runner compares RV32IM, add-only pairs, and full pairs at O2/O3, with both
+normal and `MBEDTLS_SHA512_SMALLER` implementations. Each run verifies the
+SHA-512 digest of `abc`. Only the compression call is measured; the independent
+GCC-compiled harness and zeroization routine are shared across variants.
+
+```sh
+python examples/regpairs/benchmark_sha512.py --bin /path/to/build/bin \
+  --gcc /path/to/riscv64-unknown-elf-gcc --spike /path/to/spike \
+  --pair-plugin /path/to/execution/libseal5-regpairs.so \
+  --marker-plugin /path/to/libseal5-packed.so \
+  --source /path/to/mbedtls/library/sha512.c --output /tmp/pair-sha512
+```
+
+The marker plugin is built by `examples/packed_simd/execute.py`; the pair plugin
+is built by this example's `execute.py`. Results include the source SHA-256,
+per-variant logs and disassembly. Spike reports retired instructions; these
+measurements do not establish hardware cycle speedups or instruction latency.

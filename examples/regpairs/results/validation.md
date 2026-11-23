@@ -1,5 +1,58 @@
 # RV32 register-pair validation (LLVM 22 and LLVM 23)
 
+## Pair logic, rotate and shifts (2026-11-23)
+
+Added XOR64, AND64, SLLI64, SRLI64, SRAI64 and RORI64 to both source styles.
+Shifts/rotate use a six-bit immediate. Both versions were generated through
+SEAL5 and installed into the existing integrated assertion-enabled validation
+compilers; these are incremental builds, not standalone clean builds.
+
+| Check | Result |
+|---|---|
+| Python suite | 210 passed, 1 optional integration test skipped; 294 subtests |
+| Pair LLVM lit tests | 9 passed on each of LLVM 22 and 23 |
+| Existing CORE-V suite | 651 passed, 2 unsupported on each compiler |
+| Extracted behavior vs independent reference | 3,327 cases passed |
+| Extraction, including malformed rotate rejection | 17 checks passed on each compiler |
+| Explicit and inferred sources | Identical reduced descriptions for all 11 instructions |
+| Independent Spike execution at O0/O2/O3 | All passed on each compiler |
+
+Execution includes builtin and ordinary C implementations, shift counts
+0/1/31/32/33/63, boundary and random inputs, and the existing ABI, spill and
+zero-register checks. Variable shifts/rotates compile through scalar fallback.
+Assembly tests cover exact encodings, round-trip decoding, odd registers and
+out-of-range immediates. Extraction rejects incorrect masks, complements and
+shift values instead of treating them as rotates.
+
+### Mbed TLS SHA-512
+
+Measured the unchanged Mbed TLS 2.28.10 compression function with the runner in
+`../benchmark_sha512.py`. The baseline GCC harness checks the digest of `abc`
+after every run. Counts include the compression call and common zeroization;
+setup and verification are outside the measured region. No source intrinsics
+were added to the SHA-512 function. The add-only variant disables automatic
+new bit-operation selection with `-mllvm -riscv-seal5-regpair-bitops=false`,
+keeping ADD64 enabled. Disassembly assertions verify the intended selection.
+
+O2 and O3 gave identical counts for every row:
+
+| LLVM | Implementation | RV32IM | Add-only pairs | Full pairs | Reduction vs RV32IM |
+|---|---|---:|---:|---:|---:|
+| 23 | Normal | 14,293 | 12,568 | 7,989 | 44.1% |
+| 23 | `MBEDTLS_SHA512_SMALLER` | 17,217 | 15,018 | 10,427 | 39.4% |
+| 22 | Normal | 15,451 | 12,766 | 7,813 | 49.4% |
+| 22 | `MBEDTLS_SHA512_SMALLER` | 17,938 | 16,458 | 10,829 | 39.6% |
+
+On LLVM 23 the new operations reduce instructions by a further 36.4% (normal)
+or 30.6% (smaller) relative to add-only pairs. These are retired-instruction
+measurements under Spike, not hardware cycle speedups. Instruction latency,
+implementation cost and memory behavior still need hardware evaluation.
+
+[LLVM 23 records](sha512-llvm23.json) and [LLVM 22 records](sha512-llvm22.json)
+contain the upstream source checksum and static pair instruction counts.
+Full logs, objects and executables are in `/tmp/seal5-pair-sha512-23` and
+`/tmp/seal5-pair-sha512-22` in this workspace.
+
 ## LLVM 22 port (2026-11-23)
 
 Validated with assertions enabled against the integrated LLVM 22.1.8 release
