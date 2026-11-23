@@ -59,9 +59,15 @@ def run(args):
                 visitor_instance.generate(instr_def.operation, context)
             except Exception as ex:
                 if args.skip_failing:
-                    logger.warning("Transformation failed for instr %s", instr_def.name)
+                    logger.warning(
+                        "Transformation failed for instr %s: %s: %s",
+                        instr_def.name,
+                        type(ex).__name__,
+                        ex,
+                        exc_info=True,
+                    )
                 else:
-                    raise ex
+                    raise
             instr_def.operands = context.operands
             # print("context.raises", context.raises)
             # input("next?")
