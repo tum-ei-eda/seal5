@@ -113,6 +113,13 @@ def main():
             instr_name, test_type, test_fmt = parsed
             new = (test_type, test_file, test_fmt, "PASS")
             ret[instr_name].append(new)
+        for test_file in test_metrics.get("unsupported", []):
+            parsed = parse_test_filename(test_file)
+            if parsed is None:
+                ret2.append((test_file, "UNSUPPORTED"))
+            else:
+                instr_name, test_type, test_fmt = parsed
+                ret[instr_name].append((test_type, test_file, test_fmt, "UNSUPPORTED"))
         return ret, ret2
 
     metrics = settings.metrics

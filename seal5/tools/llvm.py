@@ -286,7 +286,14 @@ def build_llvm(
     )
 
 
-def test_llvm(base: Path, build_dir: Path, test_paths: Optional[List[str]] = None, verbose: bool = False):
+def test_llvm(
+    base: Path,
+    build_dir: Path,
+    test_paths: Optional[List[str]] = None,
+    verbose: bool = False,
+    unsupported_tests: Optional[List[str]] = None,
+):
+    """Run lit, optionally collecting skips without including them in the score."""
     if test_paths is None:
         test_paths = []
     env = os.environ.copy()
@@ -327,13 +334,20 @@ def test_llvm(base: Path, build_dir: Path, test_paths: Optional[List[str]] = Non
             env=env,
             handle_exit=handler,
         )
-        failing = re.compile(r"FAIL: LLVM :: (.*) \(").findall(out)
-        if len(failing) > 0:
-            failing_tests.extend(failing)
-        passed = re.compile(r"PASS: LLVM :: (.*) \(").findall(out)
-        if len(passed) > 0:
-            passed_tests.extend(passed)
-        if not passed and not failing:
+        results = re.findall(
+            r"^(PASS|FLAKYPASS|XFAIL|FAIL|XPASS|UNRESOLVED|TIMEOUT|UNSUPPORTED): " r"[^\n]+? :: (.+) \(\d+ of \d+\)$",
+            out,
+            re.MULTILINE,
+        )
+        for status, name in results:
+            if status == "UNSUPPORTED":
+                if unsupported_tests is not None:
+                    unsupported_tests.append(name)
+            elif status in ("PASS", "FLAKYPASS", "XFAIL"):
+                passed_tests.append(name)
+            else:
+                failing_tests.append(name)
+        if not results:
             raise RuntimeError(f"lit produced no PASS/FAIL results for {test_file}:\n{out}")
 
     return passed_tests, failing_tests

@@ -66,9 +66,7 @@ class DetectInoutsVisitor(ExprVisitor):
     def _(self, expr: behav.SliceOperation, context):
         from seal5.transform.explicit_names import ungroup
 
-        if context.is_write and not all(
-            isinstance(ungroup(bound), behav.Literal) for bound in (expr.left, expr.right)
-        ):
+        if context.is_write and not all(isinstance(ungroup(bound), behav.Literal) for bound in (expr.left, expr.right)):
             # A variable lane write preserves bits outside the selected lane.
             # Its destination is therefore also an input (e.g. cv.insert).
             context.push(IOMode.READ)
@@ -151,6 +149,12 @@ class DetectInoutsVisitor(ExprVisitor):
 
     @generate.register
     def _(self, expr: behav.NamedReference, context):
+        if (
+            isinstance(expr.reference, arch.BitFieldDescr)
+            and expr.reference.name in getattr(context, "pair_fields", ())
+            and not getattr(context, "register_index_depth", 0)
+        ):
+            return expr
         if context.is_read:
             context.reads.add(expr.reference.name)
         elif context.is_write:
@@ -166,7 +170,11 @@ class DetectInoutsVisitor(ExprVisitor):
             expr.index = self.generate(expr.index, context)
             context.pop()
         else:
-            expr.index = self.generate(expr.index, context)
+            context.register_index_depth = getattr(context, "register_index_depth", 0) + 1
+            try:
+                expr.index = self.generate(expr.index, context)
+            finally:
+                context.register_index_depth -= 1
         return expr
 
     @generate.register

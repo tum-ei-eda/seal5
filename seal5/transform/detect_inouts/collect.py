@@ -19,6 +19,7 @@ import seal5.model
 from seal5.model_utils import load_model, dump_model
 
 from .visitor import DetectInoutsVisitor
+from seal5.register_pairs import pair_operand_names
 from .utils import IOMode
 
 from seal5.logging import Logger
@@ -89,6 +90,8 @@ def run(args):
         for _, instr_def in set_def.instructions.items():
             metrics["n_instructions"] += 1
             context = VisitorContext()
+            context.pair_fields = pair_operand_names(instr_def)
+            context.register_index_depth = 0
             logger.debug("collecting inouts for instr %s", instr_def.name)
             try:
                 DetectInoutsVisitor().generate(instr_def.operation, context)

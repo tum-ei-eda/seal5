@@ -1,0 +1,88 @@
+---
+passes:
+  overrides:
+    behav_to_llvmir:
+      no_extend: false
+    behav_to_pat:
+      # Generic PatternGen tests assume XLEN operands and GlobalISel.
+      # Dedicated pair.test-codegen.ll and execute.py validate this adapter.
+      gen_tests: false
+      no_extend: false
+      parallel: false
+models:
+  RegPairs:
+    extensions:
+      XRegPairs:
+        backend_features: [FeatureSeal5RegPair32Add, FeatureSeal5RegPair32Sub, FeatureSeal5RegPair32Mul]
+        riscv:
+          xlen: 32
+riscv:
+  xlen: 32
+  features: [m, seal5-regpair32-add, seal5-regpair32-sub, seal5-regpair32-mul]
+tools:
+  pattern_gen:
+    ref: llvm-23.1.3-packed-simd
+intrinsics:
+  intrinsics:
+  - instr_name: PAIR_ADD64
+    intrinsic_name: add64
+    set_name: XRegPairs
+    ret_type: i64
+    args: &pair_args
+    - {arg_name: rs1, arg_type: i64}
+    - {arg_name: rs2, arg_type: i64}
+  - instr_name: PAIR_ADD_2X32
+    intrinsic_name: add_2x32
+    set_name: XRegPairs
+    ret_type: i64
+    args: *pair_args
+  - instr_name: PAIR_SUB64
+    intrinsic_name: sub64
+    set_name: XRegPairs
+    ret_type: i64
+    args: *pair_args
+  - instr_name: PAIR_SUB_2X32
+    intrinsic_name: sub_2x32
+    set_name: XRegPairs
+    ret_type: i64
+    args: *pair_args
+  - instr_name: PAIR_MUL_2X32
+    intrinsic_name: mul_2x32
+    set_name: XRegPairs
+    ret_type: i64
+    args: *pair_args
+patches:
+- name: regpairs_parser
+  target: llvm
+  stage: 0
+  file: ../patches/llvm23-pair-parser.patch
+  comment: Parse the normalized XP view of an RV32 even/odd register pair
+- name: regpairs_scalar_intrinsics
+  target: llvm
+  stage: 2
+  file: ../patches/llvm23-pair-intrinsics.patch
+  comment: Bridge scalar i64 intrinsics to GPRPair without making i64 a legal RV32 type
+- name: regpairs_feature_capacity
+  target: llvm
+  stage: 0
+  file: ../../corev/patches/llvm23-subtarget-feature-capacity.patch
+  comment: Reserve enough feature bits for an extended LLVM 23 RISC-V target
+  onlyif: "'MAX_SUBTARGET_WORDS = 6' in (settings.source_dir / 'llvm/include/llvm/TargetParser/SubtargetFeature.h').read_text()"
+- name: regpairs_legalization
+  target: llvm
+  stage: 2
+  priority: 1
+  file: ../patches/llvm23-pair-legalization.patch
+  comment: Legalize custom pair arithmetic and v2i32 representation, without P
+- name: regpairs_extraction
+  target: llvm
+  stage: 0
+  priority: 0
+  file: ../patches/llvm23-pair-extraction.patch
+  comment: Extract XP semantics before legalization splits the pair into words
+- name: regpairs_capability
+  target: llvm
+  stage: 0
+  priority: 1
+  file: ../patches/llvm23-pair-capability.patch
+  comment: Define the custom addition capability before generated ISA features

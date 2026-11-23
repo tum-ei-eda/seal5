@@ -19,6 +19,7 @@ import seal5.model
 from seal5.model_utils import load_model, dump_model
 
 from .visitor import DetectCallsVisitor
+from seal5.register_pairs import legal_pair_operation, pair_operand_names
 
 from seal5.logging import Logger
 
@@ -70,7 +71,9 @@ def run(args):
             context = VisitorContext()
             logger.debug("collecting calls for instr %s", instr_def.name)
             try:
-                DetectCallsVisitor().generate(instr_def.operation, context)
+                DetectCallsVisitor().generate(
+                    legal_pair_operation(instr_def.operation, pair_operand_names(instr_def)), context
+                )
                 if context.has_call:
                     if seal5.model.Seal5InstrAttribute.HAS_CALL not in instr_def.attributes:
                         instr_def.attributes[seal5.model.Seal5InstrAttribute.HAS_CALL] = []

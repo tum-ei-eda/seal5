@@ -64,6 +64,22 @@ def make_set_attribute_parser(filename, make_parser, set_attributes):
 class Seal5BehaviorModelBuilder(BehaviorModelBuilder):
     """Provide typed memory/register views and the branch procedure."""
 
+    def visitSlice_expression(self, ctx):
+        from seal5.register_pairs import is_pair_bank, validate_pair_bank
+        from seal5.transform.explicit_names import ungroup
+
+        result = super().visitSlice_expression(ctx)
+        if isinstance(result, behav.IndexedReference) and is_pair_bank(result.reference):
+            validate_pair_bank(result.reference, self._register_banks)
+            operand = ungroup(result.index)
+            if result.right is not None or not (
+                isinstance(operand, behav.NamedReference)
+                and isinstance(operand.reference, arch.BitFieldDescr)
+                and operand.reference.ty.size == 5
+            ):
+                raise M2SyntaxError("XP uses an encoded five-bit register ID: write XP[rs1], without shifting it")
+        return result
+
     def visitReference_expression(self, ctx):
         name = ctx.ref.text
         scopes = (
@@ -131,6 +147,13 @@ def main():
     original_architecture = parser.ArchitectureModelBuilder
 
     class Seal5ArchitectureModelBuilder(ArchitectureModelBuilder):
+        def visitAttribute(self, ctx):
+            if ctx.name.text == "is_regpair":
+                if ctx.params:
+                    raise M2SyntaxError("[[is_regpair]] takes no arguments")
+                return "is_regpair", []
+            return super().visitAttribute(ctx)
+
         def visitInstruction_set(self, ctx):
             result = super().visitInstruction_set(ctx)
             result.attributes = set_attributes.get(id(ctx.name), {})

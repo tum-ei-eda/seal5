@@ -15,6 +15,7 @@ import difflib
 from threading import Lock
 import re
 import argparse
+from copy import deepcopy
 import logging
 import pathlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -29,6 +30,7 @@ from seal5.index import write_index_yaml, File, NamedPatch, TestFile
 from seal5.model import Seal5InstrAttribute, Seal5ImmOperand, Seal5OperandAttribute
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 from seal5.model_utils import load_model
+from seal5.settings import RISCVSettings
 
 from seal5.logging import Logger
 
@@ -45,6 +47,22 @@ def require_packed_simd_feature(contents):
     names = [name.strip() for name in predicates.group(1).split(",") if name.strip()]
     if "HasGPR32V" not in names:
         names.append("HasGPR32V")
+    return contents[: predicates.start(1)] + ", ".join(names) + contents[predicates.end(1) :]
+
+
+def require_register_pair_feature(contents):
+    """Gate pair representation and each extracted arithmetic operation."""
+    if not re.search(r"\bGPRPair(?:RV32)?\b", contents):
+        return contents
+    required = ["HasSeal5RegPair32"]
+    for op in ("add", "sub", "mul"):
+        if re.search(r"\(" + op + r"\s|riscv_seal5_" + op + "64", contents):
+            required.append("HasSeal5RegPair32" + op.title())
+    predicates = re.search(r"let Predicates = \[(.*?)\] in \{", contents)
+    if predicates is None:
+        return "let Predicates = [" + ", ".join(required) + "] in {\n" + contents + "\n}\n"
+    names = [name.strip() for name in predicates.group(1).split(",") if name.strip()]
+    names.extend(name for name in required if name not in names)
     return contents[: predicates.start(1)] + ", ".join(names) + contents[predicates.end(1) :]
 
 
@@ -164,13 +182,13 @@ def main():
         # errs = []
         # model_includes = []
         if settings:
-            riscv_settings = settings.riscv
+            riscv_settings = settings.riscv or RISCVSettings()
             model_settings = settings.models.get(model_name)
             model_riscv_settings = model_settings.riscv
             if model_riscv_settings is not None:
                 riscv_settings = riscv_settings.merge(model_riscv_settings)
         else:
-            riscv_settings = None
+            riscv_settings = RISCVSettings()
 
         assert out_path.is_dir(), "Expecting output directory when using --splitted"
         for set_name, set_def in model_obj.sets.items():
@@ -184,8 +202,8 @@ def main():
             riscv_settings_ = riscv_settings
             ext_riscv_settings = ext_settings.riscv
             if ext_riscv_settings is not None:
-                riscv_settings_ = riscv_settings_.merge(ext_riscv_settings)
-            default_features, default_xlen = get_riscv_defaults(riscv_settings)
+                riscv_settings_ = deepcopy(riscv_settings_).merge(ext_riscv_settings)
+            default_features, default_xlen = get_riscv_defaults(riscv_settings_)
             if xlen is None:  # TODO: redundant?
                 xlen = default_xlen
 
@@ -258,7 +276,9 @@ def main():
                     )
                     if output_file.is_file():
                         if args.patterns:
-                            contents = require_packed_simd_feature(output_file.read_text())
+                            contents = require_register_pair_feature(
+                                require_packed_simd_feature(output_file.read_text())
+                            )
                             if Seal5InstrAttribute.IS_BRANCH in attrs:
                                 # Imported DAG patterns must never enter the GlobalISel tables.
                                 contents = cdsl2llvm.lower_branch_patterns_to_riscv(contents)

@@ -14,7 +14,7 @@ def get_riscv_defaults(riscv_settings: Optional[RISCVSettings] = None):
         if default_features_ is not None:
             default_features = default_features_
         default_xlen_ = riscv_settings.xlen
-        if default_xlen is not None:
+        if default_xlen_ is not None:
             default_xlen = default_xlen_
     return default_features, default_xlen
 

@@ -1,0 +1,19 @@
+InstructionSet XCoreVSimd {
+    instructions {
+        SEAL5_CV_INSERT_H [[has_side_effects]] [[llvm_instr="SEAL5_CV_INSERT_H"]] {
+            operands: {
+                unsigned<5> rd [[is_reg]] [[inout]];
+                unsigned<5> rs1 [[is_reg]] [[in]];
+                unsigned<1> Imm6 [[is_imm]] [[in]] [[llvm_type=seal5_uimm1]];
+            }
+            encoding: 5'b10111 :: 1'b0 :: Imm6[0:0] :: 5'b00000 :: rs1[4:0] :: 3'b100 :: rd[4:0] :: 7'b1111011;
+            assembly: {"seal5.cv.insert.h", "{name(rd)}, {name(rs1)}, {Imm6}"};
+            behavior: {
+                {
+                    unsigned<5> base = (unsigned<5>)((Imm6) * (16));
+                    X[rd][base +: 16] = X[rs1][(15):(0)];
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,56 @@
+--- a/llvm/tools/pattern-gen/lib/Parser.cpp
++++ b/llvm/tools/pattern-gen/lib/Parser.cpp
+@@ -831,7 +831,10 @@
+         len = xlen;
+       return Value{addrPtr, len, false};
+     }
+-    if (t.ident.str == "X" || t.ident.str == "XW") {
++    if (t.ident.str == "X" || t.ident.str == "XW" || t.ident.str == "XP") {
++      bool IsPair = t.ident.str == "XP";
++      if (IsPair && xlen != 32)
++        error("XP requires RV32", ts);
+       bool sizeIs32 = t.ident.str == "XW";
+       pop_cur(ts, ABrOpen);
+       if (ts.Peek().type == IntLiteral) { // Handle X[0]
+@@ -840,7 +843,7 @@
+         if (idx.literal.value == 0) // X[0] -> 0
+           return Value(
+               llvm::ConstantInt::get(
+-                  llvm::Type::getIntNTy(ctx, sizeIs32 ? 32 : xlen), 0, true),
++                  llvm::Type::getIntNTy(ctx, IsPair ? 64 : sizeIs32 ? 32 : xlen), 0, true),
+               true);
+         else // X[1],...
+           not_implemented(ts);
+@@ -855,15 +858,21 @@
+                  " is used as a register ID but not defined as such")
+                     .c_str(),
+                 ts);
++        if (IsPair && match->llvm_type != "GPRPair")
++          error("XP index must be a GPRPair operand", ts);
+         sizeIs32 |= (match->type & CDSLInstr::IS_32_BIT);
+         return Value{func->getArg(match - curInstr->fields.begin()),
+-                     sizeIs32 ? 32 : xlen,
++                     IsPair ? 64 : sizeIs32 ? 32 : xlen,
+                      (bool)(match->type & CDSLInstr::SIGNED_REG)};
+       }
+       error(("undefined register ID: " + std::string(ident.str)).c_str(), ts);
+     } else {
+       auto match = find_var(t.ident.idx);
+       if (match != curInstr->fields.end()) {
++        // Like rd, pair source IDs are symbolic nonzero registers during
++        // extraction. Use an even ID; arguments include the x0 snapshot.
++        if ((match->type & CDSLInstr::REG) && match->llvm_type == "GPRPair")
++          return {llvm::ConstantInt::get(regT, 2)};
+         if (!(match->type & CDSLInstr::IMM))
+           error((std::string(t.ident.str) +
+                  " is used as an immediate but not defined as such")
+@@ -1608,7 +1617,8 @@
+     // memory instruction. Preserve natural register alignment so packed lane
+     // stores do not get split during scalar load/store legalization.
+     if (func->getArg(argIdx)->getType()->isPointerTy()) {
+-      unsigned Bytes = (field.type & CDSLInstr::IS_32_BIT) ? 4 : xlen / 8;
++      unsigned Bytes = field.llvm_type == "GPRPair" ? 8 :
++                       (field.type & CDSLInstr::IS_32_BIT) ? 4 : xlen / 8;
+       func->getArg(argIdx)->addAttr(
+           llvm::Attribute::getWithAlignment(ctx, llvm::Align(Bytes)));
+     }

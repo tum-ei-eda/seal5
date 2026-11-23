@@ -118,6 +118,7 @@ class Seal5RegisterClass(IntEnum):
     CUSTOM = 3
     UNKNOWN = 4
     GPRC = 5
+    GPRPair = 6
     # TODO: use auto()
     # TODO: GPRv2, GPRv4 // GPR32V2, GPR32V4
 
@@ -730,7 +731,7 @@ class Seal5Instruction(Instruction):
                 if cls == "CSR":
                     pre = "csr_sysreg"
                 else:
-                    assert cls in ["GPR", "GPRC", "FPR"], f"Unhandled reg class: {cls}"
+                    assert cls in ["GPR", "GPRC", "GPRPair", "FPR"], f"Unhandled reg class: {cls}"
                     pre = cls
                 if cls == "FPR":
                     assert Seal5OperandAttribute.REG_TYPE in op.attributes
@@ -738,6 +739,9 @@ class Seal5Instruction(Instruction):
                     assert reg_type[0] == "f"
                     flen = int(reg_type[1:])
                     pre = f"FPR{flen}"
+                elif cls == "GPRPair":
+                    op.attributes[Seal5OperandAttribute.LLVM_TYPE] = cls
+                    pre = "GPRPairRV32"
             elif Seal5OperandAttribute.IS_IMM in op.attributes:
                 if branch_offset:
                     pre = "patterngen_btarget"
