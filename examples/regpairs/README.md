@@ -1,6 +1,6 @@
 # RV32 even/odd register pairs
 
-This example implements a small custom ISA on LLVM 23:
+This example implements a small custom ISA on LLVM 22 and LLVM 23:
 
 | Instruction | Operation on a 64-bit register pair |
 |---|---|
@@ -108,6 +108,9 @@ LLVM_REF=llvmorg-23.1.3 BUILD_CONFIG=release_assertions \
   python examples/regpairs_demo.py
 ```
 
+For LLVM 22, replace `LLVM_REF=llvmorg-23.1.3` with
+`LLVM_REF=llvmorg-22.1.8`; both source styles are supported.
+
 To run the inferred source through the same flow and tests, add
 `PAIR_STYLE=inferred` to the command above (use a separate `DEST` for each style).
 
@@ -117,8 +120,11 @@ SelectionDAG patterns, then runs the `.test-*` source tests. Generic PatternGen
 test generation is disabled for this example because it assumes XLEN operands
 and GlobalISel; dedicated pair tests and the execution runner cover this path.
 
-The example uses the LLVM 23 CoreDSL2LLVM dependency branch with local patches
-for XP parsing, pair extraction, and narrowly gated backend legalization.
+The example selects the matching CoreDSL2LLVM dependency branch and versioned
+patches for XP parsing, pair extraction, and backend legalization. LLVM 22 uses
+`llvm-22.1.8`; LLVM 23 uses `llvm-23.1.3-packed-simd`. The LLVM 22 adapter adds
+the pair-vector memory, bitcast, and ABI handling that the LLVM 23 backend
+already provides. Scalar `i64` remains illegal on RV32 in both versions.
 The generated extension implies separate arithmetic capabilities:
 
 | Internal feature | Legal operations |

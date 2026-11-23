@@ -1,0 +1,24 @@
+--- a/llvm/lib/Target/RISCV/RISCVFeatures.td
++++ b/llvm/lib/Target/RISCV/RISCVFeatures.td
+@@ -1062,6 +1062,21 @@
+ def HasStdExtSvinval : Predicate<"Subtarget->hasStdExtSvinval()">,
+                        AssemblerPredicate<(all_of FeatureStdExtSvinval),
+                            "'Svinval' (Fine-Grained Address-Translation Cache Invalidation)">;
++
++
++// Custom RV32 pair representation; arithmetic is gated separately.
++def FeatureSeal5RegPair32 : SubtargetFeature<"seal5-regpair32",
++    "HasSeal5RegPair32", "true", "RV32 even/odd pair representation">;
++def HasSeal5RegPair32 : Predicate<"!Subtarget->is64Bit() && Subtarget->hasSeal5RegPair32()">;
++def FeatureSeal5RegPair32Add : SubtargetFeature<"seal5-regpair32-add",
++    "HasSeal5RegPair32Add", "true", "RV32 pair add", [FeatureSeal5RegPair32]>;
++def HasSeal5RegPair32Add : Predicate<"!Subtarget->is64Bit() && Subtarget->hasSeal5RegPair32Add()">;
++def FeatureSeal5RegPair32Sub : SubtargetFeature<"seal5-regpair32-sub",
++    "HasSeal5RegPair32Sub", "true", "RV32 pair sub", [FeatureSeal5RegPair32]>;
++def HasSeal5RegPair32Sub : Predicate<"!Subtarget->is64Bit() && Subtarget->hasSeal5RegPair32Sub()">;
++def FeatureSeal5RegPair32Mul : SubtargetFeature<"seal5-regpair32-mul",
++    "HasSeal5RegPair32Mul", "true", "RV32 pair mul", [FeatureSeal5RegPair32]>;
++def HasSeal5RegPair32Mul : Predicate<"!Subtarget->is64Bit() && Subtarget->hasSeal5RegPair32Mul()">;
+ 
+ // RISCVFeatures.td - riscv_features - INSERTION_START
+ def FeatureVendorXCoreVMac : RISCVExtension<1, 0, "XCoreVMac Extension", []>;

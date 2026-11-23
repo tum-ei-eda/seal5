@@ -57,11 +57,25 @@ patches:
   stage: 0
   file: ../patches/llvm23-pair-parser.patch
   comment: Parse the normalized XP view of an RV32 even/odd register pair
+  onlyif: "settings.llvm.state.version.major == 23"
+- name: regpairs_parser_llvm22
+  target: llvm
+  stage: 0
+  file: ../patches/llvm22-pair-parser.patch
+  comment: Parse the normalized XP view of an RV32 even/odd register pair
+  onlyif: "settings.llvm.state.version.major == 22"
 - name: regpairs_scalar_intrinsics
   target: llvm
   stage: 2
   file: ../patches/llvm23-pair-intrinsics.patch
   comment: Bridge scalar i64 intrinsics to GPRPair without making i64 a legal RV32 type
+  onlyif: "settings.llvm.state.version.major == 23"
+- name: regpairs_scalar_intrinsics_llvm22
+  target: llvm
+  stage: 2
+  file: ../patches/llvm22-pair-intrinsics.patch
+  comment: Bridge scalar i64 intrinsics to GPRPair without making i64 a legal RV32 type
+  onlyif: "settings.llvm.state.version.major == 22"
 - name: regpairs_feature_capacity
   target: llvm
   stage: 0
@@ -74,15 +88,39 @@ patches:
   priority: 1
   file: ../patches/llvm23-pair-legalization.patch
   comment: Legalize custom pair arithmetic and v2i32 representation, without P
+  onlyif: "settings.llvm.state.version.major == 23"
+- name: regpairs_legalization_llvm22
+  target: llvm
+  stage: 2
+  priority: 1
+  file: ../patches/llvm22-pair-legalization.patch
+  comment: Legalize custom pair arithmetic and v2i32 representation, without P
+  onlyif: "settings.llvm.state.version.major == 22"
 - name: regpairs_extraction
   target: llvm
   stage: 0
   priority: 0
   file: ../patches/llvm23-pair-extraction.patch
   comment: Extract XP semantics before legalization splits the pair into words
+  onlyif: "settings.llvm.state.version.major == 23"
+- name: regpairs_extraction_llvm22
+  target: llvm
+  stage: 0
+  priority: 0
+  file: ../patches/llvm22-pair-extraction.patch
+  comment: Extract XP semantics before legalization splits the pair into words
+  onlyif: "settings.llvm.state.version.major == 22"
 - name: regpairs_capability
   target: llvm
   stage: 0
   priority: 1
   file: ../patches/llvm23-pair-capability.patch
   comment: Define the custom addition capability before generated ISA features
+  onlyif: "settings.llvm.state.version.major == 23"
+- name: regpairs_capability_llvm22
+  target: llvm
+  stage: 0
+  priority: 1
+  file: ../patches/llvm22-pair-capability.patch
+  comment: Define the custom addition capability before generated ISA features
+  onlyif: "settings.llvm.state.version.major == 22"

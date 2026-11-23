@@ -1,4 +1,42 @@
-# RV32 register-pair validation (LLVM 23)
+# RV32 register-pair validation (LLVM 22 and LLVM 23)
+
+## LLVM 22 port (2026-11-23)
+
+Validated with assertions enabled against the integrated LLVM 22.1.8 release
+source, using a separate SEAL5 model/generation directory and an incremental
+build of the existing validation compiler. This was not a clean standalone
+compiler rebuild. The versioned adapter uses the `llvm-22.1.8` CoreDSL2LLVM
+branch; LLVM 23 retains `llvm-23.1.3-packed-simd`.
+
+Both explicit XP and inferred word-based sources transformed successfully.
+Their five generated instruction definitions, reduced inputs, and extracted
+patterns are identical. The patterns also match the LLVM 23 outputs. The
+compiler used those generated patterns for the following checks:
+
+| Check | Result |
+|---|---|
+| Python unit suite | 209 passed, 1 optional integration test skipped |
+| Register-pair LLVM lit tests on LLVM 22 | 6 passed |
+| Same lit tests on LLVM 23 | 6 passed |
+| Existing CORE-V tests on the updated LLVM 22 compiler | 651 passed, 2 unsupported |
+| Extracted behavior vs independent arithmetic reference | 1,525 cases passed |
+| Extraction structure and rejected mismatched/reversed lanes | 8 checks passed |
+| Executed generated code at O0/O2/O3 under Spike | All three passed |
+| Final versioned LLVM 22 patches against integrated release source | All five apply |
+
+The LLVM tests additionally cover scalar/vector bitcasts and vector argument,
+return, and call lowering, including a leading scalar argument that puts the
+incoming vector at an odd ABI register position. LLVM 22 explicitly splits and
+joins the two scalar ABI registers; scalar `i64` remains illegal on RV32.
+Runtime checks cover boundaries, random arithmetic, odd scalar ABI alignment,
+spills across a call, overlapping pairs, the zero pair, and preservation of x1.
+
+The port also corrects the LLVM 23 extraction patch to install the early
+PatternGen hook instead of duplicating pass declarations. The corrected patch
+applies to its dependency source, and the LLVM 23 lit suite still passes.
+
+## Original LLVM 23 validation
+
 
 Validated on 2026-11-20 with assertions enabled, using the LLVM 23
 CoreDSL2LLVM base `f3e4c5705c2da4ecadc2babeae356e2960220293`.
