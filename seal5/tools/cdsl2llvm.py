@@ -29,7 +29,7 @@ from typing import Optional, Union
 from seal5.logging import Logger
 from seal5.settings import PatchSettings
 from seal5.types import PatchStage
-from seal5.index import File, Directory, AppendPatch, NamedPatch, write_index_yaml
+from seal5.index import File, AppendPatch, NamedPatch, write_index_yaml
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 from seal5.tools.pattern_metrics import write_statistics
 from seal5 import utils
@@ -63,19 +63,108 @@ def build_pattern_gen(
     )
 
 
+def fix_pattern_gen_slice_indices(source: str) -> str:
+    """Load slice offsets before arithmetic and resize each bound independently.
+
+    CoreDSL locals are represented by pointers until promoted. Constructing an
+    integer constant using their pointer type aborts assertions-enabled LLVM.
+    Normalize early also prevents arithmetic overflowing narrow offset types.
+    Keep variable slices as lvalues so assignment updates the backing register.
+    """
+    anchor = "  Value upper = ParseExpression(ts, func, build);\n"
+    fixed = (
+        anchor
+        + """  promote_lvalue(build, upper);
+  upper.isSigned = false;
+  upper.bitWidth = xlen;
+  fit_to_size(upper, build);
+"""
+    )
+    if fixed not in source:
+        if source.count(anchor) != 1:
+            raise RuntimeError("Unrecognized PatternGen slice parser; cannot apply offset fix")
+        source = source.replace(anchor, fixed, 1)
+    source = source.replace("      fit_to_size(lower, build);", "      fit_to_size(*v, build);")
+    # Preserve the backing register and bit offset for dynamic slice stores.
+    if "llvm::Value *sliceOffset = nullptr;" not in source:
+        source = source.replace(
+            "  bool isLValue;",
+            """  bool isLValue;
+  llvm::Value *sliceOffset = nullptr;
+  int sliceStorageWidth = 0;""",
+            1,
+        )
+        anchor = "  v.isLValue = false;\n}"
+        source = source.replace(
+            anchor,
+            """  if (v.sliceOffset) {
+    v.ll = build.CreateLShr(v.ll, v.sliceOffset);
+    v.ll = build.CreateTrunc(v.ll, llvm::Type::getIntNTy(
+        build.getContext(), v.bitWidth));
+    v.sliceOffset = nullptr;
+  }
+  v.isLValue = false;
+}""",
+            1,
+        )
+        source = source.replace(
+            "llvm::Type::getIntNTy(build.getContext(), v.bitWidth), v.ll,",
+            "llvm::Type::getIntNTy(build.getContext(), " "v.sliceOffset ? v.sliceStorageWidth : v.bitWidth), v.ll,",
+            1,
+        )
+        anchor = "  if (left.isLValue && alignedLower &&"
+        source = source.replace(
+            anchor,
+            """  if (left.isLValue && !alignedLower && len < left.bitWidth) {
+    lower.bitWidth = left.bitWidth;
+    fit_to_size(lower, build);
+    left.sliceOffset = lower.ll;
+    left.sliceStorageWidth = left.bitWidth;
+    left.bitWidth = len;
+    return left;
+  }
+"""
+            + anchor,
+            1,
+        )
+        anchor = "  build.CreateAlignedStore(right.ll, left.ll,"
+        source = source.replace(
+            anchor,
+            """  if (left.sliceOffset) {
+    auto *storageTy = llvm::Type::getIntNTy(ctx, left.sliceStorageWidth);
+    auto *old = build.CreateAlignedLoad(storageTy, left.ll, llvm::Align(1));
+    auto *mask = llvm::ConstantInt::get(ctx, llvm::APInt::getLowBitsSet(
+        left.sliceStorageWidth, left.bitWidth));
+    auto *shiftedMask = build.CreateShl(mask, left.sliceOffset);
+    auto *bits = build.CreateShl(build.CreateZExt(right.ll, storageTy), left.sliceOffset);
+    auto *merged = build.CreateOr(build.CreateAnd(old, build.CreateNot(shiftedMask)), bits);
+    build.CreateAlignedStore(merged, left.ll, llvm::Align(1));
+    return rightOriginal;
+  }
+
+"""
+            + anchor,
+            1,
+        )
+    return source
+
+
 def get_pattern_gen_patches(
     src: Path,
     temp_dir: Path,
     # verbose: bool = False,
 ):
     """Generate patches for PatternGen integration."""
-    # TODO: copy!
     artifacts = []
-    directory_artifact = Directory(
-        "llvm/tools/pattern-gen",
-        src_path=f"{src}/llvm/tools/pattern-gen",
-    )
-    artifacts.append(directory_artifact)
+    parser_path = Path("llvm/tools/pattern-gen/lib/Parser.cpp")
+    for path in sorted((src / "llvm/tools/pattern-gen").rglob("*")):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(src)
+        if relative == parser_path:
+            artifacts.append(File(str(relative), content=fix_pattern_gen_slice_indices(path.read_text())))
+        else:
+            artifacts.append(File(str(relative), src_path=str(path)))
     file_artifact = File(
         "llvm/include/llvm/CodeGen/GlobalISel/PatternGen.h",
         src_path=f"{src}/llvm/include/llvm/CodeGen/GlobalISel/PatternGen.h",
@@ -836,9 +925,7 @@ def run_pattern_gen(
                 register_writebacks=num_register_outputs if gisel_table else 0,
                 checked_functions=pattern_functions,
                 scalar_inputs=(
-                    (xlen, build_dir / "bin" / "opt")
-                    if not may_load and not may_store and xlen is not None
-                    else None
+                    (xlen, build_dir / "bin" / "opt") if not may_load and not may_store and xlen is not None else None
                 ),
             )
             # print("test_content", test_content)
