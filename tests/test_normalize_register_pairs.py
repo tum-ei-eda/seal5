@@ -27,6 +27,7 @@ class NormalizeRegisterPairsTests(unittest.TestCase):
         self.assertEqual(result.reference.name, "XP")
         self.assertEqual(result.ty.size, 64)
         self.assertIs(result.index.reference, self.index)
+        self.assertEqual(result.reference.ty.length, 32)
         self.assertEqual(self.bank.name, "X")
         self.assertEqual(self.bank.ty.element_type.size, 32)
 

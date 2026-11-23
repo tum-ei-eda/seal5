@@ -38,9 +38,9 @@
        auto match = find_var(t.ident.idx);
        if (match != curInstr->fields.end()) {
 +        // Like rd, pair source IDs are symbolic nonzero registers during
-+        // extraction. Their value arguments include the complete x0 snapshot.
++        // extraction. Use an even ID; arguments include the x0 snapshot.
 +        if ((match->type & CDSLInstr::REG) && match->llvm_type == "GPRPair")
-+          return {llvm::ConstantInt::get(regT, 1)};
++          return {llvm::ConstantInt::get(regT, 2)};
          if (!(match->type & CDSLInstr::IMM))
            error((std::string(t.ident.str) +
                   " is used as an immediate but not defined as such")

@@ -20,19 +20,65 @@ Odd register encodings are reserved and rejected by the assembler/decoder.
 The instructions use custom-0 and must not be enabled together with a different
 custom-0 ISA with overlapping encodings.
 
-The CoreDSL behavior describes the actual two 32-bit `X` registers. The YAML
-`collect_register_operands.register_pairs` mapping identifies which fields
-represent complete pairs. No independent 64-bit architectural register bank
-is introduced. `X[operand]` and `X[operand + 1]` then map to one LLVM `GPRPair`
-operand with a 64-bit semantic snapshot. An emission-only normalization pass
-rewrites `X[rs1 + 1] :: X[rs1]` to `XP[rs1]`. Individual words become slices of
-`XP`, and adjacent writes of the low/high halves of one evaluated 64-bit local
-result become one `XP[rd] = result` assignment. Mismatched/reversed pairs and
-alias-sensitive writes are not combined. The full architectural description
-and shared `X` bank are preserved; `XP` exists only in reduced PatternGen input.
-Pair metadata is currently RV32-only;
-unsupported word offsets are rejected. As with other register-class metadata,
-it also defines the legal operand set of the description.
+The example declares the pair view explicitly:
+
+```c
+architectural_state {
+  register unsigned<64> XP[32] [[is_regpair]];
+}
+// rs1 is the encoded five-bit register ID, not a pair number.
+a = XP[rs1];
+```
+
+`[[is_regpair]]` makes this a view of the existing RV32 `X` bank, rather than
+independent architectural storage. There are sixteen pairs, but the view accepts
+encoded register IDs: when `rs1` is 6, `XP[rs1]` means the x6/x7 pair. The 32
+positions describe the encoded index space, with only the sixteen even positions
+denoting legal pair starts. No implicit shift or masking is applied;
+source code must not add its own `>> 1`. The marker declares an even/odd view,
+not thirty-two independent 64-bit registers.
+Operand classification follows the declaration automatically, without YAML
+`register_pairs` mappings or matching concatenations.
+
+The examples check the original IDs before accessing the view:
+
+```c
+if (((rd | rs1 | rs2) & 1) != 0) {
+  raise(0, RV_CAUSE_ILLEGAL_INSTRUCTION);
+} else {
+  // Read sources, compute result, then write XP[rd].
+}
+```
+
+An index conversion alone cannot implement this exception: it loses the odd bit.
+The full architectural export retains these checks and lowers XP accesses to
+shared `X` storage. Reads of pair zero produce zero; writes discard both words.
+Stores evaluate their RHS once before either word is modified. The declaration
+itself does not insert runtime traps; put legality checks in the behavior.
+
+For standard CoreDSL output, including the original traps and expanded shared
+storage, use:
+
+```sh
+python -m seal5.backends.coredsl2.writer /path/to/RegPairs.seal5model \
+  --architectural -o /tmp/RegPairs.architectural.core_desc
+```
+
+The snapshot used for this export is taken before compiler constraint extraction
+can replace exception calls with operand preconditions.
+
+Compiler operands use LLVM's even-only `GPRPair` class. During reduced emission
+and call analysis, SEAL5 specializes parity checks only when their result follows
+from that class; the architectural behavior stays intact. Unknown checks are not
+removed. Reduced PatternGen `XP[rs1]` is a symbolic operand reference, with no
+runtime array indexing.
+
+The earlier word-based source form remains supported. The YAML
+`collect_register_operands.register_pairs` mapping marks the physical register
+fields of `X[rs1 + 1] :: X[rs1]`; emission normalizes this to the same XP operand.
+Individual words become slices, and adjacent writes of a single evaluated local
+result can become one pair store. Mismatched/reversed pairs and alias-sensitive
+writes are not combined. Pair views and pair metadata currently require RV32.
 
 ## Run the example
 

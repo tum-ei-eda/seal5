@@ -9,6 +9,7 @@ from m2isar.metamodel.type_info import TypeKind
 
 from seal5.transform.normalize_subscripts import IndexedPartSelect
 from seal5.transform.detect_branches import BranchIntrinsic
+from seal5.register_pairs import pair_index_operand
 
 
 class Seal5CDSLWriterVisitor(CDSLWriterVisitor):
@@ -51,6 +52,9 @@ class Seal5CDSLWriterVisitor(CDSLWriterVisitor):
 
     @generate.register
     def _(self, expr: behav.IndexedReference, writer):
+        if expr.reference.name == "XP" and (operand := pair_index_operand(expr.index)):
+            writer.write(f"XP[{operand.reference.name}]")
+            return
         # The upstream writer currently drops the right bound altogether.
         writer.write(expr.reference.name)
         writer.write("[")

@@ -17,6 +17,7 @@ import pathlib
 import pandas as pd
 
 from seal5.model_utils import load_model, dump_model
+from seal5.register_pairs import is_pair_bank, validate_pair_bank
 
 from .visitor import CollectRegisterOperandsVisitor
 
@@ -69,6 +70,9 @@ def run(args):
     for _, set_def in model_obj.sets.items():
         metrics["n_sets"] += 1
         logger.debug("collecting register operands for set %s", set_def.name)
+        for bank in set_def.register_banks.values():
+            if is_pair_bank(bank):
+                validate_pair_bank(bank, set_def.register_banks)
         visitor = CollectRegisterOperandsVisitor()
         for _, instr_def in set_def.instructions.items():
             metrics["n_instructions"] += 1

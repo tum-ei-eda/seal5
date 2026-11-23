@@ -9,6 +9,7 @@
 """Tranform M2-ISA-R metamodel to Seal5 metamodel."""
 
 import sys
+from copy import deepcopy
 import argparse
 import logging
 import pathlib
@@ -77,6 +78,13 @@ def run(args):
 
     for set_name, set_def in sets.items():
         logger.info("replacing set %s", set_name)
+        # Constraint extraction removes traps from the compiler behavior. Keep
+        # an independent source snapshot for architectural exports of XP views.
+        pair_source = None
+        if any("is_regpair" in bank.attributes for bank in set_def.register_banks.values()):
+            keys = ("parameters", "memories", "memory_aliases", "register_banks", "register_aliases", "functions")
+            pair_source = deepcopy({key: getattr(set_def, key) for key in keys})
+            pair_operations = deepcopy({enc: instr.operation for enc, instr in set_def.instructions.items()})
         for enc, instr_def in set_def.instructions.items():
             if args.prefix:
                 instr_def.name = f"{args.prefix.upper()}{instr_def.name}"
@@ -95,6 +103,8 @@ def run(args):
                 m2_operands=getattr(instr_def, "operands", {}),
             )
             set_def.instructions[enc].vars = instr_def.vars
+            if pair_source is not None:
+                set_def.instructions[enc].pair_source_operation = pair_operations[enc]
         for func_name, func_def in set_def.functions.items():
             func_def.attributes = convert_attrs(func_def.attributes, base=seal5_model.Seal5FunctionAttribute)
         sets[set_name] = seal5_model.Seal5InstructionSet(
@@ -113,6 +123,8 @@ def run(args):
             {},
             {},
         )
+        if pair_source is not None:
+            sets[set_name].pair_source_state = pair_source
         sets[set_name].attributes = convert_attrs(
             getattr(set_def, "attributes", {}), base=seal5_model.Seal5InstSetAttribute
         )

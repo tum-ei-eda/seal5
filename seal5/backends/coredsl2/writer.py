@@ -19,6 +19,8 @@ from m2isar.backends.coredsl2.writer import write_cdsl_splitted, write_cdsl_defa
 from seal5.model_utils import load_model
 from seal5.model import Seal5OperandAttribute
 from seal5.transform.normalize_register_pairs import NormalizeRegisterPairs
+from seal5.transform.lower_register_pair_views import LowerRegisterPairViews
+from seal5.register_pairs import is_pair_bank, legal_pair_operation
 from seal5.logging import Logger
 
 from .utils import Seal5CoreDSL2Writer
@@ -56,7 +58,12 @@ def main():
     add_logging_args(parser)
     add_metrics_args(parser)
     parser.add_argument("--compat", action="store_true")
+    parser.add_argument(
+        "--architectural", action="store_true", help="Export standard CoreDSL with shared X storage and traps"
+    )
     args = parser.parse_args()
+    if args.architectural and args.reduced:
+        parser.error("--architectural cannot be combined with --reduced")
 
     handle_logging_args(args)  # TODO: pass logger
 
@@ -82,12 +89,33 @@ def main():
                 if pairs:
                     if set_def.xlen != 32:
                         raise ValueError("XP emission requires RV32")
-                    instr.operation = NormalizeRegisterPairs(pairs).generate(deepcopy(instr.operation))
+                    instr.operation = NormalizeRegisterPairs(pairs).generate(
+                        legal_pair_operation(deepcopy(instr.operation), set(pairs))
+                    )
+
+    else:
+        model_obj = deepcopy(model_obj)
+        for set_def in model_obj.sets.values():
+            for key, value in getattr(set_def, "pair_source_state", {}).items():
+                setattr(set_def, key, value)
+            for instr in set_def.instructions.values():
+                instr.operation = getattr(instr, "pair_source_operation", instr.operation)
+                instr.operation = LowerRegisterPairViews(set_def.register_banks, instr.vars).generate(instr.operation)
+            set_def.register_banks = {
+                name: bank for name, bank in set_def.register_banks.items() if not is_pair_bank(bank)
+            }
+            if args.architectural:
+                # The resolved state already includes inherited declarations.
+                set_def.extension = []
 
     metrics = init_metrics()
     allowed_attrs = ALLOWED_SEAL5_ATTRS
     writer_cls = Seal5CoreDSL2Writer
-    writer_kwargs = {"reduced": args.reduced, "allowed_attrs": allowed_attrs, "version": "seal5"}
+    writer_kwargs = {
+        "reduced": args.reduced,
+        "allowed_attrs": allowed_attrs,
+        "version": "coredsl2" if args.architectural else "seal5",
+    }
 
     if args.splitted:
         metrics = write_cdsl_splitted(

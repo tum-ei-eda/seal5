@@ -53,6 +53,7 @@ class NormalizeRegisterPairs(ExplicitNames):
         result.reference.name = "XP"
         result.reference.ty = copy(original.reference.ty)
         result.reference.ty.element_type = PrimitiveType(TypeKind.UINT, 64)
+        result.reference.ty.length = 32
         result.index = index
         result.ty = PrimitiveType(TypeKind.UINT, 64)
         self.changed += 1

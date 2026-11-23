@@ -13,6 +13,7 @@ from functools import singledispatchmethod
 from m2isar.metamodel import arch, behav
 from m2isar.metamodel.utils.ExprVisitor import ExprVisitor
 from seal5 import model
+from seal5.register_pairs import is_pair_bank, pair_index_operand
 
 # pylint: disable=unused-argument
 
@@ -138,6 +139,12 @@ class CollectRegisterOperandsVisitor(ExprVisitor):
             mem_lanes = 1
             index = expr.index
             offset = 0
+            explicit_pair = is_pair_bank(mem)
+            if explicit_pair:
+                index = pair_index_operand(index)
+                if index is None or mem_size != 64:
+                    raise ValueError("XP indices must be encoded five-bit register IDs, e.g. XP[rs1]")
+                context.register_pairs.add(index.reference.name)
             if isinstance(index, behav.BinaryOperation):  # offset?
                 # print("binop!")
                 if index.op.value == "+":
@@ -162,7 +169,9 @@ class CollectRegisterOperandsVisitor(ExprVisitor):
                     assert op_name in context.operands
                     op = context.operands[op_name]
                     reg_ty_ = model.DataType.U
-                    if mem_name in ("X", "XW"):
+                    if explicit_pair:
+                        reg_class = model.Seal5RegisterClass.GPRPair
+                    elif mem_name in ("X", "XW"):
                         if op_name in context.register_pairs:
                             if mem_size != 32 or offset not in (0, 1):
                                 raise ValueError("RV32 pairs require X[operand] or X[operand + 1]")

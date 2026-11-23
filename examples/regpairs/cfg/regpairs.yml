@@ -1,13 +1,6 @@
 ---
 passes:
   overrides:
-    collect_register_operands:
-      register_pairs:
-        PAIR_ADD64: [rd, rs1, rs2]
-        PAIR_ADD_2X32: [rd, rs1, rs2]
-        PAIR_SUB64: [rd, rs1, rs2]
-        PAIR_SUB_2X32: [rd, rs1, rs2]
-        PAIR_MUL_2X32: [rd, rs1, rs2]
     behav_to_llvmir:
       no_extend: false
     behav_to_pat:
