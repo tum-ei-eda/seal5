@@ -20,6 +20,8 @@ from seal5.model_utils import load_model, dump_model
 from seal5.register_pairs import is_pair_bank, validate_pair_bank
 
 from .visitor import CollectRegisterOperandsVisitor
+from seal5.transform.infer_register_pairs import InferRegisterPairs
+from copy import deepcopy
 
 from seal5.logging import Logger
 
@@ -76,7 +78,11 @@ def run(args):
         visitor = CollectRegisterOperandsVisitor()
         for _, instr_def in set_def.instructions.items():
             metrics["n_instructions"] += 1
-            pairs = args.register_pairs.get(instr_def.name, [])
+            pairs = set(args.register_pairs.get(instr_def.name, []))
+            if set_def.xlen == 32:
+                inference = InferRegisterPairs(instr_def.operands)
+                inference.generate(deepcopy(instr_def.operation))
+                pairs.update(inference.pairs)
             if pairs and set_def.xlen != 32:
                 raise ValueError("Register pairs currently require RV32")
             unknown = set(pairs) - set(instr_def.operands)

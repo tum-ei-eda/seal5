@@ -73,9 +73,27 @@ from that class; the architectural behavior stays intact. Unknown checks are not
 removed. Reduced PatternGen `XP[rs1]` is a symbolic operand reference, with no
 runtime array indexing.
 
-The earlier word-based source form remains supported. The YAML
-`collect_register_operands.register_pairs` mapping marks the physical register
-fields of `X[rs1 + 1] :: X[rs1]`; emission normalizes this to the same XP operand.
+The two source examples implement the same five instructions:
+
+| Style | Source | Selection |
+|---|---|---|
+| Explicit view | `cdsl/RegPairs.core_desc` | `PAIR_STYLE=explicit` (default) |
+| Inferred pairs | `cdsl/inferred/RegPairs.core_desc` | `PAIR_STYLE=inferred` |
+
+The inferred example uses ordinary architectural registers:
+
+```c
+unsigned<64> a = X[rs1 + 1] :: X[rs1];
+// Compute a 64-bit local result before writing either word.
+X[rd] = result[31:0];
+X[rd + 1] = result[63:32];
+```
+
+SEAL5 infers pair operands from complete high/low concatenations and adjacent
+writes of the two halves of the same 64-bit local. Both examples need no YAML
+pair mappings. The optional `collect_register_operands.register_pairs` mapping
+remains available for operands whose usage does not establish a complete pair.
+Emission normalizes the inferred form to the same XP operand.
 Individual words become slices, and adjacent writes of a single evaluated local
 result can become one pair store. Mismatched/reversed pairs and alias-sensitive
 writes are not combined. Pair views and pair metadata currently require RV32.
@@ -89,6 +107,9 @@ LLVM_REF=llvmorg-23.1.3 BUILD_CONFIG=release_assertions \
   DEST=/tmp/seal5_llvm_regpairs INSTALL=0 DEPLOY=0 EXPORT=0 \
   python examples/regpairs_demo.py
 ```
+
+To run the inferred source through the same flow and tests, add
+`PAIR_STYLE=inferred` to the command above (use a separate `DEST` for each style).
 
 `examples/gpr32_demo.py` is a compatibility entry point to this example.
 The default flow builds assembler/disassembler, intrinsics, builtins and generated

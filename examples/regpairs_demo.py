@@ -9,8 +9,12 @@ from seal5.wrapper import LLVM_REF, run_seal5_flow
 if not LLVM_REF.startswith("llvmorg-23."):
     raise ValueError("The register-pair example requires LLVM_REF=llvmorg-23.*")
 EXAMPLES = Path(__file__).resolve().parent
+PAIR_STYLE = os.environ.get("PAIR_STYLE", "explicit")
+if PAIR_STYLE not in ("explicit", "inferred"):
+    raise ValueError("PAIR_STYLE must be explicit or inferred")
+PAIR_SOURCE = "RegPairs.core_desc" if PAIR_STYLE == "explicit" else "inferred/RegPairs.core_desc"
 FILES = [
-    EXAMPLES / "regpairs/cdsl/RegPairs.core_desc",
+    EXAMPLES / "regpairs/cdsl" / PAIR_SOURCE,
     EXAMPLES / "regpairs/tests/*.s",
     EXAMPLES / "regpairs/tests/*.c",
     EXAMPLES / "regpairs/tests/*.ll",

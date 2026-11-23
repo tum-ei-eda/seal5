@@ -81,3 +81,22 @@ class NormalizeRegisterPairsTests(unittest.TestCase):
         low, high = self.stores(behav.NamedReference(variable))
         result = self.visitor.generate([low, behav.Break(), high])
         self.assertEqual(len(result), 3)
+
+    def test_inference_finds_only_complete_reads_and_safe_stores(self):
+        from seal5.transform.infer_register_pairs import InferRegisterPairs
+
+        variable = arch.Variable("result", PrimitiveType(TypeKind.UINT, 64), attributes={})
+        cases = [
+            (behav.ConcatOperation(self.word(1), self.word()), {"rs1"}),
+            (self.stores(behav.NamedReference(variable)), {"rs1"}),
+            (behav.ConcatOperation(self.word(), self.word(1)), set()),
+            (behav.ConcatOperation(self.word(1, self.other), self.word()), set()),
+            (behav.ConcatOperation(self.word(8), self.word()), set()),
+            (self.stores(self.word(), self.word(1)), set()),
+            (self.word(1), set()),
+        ]
+        for operation, expected in cases:
+            with self.subTest(expected=expected, operation=operation):
+                inference = InferRegisterPairs(["rs1", "rs2"])
+                inference.generate(operation)
+                self.assertEqual(inference.pairs, expected)
