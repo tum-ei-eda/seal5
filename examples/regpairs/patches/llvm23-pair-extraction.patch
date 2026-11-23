@@ -155,17 +155,15 @@
    else
 --- a/llvm/tools/pattern-gen/LLVMOverride.cpp
 +++ b/llvm/tools/pattern-gen/LLVMOverride.cpp
-@@ -193,6 +193,10 @@
-   bool addLegalizeMachineIR() override;
-   void addPreRegBankSelect() override;
-   bool addRegBankSelect() override;
-+  void addPreLegalizeMachineIR() override;
-+  bool addLegalizeMachineIR() override;
-+  void addPreRegBankSelect() override;
-+  bool addRegBankSelect() override;
-   bool addGlobalInstructionSelect() override;
-   void addPreEmitPass() override;
-   void addPreEmitPass2() override;
+@@ -439,3 +439,8 @@
++  void addPreLegalizeMachineIR() override {
++    addPass(new PatternGen(true));
++    RISCVPassConfig::addPreLegalizeMachineIR();
++  }
++
+   bool addGlobalInstructionSelect() override {
+     addPass(new PatternGen());
+     return this->RISCVPassConfig::addGlobalInstructionSelect();
 @@ -458,6 +462,140 @@
    }
  };
