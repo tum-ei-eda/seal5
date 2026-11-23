@@ -1,0 +1,12 @@
+seal5.transform.normalize\_register\_pairs
+==========================================
+
+.. automodule:: seal5.transform.normalize_register_pairs
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      NormalizeRegisterPairs
+   

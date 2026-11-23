@@ -1,0 +1,16 @@
+seal5.register\_pairs
+=====================
+
+.. automodule:: seal5.register_pairs
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      is_pair_bank
+      legal_pair_operation
+      pair_index_operand
+      pair_operand_names
+      validate_pair_bank
+   

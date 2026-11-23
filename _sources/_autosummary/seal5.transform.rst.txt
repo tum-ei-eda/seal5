@@ -32,8 +32,11 @@ seal5.transform
    filter_model
    gen_auto_intrisics
    handle_auto_unroll_operands
+   infer_register_pairs
    infer_types
    inline_functions
+   lower_register_pair_views
+   normalize_register_pairs
    normalize_subscripts
    optimize_instructions
    pattern_normalization

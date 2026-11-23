@@ -23,6 +23,7 @@
    model_utils
    pass_list
    passes
+   register_pairs
    resources
    riscv_utils
    settings

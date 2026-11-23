@@ -11,4 +11,5 @@ seal5.backends.patterngen.writer
       allow_equivalent_zero_specializations
       main
       require_packed_simd_feature
+      require_register_pair_feature
    

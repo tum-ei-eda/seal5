@@ -1,0 +1,12 @@
+seal5.transform.lower\_register\_pair\_views
+============================================
+
+.. automodule:: seal5.transform.lower_register_pair_views
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      LowerRegisterPairViews
+   
