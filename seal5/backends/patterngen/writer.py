@@ -15,6 +15,7 @@ import difflib
 from threading import Lock
 import re
 import argparse
+from copy import deepcopy
 import logging
 import pathlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -29,6 +30,7 @@ from seal5.index import write_index_yaml, File, NamedPatch, TestFile
 from seal5.model import Seal5InstrAttribute, Seal5ImmOperand, Seal5OperandAttribute
 from seal5.riscv_utils import build_riscv_mattr, get_riscv_defaults
 from seal5.model_utils import load_model
+from seal5.settings import RISCVSettings
 
 from seal5.logging import Logger
 
@@ -180,13 +182,13 @@ def main():
         # errs = []
         # model_includes = []
         if settings:
-            riscv_settings = settings.riscv
+            riscv_settings = settings.riscv or RISCVSettings()
             model_settings = settings.models.get(model_name)
             model_riscv_settings = model_settings.riscv
             if model_riscv_settings is not None:
                 riscv_settings = riscv_settings.merge(model_riscv_settings)
         else:
-            riscv_settings = None
+            riscv_settings = RISCVSettings()
 
         assert out_path.is_dir(), "Expecting output directory when using --splitted"
         for set_name, set_def in model_obj.sets.items():
@@ -200,8 +202,8 @@ def main():
             riscv_settings_ = riscv_settings
             ext_riscv_settings = ext_settings.riscv
             if ext_riscv_settings is not None:
-                riscv_settings_ = riscv_settings_.merge(ext_riscv_settings)
-            default_features, default_xlen = get_riscv_defaults(riscv_settings)
+                riscv_settings_ = deepcopy(riscv_settings_).merge(ext_riscv_settings)
+            default_features, default_xlen = get_riscv_defaults(riscv_settings_)
             if xlen is None:  # TODO: redundant?
                 xlen = default_xlen
 

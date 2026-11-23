@@ -13,7 +13,7 @@ import logging
 import pathlib
 
 from seal5.index import NamedPatch, write_index_yaml
-from seal5.settings import RISCVLegalizerSettings, Seal5Settings
+from seal5.settings import RISCVLegalizerSettings, RISCVSettings, Seal5Settings
 
 from seal5.logging import Logger
 
@@ -144,7 +144,7 @@ def main():
     artifacts = {}
     artifacts[None] = []  # used for global artifacts
     if settings:
-        riscv_settings = settings.riscv
+        riscv_settings = settings.riscv or RISCVSettings()
         model_settings = settings.models.get(model_name)
         if model_settings is not None:
             model_riscv_settings = model_settings.riscv

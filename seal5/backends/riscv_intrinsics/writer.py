@@ -9,6 +9,7 @@
 """Clean M2-ISA-R/Seal5 metamodel to .core_desc file."""
 
 import argparse
+from copy import deepcopy
 import logging
 import pathlib
 import os.path
@@ -18,7 +19,7 @@ from dataclasses import dataclass
 import pandas as pd
 
 from seal5.index import NamedPatch, write_index_yaml
-from seal5.settings import IntrinsicDefn
+from seal5.settings import IntrinsicDefn, RISCVSettings
 from seal5.model_utils import load_model
 
 from seal5.logging import Logger
@@ -345,7 +346,7 @@ def main():
             patch_frags["target"] = PatchFrag(
                 patchee="clang/include/clang/Basic/BuiltinsRISCV.td", tag="builtins_riscv"
             )
-        global_riscv_settings = settings.riscv
+        global_riscv_settings = settings.riscv or RISCVSettings()
         model_name = top_level.stem
         model_settings = settings.models.get(model_name)
         model_riscv_settings = model_settings.riscv
@@ -360,7 +361,7 @@ def main():
             riscv_settings_ = riscv_settings
             ext_riscv_settings = ext_settings.riscv
             if ext_riscv_settings:
-                riscv_settings_ = riscv_settings.merge(ext_riscv_settings)
+                riscv_settings_ = deepcopy(riscv_settings).merge(ext_riscv_settings)
 
             if ext_settings is None or len(settings.intrinsics.intrinsics) == 0:
                 metrics["n_skipped"] += 1
