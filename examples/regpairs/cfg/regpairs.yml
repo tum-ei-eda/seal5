@@ -191,3 +191,17 @@ patches:
   file: ../patches/llvm23-pair-bitops-extraction.patch
   comment: Extract complete pair logic, shifts, and rotate-right semantics
   onlyif: "settings.llvm.state.version.major == 23"
+- name: regpairs_word_costs_llvm22
+  target: llvm
+  stage: 2
+  priority: -1
+  file: ../patches/llvm22-pair-word-costs.patch
+  comment: Preserve scalar word masks and shifts for efficient widening arithmetic
+  onlyif: "settings.llvm.state.version.major == 22"
+- name: regpairs_word_costs_llvm23
+  target: llvm
+  stage: 2
+  priority: -1
+  file: ../patches/llvm23-pair-word-costs.patch
+  comment: Preserve scalar word masks and shifts for efficient widening arithmetic
+  onlyif: "settings.llvm.state.version.major == 23"

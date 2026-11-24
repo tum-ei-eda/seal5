@@ -34,19 +34,22 @@ define i64 @native_slli64_31(i64 %a) {
  ret i64 %r
 }
 ; CHECK-LABEL: native_slli64_32:
-; CHECK: pair.slli64
+; CHECK-NOT: pair.slli64
+; CHECK: ret
 define i64 @native_slli64_32(i64 %a) {
  %r=shl i64 %a,32
  ret i64 %r
 }
 ; CHECK-LABEL: native_slli64_33:
-; CHECK: pair.slli64
+; CHECK-NOT: pair.slli64
+; CHECK: ret
 define i64 @native_slli64_33(i64 %a) {
  %r=shl i64 %a,33
  ret i64 %r
 }
 ; CHECK-LABEL: native_slli64_63:
-; CHECK: pair.slli64
+; CHECK-NOT: pair.slli64
+; CHECK: ret
 define i64 @native_slli64_63(i64 %a) {
  %r=shl i64 %a,63
  ret i64 %r
@@ -68,19 +71,22 @@ define i64 @native_srli64_31(i64 %a) {
  ret i64 %r
 }
 ; CHECK-LABEL: native_srli64_32:
-; CHECK: pair.srli64
+; CHECK-NOT: pair.srli64
+; CHECK: ret
 define i64 @native_srli64_32(i64 %a) {
  %r=lshr i64 %a,32
  ret i64 %r
 }
 ; CHECK-LABEL: native_srli64_33:
-; CHECK: pair.srli64
+; CHECK-NOT: pair.srli64
+; CHECK: ret
 define i64 @native_srli64_33(i64 %a) {
  %r=lshr i64 %a,33
  ret i64 %r
 }
 ; CHECK-LABEL: native_srli64_63:
-; CHECK: pair.srli64
+; CHECK-NOT: pair.srli64
+; CHECK: ret
 define i64 @native_srli64_63(i64 %a) {
  %r=lshr i64 %a,63
  ret i64 %r
@@ -102,19 +108,22 @@ define i64 @native_srai64_31(i64 %a) {
  ret i64 %r
 }
 ; CHECK-LABEL: native_srai64_32:
-; CHECK: pair.srai64
+; CHECK-NOT: pair.srai64
+; CHECK: ret
 define i64 @native_srai64_32(i64 %a) {
  %r=ashr i64 %a,32
  ret i64 %r
 }
 ; CHECK-LABEL: native_srai64_33:
-; CHECK: pair.srai64
+; CHECK-NOT: pair.srai64
+; CHECK: ret
 define i64 @native_srai64_33(i64 %a) {
  %r=ashr i64 %a,33
  ret i64 %r
 }
 ; CHECK-LABEL: native_srai64_63:
-; CHECK: pair.srai64
+; CHECK-NOT: pair.srai64
+; CHECK: ret
 define i64 @native_srai64_63(i64 %a) {
  %r=ashr i64 %a,63
  ret i64 %r
