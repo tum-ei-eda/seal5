@@ -320,3 +320,8 @@ profiles the remaining hotspots, and fixes automatic selection of pair masks
 and shifts that are cheaper as scalar word operations. The ISA and explicit
 builtin coverage remain the same; automatic shifts with counts >=32 and AND
 masks with a zero word use scalar legalization to preserve known bits.
+
+The [aha-mont64 funnel/comparison experiment](results/mont64-prototype.md)
+measures explicit prototypes using allocator-selected pairs. Its
+[experimental CDSL](cdsl/experimental/Mont64.core_desc) is separate from the
+validated example configuration.
