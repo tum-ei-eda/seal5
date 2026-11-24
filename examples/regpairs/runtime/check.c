@@ -20,6 +20,7 @@ extern uint64_t ir_add_2x32(uint64_t, uint64_t);
 extern uint64_t unaligned_abi(uint32_t, uint64_t, uint64_t);
 extern uint64_t stress(const uint64_t *, const uint64_t *);
 extern int pair_alias_test(void);
+extern int pair_bit_checks(uint64_t,uint64_t);
 void opaque(void) { __asm__ volatile ("" ::: "memory"); }
 static uint32_t state = 0x12345678;
 static uint32_t next(void) {
@@ -41,7 +42,7 @@ static uint64_t packed_mul(uint64_t a, uint64_t b) {
     ((uint64_t)(uint32_t)((uint32_t)(a >> 32) * (uint32_t)(b >> 32)) << 32);
 }
 static int extra_checks(uint64_t a, uint64_t b) {
-  return sub64(a, b) != a - b || ir_sub64(a, b) != a - b ||
+  return pair_bit_checks(a,b) || sub64(a, b) != a - b || ir_sub64(a, b) != a - b ||
     automatic_sub64(a, b) != a - b ||
     sub_2x32(a, b) != packed_sub(a, b) || ir_sub_2x32(a, b) != packed_sub(a, b) ||
     automatic_sub_2x32(a, b) != packed_sub(a, b) ||

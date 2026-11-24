@@ -104,3 +104,32 @@ define <2 x i32> @shuffle(<2 x i32> %a, <2 x i32> %b) {
  ret <2 x i32> %r
 }
 define <2 x i32> @constant() { ret <2 x i32> <i32 123, i32 456> }
+
+; Keep bit-container conversions in registers while preserving the scalar ABI.
+; CHECK-LABEL: vector_bits_add:
+; CHECK: pair.add.2x32
+define i64 @vector_bits_add(i64 %a, i64 %b) {
+  %av = bitcast i64 %a to <2 x i32>
+  %bv = bitcast i64 %b to <2 x i32>
+  %sum = add <2 x i32> %av, %bv
+  %r = bitcast <2 x i32> %sum to i64
+  ret i64 %r
+}
+
+; CHECK-LABEL: scalar_bits_add:
+; CHECK: pair.add64
+define <2 x i32> @scalar_bits_add(<2 x i32> %a, <2 x i32> %b) {
+  %ai = bitcast <2 x i32> %a to i64
+  %bi = bitcast <2 x i32> %b to i64
+  %sum = add i64 %ai, %bi
+  %r = bitcast i64 %sum to <2 x i32>
+  ret <2 x i32> %r
+}
+
+; A leading scalar leaves the incoming vector in an odd ABI register position.
+; CHECK-LABEL: vector_call:
+; CHECK: call vector_add
+define <2 x i32> @vector_call(i32 %tag, <2 x i32> %a, <2 x i32> %b) {
+  %r = notail call <2 x i32> @vector_add(<2 x i32> %a, <2 x i32> %b)
+  ret <2 x i32> %r
+}

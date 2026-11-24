@@ -62,6 +62,20 @@ class CoreVConfigurationTests(unittest.TestCase):
             features.write_text("def FeatureGPR32V;\ndef FeatureGPR32VAdd;\n")
             self.assertFalse(patch.check_enabled(settings))
 
+    def test_dynamic_slice_patch_skips_dependencies_with_the_fix(self):
+        data = yaml.safe_load((ROOT / "cfg/corev.yml").read_text())
+        entry = next(p for p in data["patches"] if p["name"] == "corev_dynamic_slice_bounds")
+        dynamic_patch = PatchSettings(**entry)
+        with TemporaryDirectory() as directory:
+            deps = Path(directory)
+            source = deps / "cdsl2llvm/llvm/tools/pattern-gen/lib/Parser.cpp"
+            source.parent.mkdir(parents=True)
+            settings = SimpleNamespace(deps_dir=deps)
+            source.write_text("Value upper = ParseExpression(ts, func, build);\n")
+            self.assertTrue(dynamic_patch.check_enabled(settings))
+            source.write_text("Value upper = ParseExpression(ts, func, build);\npromote_lvalue(build, upper);\n")
+            self.assertFalse(dynamic_patch.check_enabled(settings))
+
     def test_feature_capacity_patch_preserves_larger_target_bitsets(self):
         data = yaml.safe_load((ROOT / "cfg/llvm23.yml").read_text())
         entry = next(p for p in data["patches"] if p["name"] == "corev_subtarget_feature_capacity")

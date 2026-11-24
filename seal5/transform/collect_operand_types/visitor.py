@@ -156,14 +156,15 @@ class CollectOperandTypesVisitor(ExprVisitor):
                 assert isinstance(op, model.Seal5ImmOperand)
                 ty = op.ty
                 width = ty.width
+                if expr.size is not None and expr.size != width:
+                    if expr.size < width:
+                        raise AssertionError("truncation not allowed here")
+                    # A widening cast describes the expression, not the encoded
+                    # immediate. Keep its width and source signedness: converting
+                    # unsigned<6> to signed<16> must not sign-extend bit 5.
+                    return expr
                 self._update_seal5_type(ty, expr.data_type)
                 op.ty = ty
-                if expr.size is not None:
-                    if width != expr.size:
-                        if expr.size < width:  # trunc!
-                            assert False, "truncation not allowed here"
-                        elif expr.size > width:  # zext/sext!
-                            assert False, "sign/zero extension not allowed here"
                 # print("op", name, op, type(op))
                 # if not isinstance(op, model.Seal5ImmOperand):
                 # op = model.Seal5ImmOperand(op.name, op.ty, op.attributes, op.constraints)

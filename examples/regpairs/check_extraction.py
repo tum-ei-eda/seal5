@@ -58,6 +58,14 @@ def main():
     old = "(a[(63):(32)]) - (b[(63):(32)])"
     assert text.count(old) == 1
     check("PAIR_SUB_2X32_reversed_high", text.replace(old, "(b[(63):(32)]) - (a[(63):(32)])"), False)
+    text = sources["PAIR_RORI64"]
+    for suffix, old, new in (
+        ("wrong_mask", "& (63)", "& (31)"),
+        ("wrong_complement", "(64) -", "(63) -"),
+        ("different_value", "((a) <<", "(((a) ^ (1)) <<"),
+    ):
+        assert old in text, old
+        check("PAIR_RORI64_" + suffix, text.replace(old, new), False)
     print(f"{len(records)} pair extraction checks passed")
 
 

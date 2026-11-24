@@ -195,7 +195,10 @@ def build_target_new(
     ret_str = "void"
     if intrinsic.ret_type:
         ret_str = ir_type_to_text(intrinsic.ret_type, signed=intrinsic.ret_signed, legacy=False)
-    args_str = ", ".join([ir_type_to_text(arg.arg_type, signed=arg.signed, legacy=False) for arg in intrinsic.args])
+    args_str = ", ".join(
+        ("_Constant " if arg.immediate else "") + ir_type_to_text(arg.arg_type, signed=arg.signed, legacy=False)
+        for arg in intrinsic.args
+    )
     prototype_str = f"{ret_str}({args_str})"
     features = [attr]
     if xlen is not None:

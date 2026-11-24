@@ -1,0 +1,70 @@
+{
+  "baseline_seal5": "a57ab31c913cd2c3b618d869e99ff3f1772a76b3",
+  "baseline_patterngen": "7649b4dd84de9ab18c17fd0989e13edf39fc03c3",
+  "derived_llvm": "32c961d9b615176ea9a48de4ca0fb16d122763ac",
+  "archived_attempt": "20261123T162843Z-65e500a2ff4b4cc89526ee83ced9f80a",
+  "change": "llvm22-dynamic-slice-bounds.patch",
+  "replayed_commands": 284,
+  "semantic_cases": 420,
+  "models": {
+    "XCoreVAlu": {
+      "successful": 31,
+      "failed": 0,
+      "skipped": 0,
+      "extracted_patterns": 379,
+      "newly_successful": [],
+      "lost_successes": [],
+      "assertions": 0
+    },
+    "XCoreVBitmanip": {
+      "successful": 4,
+      "failed": 1,
+      "skipped": 10,
+      "extracted_patterns": 5,
+      "newly_successful": [],
+      "lost_successes": [],
+      "assertions": 0
+    },
+    "XCoreVBranchImmediate": {
+      "successful": 2,
+      "failed": 0,
+      "skipped": 0,
+      "extracted_patterns": 2,
+      "newly_successful": [],
+      "lost_successes": [],
+      "assertions": 0
+    },
+    "XCoreVMac": {
+      "successful": 18,
+      "failed": 0,
+      "skipped": 0,
+      "extracted_patterns": 390,
+      "newly_successful": [],
+      "lost_successes": [],
+      "assertions": 0
+    },
+    "XCoreVMem": {
+      "successful": 8,
+      "failed": 0,
+      "skipped": 16,
+      "extracted_patterns": 8,
+      "newly_successful": [],
+      "lost_successes": [],
+      "assertions": 0
+    },
+    "XCoreVSimd": {
+      "successful": 124,
+      "failed": 96,
+      "skipped": 0,
+      "extracted_patterns": 184,
+      "newly_successful": [
+        "SEAL5_CV_EXTRACTU_B",
+        "SEAL5_CV_EXTRACTU_H",
+        "SEAL5_CV_EXTRACT_B",
+        "SEAL5_CV_EXTRACT_H"
+      ],
+      "lost_successes": [],
+      "assertions": 0
+    }
+  }
+}

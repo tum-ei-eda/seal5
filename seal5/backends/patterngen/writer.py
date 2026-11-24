@@ -58,6 +58,10 @@ def require_register_pair_feature(contents):
     for op in ("add", "sub", "mul"):
         if re.search(r"\(" + op + r"\s|riscv_seal5_" + op + "64", contents):
             required.append("HasSeal5RegPair32" + op.title())
+    if re.search(r"riscv_seal5_(?:xor|and)64", contents):
+        required.append("HasSeal5RegPair32Logic")
+    if re.search(r"riscv_seal5_(?:sll|srl|sra|ror)64", contents):
+        required.append("HasSeal5RegPair32Shift")
     predicates = re.search(r"let Predicates = \[(.*?)\] in \{", contents)
     if predicates is None:
         return "let Predicates = [" + ", ".join(required) + "] in {\n" + contents + "\n}\n"

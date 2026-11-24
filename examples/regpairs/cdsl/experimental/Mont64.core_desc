@@ -1,0 +1,40 @@
+import "../RegPairs.core_desc"
+
+// Experimental specification matching benchmark/mont64-spike.cc.
+// Not included in regpairs.yml: compiler generation has not been validated.
+InstructionSet XMont64Prototype extends XRegPairs {
+  instructions {
+    PAIR_FSL1_64 {
+      encoding: 7'd0 :: rs2[4:0] :: rs1[4:0] :: 3'd0 :: rd[4:0] :: 7'b1011011;
+      assembly: {"pair.fsl1.64", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: {
+        if (((rd | rs1 | rs2) & 1) != 0) {
+          raise(0, RV_CAUSE_ILLEGAL_INSTRUCTION);
+        } else {
+          unsigned<64> a = 0;
+          unsigned<64> b = 0;
+          if (rs1 != 0) a = XP[rs1];
+          if (rs2 != 0) b = XP[rs2];
+          unsigned<64> result = (unsigned<64>)((a << 1) | (b >> 63));
+          if (rd != 0) XP[rd] = result;
+        }
+      }
+    }
+    PAIR_GEU64 {
+      encoding: 7'd0 :: rs2[4:0] :: rs1[4:0] :: 3'd1 :: rd[4:0] :: 7'b1011011;
+      assembly: {"pair.geu64", "{name(rd)}, {name(rs1)}, {name(rs2)}"};
+      behavior: {
+        // The result is scalar: odd rd is legal and rd+1 is untouched.
+        if (((rs1 | rs2) & 1) != 0) {
+          raise(0, RV_CAUSE_ILLEGAL_INSTRUCTION);
+        } else {
+          unsigned<64> a = 0;
+          unsigned<64> b = 0;
+          if (rs1 != 0) a = XP[rs1];
+          if (rs2 != 0) b = XP[rs2];
+          if (rd != 0) X[rd] = (unsigned<32>)(a >= b);
+        }
+      }
+    }
+  }
+}

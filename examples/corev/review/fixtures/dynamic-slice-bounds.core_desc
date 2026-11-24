@@ -1,0 +1,50 @@
+// SPDX-License-Identifier: Apache-2.0
+InstructionSet SliceBounds {
+    instructions {
+        SLICE_LOCAL_SIGNED [[has_side_effects]] [[llvm_instr="SLICE_LOCAL_SIGNED"]] {
+            operands: {
+                unsigned<5> rd [[is_reg]] [[out]];
+                unsigned<5> rs1 [[is_reg]] [[in]];
+                unsigned<1> Imm6 [[is_imm]] [[in]] [[llvm_type=seal5_uimm1]];
+            }
+            encoding: 5'b10111 :: 1'b0 :: Imm6[0:0] :: 5'b00000 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"seal5.cv.extract.h", "{name(rd)}, {name(rs1)}, {Imm6}"};
+            behavior: {
+                {
+                    unsigned<5> base = (unsigned<5>)((Imm6) * (16));
+                    X[rd] = (unsigned<32>)((signed<16>)(X[rs1][base +: 16]));
+                }
+            }
+        }
+        SLICE_LOCAL_UNSIGNED [[has_side_effects]] [[llvm_instr="SLICE_LOCAL_UNSIGNED"]] {
+            operands: {
+                unsigned<5> rd [[is_reg]] [[out]];
+                unsigned<5> rs1 [[is_reg]] [[in]];
+                unsigned<1> Imm6 [[is_imm]] [[in]] [[llvm_type=seal5_uimm1]];
+            }
+            encoding: 5'b10111 :: 1'b0 :: Imm6[0:0] :: 5'b00000 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"seal5.cv.extract.h", "{name(rd)}, {name(rs1)}, {Imm6}"};
+            behavior: {
+                {
+                    unsigned<5> base = (unsigned<5>)((Imm6) * (16));
+                    X[rd] = (unsigned<32>)((unsigned<16>)(X[rs1][base +: 16]));
+                }
+            }
+        }
+        SLICE_WIDE_BOUND [[has_side_effects]] [[llvm_instr="SLICE_WIDE_BOUND"]] {
+            operands: {
+                unsigned<5> rd [[is_reg]] [[out]];
+                unsigned<5> rs1 [[is_reg]] [[in]];
+                unsigned<1> Imm6 [[is_imm]] [[in]] [[llvm_type=seal5_uimm1]];
+            }
+            encoding: 5'b10111 :: 1'b0 :: Imm6[0:0] :: 5'b00000 :: rs1[4:0] :: 3'b000 :: rd[4:0] :: 7'b1111011;
+            assembly: {"seal5.cv.extract.h", "{name(rd)}, {name(rs1)}, {Imm6}"};
+            behavior: {
+                {
+                    unsigned<64> base = (unsigned<64>)((Imm6) * (16));
+                    X[rd] = (unsigned<32>)((unsigned<16>)(X[rs1][base +: 16]));
+                }
+            }
+        }
+    }
+}

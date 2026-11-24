@@ -1,0 +1,232 @@
+{
+  "source_sha256": "f031e4397aab648361e82eb6d798ff620551c412136fa5f903e4d821677aa2dc",
+  "compiler_version": "clang version 23.1.3 (/tmp/cdsl2llvm-llvm23-gisel-port f3e4c5705c2da4ecadc2babeae356e2960220293)",
+  "selection": "Explicit scalar C/IR insertion; automatic SelectionDAG for regpairs",
+  "measurement": "Retired instructions; one verified SHA-512 abc compression call",
+  "records": [
+    {
+      "label": "default-O2-baseline",
+      "instructions": 14293,
+      "sha512_instructions": 0,
+      "static_scalar_custom": 0,
+      "static_custom_using_odd_registers": 0,
+      "digest_verified": true
+    },
+    {
+      "label": "default-O2-zbb",
+      "instructions": 14304,
+      "sha512_instructions": 0,
+      "static_scalar_custom": 0,
+      "static_custom_using_odd_registers": 0,
+      "digest_verified": true
+    },
+    {
+      "label": "default-O2-funnel",
+      "instructions": 11366,
+      "sha512_instructions": 0,
+      "static_scalar_custom": 104,
+      "static_custom_using_odd_registers": 98,
+      "digest_verified": true
+    },
+    {
+      "label": "default-O2-funnel-add3",
+      "instructions": 10606,
+      "sha512_instructions": 0,
+      "static_scalar_custom": 171,
+      "static_custom_using_odd_registers": 164,
+      "digest_verified": true
+    },
+    {
+      "label": "default-O2-sha512",
+      "instructions": 8802,
+      "sha512_instructions": 37,
+      "static_scalar_custom": 0,
+      "static_custom_using_odd_registers": 0,
+      "digest_verified": true
+    },
+    {
+      "label": "default-O2-sha512-add3",
+      "instructions": 8322,
+      "sha512_instructions": 37,
+      "static_scalar_custom": 84,
+      "static_custom_using_odd_registers": 81,
+      "digest_verified": true
+    },
+    {
+      "label": "default-O2-pairs",
+      "instructions": 7989,
+      "sha512_instructions": 0,
+      "static_scalar_custom": 0,
+      "static_custom_using_odd_registers": 0,
+      "digest_verified": true
+    },
+    {
+      "label": "default-O3-baseline",
+      "instructions": 14293,
+      "sha512_instructions": 0,
+      "static_scalar_custom": 0,
+      "static_custom_using_odd_registers": 0,
+      "digest_verified": true
+    },
+    {
+      "label": "default-O3-zbb",
+      "instructions": 14304,
+      "sha512_instructions": 0,
+      "static_scalar_custom": 0,
+      "static_custom_using_odd_registers": 0,
+      "digest_verified": true
+    },
+    {
+      "label": "default-O3-funnel",
+      "instructions": 11366,
+      "sha512_instructions": 0,
+      "static_scalar_custom": 104,
+      "static_custom_using_odd_registers": 98,
+      "digest_verified": true
+    },
+    {
+      "label": "default-O3-funnel-add3",
+      "instructions": 10606,
+      "sha512_instructions": 0,
+      "static_scalar_custom": 171,
+      "static_custom_using_odd_registers": 164,
+      "digest_verified": true
+    },
+    {
+      "label": "default-O3-sha512",
+      "instructions": 8802,
+      "sha512_instructions": 37,
+      "static_scalar_custom": 0,
+      "static_custom_using_odd_registers": 0,
+      "digest_verified": true
+    },
+    {
+      "label": "default-O3-sha512-add3",
+      "instructions": 8322,
+      "sha512_instructions": 37,
+      "static_scalar_custom": 84,
+      "static_custom_using_odd_registers": 81,
+      "digest_verified": true
+    },
+    {
+      "label": "default-O3-pairs",
+      "instructions": 7989,
+      "sha512_instructions": 0,
+      "static_scalar_custom": 0,
+      "static_custom_using_odd_registers": 0,
+      "digest_verified": true
+    },
+    {
+      "label": "small-O2-baseline",
+      "instructions": 17217,
+      "sha512_instructions": 0,
+      "static_scalar_custom": 0,
+      "static_custom_using_odd_registers": 0,
+      "digest_verified": true
+    },
+    {
+      "label": "small-O2-zbb",
+      "instructions": 17217,
+      "sha512_instructions": 0,
+      "static_scalar_custom": 0,
+      "static_custom_using_odd_registers": 0,
+      "digest_verified": true
+    },
+    {
+      "label": "small-O2-funnel",
+      "instructions": 14115,
+      "sha512_instructions": 0,
+      "static_scalar_custom": 20,
+      "static_custom_using_odd_registers": 20,
+      "digest_verified": true
+    },
+    {
+      "label": "small-O2-funnel-add3",
+      "instructions": 13355,
+      "sha512_instructions": 0,
+      "static_scalar_custom": 38,
+      "static_custom_using_odd_registers": 38,
+      "digest_verified": true
+    },
+    {
+      "label": "small-O2-sha512",
+      "instructions": 11555,
+      "sha512_instructions": 9,
+      "static_scalar_custom": 0,
+      "static_custom_using_odd_registers": 0,
+      "digest_verified": true
+    },
+    {
+      "label": "small-O2-sha512-add3",
+      "instructions": 11242,
+      "sha512_instructions": 9,
+      "static_scalar_custom": 21,
+      "static_custom_using_odd_registers": 20,
+      "digest_verified": true
+    },
+    {
+      "label": "small-O2-pairs",
+      "instructions": 10427,
+      "sha512_instructions": 0,
+      "static_scalar_custom": 0,
+      "static_custom_using_odd_registers": 0,
+      "digest_verified": true
+    },
+    {
+      "label": "small-O3-baseline",
+      "instructions": 17217,
+      "sha512_instructions": 0,
+      "static_scalar_custom": 0,
+      "static_custom_using_odd_registers": 0,
+      "digest_verified": true
+    },
+    {
+      "label": "small-O3-zbb",
+      "instructions": 17217,
+      "sha512_instructions": 0,
+      "static_scalar_custom": 0,
+      "static_custom_using_odd_registers": 0,
+      "digest_verified": true
+    },
+    {
+      "label": "small-O3-funnel",
+      "instructions": 14115,
+      "sha512_instructions": 0,
+      "static_scalar_custom": 20,
+      "static_custom_using_odd_registers": 20,
+      "digest_verified": true
+    },
+    {
+      "label": "small-O3-funnel-add3",
+      "instructions": 13355,
+      "sha512_instructions": 0,
+      "static_scalar_custom": 38,
+      "static_custom_using_odd_registers": 38,
+      "digest_verified": true
+    },
+    {
+      "label": "small-O3-sha512",
+      "instructions": 11555,
+      "sha512_instructions": 9,
+      "static_scalar_custom": 0,
+      "static_custom_using_odd_registers": 0,
+      "digest_verified": true
+    },
+    {
+      "label": "small-O3-sha512-add3",
+      "instructions": 11242,
+      "sha512_instructions": 9,
+      "static_scalar_custom": 21,
+      "static_custom_using_odd_registers": 20,
+      "digest_verified": true
+    },
+    {
+      "label": "small-O3-pairs",
+      "instructions": 10427,
+      "sha512_instructions": 0,
+      "static_scalar_custom": 0,
+      "static_custom_using_odd_registers": 0,
+      "digest_verified": true
+    }
+  ]
+}

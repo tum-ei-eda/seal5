@@ -1,0 +1,106 @@
+{
+  "scope": "Explicit prototypes in modul64 only, using allocator-selected even/odd pairs",
+  "records": [
+    {
+      "label": "O2-control",
+      "instructions": 4117602,
+      "benchmark_verified": true,
+      "semantic_checks": 1024
+    },
+    {
+      "label": "O2-funnel",
+      "instructions": 3305442,
+      "benchmark_verified": true,
+      "semantic_checks": 1024
+    },
+    {
+      "label": "O2-compare",
+      "instructions": 4114217,
+      "benchmark_verified": true,
+      "semantic_checks": 1024
+    },
+    {
+      "label": "O2-both",
+      "instructions": 3302057,
+      "benchmark_verified": true,
+      "semantic_checks": 1024
+    },
+    {
+      "label": "O3-control",
+      "instructions": 4101951,
+      "benchmark_verified": true,
+      "semantic_checks": 1024
+    },
+    {
+      "label": "O3-funnel",
+      "instructions": 3289791,
+      "benchmark_verified": true,
+      "semantic_checks": 1024
+    },
+    {
+      "label": "O3-compare",
+      "instructions": 4098566,
+      "benchmark_verified": true,
+      "semantic_checks": 1024
+    },
+    {
+      "label": "O3-both",
+      "instructions": 3286406,
+      "benchmark_verified": true,
+      "semantic_checks": 1024
+    }
+  ],
+  "fixed_register_exploration": {
+    "scope": "Explicit prototypes in modul64 only; fixed-register move overhead included",
+    "records": [
+      {
+        "label": "O2-control",
+        "instructions": 4117602,
+        "benchmark_verified": true,
+        "semantic_checks": 1024
+      },
+      {
+        "label": "O2-funnel",
+        "instructions": 3629458,
+        "benchmark_verified": true,
+        "semantic_checks": 1024
+      },
+      {
+        "label": "O2-compare",
+        "instructions": 4439503,
+        "benchmark_verified": true,
+        "semantic_checks": 1024
+      },
+      {
+        "label": "O2-both",
+        "instructions": 4926375,
+        "benchmark_verified": true,
+        "semantic_checks": 1024
+      },
+      {
+        "label": "O3-control",
+        "instructions": 4101951,
+        "benchmark_verified": true,
+        "semantic_checks": 1024
+      },
+      {
+        "label": "O3-funnel",
+        "instructions": 3613808,
+        "benchmark_verified": true,
+        "semantic_checks": 1024
+      },
+      {
+        "label": "O3-compare",
+        "instructions": 4423852,
+        "benchmark_verified": true,
+        "semantic_checks": 1024
+      },
+      {
+        "label": "O3-both",
+        "instructions": 4910724,
+        "benchmark_verified": true,
+        "semantic_checks": 1024
+      }
+    ]
+  }
+}

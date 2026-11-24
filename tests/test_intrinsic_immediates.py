@@ -4,7 +4,7 @@
 from types import SimpleNamespace
 import unittest
 
-from seal5.backends.riscv_intrinsics.writer import build_attr
+from seal5.backends.riscv_intrinsics.writer import build_attr, build_target_new
 from seal5.backends.riscv_instr_info.writer import gen_intrinsic_pattern
 from seal5.settings import ExtensionsSettings, IntrinsicDefn, IntrinsicArg
 
@@ -26,6 +26,11 @@ class IntrinsicImmediateTests(unittest.TestCase):
         text = build_attr("test", self.intrinsic())
         self.assertIn("ImmArg<ArgIndex<0>>", text)
         self.assertNotIn("ImmArg<ArgIndex<1>>", text)
+
+    def test_clang_builtin_requires_a_constant_immediate(self):
+        text = build_target_new("test", "xtest", self.intrinsic(), xlen=32)
+        self.assertIn("_Constant uint32_t", text)
+        self.assertNotIn("_Constant uint32_t, _Constant", text)
 
     def test_intrinsic_order_is_independent_of_assembly_order(self):
         instr = SimpleNamespace(

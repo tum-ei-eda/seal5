@@ -1,0 +1,178 @@
+{
+  "source_sha256": "f031e4397aab648361e82eb6d798ff620551c412136fa5f903e4d821677aa2dc",
+  "records": [
+    {
+      "label": "default-O2-baseline",
+      "instructions": 15451,
+      "static_pair_instructions": 0,
+      "pair_instruction_counts": {
+        "add64": 0,
+        "xor64": 0,
+        "and64": 0,
+        "slli64": 0,
+        "srli64": 0,
+        "srai64": 0,
+        "rori64": 0
+      }
+    },
+    {
+      "label": "default-O2-add-only",
+      "instructions": 12766,
+      "static_pair_instructions": 67,
+      "pair_instruction_counts": {
+        "add64": 67,
+        "xor64": 0,
+        "and64": 0,
+        "slli64": 0,
+        "srli64": 0,
+        "srai64": 0,
+        "rori64": 0
+      }
+    },
+    {
+      "label": "default-O2-full",
+      "instructions": 7813,
+      "static_pair_instructions": 204,
+      "pair_instruction_counts": {
+        "add64": 67,
+        "xor64": 52,
+        "and64": 24,
+        "slli64": 7,
+        "srli64": 2,
+        "srai64": 0,
+        "rori64": 52
+      }
+    },
+    {
+      "label": "default-O3-baseline",
+      "instructions": 15451,
+      "static_pair_instructions": 0,
+      "pair_instruction_counts": {
+        "add64": 0,
+        "xor64": 0,
+        "and64": 0,
+        "slli64": 0,
+        "srli64": 0,
+        "srai64": 0,
+        "rori64": 0
+      }
+    },
+    {
+      "label": "default-O3-add-only",
+      "instructions": 12766,
+      "static_pair_instructions": 67,
+      "pair_instruction_counts": {
+        "add64": 67,
+        "xor64": 0,
+        "and64": 0,
+        "slli64": 0,
+        "srli64": 0,
+        "srai64": 0,
+        "rori64": 0
+      }
+    },
+    {
+      "label": "default-O3-full",
+      "instructions": 7813,
+      "static_pair_instructions": 204,
+      "pair_instruction_counts": {
+        "add64": 67,
+        "xor64": 52,
+        "and64": 24,
+        "slli64": 7,
+        "srli64": 2,
+        "srai64": 0,
+        "rori64": 52
+      }
+    },
+    {
+      "label": "small-O2-baseline",
+      "instructions": 17938,
+      "static_pair_instructions": 0,
+      "pair_instruction_counts": {
+        "add64": 0,
+        "xor64": 0,
+        "and64": 0,
+        "slli64": 0,
+        "srli64": 0,
+        "srai64": 0,
+        "rori64": 0
+      }
+    },
+    {
+      "label": "small-O2-add-only",
+      "instructions": 16458,
+      "static_pair_instructions": 18,
+      "pair_instruction_counts": {
+        "add64": 18,
+        "xor64": 0,
+        "and64": 0,
+        "slli64": 0,
+        "srli64": 0,
+        "srai64": 0,
+        "rori64": 0
+      }
+    },
+    {
+      "label": "small-O2-full",
+      "instructions": 10829,
+      "static_pair_instructions": 50,
+      "pair_instruction_counts": {
+        "add64": 18,
+        "xor64": 10,
+        "and64": 3,
+        "slli64": 7,
+        "srli64": 2,
+        "srai64": 0,
+        "rori64": 10
+      }
+    },
+    {
+      "label": "small-O3-baseline",
+      "instructions": 17938,
+      "static_pair_instructions": 0,
+      "pair_instruction_counts": {
+        "add64": 0,
+        "xor64": 0,
+        "and64": 0,
+        "slli64": 0,
+        "srli64": 0,
+        "srai64": 0,
+        "rori64": 0
+      }
+    },
+    {
+      "label": "small-O3-add-only",
+      "instructions": 16458,
+      "static_pair_instructions": 18,
+      "pair_instruction_counts": {
+        "add64": 18,
+        "xor64": 0,
+        "and64": 0,
+        "slli64": 0,
+        "srli64": 0,
+        "srai64": 0,
+        "rori64": 0
+      }
+    },
+    {
+      "label": "small-O3-full",
+      "instructions": 10829,
+      "static_pair_instructions": 50,
+      "pair_instruction_counts": {
+        "add64": 18,
+        "xor64": 10,
+        "and64": 3,
+        "slli64": 7,
+        "srli64": 2,
+        "srai64": 0,
+        "rori64": 10
+      }
+    }
+  ],
+  "llvm_major": 22,
+  "source": "https://github.com/Mbed-TLS/mbedtls/blob/mbedtls-2.28.10/library/sha512.c",
+  "measurement": "Retired instructions for one SHA-512 compression call, including common zeroization",
+  "all_digest_checks_passed": true,
+  "compiler_version": "clang version 22.1.8 (/work/git/CoreDSL2LLVM 6f46b843e76fa147a62828bd95855d526cb0c1df)"
+}

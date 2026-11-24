@@ -20,3 +20,16 @@ pair.sub.2x32 x10, x13, x14
 
 pair.mul.2x32 x10, x13, x14
 # CHECK: error: {{.*}}even{{.*}}
+
+pair.xor64 x11, x12, x14
+# CHECK: error: {{.*}}even{{.*}}
+pair.and64 x10, x13, x14
+# CHECK: error: {{.*}}even{{.*}}
+pair.slli64 x10, x13, 1
+# CHECK: error: {{.*}}even{{.*}}
+pair.srli64 x11, x12, 32
+# CHECK: error: {{.*}}even{{.*}}
+pair.srai64 x10, x12, -1
+# CHECK: error:
+pair.rori64 x10, x12, 64
+# CHECK: error:

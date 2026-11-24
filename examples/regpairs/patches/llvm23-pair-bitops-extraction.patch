@@ -1,0 +1,136 @@
+--- a/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp
++++ b/llvm/lib/CodeGen/GlobalISel/PatternGen.cpp
+@@ -268,6 +268,8 @@
+   virtual ~PatternNode() {}
+ };
+ 
++static PatternNode *pairCount(PatternNode *N);
++
+ struct NOpNode : public PatternNode {
+   int Op;
+   std::vector<std::unique_ptr<PatternNode>> Operands;
+@@ -404,6 +406,9 @@
+         Second(std::move(Second)), Third(std::move(Third)) {}
+ 
+   std::string patternString() override {
++    if (XLen == 32 && Type == LLT::scalar(64) && Op == TargetOpcode::G_FSHR)
++      return "(riscv_seal5_ror64 " + First->patternString() + ", " +
++             pairCount(Third.get())->patternString() + ")";
+     static const std::unordered_map<int, std::string> TernopStr = {
+         {TargetOpcode::G_FSHL, "fshl"},
+         {TargetOpcode::G_FSHR, "fshr"},
+@@ -447,11 +452,16 @@
+         Right(std::move(Right)) {}
+ 
+   std::string patternString() override {
+-    if (XLen == 32 && Type == LLT::scalar(64) &&
+-        (Op == TargetOpcode::G_ADD || Op == TargetOpcode::G_SUB))
+-      return std::string(Op == TargetOpcode::G_ADD ? "(riscv_seal5_add64 "
+-                                                   : "(riscv_seal5_sub64 ") +
+-             Left->patternString() + ", " + Right->patternString() + ")";
++    if (XLen == 32 && Type == LLT::scalar(64)) {
++      static const std::unordered_map<int, std::string> PairOps = {
++        {TargetOpcode::G_ADD, "add"}, {TargetOpcode::G_SUB, "sub"},
++        {TargetOpcode::G_XOR, "xor"}, {TargetOpcode::G_AND, "and"},
++        {TargetOpcode::G_SHL, "sll"}, {TargetOpcode::G_LSHR, "srl"},
++        {TargetOpcode::G_ASHR, "sra"}, {TargetOpcode::G_ROTR, "ror"}};
++      if (auto I = PairOps.find(Op); I != PairOps.end())
++        return "(riscv_seal5_" + I->second + "64 " + Left->patternString() +
++               ", " + pairCount(Right.get())->patternString() + ")";
++    }
+     static const std::unordered_map<int, std::string> BinopStr = {
+         {TargetOpcode::G_ADD, "add"},
+         {TargetOpcode::G_PTR_ADD, "ptradd"},
+@@ -758,6 +768,75 @@
+     return Pat->getKind() == PN_Register;
+   }
+ };
++
++static PatternNode *pairCount(PatternNode *N) {
++  while (auto *U = dyn_cast<UnopNode>(N)) {
++    if (U->Op != TargetOpcode::G_ZEXT && U->Op != TargetOpcode::G_ANYEXT &&
++        U->Op != TargetOpcode::G_TRUNC) break;
++    N = U->Operand.get();
++  }
++  return N;
++}
++
++static bool validScalarPairPattern(PatternNode *N) {
++  auto Pair = [](PatternNode *P) {
++    auto *R = dyn_cast<RegisterNode>(P);
++    return R && !R->IsImm && R->llvm_type == "GPRPair";
++  };
++  auto Count = [](PatternNode *P) {
++    auto *R = dyn_cast<RegisterNode>(pairCount(P));
++    return R && R->IsImm && R->Size == 6;
++  };
++  if (auto *B = dyn_cast<BinopNode>(N)) {
++    if (!Pair(B->Left.get())) return false;
++    switch (B->Op) {
++    case TargetOpcode::G_ADD: case TargetOpcode::G_SUB:
++    case TargetOpcode::G_XOR: case TargetOpcode::G_AND:
++      return Pair(B->Right.get());
++    case TargetOpcode::G_SHL: case TargetOpcode::G_LSHR:
++    case TargetOpcode::G_ASHR: case TargetOpcode::G_ROTR:
++      return Count(B->Right.get());
++    default: return false;
++    }
++  }
++  if (auto *T = dyn_cast<TernopNode>(N))
++    return T->Op == TargetOpcode::G_FSHR && Pair(T->First.get()) &&
++           Pair(T->Second.get()) &&
++           cast<RegisterNode>(*T->First).RegIdx == cast<RegisterNode>(*T->Second).RegIdx &&
++           Count(T->Third.get());
++  return false;
++}
++
++// Recognize x >> n | x << ((-n) & 63) only for the same complete pair
++// and a six-bit immediate. Keeping the mask proves defined behavior at n == 0.
++static std::unique_ptr<PatternNode> pairRotateRight(PatternNode *N) {
++  auto *Or = dyn_cast<BinopNode>(N);
++  if (!Or || Or->Op != TargetOpcode::G_OR || N->Type != LLT::scalar(64))
++    return nullptr;
++  auto *Right = dyn_cast<BinopNode>(Or->Left.get());
++  auto *Left = dyn_cast<BinopNode>(Or->Right.get());
++  if (Right && Right->Op == TargetOpcode::G_SHL) std::swap(Right, Left);
++  if (!Right || !Left || Right->Op != TargetOpcode::G_LSHR ||
++      Left->Op != TargetOpcode::G_SHL) return nullptr;
++  auto *A = dyn_cast<RegisterNode>(Right->Left.get());
++  auto *B = dyn_cast<RegisterNode>(Left->Left.get());
++  auto *Count = dyn_cast<RegisterNode>(pairCount(Right->Right.get()));
++  if (!A || !B || A->IsImm || B->IsImm || A->llvm_type != "GPRPair" ||
++      B->llvm_type != "GPRPair" || A->RegIdx != B->RegIdx ||
++      !Count || !Count->IsImm || Count->Size != 6) return nullptr;
++  auto *Mask = dyn_cast<BinopNode>(pairCount(Left->Right.get()));
++  if (!Mask || Mask->Op != TargetOpcode::G_AND) return nullptr;
++  auto *C = dyn_cast<ConstantNode>(Mask->Right.get());
++  auto *Neg = dyn_cast<BinopNode>(Mask->Left.get());
++  if (!C || C->Constant != 63 || !Neg || Neg->Op != TargetOpcode::G_SUB)
++    return nullptr;
++  auto *Zero = dyn_cast<ConstantNode>(Neg->Left.get());
++  auto *Other = dyn_cast<RegisterNode>(pairCount(Neg->Right.get()));
++  if (!Zero || Zero->Constant != 0 || !Other || !Other->IsImm ||
++      Other->Size != 6 || Other->RegIdx != Count->RegIdx) return nullptr;
++  return std::make_unique<BinopNode>(LLT::scalar(64), TargetOpcode::G_ROTR,
++                                   std::move(Right->Left), std::move(Right->Right));
++}
+ 
+ struct LoadNode : public PatternNode {
+ 
+@@ -1788,12 +1867,10 @@
+     return true;
+   }
+ 
+-  if (IsPair && Node->Type == LLT::scalar(64) &&
+-      (!isa<BinopNode>(Node.get()) ||
+-       (cast<BinopNode>(*Node).Op != TargetOpcode::G_ADD &&
+-        cast<BinopNode>(*Node).Op != TargetOpcode::G_SUB) ||
+-       !isa<RegisterNode>(cast<BinopNode>(*Node).Left.get()) ||
+-       !isa<RegisterNode>(cast<BinopNode>(*Node).Right.get()))) {
++  if (IsPair)
++    if (auto Rotate = pairRotateRight(Node.get())) Node = std::move(Rotate);
++
++  if (IsPair && Node->Type == LLT::scalar(64) && !validScalarPairPattern(Node.get())) {
+     errs() << "Pattern Generation failed for " << MF.getName()
+            << ": unsupported scalar pair expression\n";
+     ++PatternGenNumInstructionsFailing;

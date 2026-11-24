@@ -1,0 +1,27 @@
+--- a/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
++++ b/llvm/lib/Target/RISCV/RISCVISelLowering.cpp
+@@ -15608,6 +15608,13 @@
+       if (Subtarget.hasSeal5RegPair32Logic()) PairOpc = RISCVISD::SEAL5_XOR64;
+       break;
+     case ISD::AND:
++      // Keep a zero word visible to legalization and demanded-bits combines.
++      // An opaque pair node would turn a masked 32x32 multiply into a full
++      // 64x64 multiply, and materialize masks that scalar expansion folds away.
++      if (auto *Mask = dyn_cast<ConstantSDNode>(N->getOperand(1))) {
++        uint64_t Bits = Mask->getZExtValue();
++        if (!(Bits >> 32) || !(Bits & 0xffffffffULL)) return;
++      }
+       if (Subtarget.hasSeal5RegPair32Logic()) PairOpc = RISCVISD::SEAL5_AND64;
+       break;
+     case ISD::SHL: case ISD::SRL: case ISD::SRA: case ISD::ROTR: case ISD::ROTL:
+@@ -15618,6 +15625,10 @@
+         if (N->getOpcode() == ISD::ROTR || N->getOpcode() == ISD::ROTL)
+           Count &= 63;
+         if (Count >= 64) return;
++        // Shifts confined to one word are cheaper as scalar operations and
++        // preserve known zeros/sign bits for subsequent arithmetic.
++        if (Count >= 32 && N->getOpcode() != ISD::ROTR &&
++            N->getOpcode() != ISD::ROTL) return;
+         if (N->getOpcode() == ISD::ROTL) Count = (-Count) & 63;
+         switch (N->getOpcode()) {
+         case ISD::SHL: PairOpc = RISCVISD::SEAL5_SLL64; break;
