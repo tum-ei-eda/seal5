@@ -309,3 +309,8 @@ The marker plugin is built by `examples/packed_simd/execute.py`; the pair plugin
 is built by this example's `execute.py`. Results include the source SHA-256,
 per-variant logs and disassembly. Spike reports retired instructions; these
 measurements do not establish hardware cycle speedups or instruction latency.
+
+A [comparison with scalar RV32 alternatives](results/scalar32-comparison.md)
+measures generic funnel shifts/ADD3 and specialized RV32 SHA-512 instructions
+without register pairs. These scalar variants use explicit C/IR instruction
+insertion; they do not yet have automatic Seal5 selection.
