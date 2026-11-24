@@ -314,3 +314,9 @@ A [comparison with scalar RV32 alternatives](results/scalar32-comparison.md)
 measures generic funnel shifts/ADD3 and specialized RV32 SHA-512 instructions
 without register pairs. These scalar variants use explicit C/IR instruction
 insertion; they do not yet have automatic Seal5 selection.
+
+The [aha-mont64 follow-up](results/mont64.md) measures the expanded extension,
+profiles the remaining hotspots, and fixes automatic selection of pair masks
+and shifts that are cheaper as scalar word operations. The ISA and explicit
+builtin coverage remain the same; automatic shifts with counts >=32 and AND
+masks with a zero word use scalar legalization to preserve known bits.
