@@ -146,6 +146,24 @@ def fix_pattern_gen_slice_indices(source: str) -> str:
             + anchor,
             1,
         )
+    # A dynamic slice still addresses the original, naturally aligned storage.
+    # Its logical width is only the extracted result width. Using that width's
+    # alignment makes RV32 legalization split the synthetic register load into
+    # byte loads, which PatternGen can mistake for real memory operands.
+    source = source.replace(
+        "llvm::Align(ceil_to_pow2(v.bitWidth) / 8)",
+        "llvm::Align(ceil_to_pow2(v.sliceOffset ? v.sliceStorageWidth : v.bitWidth) / 8)",
+    )
+    source = source.replace(
+        "build.CreateAlignedLoad(storageTy, left.ll, llvm::Align(1))",
+        "build.CreateAlignedLoad(storageTy, left.ll, "
+        "llvm::Align(ceil_to_pow2(left.sliceStorageWidth) / 8))",
+    )
+    source = source.replace(
+        "build.CreateAlignedStore(merged, left.ll, llvm::Align(1))",
+        "build.CreateAlignedStore(merged, left.ll, "
+        "llvm::Align(ceil_to_pow2(left.sliceStorageWidth) / 8))",
+    )
     return source
 
 
