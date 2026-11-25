@@ -91,3 +91,65 @@ def test_slice_semantics_with_pattern_gen(tmp_path):
             body = re.search(r"define [^@]*@" + name + r"\(\).*?^}", result, re.M | re.S)[0]
             value = re.search(r"ret i32 (-?\d+)", body)
             assert value and int(value[1]) & 0xFFFFFFFF == expected, body
+
+
+def test_dynamic_slice_keeps_backing_storage_alignment():
+    source = """struct Value {
+  bool isLValue;
+};
+void promote_lvalue(llvm::IRBuilder<> &build, Value &v) {
+  v.ll = build.CreateAlignedLoad(
+      llvm::Type::getIntNTy(build.getContext(), v.bitWidth), v.ll,
+      llvm::Align(ceil_to_pow2(v.bitWidth) / 8), v.ll->getName() + ".v");
+  v.isLValue = false;
+}
+  Value upper = ParseExpression(ts, func, build);
+  if (left.isLValue && alignedLower &&
+  build.CreateAlignedStore(right.ll, left.ll,
+"""
+    fixed = fix_pattern_gen_slice_indices(source)
+    assert "v.sliceOffset ? v.sliceStorageWidth : v.bitWidth" in fixed
+    assert "llvm::Align(ceil_to_pow2(v.sliceOffset ? v.sliceStorageWidth : v.bitWidth) / 8)" in fixed
+    assert "build.CreateAlignedLoad(storageTy, left.ll, llvm::Align(ceil_to_pow2(left.sliceStorageWidth) / 8))" in fixed
+    assert "build.CreateAlignedStore(merged, left.ll, llvm::Align(ceil_to_pow2(left.sliceStorageWidth) / 8))" in fixed
+    assert fix_pattern_gen_slice_indices(fixed) == fixed
+    # Also repair a parser already processed by the previous adapter version.
+    old = fixed.replace(
+        "llvm::Align(ceil_to_pow2(v.sliceOffset ? v.sliceStorageWidth : v.bitWidth) / 8)",
+        "llvm::Align(ceil_to_pow2(v.bitWidth) / 8)",
+    ).replace("llvm::Align(ceil_to_pow2(left.sliceStorageWidth) / 8)", "llvm::Align(1)")
+    assert fix_pattern_gen_slice_indices(old) == fixed
+
+
+def test_dynamic_extract_pattern_has_no_synthetic_byte_loads(tmp_path):
+    """Fresh pattern generation must keep a dynamic slice a register operation."""
+    import os
+    import subprocess
+    from pathlib import Path
+    import pytest
+
+    bindir = os.environ.get("SEAL5_PATTERN_GEN_BIN")
+    if not bindir:
+        pytest.skip("set SEAL5_PATTERN_GEN_BIN to run compiler integration tests")
+    source = Path(__file__).parent / "fixtures/pattern_gen/extract_unaligned.core_desc"
+    output = tmp_path / "extract.td"
+    subprocess.run(
+        [
+            str(Path(bindir) / "pattern-gen"),
+            str(source),
+            "-o",
+            str(output),
+            "--riscv-xlen=32",
+            "--mattr=+m,+gpr32v",
+            "--skip-formats",
+            "--skip-verify",
+            "--no-extend",
+        ],
+        check=True,
+        capture_output=True,
+    )
+    pattern = output.read_text()
+    assert "GPR:$rs1" in pattern and "srl" in pattern and "255" in pattern
+    assert "load" not in pattern and "ptradd" not in pattern
+    ir = output.with_suffix(".ll").read_text()
+    assert "load i32, ptr %rs1, align 4" in ir

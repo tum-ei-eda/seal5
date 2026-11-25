@@ -37,3 +37,28 @@ def test_pair_demo_release_inputs(monkeypatch, version, style):
     for patch in selected:
         assert f"llvm{version}-pair-" in patch["file"]
         assert (Path("examples/regpairs/cfg") / patch["file"]).is_file()
+
+
+def test_llvm22_pair_capability_patch_applies_before_definition_generation(tmp_path):
+    """Stage 0 has empty markers, without any generated CORE-V definitions."""
+    import subprocess
+
+    relative = Path("llvm/lib/Target/RISCV/RISCVFeatures.td")
+    source = tmp_path / relative
+    source.parent.mkdir(parents=True)
+    source.write_text(
+        'def HasStdExtSvinval : Predicate<"Subtarget->hasStdExtSvinval()">,\n'
+        "                       AssemblerPredicate<(all_of FeatureStdExtSvinval),\n"
+        "                           \"'Svinval' (Fine-Grained Address-Translation Cache Invalidation)\">;\n"
+        "\n"
+        "// RISCVFeatures.td - riscv_features - INSERTION_START\n"
+        "// RISCVFeatures.td - riscv_features - INSERTION_END\n"
+        "\n"
+        "def FeatureStdExtSvnapot\n"
+        '    : RISCVExtension<1, 0, "NAPOT Translation Contiguity">;\n'
+    )
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True, capture_output=True)
+    subprocess.run(["git", "add", str(relative)], cwd=tmp_path, check=True, capture_output=True)
+    patch = Path("examples/regpairs/patches/llvm22-pair-capability.patch").resolve()
+    subprocess.run(["git", "apply", "--index", str(patch)], cwd=tmp_path, check=True, capture_output=True)
+    assert "def FeatureSeal5RegPair32 :" in source.read_text()

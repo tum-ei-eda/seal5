@@ -25,3 +25,26 @@ class MemoryDAGPatternsTest(unittest.TestCase):
         self.assertNotIn('%rs1.v',result)
         self.assertIn('load i8, ptr %p',result)
         self.assertIn('add i32 %wide, %rs2',result)
+
+    def test_input_output_pointer_survives_scalarization(self):
+        source = """define void @implACC(ptr %rd, ptr readonly %rs1) {
+  %old = load i32, ptr %rd, align 4
+  %value = load i32, ptr %rs1, align 4
+  %sum = add i32 %old, %value
+  store i32 %sum, ptr %rd, align 4
+  ret void
+}
+"""
+        result = scalarize_test_inputs(source)
+        self.assertIn("@implACC(ptr %rd, i32 %rs1)", result)
+        self.assertIn("%old = load i32, ptr %rd", result)
+        self.assertIn("store i32 %sum, ptr %rd", result)
+        self.assertIn("add i32 %old, %rs1", result)
+
+    def test_other_pointer_uses_survive_scalarization(self):
+        source = """define ptr @implALIAS(ptr %rs1) {
+  %value = load i32, ptr %rs1, align 4
+  ret ptr %rs1
+}
+"""
+        self.assertEqual(scalarize_test_inputs(source), source)

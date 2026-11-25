@@ -27,4 +27,4 @@
 +def HasSeal5RegPair32Shift : Predicate<"!Subtarget->is64Bit() && Subtarget->hasSeal5RegPair32Shift()">;
  
  // RISCVFeatures.td - riscv_features - INSERTION_START
- def FeatureVendorXCoreVMac : RISCVExtension<1, 0, "XCoreVMac Extension", []>;
+ // RISCVFeatures.td - riscv_features - INSERTION_END

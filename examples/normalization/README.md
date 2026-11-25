@@ -48,17 +48,18 @@ and the `cg` test kind to attribute coverage to the instruction. This includes
 every fused address/data memory instruction and AND/OR/XOR branch instruction.
 Multiple cases for one instruction stay together: immediate bounds and fallback,
 unaligned extraction, integer-address loads, and unsafe load-folding checks.
-Every instruction has assembly selection and object/disassembly checks with
-GlobalISel fallback disabled; memory fusion tests also check native selection
-with the extension disabled.
+Every instruction has assembly selection and object/disassembly checks.
+Branch tests explicitly use SelectionDAG: Seal5 lowers their generated
+`brcond` patterns to the target `riscv_brcc` node and excludes those rules from
+GlobalISel import. The post-generation checker verifies this target pattern.
+Memory fusion tests also check native selection with the extension disabled.
 
-The lit tests check actual GlobalISel selection for loads, a truncating store,
-indexed and fused memory operations, and conditional branches, in addition to
-object emission/disassembly. The memory fixtures use ordinary pointers and GEPs;
+The lit tests cover loads, a truncating store, indexed and fused memory
+operations, and conditional branches, in addition to object emission/disassembly. The memory fixtures use ordinary pointers and GEPs;
 shared volatile loads and intervening aliasing stores check the limits of load folding.
 XOR-nonzero is tested through its equivalent register-inequality IR form.
-Branch tests use volatile memory effects so they also work with LLVM 22, whose
-RISC-V GlobalISel does not translate inline assembly.
+Branch tests use volatile memory effects to preserve both successors while
+checking instruction selection on LLVM 22 and LLVM 23.
 Postincrement/writeback and read-modify-write operations remain excluded.
 The branch-immediate tests cover negative and positive bounds, out-of-range
 fallback/rejection, immediate operand ordering, and object emission/disassembly.

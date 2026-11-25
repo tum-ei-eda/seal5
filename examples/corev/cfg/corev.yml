@@ -97,10 +97,3 @@ patches:
     file: ../patches/llvm22-packed-lane-combines.patch
     comment: Canonicalize legal scalar packed lanes and redundant product extensions
     onlyif: "'matchPackedLaneCombine' not in (settings.deps_dir / 'cdsl2llvm/llvm/lib/Target/RISCV/GISel/RISCVPostLegalizerCombiner.cpp').read_text()"
-  - name: corev_dynamic_slice_bounds
-    target: llvm
-    stage: 0
-    priority: 0
-    file: ../patches/llvm22-dynamic-slice-bounds.patch
-    comment: Load local slice bounds before constructing integer expressions
-    onlyif: "'promote_lvalue(build, upper);' not in (settings.deps_dir / 'cdsl2llvm/llvm/tools/pattern-gen/lib/Parser.cpp').read_text()"

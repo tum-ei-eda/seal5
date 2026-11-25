@@ -91,7 +91,7 @@ def check(directory, config="release_assertions"):
     pattern = branch.with_suffix(".td").read_text()
     if "branch(" not in source or "[[is_branch_offs]]" not in source:
         raise AssertionError(f"{branch}: missing normalized branch or displacement attribute")
-    if "isBranch = 1" not in pattern or "brcond" not in pattern:
+    if "isBranch = 1" not in pattern or "riscv_brcc" not in pattern:
         raise AssertionError(f"{branch}: missing conditional branch selection pattern")
     results.append({"instruction": "NORM_BRANCH", "branch": True})
     for xlen in (32, 64):
@@ -102,7 +102,7 @@ def check(directory, config="release_assertions"):
             pattern = branch.with_suffix(".td").read_text()
             if "branch(" not in source or "[[is_branch_offs]]" not in source:
                 raise AssertionError(f"{branch}: missing normalized branch")
-            if "isBranch = 1" not in pattern or "brcond" not in pattern:
+            if "isBranch = 1" not in pattern or "riscv_brcc" not in pattern:
                 raise AssertionError(f"{branch}: missing branch selection pattern")
             results.append({"instruction": instruction, "xlen": xlen, "branch": True})
     for extension, instruction, operand, width, signed, destination, predicate in [
