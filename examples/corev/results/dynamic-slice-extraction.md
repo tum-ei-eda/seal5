@@ -23,12 +23,17 @@ The parser computes the upper limit for `base +: 16` before loading the local
 integer constant with that pointer type triggers the cast assertion. This
 representative failure is not a vector type being mistaken for an integer.
 
-`llvm22-dynamic-slice-bounds.patch` loads and normalizes the first bound before
-constructing limit expressions. It also fixes the normalization loop to resize
-its current bound (`*v`) rather than always resizing `lower`. This small fix
-already existed inside the later register-pair parser adapter; it is now
-available independently through the shared CORE-V configuration. The config
-skips dependencies that already load the upper bound.
+The original `llvm22-dynamic-slice-bounds.patch` loaded and normalized the first
+bound before constructing limit expressions. It also fixed the normalization
+loop to resize its current bound (`*v`) rather than always resizing `lower`.
+This small fix already existed inside the later register-pair parser adapter.
+
+The fix is now supplied by `fix_pattern_gen_slice_indices()` during generic
+PatternGen integration, together with dynamic slice assignment support. The
+standalone CORE-V patch was removed because it attempted to repair the already
+fixed integrated parser a second time. Its dependency-source guard could not
+see the repair made during integration. The extraction results below describe
+the original isolated patch assessment.
 
 ## Isolated validation
 
