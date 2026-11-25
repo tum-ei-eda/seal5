@@ -568,6 +568,11 @@ def scalarize_test_inputs(contents):
         parameter = r"ptr\b[^,%]*" + re.escape(pointer) + r"(?![\w.])"
         if not re.search(parameter, header):
             continue
+        # Keep input/output operands as pointers. Replacing their loads with a
+        # scalar argument would leave stores (or other pointer uses) ill-typed.
+        body = contents[signature.end() : load.start()] + contents[load.end() :]
+        if re.search(re.escape(pointer) + r"(?![\w.])", body):
+            continue
         header = re.sub(parameter, ty + " " + pointer, header)
         contents = contents[: load.start()] + contents[load.end() :]
         contents = re.sub(re.escape(value) + r"(?![\w.])", pointer, contents)
